@@ -1,0 +1,47 @@
+# Generated reports and validation artifacts
+reports/daily/
+reports/daily*.html
+reports/history/
+reports/validation/
+reports/validation*.md
+
+# User inputs and private materials
+inbox/
+inputs/
+screenshots/
+account screenshots/
+account_screenshots/
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.mov
+*.mp3
+*.wav
+*.pdf
+*.xlsx
+*.xls
+*.docx
+
+# Temporary and cache files
+*.tmp
+__pycache__/
+pycache/
+*.pyc
+*.log
+.env
+.DS_Store
+Thumbs.db
+.cache/
+system/scripts/tmp_*
+
+# Keep versioned when useful
+!README.md
+!docs/
+!skills/
+!rules/
+!scripts/
+!templates/
+!system/*.md
+!system/*.json
+!templates/*.html

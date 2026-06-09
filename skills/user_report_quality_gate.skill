@@ -1,0 +1,90 @@
+﻿# User Report Quality Gate Skill V1
+
+## Skill 名称
+
+user_report_quality_gate.skill
+
+## 角色定位
+
+这是用户版日报进入 dashboard 前的质量门 Skill。它不是日报生成器，而是质量审查员。
+
+## 读取文件
+
+必须读取：
+
+- rules/user_report_constitution_v1.md
+- rules/q1_003_decision_evidence_standard_v1.rule
+- reports/daily/dashboard.html
+- reports/daily/正式用户版日报测试入口.md 或当日用户版日报
+- reports/daily/latest_direction_card.md
+- reports/daily/latest_risk_card.md
+- reports/daily/latest_execution_card.md
+- reports/accounts/latest_four_account_action_cards.md
+- reports/daily/latest_evidence_chain.md
+- reports/daily/latest_pdca_checklist.md
+
+## 不能做什么
+
+- 不能修改账户数据。
+- 不能修改投资结论。
+- 不能自动下单。
+- 不能最终验收。
+- 不能自行标绿。
+- 不能为了提高评分删减证据链。
+- 不能为了简洁压缩 Direction / Risk / Execution / Evidence Chain。
+
+## 输出格式
+
+```text
+【状态】PASS / PARTIAL / FAIL
+【执行人】Codex / Claude / Cursor
+【最终验收人】ChatGPT / AI投研总控台 V4
+【发给谁】ChatGPT / AI投研总控台 V4
+【质量评分】0-100
+【是否允许进入dashboard】YES / NO
+【硬阻断】YES / NO
+【主要缺口】
+【下一步唯一动作】
+【可直接执行指令】
+```
+
+## 评分机制
+
+| 项目 | 分值 |
+|---|---:|
+| Delta 卡 | 15 |
+| 四账户唯一动作 | 15 |
+| 决策证据链五段结构 | 15 |
+| 失效条件 | 10 |
+| 第一屏编辑层 | 15 |
+| Evidence Chain 完整保留 | 10 |
+| Direction/Risk/Execution 完整保留 | 10 |
+| PDCA 可执行 | 10 |
+
+## 通过标准
+
+- 90分及以上：允许进入 dashboard。
+- 80-89分：只允许预览，不允许作为最终用户入口。
+- 80分以下：禁止进入 dashboard。
+
+## 硬阻断
+
+出现以下任一项，直接 FAIL：
+
+- 缺 Delta 卡。
+- 缺四账户动作。
+- 缺 Evidence Chain。
+- 缺失效条件。
+- 缺 PDCA。
+- 缺 Direction / Risk / Execution 任一正式卡。
+- 自动下单或暗示可直接交易。
+- 把延迟行情当实时交易价。
+- 用户版日报被后台验收语言占据。
+
+## 失败时怎么处理
+
+- 如果缺编辑层：要求执行 Dashboard Editorial Layer。
+- 如果缺证据：要求补 Evidence Chain。
+- 如果缺账户动作：要求补四账户唯一动作。
+- 如果缺失效条件：要求按 Q1-003 修复五段结构。
+- 如果分数低于90：禁止进入 dashboard，生成修复指令。
