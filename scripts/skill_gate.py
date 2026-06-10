@@ -1,11 +1,52 @@
 ﻿# skill_gate.py
 # AI投研总控台 V4 Skill 运行时质量门控
 # 在所有 dashboard.html 写入操作前调用此函数
+# Rule Source: GitHub primary, local fallback until GitHub push/auth is confirmed.
 
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
+import os
+import urllib.request
 
 ROOT = Path(r"G:\我的云端硬盘\AI_Investment_System")
+GITHUB_RULE_REPO = "https://github.com/zhuzhiqiang212-rgb/AI-Investment-System-Rules"
+GITHUB_RAW_BASE = "https://raw.githubusercontent.com/zhuzhiqiang212-rgb/AI-Investment-System-Rules/main/"
+RULE_SOURCE_MODE = os.environ.get("AI_RULE_SOURCE_MODE", "github_primary_local_fallback")
+RULE_SOURCE_FILES = [
+    "rules/user_report_constitution_v1.md",
+    "rules/q1_003_decision_evidence_standard_v1.rule",
+    "skills/user_report_quality_gate.skill",
+    "rules/validation_workflow.rule",
+]
+
+
+def load_rule_source(relative_path: str) -> tuple[str, str]:
+    """
+    读取规则源。
+    默认策略：GitHub primary, local fallback。
+    返回 (source, text)，source 为 github / local / missing。
+    注意：该函数不修改投资逻辑，只为运行时门控提供规则源状态。
+    """
+    if RULE_SOURCE_MODE in {"github", "github_primary", "github_primary_local_fallback"}:
+        url = GITHUB_RAW_BASE + relative_path.replace("\\", "/")
+        try:
+            with urllib.request.urlopen(url, timeout=3) as resp:
+                data = resp.read().decode("utf-8", errors="ignore")
+            if data.strip():
+                return "github", data
+        except Exception:
+            if RULE_SOURCE_MODE == "github":
+                return "missing", ""
+
+    local_path = ROOT / relative_path
+    if local_path.exists():
+        return "local", local_path.read_text(encoding="utf-8-sig", errors="ignore")
+    return "missing", ""
+
+
+def rule_source_status() -> dict[str, str]:
+    """返回每个关键规则文件当前从 GitHub 还是本地 fallback 读取。"""
+    return {rel: load_rule_source(rel)[0] for rel in RULE_SOURCE_FILES}
 
 
 def skill_gate(report_path: Path) -> tuple[bool, list[str]]:
@@ -15,6 +56,12 @@ def skill_gate(report_path: Path) -> tuple[bool, list[str]]:
     返回 (False, [原因列表]) 表示 FAIL，必须阻断写入。
     """
     failures = []
+
+    # 规则源状态检查：GitHub 为主，本地为降级保护。
+    # 当前不把 local fallback 作为硬阻断，避免 GitHub 凭据/网络短暂失败导致本地日报流程完全不可诊断。
+    sources = rule_source_status()
+    if all(src == "missing" for src in sources.values()):
+        failures.append("规则源不可用：GitHub 与本地 fallback 均无法读取关键规则文件。")
 
     # 检查1：报告文件是否存在
     if not report_path.exists():
@@ -92,6 +139,8 @@ def write_failure_log(report_path: Path, failures: list[str]):
 ## 阻断记录 {now}
 
 被阻断文件：{report_path}
+规则源模式：{RULE_SOURCE_MODE}
+规则源状态：{rule_source_status()}
 阻断原因：
 """
     for i, f in enumerate(failures, 1):
