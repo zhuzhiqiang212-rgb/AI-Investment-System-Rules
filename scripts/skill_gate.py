@@ -30,7 +30,7 @@ def load_rule_source(relative_path: str) -> tuple[str, str]:
     if RULE_SOURCE_MODE in {"github", "github_primary", "github_primary_local_fallback"}:
         url = GITHUB_RAW_BASE + relative_path.replace("\\", "/")
         try:
-            with urllib.request.urlopen(url, timeout=3) as resp:
+            with urllib.request.urlopen(url, timeout=10) as resp:
                 data = resp.read().decode("utf-8", errors="ignore")
             if data.strip():
                 return "github", data
@@ -113,15 +113,19 @@ def skill_gate(report_path: Path) -> tuple[bool, list[str]]:
     if "昨日验证" not in content and "昨日判断" not in content:
         failures.append("缺少昨日验证：报告必须包含「昨日验证」或「昨日判断」模块。")
 
-    # 检查8：禁止出现原始系统卡片全文标记
-    raw_markers = ["<details", "<pre>", "</pre>", "</details>"]
-    for marker in raw_markers:
-        if marker in content:
-            failures.append(
-                f"原始系统卡片全文被嵌入报告（检测到「{marker}」标记）。"
-                f"完整卡片必须存为独立文件，不得内嵌在用户日报中。"
-            )
-            break  # 只报告一次
+    # 检查8：禁止 Markdown 用户日报正文内嵌原始系统卡片全文。
+    # dashboard.html 属于页面容器，允许使用 <details>/<pre> 做折叠与排版；
+    # Markdown 正文不允许用这些 HTML 标记把后台原文整段塞进用户日报。
+    is_dashboard_html = report_path.name.lower() == "dashboard.html" and report_path.suffix.lower() == ".html"
+    if not is_dashboard_html:
+        raw_markers = ["<details", "<pre>", "</pre>", "</details>"]
+        for marker in raw_markers:
+            if marker in content:
+                failures.append(
+                    f"原始系统卡片全文被嵌入报告（检测到「{marker}」标记）。"
+                    f"完整卡片必须存为独立文件，不得内嵌在用户日报中。"
+                )
+                break  # 只报告一次
 
     return len(failures) == 0, failures
 
