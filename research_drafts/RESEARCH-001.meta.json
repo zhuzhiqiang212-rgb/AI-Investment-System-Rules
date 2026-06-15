@@ -1,0 +1,16 @@
+{
+  "id": "RESEARCH-001",
+  "type": "事件专题",
+  "title": "BOJ议息专题_2026-06-16",
+  "version": "v2.0",
+  "created": "2026-06-15",
+  "status": "Published(Beta-1)",
+  "valid_until": "BOJ结果公布后失效",
+  "expired": true,
+  "approved_by": "ChatGPT V6",
+  "pdf_sha256": "B8BEA75E15CEA68B47F7A92CB5E995465BABBA7BD95534C9B6B23F7DFA2A007A",
+  "pdf_size_bytes": 197990,
+  "data_timestamp": "2026-06-15T01:23:00+09:00",
+  "drive_backup_id": "1w-ppc1TBS-ibeDwBCnkGSRk-npkzz_bT",
+  "raw_url": "https://raw.githubusercontent.com/zhuzhiqiang212-rgb/AI-Investment-System-Rules/main/research_drafts/RESEARCH-001.md"
+}

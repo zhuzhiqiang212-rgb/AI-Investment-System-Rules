@@ -1,0 +1,16 @@
+{
+  "id": "RESEARCH-002",
+  "type": "个股深度",
+  "title": "MSTR风险处置专题",
+  "version": "v1.3",
+  "created": "2026-06-16",
+  "status": "Published(Beta-1)",
+  "valid_until": "BTC突破$110,000或跌破$90,000",
+  "expired": false,
+  "approved_by": "ChatGPT V6",
+  "pdf_sha256": "CCA3F7BF3E3FC05AEC4A64C8D990BE690888BC0F3A5FD24A01357D937743FFCF",
+  "pdf_size_bytes": 223630,
+  "data_timestamp": "2026-06-15T01:23:00+09:00",
+  "drive_backup_id": "1yWPxeVUlVU5RGEyOqnFBwm3tk04Uw-nd",
+  "raw_url": "https://raw.githubusercontent.com/zhuzhiqiang212-rgb/AI-Investment-System-Rules/main/research_drafts/RESEARCH-002.md"
+}
