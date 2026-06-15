@@ -25,7 +25,7 @@
 
 | 编号 | 类型 | 主题 | 生成时间 | 有效期 | 状态 | Markdown草稿Drive ID | 触发条件 | 结论写回日报 |
 |------|------|------|---------|--------|------|---------------------|---------|------------|
-| RESEARCH-001 | 事件专题 | BOJ议息专题_2026-06-16 | 2026-06-15 JST | BOJ结果公布后失效（预计2026-06-16）| **Published Failed / PDF待重新发布** | 1w-ppc1TBS-ibeDwBCnkGSRk-npkzz_bT（v2.0 P0修复版）| 事件日历★★★★，未来3日内 | 待正式发布后执行 |
+| RESEARCH-001 | 事件专题 | BOJ议息专题_2026-06-16 | 2026-06-15 JST | BOJ结果公布后失效（预计2026-06-16）| Published Failed / PDF待重新发布 | 1w-ppc1TBS-ibeDwBCnkGSRk-npkzz_bT | 事件日历★★★★，未来3日内 | 待正式发布后执行 |
 | RESEARCH-002 | 个股深度 | MSTR风险处置专题 | 待生成 | 待定 | Draft | — | 持仓浮亏<-30% | 待生成后执行 |
 | RESEARCH-003 | 个股深度 | 9984软银止盈与再配置专题 | 待生成 | 待定 | Draft | — | 持仓浮盈>+50% | 待生成后执行 |
 | RESEARCH-004 | 事件专题 | FOMC专题 | 待生成 | FOMC结果公布后失效 | Draft | — | 事件日历★★★★★ | 待生成后执行 |
@@ -41,12 +41,12 @@
 
 ---
 
-## P0发布前检查清单（每次发布前必须确认）
+## P0发布前检查清单
 
 - [ ] BUG-001：所有持仓价格标注数据时间戳，过期价格标【价格已过期】
 - [ ] BUG-003：研报首部包含有效期表格（生效/失效/状态）
-- [ ] BUG-005：GitHub SSOT已同步最新制度文件（RESEARCH_ENGINE_STANDARD V1.2）
-- [ ] BUG-006：research_index已同步至GitHub
+- [ ] BUG-005：GitHub SSOT已同步RESEARCH_ENGINE_STANDARD V1.2
+- [ ] BUG-006：research_index已同步至GitHub（五状态版）
 - [ ] 步骤3.5：两路径SHA256一致，文件>50KB
 - [ ] 用户WPS打开截图确认可读
 

@@ -41,7 +41,7 @@
 
 **Codex 负责:**
   从Drive读取研报Markdown文本
-  在本地生成PDF（使用wqy-zenhei.ttc字体）
+  在本地生成PDF（使用中文字体）
   将PDF写入桌面两个路径
   将research_index.md同步至GitHub knowledge/
   报告完成状态（文件大小、两路径确认）
@@ -77,17 +77,15 @@
 
 ### 验收顺序（必须严格遵守）
 
-```
 步骤1: 研报生成（Claude输出Markdown）
 步骤2: 写入Drive drafts目录（Claude执行，文本写入）
-步骤3: ChatGPT V6审阅内容（通过Drive链接或对话Markdown）
+步骤3: ChatGPT V6审阅内容
 步骤4: 批准后Codex生成PDF并写入桌面两路径
 步骤5: Codex报告文件大小（应>50KB）和路径确认
 步骤6: 用户WPS打开，截图确认中文正常显示
 步骤7: ChatGPT V6最终确认发布
 步骤8: research_index状态更新为Published
 步骤9: 研报结论写回日报
-```
 
 ### 发布状态定义
 
@@ -98,79 +96,35 @@
 | Published Failed | 发布流程失败（文件损坏/不可读）| 否 |
 | Published (Beta-1) | 通过用户可读验收 + ChatGPT V6批准 | 是 |
 | Published (Stable) | 模板已定稿，流程完全验证 | 是 |
-| Archived | 已归档，超期不再参考 | 存档 |
+| Expired | 已过有效期，事件/时效已过 | 否，禁止引用 |
+| Archived | 已归档，超期不再参考 | 否 |
 
 ---
 
-## 三、研报生成流程 V1.0（修订版，V1.2生效）
+## 三、研报生成流程 V1.0（Markdown→PDF，唯一正确流程）
 
-### Markdown → PDF 流程（唯一正确流程）
+阶段1: Claude生成研报Markdown，写入Drive drafts目录
+阶段2: ChatGPT V6审阅，批准后进入下一阶段
+阶段3: Codex本地生成PDF，写入桌面两路径，同步research_index至GitHub
+阶段4: 用户WPS打开，截图确认可读
+阶段5: ChatGPT V6确认发布，Claude更新research_index，结论写回日报
 
-```
-[阶段1] Claude生成研报Markdown
-  Claude在对话中完成研报分析
-  输出Markdown格式（纯文本，可靠传输）
-  写入Drive: AI_Investment_System/reports/drafts/
-  文件名: RESEARCH-XXX_draft.md
-
-[阶段2] ChatGPT V6审阅
-  通过Drive读取或对话Markdown审阅
-  审阅三部分：风险/机会/行动计划
-  批准后进入下一阶段
-
-[阶段3] Codex发布执行（单条指令，一次完成）
-  从Drive读取 RESEARCH-XXX_draft.md
-  本地生成PDF（wqy-zenhei.ttc字体，确保中文可读）
-  写入路径1: 桌面\研报\[类型]\[文件名].pdf
-  写入路径2: 桌面\股票分析与研究\[文件名].pdf
-  同步research_index.md至GitHub knowledge/
-  报告：文件大小 / 两路径状态
-
-[阶段4] 用户可读验收
-  用户双击PDF，WPS打开
-  确认中文正常显示
-  截图发回对话
-
-[阶段5] 正式发布
-  ChatGPT V6确认发布
-  Claude更新research_index状态为Published
-  Claude将研报结论一行写入日报配置
-```
-
-### 禁止的传输方式
-
-禁止: Claude通过base64将PDF传输到Drive（大文件截断导致损坏）
-禁止: 要求用户手动传输文件
+禁止: Claude通过base64将PDF传输到Drive
 正确: Claude写Markdown文本 → Codex本地生成PDF → 本地写入桌面
 
 ---
 
-## 四、研报类型定义（继承V1.1）
+## 四、研报类型定义
 
-### 类型1: 事件专题研报
-触发条件: 事件日历★★★★以上事件在未来3日内
-命名规则: 事件专题_[事件名]_YYYY-MM-DD.pdf
-Markdown草稿: RESEARCH-XXX_事件专题_[事件名]_draft.md
-
-### 类型2: 个股深度研报
-触发条件: 浮盈>+50% 或 浮亏<-30% 或用户请求
-命名规则: 个股研究_[代码]_[主题]_YYYY-MM-DD.pdf
-
-### 类型3: 趋势轮动研报
-触发条件: 每周五 / 子周期独立强势
-命名规则: 趋势轮动_YYYY-WXX.pdf
-
-### 类型4: 进攻机会研报
-触发条件: 周期升级BULL A级 / 强趋势窗口期
-命名规则: 进攻机会_[标的板块]_YYYY-MM-DD.pdf
-
-### 类型5: 月度归因报告
-触发条件: 每月末
-命名规则: 月度归因_YYYY-MM.pdf
+类型1: 事件专题研报 | 触发: ★★★★以上事件在3日内 | 命名: 事件专题_[事件名]_YYYY-MM-DD.pdf
+类型2: 个股深度研报 | 触发: 浮盈>+50%或浮亏<-30% | 命名: 个股研究_[代码]_[主题]_YYYY-MM-DD.pdf
+类型3: 趋势轮动研报 | 触发: 每周五/子周期独立强势 | 命名: 趋势轮动_YYYY-WXX.pdf
+类型4: 进攻机会研报 | 触发: 周期升级BULL A级 | 命名: 进攻机会_[标的板块]_YYYY-MM-DD.pdf
+类型5: 月度归因报告 | 触发: 每月末 | 命名: 月度归因_YYYY-MM.pdf
 
 ---
 
-## 五、事件驱动触发规则（继承V1.1）
+## 五、事件驱动触发规则
 
 | 触发条件 | 生成研报类型 | 优先级 |
 |---------|------------|--------|
@@ -187,17 +141,13 @@ Markdown草稿: RESEARCH-XXX_事件专题_[事件名]_draft.md
 
 ## 六、研报输出目录
 
-Drive草稿路径:
-  AI_Investment_System/reports/drafts/RESEARCH-XXX_draft.md
-
+Drive草稿路径: AI_Investment_System/reports/drafts/RESEARCH-XXX_draft.md
 本地桌面路径（Codex写入）:
   C:\Users\zhu20\OneDrive\桌面\股票分析与研究\研报\事件专题\
   C:\Users\zhu20\OneDrive\桌面\股票分析与研究\研报\个股研究\
   C:\Users\zhu20\OneDrive\桌面\股票分析与研究\研报\趋势轮动\
   C:\Users\zhu20\OneDrive\桌面\股票分析与研究\研报\月度归因\
-
-备用路径（Codex同时写入）:
-  C:\Users\zhu20\OneDrive\桌面\股票分析与研究\[文件名].pdf
+备用路径: C:\Users\zhu20\OneDrive\桌面\股票分析与研究\[文件名].pdf
 
 ---
 
@@ -213,11 +163,9 @@ Drive草稿路径:
 
 ---
 
-## 八、RESEARCH-001状态说明
+## 八、RESEARCH-001状态
 
-编号: RESEARCH-001
-主题: BOJ议息专题 2026-06-16
+编号: RESEARCH-001 | 主题: BOJ议息专题 2026-06-16
 研究内容: 通过（ChatGPT V6审批）
-发布流程: 失败（base64传输导致PDF损坏）
-当前状态: Published Failed
+当前状态: Published Failed（发布流程中PDF传输损坏）
 修复方案: 按本V1.2流程重新发布（Markdown→Codex→PDF→用户验收）
