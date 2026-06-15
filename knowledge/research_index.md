@@ -1,4 +1,4 @@
-﻿# research_index.md
+# research_index.md
 # V6研报索引
 # 用途: 记录所有已生成研报的编号/名称/时间/状态/路径
 # 生成者: Claude（每次生成研报时同步更新）
@@ -25,7 +25,7 @@
 
 | 编号 | 类型 | 主题 | 生成时间 | 有效期 | 状态 | Markdown草稿Drive ID | 触发条件 | 结论写回日报 |
 |------|------|------|---------|--------|------|---------------------|---------|------------|
-| RESEARCH-001 | 事件专题 | BOJ议息专题_2026-06-16 | 2026-06-15 JST | BOJ结果公布后失效（预计2026-06-16）| **Review / 待用户WPS截图确认** | 1w-ppc1TBS-ibeDwBCnkGSRk-npkzz_bT（v2.0 P0修复版）| 事件日历★★★★，未来3日内 | 待用户WPS打开确认后执行 |
+| RESEARCH-001 | 事件专题 | BOJ议息专题_2026-06-16 | 2026-06-15 JST | BOJ结果公布后失效（预计2026-06-16）| **Published Failed / PDF待重新发布** | 1w-ppc1TBS-ibeDwBCnkGSRk-npkzz_bT（v2.0 P0修复版）| 事件日历★★★★，未来3日内 | 待正式发布后执行 |
 | RESEARCH-002 | 个股深度 | MSTR风险处置专题 | 待生成 | 待定 | Draft | — | 持仓浮亏<-30% | 待生成后执行 |
 | RESEARCH-003 | 个股深度 | 9984软银止盈与再配置专题 | 待生成 | 待定 | Draft | — | 持仓浮盈>+50% | 待生成后执行 |
 | RESEARCH-004 | 事件专题 | FOMC专题 | 待生成 | FOMC结果公布后失效 | Draft | — | 事件日历★★★★★ | 待生成后执行 |
@@ -37,7 +37,7 @@
 | 版本 | 时间 | 状态 | 说明 |
 |------|------|------|------|
 | v1.0草稿 | 2026-06-15 JST | Published Failed | 初版，base64传输损坏，PDF7.5KB不可读 |
-| v2.0 P0修复版 | 2026-06-15 JST | Review / 待用户WPS截图确认 | BUG-001数据时间戳 + BUG-003有效期 已修复；PDF已重发，等待用户WPS打开确认 |
+| v2.0 P0修复版 | 2026-06-15 JST | 待发布 | BUG-001数据时间戳 + BUG-003有效期 已修复 |
 
 ---
 
@@ -58,4 +58,3 @@
 https://raw.githubusercontent.com/zhuzhiqiang212-rgb/AI-Investment-System-Rules/main/knowledge/research_index.md
 
 每次研报状态变更后，Codex必须同步本文件至GitHub。
-
