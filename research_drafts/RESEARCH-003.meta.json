@@ -1,0 +1,14 @@
+{
+  "id": "RESEARCH-003",
+  "type": "个股深度",
+  "title": "软银集团9984止盈与再配置专题",
+  "version": "v1.1",
+  "created": "2026-06-16",
+  "status": "Beta-Draft",
+  "valid_until": "用户完成止盈动作或软银跌破成本价（约4,457日元）",
+  "expired": false,
+  "approved_by": "ChatGPT V6",
+  "pdf_sha256": "pending",
+  "data_timestamp": "2026-06-15T01:23:00+09:00",
+  "raw_url": "https://raw.githubusercontent.com/zhuzhiqiang212-rgb/AI-Investment-System-Rules/main/research_drafts/RESEARCH-003.md"
+}
