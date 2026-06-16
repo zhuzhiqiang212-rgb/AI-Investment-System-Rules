@@ -1,0 +1,16 @@
+{
+  "id": "RESEARCH-004",
+  "type": "事件总控",
+  "title": "FOMC事件总控专题",
+  "version": "v1.2",
+  "created": "2026-06-16",
+  "status": "Beta-Draft",
+  "valid_until": "FOMC声明发布后自动失效（预计2026-06-18 JST）",
+  "expired": false,
+  "approved_by": "ChatGPT V6",
+  "pdf_sha256": "pending",
+  "data_timestamp_execution_card": "2026-06-16T08:00:00+09:00",
+  "data_timestamp_market_info": "2026-06-16 JST",
+  "integrates": ["RESEARCH-002", "RESEARCH-003"],
+  "raw_url": "https://raw.githubusercontent.com/zhuzhiqiang212-rgb/AI-Investment-System-Rules/main/research_drafts/RESEARCH-004.md"
+}
