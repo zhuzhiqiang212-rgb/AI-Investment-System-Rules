@@ -1,0 +1,1491 @@
+{
+  "task_id": "TASK-014",
+  "version": "V1.3_asset_management_data_part1",
+  "date": "2026-06-26",
+  "generated_at": "2026-06-26 00:43:19 JST",
+  "data_quality": {
+    "status": "PARTIAL",
+    "realtime_accounts": [
+      "FUTU"
+    ],
+    "stale_accounts": [
+      "IBKR",
+      "SBI",
+      "BitFlyer"
+    ],
+    "missing_accounts": [],
+    "warnings": [
+      "IBKR/SBI/BitFlyer 仅有旧OCR快照，不能作为执行级资产合并依据",
+      "反向PK部分字段来自既有扫描文件，非今日实时重算",
+      "外部指数/汇率/加密实时行情未完整接入，本文件中缺失项均保留为缺失"
+    ],
+    "errors": []
+  },
+  "accounts": [
+    {
+      "account": "FUTU",
+      "status": "realtime",
+      "snapshot_date": "2026-06-26 00:32:48 JST",
+      "source_file": "C:\\AI_Investment_System\\data\\position_snapshot.json",
+      "is_stale": false,
+      "stale_days": 0,
+      "account_records": [
+        {
+          "acc_id": 281756477704105599,
+          "trd_env": "REAL",
+          "acc_type": "MARGIN",
+          "uni_card_num": "1001201988178619",
+          "card_num": "1001397579076176",
+          "security_firm": "FUTUSECURITIES",
+          "sim_acc_type": "N/A",
+          "competition_acc_name": "N/A",
+          "trdmarket_auth": "['HK', 'US', 'SG', 'HKFUND', 'USFUND', 'JP']",
+          "acc_status": "ACTIVE",
+          "acc_role": "NORMAL",
+          "jp_acc_type": "[]"
+        }
+      ],
+      "cash": {
+        "USD": -15936.61,
+        "JPY": 1950933.0,
+        "HKD": -124964.7,
+        "available_withdrawal_usd": 12064.57,
+        "available_withdrawal_jpy": 1950933.0,
+        "buying_power_usd": 735553.07268953,
+        "buying_power_jpy": 100550099.27562083
+      },
+      "total_assets": {
+        "USD": 1028017.1018999999,
+        "JPY": 166245019.49960002,
+        "HKD": 8060266.7607
+      },
+      "margin_or_leverage": {
+        "is_margin_account": true,
+        "has_financing_or_leverage": true,
+        "risk_status": "LEVEL3",
+        "exposure_level": "SAFE",
+        "interest_charged_amount_usd": 28001.18,
+        "us_cash": -28001.18,
+        "initial_margin_usd": 478821.25997581333,
+        "maintenance_margin_usd": 380859.813125
+      },
+      "fx": {
+        "USDJPY": 161.714255,
+        "HKDJPY": 20.62525,
+        "source": "OpenD accinfo_query cross-currency total_assets",
+        "note": "由富途账户总资产跨币种返回值反推，仅用于同一账户内合并口径"
+      },
+      "positions": [
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "JP.4568",
+          "name": "第一三共",
+          "market": "JP",
+          "sector": "医药/防御",
+          "time_horizon": "中期",
+          "quantity": 6500.0,
+          "cost_price": 2948.3846,
+          "average_cost": 3140.3083,
+          "current_price": 2566.5,
+          "market_value": {
+            "currency": "JPY",
+            "original": 16682250.0,
+            "jpy": 16682250.0,
+            "usd": 103158.8093
+          },
+          "pnl": {
+            "value": -2482250.0,
+            "currency": "JPY",
+            "pct": -12.950000000000001,
+            "today_value": 0.0,
+            "today_change_pct_estimated_from_today_pl": 0.0
+          },
+          "account_weight_pct": 10.0347,
+          "can_sell_qty": 6500.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "JP.7832",
+          "name": "万代南梦宫",
+          "market": "JP",
+          "sector": "游戏/消费",
+          "time_horizon": "中期",
+          "quantity": 500.0,
+          "cost_price": 4272.0,
+          "average_cost": 4322.0,
+          "current_price": 3731.0,
+          "market_value": {
+            "currency": "JPY",
+            "original": 1865500.0,
+            "jpy": 1865500.0,
+            "usd": 11535.7796
+          },
+          "pnl": {
+            "value": -270500.0,
+            "currency": "JPY",
+            "pct": -12.659999999999998,
+            "today_value": 0.0,
+            "today_change_pct_estimated_from_today_pl": 0.0
+          },
+          "account_weight_pct": 1.1221,
+          "can_sell_qty": 500.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "JP.7974",
+          "name": "任天堂",
+          "market": "JP",
+          "sector": "游戏/消费",
+          "time_horizon": "中期",
+          "quantity": 2000.0,
+          "cost_price": 8246.8,
+          "average_cost": 8246.8,
+          "current_price": 6859.0,
+          "market_value": {
+            "currency": "JPY",
+            "original": 13718000.0,
+            "jpy": 13718000.0,
+            "usd": 84828.638
+          },
+          "pnl": {
+            "value": -2775600.0,
+            "currency": "JPY",
+            "pct": -16.830000000000002,
+            "today_value": 0.0,
+            "today_change_pct_estimated_from_today_pl": 0.0
+          },
+          "account_weight_pct": 8.2517,
+          "can_sell_qty": 2000.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "JP.8766",
+          "name": "东京海上控股",
+          "market": "JP",
+          "sector": "保险/金融",
+          "time_horizon": "中期",
+          "quantity": 600.0,
+          "cost_price": 4908.3333,
+          "average_cost": 5541.25,
+          "current_price": 6850.0,
+          "market_value": {
+            "currency": "JPY",
+            "original": 4110000.0,
+            "jpy": 4110000.0,
+            "usd": 25415.1992
+          },
+          "pnl": {
+            "value": 1165000.0,
+            "currency": "JPY",
+            "pct": 39.56,
+            "today_value": 0.0,
+            "today_change_pct_estimated_from_today_pl": 0.0
+          },
+          "account_weight_pct": 2.4723,
+          "can_sell_qty": 600.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "JP.9984",
+          "name": "软银集团",
+          "market": "JP",
+          "sector": "AI 主线/半导体",
+          "time_horizon": "长期",
+          "quantity": 4100.0,
+          "cost_price": 3601.1585,
+          "average_cost": 4457.5992,
+          "current_price": 7118.0,
+          "market_value": {
+            "currency": "JPY",
+            "original": 29183800.0,
+            "jpy": 29183800.0,
+            "usd": 180465.2286
+          },
+          "pnl": {
+            "value": 14419050.0,
+            "currency": "JPY",
+            "pct": 97.66,
+            "today_value": 0.0,
+            "today_change_pct_estimated_from_today_pl": 0.0
+          },
+          "account_weight_pct": 17.5547,
+          "can_sell_qty": 4100.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "US.AVGO",
+          "name": "博通",
+          "market": "US",
+          "sector": "AI 主线/半导体",
+          "time_horizon": "长期",
+          "quantity": 150.0,
+          "cost_price": 383.125,
+          "average_cost": 383.125,
+          "current_price": 381.73,
+          "market_value": {
+            "currency": "USD",
+            "original": 57259.5,
+            "jpy": 9259677.3842,
+            "usd": 57259.5
+          },
+          "pnl": {
+            "value": -209.25,
+            "currency": "USD",
+            "pct": -0.36,
+            "today_value": 55.75,
+            "today_change_pct_estimated_from_today_pl": 0.0975
+          },
+          "account_weight_pct": 5.5699,
+          "can_sell_qty": 150.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "US.COIN",
+          "name": "Coinbase",
+          "market": "US",
+          "sector": "加密/稳定币相关",
+          "time_horizon": "波段",
+          "quantity": 200.0,
+          "cost_price": 228.899,
+          "average_cost": 228.899,
+          "current_price": 146.12,
+          "market_value": {
+            "currency": "USD",
+            "original": 29224.0,
+            "jpy": 4725937.3881,
+            "usd": 29224.0
+          },
+          "pnl": {
+            "value": -16555.7,
+            "currency": "USD",
+            "pct": -36.16,
+            "today_value": -798.0,
+            "today_change_pct_estimated_from_today_pl": -2.6581
+          },
+          "account_weight_pct": 2.8428,
+          "can_sell_qty": 200.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "US.CRCL",
+          "name": "Circle",
+          "market": "US",
+          "sector": "加密/稳定币相关",
+          "time_horizon": "波段",
+          "quantity": 400.0,
+          "cost_price": 94.918,
+          "average_cost": 94.918,
+          "current_price": 70.02,
+          "market_value": {
+            "currency": "USD",
+            "original": 28008.0,
+            "jpy": 4529292.854,
+            "usd": 28008.0
+          },
+          "pnl": {
+            "value": -9959.0,
+            "currency": "USD",
+            "pct": -26.229999999999997,
+            "today_value": -384.0,
+            "today_change_pct_estimated_from_today_pl": -1.3525
+          },
+          "account_weight_pct": 2.7245,
+          "can_sell_qty": 400.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "US.MSFT",
+          "name": "微软",
+          "market": "US",
+          "sector": "AI 主线/半导体",
+          "time_horizon": "长期",
+          "quantity": 500.0,
+          "cost_price": 411.275,
+          "average_cost": 412.331,
+          "current_price": 356.5,
+          "market_value": {
+            "currency": "USD",
+            "original": 178250.0,
+            "jpy": 28825565.9538,
+            "usd": 178250.0
+          },
+          "pnl": {
+            "value": -27387.73,
+            "currency": "USD",
+            "pct": -13.320000000000002,
+            "today_value": -4480.0,
+            "today_change_pct_estimated_from_today_pl": -2.4517
+          },
+          "account_weight_pct": 17.3392,
+          "can_sell_qty": 500.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "US.MSTR",
+          "name": "Strategy",
+          "market": "US",
+          "sector": "加密/稳定币相关",
+          "time_horizon": "波段",
+          "quantity": 700.0,
+          "cost_price": 181.267,
+          "average_cost": 181.267,
+          "current_price": 87.18,
+          "market_value": {
+            "currency": "USD",
+            "original": 61026.0,
+            "jpy": 9868774.1256,
+            "usd": 61026.0
+          },
+          "pnl": {
+            "value": -65860.58,
+            "currency": "USD",
+            "pct": -51.910000000000004,
+            "today_value": -4452.0,
+            "today_change_pct_estimated_from_today_pl": -6.7992
+          },
+          "account_weight_pct": 5.9363,
+          "can_sell_qty": 700.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "US.NVDA",
+          "name": "英伟达",
+          "market": "US",
+          "sector": "AI 主线/半导体",
+          "time_horizon": "长期",
+          "quantity": 780.0,
+          "cost_price": 116.426,
+          "average_cost": 179.965,
+          "current_price": 195.62,
+          "market_value": {
+            "currency": "USD",
+            "original": 152583.6,
+            "jpy": 24674943.1992,
+            "usd": 152583.6
+          },
+          "pnl": {
+            "value": 61770.96,
+            "currency": "USD",
+            "pct": 68.02,
+            "today_value": -2636.4,
+            "today_change_pct_estimated_from_today_pl": -1.6985
+          },
+          "account_weight_pct": 14.8425,
+          "can_sell_qty": 780.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        },
+        {
+          "account": "FUTU",
+          "source_type": "OpenD realtime position_list_query",
+          "is_realtime": true,
+          "code": "US.TSM",
+          "name": "台积电",
+          "market": "US",
+          "sector": "AI 主线/半导体",
+          "time_horizon": "长期",
+          "quantity": 1.0,
+          "cost_price": -23351.29,
+          "average_cost": 153.123,
+          "current_price": 441.01,
+          "market_value": {
+            "currency": "USD",
+            "original": 441.01,
+            "jpy": 71317.6036,
+            "usd": 441.01
+          },
+          "pnl": {
+            "value": 23792.3,
+            "currency": "USD",
+            "pct": 0.0,
+            "today_value": 0.18,
+            "today_change_pct_estimated_from_today_pl": 0.0408
+          },
+          "account_weight_pct": 0.0429,
+          "can_sell_qty": 1.0,
+          "position_side": "LONG",
+          "change_status_vs_previous_snapshot": "缺失",
+          "duplicate_query_count_before_dedup": 3
+        }
+      ],
+      "raw_cash_rows": [
+        {
+          "power": 735553.07268953,
+          "max_power_short": 735553.07268953,
+          "net_cash_power": 0.0,
+          "total_assets": 1028017.1018999999,
+          "securities_assets": 895538.6799999999,
+          "fund_assets": 132478.43,
+          "bond_assets": 0.0,
+          "cash": -15936.61,
+          "market_val": 911475.2822,
+          "long_mv": 911475.2822,
+          "short_mv": 0.0,
+          "pending_asset": 0.0,
+          "interest_charged_amount": 28001.18,
+          "frozen_cash": 0.0,
+          "avl_withdrawal_cash": 12064.57,
+          "max_withdrawal": 12064.569672,
+          "currency": "USD",
+          "available_funds": "N/A",
+          "unrealized_pl": "N/A",
+          "realized_pl": "N/A",
+          "risk_level": "N/A",
+          "risk_status": "LEVEL3",
+          "initial_margin": 478821.25997581333,
+          "margin_call_margin": 513368.59761627,
+          "maintenance_margin": 380859.813125,
+          "hk_cash": 0.0,
+          "hk_avl_withdrawal_cash": 0.0,
+          "hkd_net_cash_power": 0.0,
+          "hkd_assets": 0.0,
+          "us_cash": -28001.18,
+          "us_avl_withdrawal_cash": 0.0,
+          "usd_net_cash_power": 97853.33184045,
+          "usd_assets": 478053.85,
+          "cn_cash": 0.0,
+          "cn_avl_withdrawal_cash": 0.0,
+          "cnh_net_cash_power": 0.0,
+          "cnh_assets": 0.0,
+          "jp_cash": 1950933.0,
+          "jp_avl_withdrawal_cash": 1950933.0,
+          "jpy_net_cash_power": 1950933.0,
+          "jpy_assets": 67510483.0,
+          "sg_cash": 0.0,
+          "sg_avl_withdrawal_cash": 0.0,
+          "sgd_net_cash_power": 0.0,
+          "sgd_assets": 0.0,
+          "au_cash": "N/A",
+          "au_avl_withdrawal_cash": "N/A",
+          "aud_net_cash_power": "N/A",
+          "aud_assets": 0.0,
+          "ca_cash": "N/A",
+          "ca_avl_withdrawal_cash": "N/A",
+          "cad_net_cash_power": "N/A",
+          "cad_assets": 0.0,
+          "my_cash": "N/A",
+          "my_avl_withdrawal_cash": "N/A",
+          "myr_net_cash_power": "N/A",
+          "myr_assets": 0.0,
+          "is_pdt": "N/A",
+          "pdt_seq": "N/A",
+          "beginning_dtbp": "N/A",
+          "remaining_dtbp": "N/A",
+          "dt_call_amount": "N/A",
+          "dt_status": "N/A",
+          "crypto_mv": "N/A",
+          "exposure_level": "SAFE",
+          "exposure_limit": "N/A",
+          "used_limit": "N/A",
+          "remaining_limit": "N/A",
+          "_query_currency": "USD"
+        },
+        {
+          "power": 100550099.27562083,
+          "max_power_short": 100550099.27562083,
+          "net_cash_power": 0.0,
+          "total_assets": 166245019.49960002,
+          "securities_assets": 144820872.76,
+          "fund_assets": 21424146.74,
+          "bond_assets": 0.0,
+          "cash": -2577389.83,
+          "market_val": 147398262.588,
+          "long_mv": 147398262.588,
+          "short_mv": 0.0,
+          "pending_asset": 0.0,
+          "interest_charged_amount": 4528266.82606,
+          "frozen_cash": 0.0,
+          "avl_withdrawal_cash": 1950933.0,
+          "max_withdrawal": 1950933.0,
+          "currency": "JPY",
+          "available_funds": "N/A",
+          "unrealized_pl": "N/A",
+          "realized_pl": "N/A",
+          "risk_level": "N/A",
+          "risk_status": "LEVEL3",
+          "initial_margin": 77433537.6995086,
+          "margin_call_margin": 83018530.63390362,
+          "maintenance_margin": 61591506.39913563,
+          "hk_cash": 0.0,
+          "hk_avl_withdrawal_cash": 0.0,
+          "hkd_net_cash_power": 0.0,
+          "hkd_assets": 0.0,
+          "us_cash": -28001.18,
+          "us_avl_withdrawal_cash": 0.0,
+          "usd_net_cash_power": 97853.33184045,
+          "usd_assets": 478053.85,
+          "cn_cash": 0.0,
+          "cn_avl_withdrawal_cash": 0.0,
+          "cnh_net_cash_power": 0.0,
+          "cnh_assets": 0.0,
+          "jp_cash": 1950933.0,
+          "jp_avl_withdrawal_cash": 1950933.0,
+          "jpy_net_cash_power": 1950933.0,
+          "jpy_assets": 67510483.0,
+          "sg_cash": 0.0,
+          "sg_avl_withdrawal_cash": 0.0,
+          "sgd_net_cash_power": 0.0,
+          "sgd_assets": 0.0,
+          "au_cash": "N/A",
+          "au_avl_withdrawal_cash": "N/A",
+          "aud_net_cash_power": "N/A",
+          "aud_assets": 0.0,
+          "ca_cash": "N/A",
+          "ca_avl_withdrawal_cash": "N/A",
+          "cad_net_cash_power": "N/A",
+          "cad_assets": 0.0,
+          "my_cash": "N/A",
+          "my_avl_withdrawal_cash": "N/A",
+          "myr_net_cash_power": "N/A",
+          "myr_assets": 0.0,
+          "is_pdt": "N/A",
+          "pdt_seq": "N/A",
+          "beginning_dtbp": "N/A",
+          "remaining_dtbp": "N/A",
+          "dt_call_amount": "N/A",
+          "dt_status": "N/A",
+          "crypto_mv": "N/A",
+          "exposure_level": "SAFE",
+          "exposure_limit": "N/A",
+          "used_limit": "N/A",
+          "remaining_limit": "N/A",
+          "_query_currency": "JPY"
+        },
+        {
+          "power": 4780449.747915,
+          "max_power_short": 4780449.747915,
+          "net_cash_power": 0.0,
+          "total_assets": 8060266.7607,
+          "securities_assets": 7021533.86,
+          "fund_assets": 1038732.9,
+          "bond_assets": 0.0,
+          "cash": -124964.7,
+          "market_val": 7146498.5636,
+          "long_mv": 7146498.5636,
+          "short_mv": 0.0,
+          "pending_asset": 0.0,
+          "interest_charged_amount": 219550.9521145,
+          "frozen_cash": 0.0,
+          "avl_withdrawal_cash": 94586.11,
+          "max_withdrawal": 94586.1091725,
+          "currency": "HKD",
+          "available_funds": "N/A",
+          "unrealized_pl": "N/A",
+          "realized_pl": "N/A",
+          "risk_level": "N/A",
+          "risk_status": "LEVEL3",
+          "initial_margin": 3754327.3705805577,
+          "margin_call_margin": 4025004.14164427,
+          "maintenance_margin": 2986234.1969561065,
+          "hk_cash": 0.0,
+          "hk_avl_withdrawal_cash": 0.0,
+          "hkd_net_cash_power": 0.0,
+          "hkd_assets": 0.0,
+          "us_cash": -28001.18,
+          "us_avl_withdrawal_cash": 0.0,
+          "usd_net_cash_power": 97853.33184045,
+          "usd_assets": 478053.85,
+          "cn_cash": 0.0,
+          "cn_avl_withdrawal_cash": 0.0,
+          "cnh_net_cash_power": 0.0,
+          "cnh_assets": 0.0,
+          "jp_cash": 1950933.0,
+          "jp_avl_withdrawal_cash": 1950933.0,
+          "jpy_net_cash_power": 1950933.0,
+          "jpy_assets": 67510483.0,
+          "sg_cash": 0.0,
+          "sg_avl_withdrawal_cash": 0.0,
+          "sgd_net_cash_power": 0.0,
+          "sgd_assets": 0.0,
+          "au_cash": "N/A",
+          "au_avl_withdrawal_cash": "N/A",
+          "aud_net_cash_power": "N/A",
+          "aud_assets": 0.0,
+          "ca_cash": "N/A",
+          "ca_avl_withdrawal_cash": "N/A",
+          "cad_net_cash_power": "N/A",
+          "cad_assets": 0.0,
+          "my_cash": "N/A",
+          "my_avl_withdrawal_cash": "N/A",
+          "myr_net_cash_power": "N/A",
+          "myr_assets": 0.0,
+          "is_pdt": "N/A",
+          "pdt_seq": "N/A",
+          "beginning_dtbp": "N/A",
+          "remaining_dtbp": "N/A",
+          "dt_call_amount": "N/A",
+          "dt_status": "N/A",
+          "crypto_mv": "N/A",
+          "exposure_level": "SAFE",
+          "exposure_limit": "N/A",
+          "used_limit": "N/A",
+          "remaining_limit": "N/A",
+          "_query_currency": "HKD"
+        }
+      ],
+      "warnings": [],
+      "errors": []
+    },
+    {
+      "account": "IBKR",
+      "status": "stale_ocr_snapshot",
+      "snapshot_date": "2026-06-01 15:49:21 JST",
+      "source_file": "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\ibkr_ocr.txt",
+      "is_stale": true,
+      "stale_days": 25,
+      "confidence": "low",
+      "whether_user_trade_update_detected": "缺失",
+      "cash": {
+        "value": 4300,
+        "currency": "USD",
+        "confidence": "low_ocr"
+      },
+      "total_assets": {
+        "value": 202679.34,
+        "currency": "USD",
+        "confidence": "low_ocr"
+      },
+      "margin_or_leverage": {
+        "has_financing_or_leverage": "缺失",
+        "reason": "OCR旧快照未提供可靠融资/杠杆字段"
+      },
+      "positions": [
+        {
+          "code": "COIN",
+          "name": "Coinbase",
+          "quantity": 45,
+          "current_price": 188.3,
+          "all_other_required_fields": "缺失",
+          "confidence": "low_ocr"
+        },
+        {
+          "code": "IBKR",
+          "name": "Interactive Brokers",
+          "quantity": 14.3669,
+          "current_price": 86.61,
+          "all_other_required_fields": "缺失",
+          "confidence": "low_ocr"
+        },
+        {
+          "code": "META",
+          "name": "Meta",
+          "quantity": 95,
+          "current_price": 632.43,
+          "all_other_required_fields": "缺失",
+          "confidence": "low_ocr"
+        },
+        {
+          "code": "MSFT",
+          "name": "Microsoft",
+          "quantity": 140,
+          "current_price": 449.99,
+          "all_other_required_fields": "缺失",
+          "confidence": "low_ocr"
+        },
+        {
+          "code": "MSTR",
+          "name": "Strategy",
+          "quantity": 158,
+          "current_price": 158.96,
+          "all_other_required_fields": "缺失",
+          "confidence": "low_ocr"
+        },
+        {
+          "code": "NVDA",
+          "name": "NVIDIA",
+          "quantity": 190,
+          "current_price": 212.49,
+          "all_other_required_fields": "缺失",
+          "confidence": "low_ocr"
+        }
+      ],
+      "raw_ocr_excerpt": "=== page 1 ===\n23°37 am inl => (\n= RAHA Qk @\nBE RAM #28 ROMS\n27TH A] eM\nSee All Orders & Trades\n\n=== page 2 ===\n23:37 = ml = |\n= RABAS Q & ©\nso 8 ##® wmme\nta, HZ MIM ago C\nSh 8S RIS Km TRINA\na RM tree BYE\nBit (USD) v\nSa RIM 202,679.34\n55S (MaMa 0.00\nBI— AS RRMe\nes 202,274.06\nPA\nZ> eS thn\nReg TS Tak ME IN) G70 24\n\n=== page 3 ===\n23:36 am tls (\n= KAAS Q £& @\nPSMA SARS\nVv\n202,679 0\nHB RM f= alle\n1\nPa Raitt x4 ie RS +\nCOIN nasvao.nms © 188.30 +6.05 45 —\nIBKRnasoaonms * 86.61 +3.58 14.3669 =\nMETA wasoao.nms ® 632.43 — -2.86 95 —\nMSFT wasoao.nms @ 449.99 +23.00 140 =\nMSTR wasononns # 158.96 $7.32 158 —\nNVDA wasoao.ns® 212.49 = -1.76 190 —\nERG\nUSD WE 4.30K TAiMa\nAIWs 4.30K Taina",
+      "unparsed_fields": [
+        "成本价",
+        "市值",
+        "盈亏",
+        "占账户比例",
+        "今日涨跌"
+      ]
+    },
+    {
+      "account": "SBI",
+      "status": "stale_ocr_snapshot",
+      "snapshot_date": "2026-06-01 15:49:25 JST",
+      "source_file": "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\sbi_ocr.txt",
+      "is_stale": true,
+      "stale_days": 25,
+      "confidence": "low",
+      "whether_user_trade_update_detected": "缺失",
+      "cash": "缺失",
+      "total_assets": {
+        "value": 18326715,
+        "currency": "JPY",
+        "confidence": "low_ocr"
+      },
+      "margin_or_leverage": {
+        "has_financing_or_leverage": "缺失",
+        "reason": "OCR旧快照未提供可靠融资/杠杆字段"
+      },
+      "positions": [
+        {
+          "code": "4568",
+          "name": "第一三共/OCR候选",
+          "quantity": 3400,
+          "current_price": 3278.0,
+          "all_other_required_fields": "缺失",
+          "confidence": "very_low_ocr"
+        },
+        {
+          "code": "6758",
+          "name": "Sony/OCR候选",
+          "quantity": 1000,
+          "current_price": 4128.0,
+          "all_other_required_fields": "缺失",
+          "confidence": "very_low_ocr"
+        },
+        {
+          "code": "6857",
+          "name": "Advantest/OCR候选",
+          "quantity": 800,
+          "current_price": 26158.0,
+          "all_other_required_fields": "缺失",
+          "confidence": "very_low_ocr"
+        },
+        {
+          "code": "7203",
+          "name": "Toyota/OCR候选",
+          "quantity": 800,
+          "current_price": 2956.0,
+          "all_other_required_fields": "缺失",
+          "confidence": "very_low_ocr"
+        },
+        {
+          "code": "8001",
+          "name": "Itochu/OCR候选",
+          "quantity": 600,
+          "current_price": 1987.0,
+          "all_other_required_fields": "缺失",
+          "confidence": "very_low_ocr"
+        },
+        {
+          "code": "8750",
+          "name": "Dai-ichi Life/OCR候选",
+          "quantity": 900,
+          "current_price": 4412.0,
+          "all_other_required_fields": "缺失",
+          "confidence": "very_low_ocr"
+        }
+      ],
+      "raw_ocr_excerpt": "=== page 1 ===\n23:56 mm ils? @\nEMRE @\nai EG] AMVEMR EBL\nBAA PEOkR] = ER] ER\nRFCM SHAMS VECKA.\n\n=== page 2 ===\n23:56 =m mS @\nOe (S\n(RAE EU aiib = ea RH\nBRtRH2Ss# A) 18,326,715\n[CBS 8)\nxETRAISIAR, SRSA ICBHAHNE\noe (RBOBEAISET yy RBICBRVUE\n\n=== page 3 ===\n23:56 am mS 7\nOe ee C\nRA LS ay (mts m RA\n\naM (misma at eR: wes\nar (mis m BAAR 8\n\nBai) RARE eee )\n\nFa) GES) aemgzaay A bt\nBSH 3,400 9,181,700\n4568 HE ()\nY-=-—A\\-7F 1,000*% 3,444,000\n6758 FE (0)\nPRNVFAR 8001 20,936,000\n6857 HE (0)\nkaye 800K 2,433,600\n7203 RE (0)\nFRE 600% 1,161,300\n8001 HE ()\nB-—JSIIIN—-T 900K 1,472,400\n8750 tee (N)\n\n=== page 4 ===\n23:55 ma nS @\nDES ie\nRA GL a iiet= bam RD\naria at AM: WE\nay (Mi im 2 BAAR 8\nii WH ae M38 i )\n0) meet @ APRA\nBSH\n4568 $3 3,278.0F\nYI-FW-TF\n6758 4S 4,128.0\nPRENYFA\n6857 435E 26,158.04\nka97B8\n7208 4358 2,956.0\nFR\n8001 455E 1,987.04\nB-—JSIAIIN-T\n8750 tS 441284 0H",
+      "unparsed_fields": [
+        "成本价",
+        "市值",
+        "盈亏",
+        "占账户比例",
+        "今日涨跌"
+      ]
+    },
+    {
+      "account": "BitFlyer",
+      "status": "stale_ocr_snapshot",
+      "snapshot_date": "2026-06-01 15:49:30 JST",
+      "source_file": "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\bitflyer_ocr.txt",
+      "is_stale": true,
+      "stale_days": 25,
+      "confidence": "low",
+      "whether_user_trade_update_detected": "缺失",
+      "cash": {
+        "value": 295363,
+        "currency": "JPY",
+        "confidence": "low_ocr"
+      },
+      "total_assets": {
+        "value": 16714738,
+        "currency": "JPY",
+        "confidence": "low_ocr"
+      },
+      "margin_or_leverage": {
+        "has_financing_or_leverage": "缺失",
+        "reason": "OCR旧快照未提供可靠融资/杠杆字段"
+      },
+      "positions": [
+        {
+          "code": "BTC",
+          "name": "Bitcoin",
+          "quantity": 1.1408405,
+          "cost_or_invested": "缺失",
+          "current_price": {
+            "value": 11730611,
+            "currency": "JPY",
+            "confidence": "low_ocr"
+          },
+          "market_value": {
+            "value": 13389507,
+            "currency": "JPY",
+            "confidence": "low_ocr"
+          },
+          "pnl": "缺失",
+          "total_asset_weight_pct": "缺失"
+        },
+        {
+          "code": "ETH",
+          "name": "Ethereum",
+          "quantity": 9.37526,
+          "cost_or_invested": "缺失",
+          "current_price": {
+            "value": 320365,
+            "currency": "JPY",
+            "confidence": "low_ocr"
+          },
+          "market_value": {
+            "value": 3029868,
+            "currency": "JPY",
+            "confidence": "low_ocr"
+          },
+          "pnl": "缺失",
+          "total_asset_weight_pct": "缺失"
+        }
+      ],
+      "raw_ocr_excerpt": "=== page 1 ===\n23:26 =m wiles (12\n< RS ON 43\nf Py td\n16,714,738 JPY\n\nY) Japanese Yen 295,363 Py\n\n@ Ptcen 13,389,507 spy\n1.1408405 BTC\n\nme heen 3,029,868 JPY\n\n9.37526 ETH\n\n[x] XRP O uPY\nO XRP\n\nD) Dogecoin 0 upy\n0 DOGE\n\n&) Shiba Inu 0 upY\n0 SHIB\n\n=== page 2 ===\n23:27 am ats (12\n< RS BTC/JPY sec\n\n12,500,000\n\n12,000,000\n\n11,730,611\nitll! thnavtlltrstonttttits:\n\n18 5/7 5/21 6/4\n— 11,734,602\nFe 5) {mht BS |e 11,733,952\n11,733,496\n11,730,611 0.001 11733140\n11,733,000 0.00361932 11,733,000\n11,731,809 0.00115479 11,732,630\n11,732,629\n11,731,808 0.0006787 11,731,036\n11,731,035\n0\nDE 11,730,639\nBitcoin Japanese Yen 11,730,636\n1.1408405BTC 295,363 JPY 11,730,635\nRS a 11,730,631\nes 11,730,630\n16,714,738 JPY 11,730,621\na a3g6T\n_— LTP 11,730,611 0.06%\n\nERB ARR 11,723,143\n-3,316,231 JPY 34,342 JPY 11,723,142\nAyrtezs 11,723,131\n> 11,723,130\nSoar lAL 11,723,061\nCy 11 7F7OO F7R7Z\n\n=== page 3 ===\n23:27 am ats (12\n< Rs ETH/JPY 0c\n350,000\n320,365\nLotito Merreestete lal:\nnx) 5/7 5/21 6/4\n320,985\nfS5 (mits AS |= 320,950\n320,913\n320,365 0.099 390.904\n320,216 4.669 320,894\n320,045 00188991 320,849\n320826\n320,309 0.01 320,785\n320,769\n|\ngael 320,721\nEthereum Japanese Yen 320,720\n9.37526 ETH 295,363 JPY 320,719\nware 320,659\nnee 320,656\n16,712,459 JPY 320,647\n520 368\n= LTP 320,365 0.07%\nERB ARR 320,415\n-3,316,231 JPY 34,342 JPY 320,413\n34,342 JPY 390,386\na QON QE/\n\n=== page 4 ===\n23:26 ma ul = €\nann ,.\nse bitFlyer ao\n16,710,709 spy\nFURR\n+37,681 spy\nEb News Bitcoin price\nARGCPH DAT AENSIAR Lightning\nmy\n© BTC/JPY “Vo\nBTC 11,728,998 JPY ¥ 0.23%\nCrypto CFD\n© BTC-CFD/JPY —~/—,\nBTC 11,736,525 JPY ¥ 0.21%\niD\n+ ETH/JPY —vn\nETH 320,365 PY Y 0.70%",
+      "unparsed_fields": [
+        "成本价",
+        "成本价或投入金额",
+        "盈亏",
+        "占账户比例",
+        "今日涨跌"
+      ]
+    }
+  ],
+  "merged_assets": {
+    "four_account_total_assets": {
+      "value": "缺失",
+      "reason": "IBKR/SBI/BitFlyer 当前只有旧OCR快照，非执行级结构化数据，不能合成精确四账户总资产"
+    },
+    "known_realtime_futu_total_assets_jpy": 166245019.49960002,
+    "stale_ocr_indicative_total_assets_jpy": 67817591.47,
+    "stale_ocr_components": [
+      {
+        "account": "IBKR",
+        "source": "stale OCR",
+        "value_jpy": 32776138.472,
+        "confidence": "low_ocr"
+      },
+      {
+        "account": "SBI",
+        "source": "stale OCR",
+        "value_jpy": 18326715.0,
+        "confidence": "low_ocr"
+      },
+      {
+        "account": "BitFlyer",
+        "source": "stale OCR",
+        "value_jpy": 16714738.0,
+        "confidence": "low_ocr"
+      }
+    ],
+    "total_cash": {
+      "value": "缺失",
+      "reason": "非富途账户现金为旧OCR或缺失，四账户总现金不可可靠合并",
+      "futu_realtime_cash_jpy": 1950933.0
+    },
+    "cash_ratio_pct": 1.1735,
+    "allocation_realtime_futu_only": {
+      "by_market": [
+        {
+          "key": "JP",
+          "market_value_jpy": 65559550.0
+        },
+        {
+          "key": "US",
+          "market_value_jpy": 81955508.51
+        }
+      ],
+      "by_sector": [
+        {
+          "key": "AI 主线/半导体",
+          "market_value_jpy": 92015304.14
+        },
+        {
+          "key": "保险/金融",
+          "market_value_jpy": 4110000.0
+        },
+        {
+          "key": "加密/稳定币相关",
+          "market_value_jpy": 19124004.37
+        },
+        {
+          "key": "医药/防御",
+          "market_value_jpy": 16682250.0
+        },
+        {
+          "key": "游戏/消费",
+          "market_value_jpy": 15583500.0
+        }
+      ],
+      "by_time_horizon": [
+        {
+          "key": "中期",
+          "market_value_jpy": 36375750.0
+        },
+        {
+          "key": "波段",
+          "market_value_jpy": 19124004.37
+        },
+        {
+          "key": "长期",
+          "market_value_jpy": 92015304.14
+        }
+      ],
+      "us_stock_pct": 49.298,
+      "jp_stock_pct": 39.4355,
+      "crypto_pct": "缺失",
+      "crypto_pct_reason": "BitFlyer为旧OCR快照，未纳入实时精确资产比例",
+      "ai_main_pct": 55.3492
+    },
+    "single_largest_holding": {
+      "code": "JP.9984",
+      "name": "软银集团",
+      "weight_pct": 17.5547
+    },
+    "largest_loss_holding": {
+      "code": "JP.7974",
+      "name": "任天堂",
+      "pnl": {
+        "value": -2775600.0,
+        "currency": "JPY",
+        "pct": -16.830000000000002,
+        "today_value": 0.0,
+        "today_change_pct_estimated_from_today_pl": 0.0
+      }
+    },
+    "largest_gain_holding": {
+      "code": "JP.9984",
+      "name": "软银集团",
+      "pnl": {
+        "value": 14419050.0,
+        "currency": "JPY",
+        "pct": 97.66,
+        "today_value": 0.0,
+        "today_change_pct_estimated_from_today_pl": 0.0
+      }
+    },
+    "has_leverage": true,
+    "leverage_scope": "FUTU实时确认；其它账户缺失"
+  },
+  "market_data": {
+    "holdings": [
+      {
+        "code": "JP.4568",
+        "name": "第一三共",
+        "current_price": 2566.5,
+        "today_change_pct": 0.0,
+        "today_pl": 0.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "JP.7832",
+        "name": "万代南梦宫",
+        "current_price": 3731.0,
+        "today_change_pct": 0.0,
+        "today_pl": 0.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "JP.7974",
+        "name": "任天堂",
+        "current_price": 6859.0,
+        "today_change_pct": 0.0,
+        "today_pl": 0.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "JP.8766",
+        "name": "东京海上控股",
+        "current_price": 6850.0,
+        "today_change_pct": 0.0,
+        "today_pl": 0.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "JP.9984",
+        "name": "软银集团",
+        "current_price": 7118.0,
+        "today_change_pct": 0.0,
+        "today_pl": 0.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "US.AVGO",
+        "name": "博通",
+        "current_price": 381.73,
+        "today_change_pct": 0.0975,
+        "today_pl": 55.75,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "US.COIN",
+        "name": "Coinbase",
+        "current_price": 146.12,
+        "today_change_pct": -2.6581,
+        "today_pl": -798.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "US.CRCL",
+        "name": "Circle",
+        "current_price": 70.02,
+        "today_change_pct": -1.3525,
+        "today_pl": -384.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "US.MSFT",
+        "name": "微软",
+        "current_price": 356.5,
+        "today_change_pct": -2.4517,
+        "today_pl": -4480.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "US.MSTR",
+        "name": "Strategy",
+        "current_price": 87.18,
+        "today_change_pct": -6.7992,
+        "today_pl": -4452.0,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "US.NVDA",
+        "name": "英伟达",
+        "current_price": 195.62,
+        "today_change_pct": -1.6985,
+        "today_pl": -2636.4,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      },
+      {
+        "code": "US.TSM",
+        "name": "台积电",
+        "current_price": 441.01,
+        "today_change_pct": 0.0408,
+        "today_pl": 0.18,
+        "source": "OpenD position_snapshot nominal_price/today_pl_val"
+      }
+    ],
+    "proxies": {
+      "SOXX": {
+        "value": "缺失",
+        "source": "今日实时行情接口本轮未稳定返回"
+      },
+      "BTC": {
+        "value": "缺失",
+        "source": "未接入今日实时加密行情；BitFlyer仅旧OCR快照"
+      },
+      "VIX": {
+        "value": "缺失",
+        "source": "本轮未调用外部行情源"
+      },
+      "USDJPY": {
+        "value": 161.714255,
+        "source": "OpenD accinfo_query cross-currency inferred"
+      },
+      "Nikkei225": {
+        "value": "缺失",
+        "source": "本轮未调用外部指数行情"
+      },
+      "Nasdaq100": {
+        "value": "缺失",
+        "source": "本轮未调用外部指数行情"
+      }
+    }
+  },
+  "reverse_pk_7": [
+    {
+      "code": "US.NVDA",
+      "current_price": 210.69,
+      "today_change_pct": 2.9513804055704806,
+      "one_month_change_pct": "缺失",
+      "three_month_change_pct": "缺失",
+      "forward_pe_or_ps": {
+        "forward_pe": "缺失",
+        "ps_ttm": "缺失",
+        "pe_ttm": "缺失",
+        "note": "既有扫描只保存TTM/当前估值字段，未计算forward PE"
+      },
+      "market_cap": "缺失",
+      "track": "AI GPU/加速卡",
+      "main_risk": "估值与AI资本开支预期过高风险；若AI需求/毛利率弱化，弹性回撤较大",
+      "relation_to_existing_holdings": "现有富途大仓位，直接影响AI主线敞口",
+      "existing_scan_source": {
+        "mvp_scan_date": "2026-06-20 11:36:51 JST",
+        "long_scan_date": "2026-06-21T08:45:28+09:00",
+        "is_realtime": false,
+        "note": "本字段来自既有扫描文件，非今日实时重算"
+      },
+      "ma_position": {
+        "ma20": 211.6810179811,
+        "ma20_dist_pct": -0.4681657290539376,
+        "ma50": 209.12096217568,
+        "ma50_dist_pct": 0.7503015517889011,
+        "ma200": 189.68438974436998,
+        "ma200_dist_pct": 11.073979405442081
+      },
+      "financial": {
+        "fcf": "缺失",
+        "debt_ratio": "缺失",
+        "gross_margin": "缺失"
+      },
+      "score_if_available": "缺失",
+      "data_gaps": [
+        "1个月涨跌未算",
+        "3个月涨跌未算",
+        "forward PE未算",
+        "市值字段未算"
+      ]
+    },
+    {
+      "code": "US.AVGO",
+      "current_price": 411.35,
+      "today_change_pct": 4.695851361669656,
+      "one_month_change_pct": "缺失",
+      "three_month_change_pct": "缺失",
+      "forward_pe_or_ps": {
+        "forward_pe": "缺失",
+        "ps_ttm": "缺失",
+        "pe_ttm": "缺失",
+        "note": "既有扫描只保存TTM/当前估值字段，未计算forward PE"
+      },
+      "market_cap": "缺失",
+      "track": "AI ASIC/网络/半导体",
+      "main_risk": "AI ASIC预期、并购整合和高估值拥挤风险",
+      "relation_to_existing_holdings": "现有富途持仓，AI硬件链补充敞口",
+      "existing_scan_source": {
+        "mvp_scan_date": "2026-06-20 11:36:51 JST",
+        "long_scan_date": "2026-06-21T08:45:28+09:00",
+        "is_realtime": false,
+        "note": "本字段来自既有扫描文件，非今日实时重算"
+      },
+      "ma_position": {
+        "ma20": 413.73699999999997,
+        "ma20_dist_pct": -0.5769365563147444,
+        "ma50": 411.67400000000004,
+        "ma50_dist_pct": -0.07870305144361822,
+        "ma200": 359.15717308929,
+        "ma200_dist_pct": 14.532029657593505
+      },
+      "financial": {
+        "fcf": "缺失",
+        "debt_ratio": "缺失",
+        "gross_margin": "缺失"
+      },
+      "score_if_available": "缺失",
+      "data_gaps": [
+        "1个月涨跌未算",
+        "3个月涨跌未算",
+        "forward PE未算",
+        "市值字段未算"
+      ]
+    },
+    {
+      "code": "US.CRDO",
+      "current_price": 271.83,
+      "today_change_pct": 9.024184815305002,
+      "one_month_change_pct": "缺失",
+      "three_month_change_pct": "缺失",
+      "forward_pe_or_ps": {
+        "forward_pe": "缺失",
+        "ps_ttm": 37.966,
+        "pe_ttm": 108.298,
+        "note": "既有扫描只保存TTM/当前估值字段，未计算forward PE"
+      },
+      "market_cap": "缺失",
+      "track": "AI连接/高速互联",
+      "main_risk": "高成长高估值，订单兑现与客户集中风险",
+      "relation_to_existing_holdings": "非当前富途持仓；与AI/半导体主线相关",
+      "existing_scan_source": {
+        "mvp_scan_date": "2026-06-20 11:36:51 JST",
+        "long_scan_date": "2026-06-21T08:45:28+09:00",
+        "is_realtime": false,
+        "note": "本字段来自既有扫描文件，非今日实时重算"
+      },
+      "ma_position": {
+        "ma20": 231.83649999999997,
+        "ma20_dist_pct": 17.25073489290945,
+        "ma50": 197.32829999999998,
+        "ma50_dist_pct": 37.75520287764096,
+        "ma200": 153.604825,
+        "ma200_dist_pct": 76.96709722497322
+      },
+      "financial": {
+        "fcf": 406996000.0,
+        "debt_ratio": 10.106511577051768,
+        "gross_margin": 68.03519999999999
+      },
+      "score_if_available": "缺失",
+      "data_gaps": [
+        "1个月涨跌未算",
+        "3个月涨跌未算",
+        "forward PE未算",
+        "市值字段未算"
+      ]
+    },
+    {
+      "code": "US.AMD",
+      "current_price": 537.37,
+      "today_change_pct": 4.856774898532623,
+      "one_month_change_pct": "缺失",
+      "three_month_change_pct": "缺失",
+      "forward_pe_or_ps": {
+        "forward_pe": "缺失",
+        "ps_ttm": 23.394,
+        "pe_ttm": 202.781,
+        "note": "既有扫描只保存TTM/当前估值字段，未计算forward PE"
+      },
+      "market_cap": "缺失",
+      "track": "CPU/GPU/AI加速",
+      "main_risk": "AI GPU竞争、利润率和估值分位偏高风险",
+      "relation_to_existing_holdings": "非当前富途持仓；与AI/半导体主线相关",
+      "existing_scan_source": {
+        "mvp_scan_date": "2026-06-20 11:36:51 JST",
+        "long_scan_date": "2026-06-21T08:45:28+09:00",
+        "is_realtime": false,
+        "note": "本字段来自既有扫描文件，非今日实时重算"
+      },
+      "ma_position": {
+        "ma20": 501.85725,
+        "ma20_dist_pct": 7.076265212866795,
+        "ma50": 411.0471,
+        "ma50_dist_pct": 30.731976943761442,
+        "ma200": 261.150225,
+        "ma200_dist_pct": 105.77045261975174
+      },
+      "financial": {
+        "fcf": 2566000000.0,
+        "debt_ratio": 19.060294819316443,
+        "gross_margin": 50.2803
+      },
+      "score_if_available": "缺失",
+      "data_gaps": [
+        "1个月涨跌未算",
+        "3个月涨跌未算",
+        "forward PE未算",
+        "市值字段未算"
+      ]
+    },
+    {
+      "code": "US.ARM",
+      "current_price": 439.46,
+      "today_change_pct": 4.9131016042780695,
+      "one_month_change_pct": "缺失",
+      "three_month_change_pct": "缺失",
+      "forward_pe_or_ps": {
+        "forward_pe": "缺失",
+        "ps_ttm": 95.402,
+        "pe_ttm": 517.011,
+        "note": "既有扫描只保存TTM/当前估值字段，未计算forward PE"
+      },
+      "market_cap": "缺失",
+      "track": "CPU IP/移动与边缘AI",
+      "main_risk": "极高估值与授权收入增速不及预期风险",
+      "relation_to_existing_holdings": "非当前富途持仓；与AI/半导体主线相关",
+      "existing_scan_source": {
+        "mvp_scan_date": "2026-06-20 11:36:51 JST",
+        "long_scan_date": "2026-06-21T08:45:28+09:00",
+        "is_realtime": false,
+        "note": "本字段来自既有扫描文件，非今日实时重算"
+      },
+      "ma_position": {
+        "ma20": 362.29699999999997,
+        "ma20_dist_pct": 21.29827185982771,
+        "ma50": 264.5317,
+        "ma50_dist_pct": 66.12753783383994,
+        "ma200": 167.83342499999998,
+        "ma200_dist_pct": 161.84295529927962
+      },
+      "financial": {
+        "fcf": 979000000.0,
+        "debt_ratio": 22.582453517705318,
+        "gross_margin": 97.5407
+      },
+      "score_if_available": "缺失",
+      "data_gaps": [
+        "1个月涨跌未算",
+        "3个月涨跌未算",
+        "forward PE未算",
+        "市值字段未算"
+      ]
+    },
+    {
+      "code": "US.KLAC",
+      "current_price": 259.56,
+      "today_change_pct": 8.72533824823023,
+      "one_month_change_pct": "缺失",
+      "three_month_change_pct": "缺失",
+      "forward_pe_or_ps": {
+        "forward_pe": "缺失",
+        "ps_ttm": 25.888,
+        "pe_ttm": 85.465,
+        "note": "既有扫描只保存TTM/当前估值字段，未计算forward PE"
+      },
+      "market_cap": "缺失",
+      "track": "半导体设备/检测量测",
+      "main_risk": "半导体设备周期、对华限制与财务杠杆/负债风险",
+      "relation_to_existing_holdings": "非当前富途持仓；与AI/半导体主线相关",
+      "existing_scan_source": {
+        "mvp_scan_date": "2026-06-20 11:36:51 JST",
+        "long_scan_date": "2026-06-21T08:45:28+09:00",
+        "is_realtime": false,
+        "note": "本字段来自既有扫描文件，非今日实时重算"
+      },
+      "ma_position": {
+        "ma20": 214.8982,
+        "ma20_dist_pct": 20.782770632792634,
+        "ma50": 193.6026066887,
+        "ma50_dist_pct": 34.06844279599761,
+        "ma200": 144.11617407264998,
+        "ma200_dist_pct": 80.10469794261536
+      },
+      "financial": {
+        "fcf": null,
+        "debt_ratio": 65.44587775576103,
+        "gross_margin": 61.446400000000004
+      },
+      "score_if_available": "缺失",
+      "data_gaps": [
+        "1个月涨跌未算",
+        "3个月涨跌未算",
+        "forward PE未算",
+        "市值字段未算"
+      ]
+    },
+    {
+      "code": "US.ALAB",
+      "current_price": 417.07,
+      "today_change_pct": 11.313654318351652,
+      "one_month_change_pct": "缺失",
+      "three_month_change_pct": "缺失",
+      "forward_pe_or_ps": {
+        "forward_pe": "缺失",
+        "ps_ttm": 71.386,
+        "pe_ttm": 341.86,
+        "note": "既有扫描只保存TTM/当前估值字段，未计算forward PE"
+      },
+      "market_cap": "缺失",
+      "track": "AI互联芯片",
+      "main_risk": "新股估值高、业绩兑现周期短、波动极大",
+      "relation_to_existing_holdings": "非当前富途持仓；与AI/半导体主线相关",
+      "existing_scan_source": {
+        "mvp_scan_date": "2026-06-20 11:36:51 JST",
+        "long_scan_date": "2026-06-21T08:45:28+09:00",
+        "is_realtime": false,
+        "note": "本字段来自既有扫描文件，非今日实时重算"
+      },
+      "ma_position": {
+        "ma20": 347.573,
+        "ma20_dist_pct": 19.99493631553659,
+        "ma50": 258.0307,
+        "ma50_dist_pct": 61.635805351843764,
+        "ma200": 186.21939999999998,
+        "ma200_dist_pct": 123.9669980678705
+      },
+      "financial": {
+        "fcf": 67012000.0,
+        "debt_ratio": 9.960553635303441,
+        "gross_margin": 75.98939999999999
+      },
+      "score_if_available": "缺失",
+      "data_gaps": [
+        "1个月涨跌未算",
+        "3个月涨跌未算",
+        "forward PE未算",
+        "市值字段未算"
+      ]
+    }
+  ],
+  "target_baseline": {
+    "current_total_assets": "缺失",
+    "current_total_assets_note": "四账户完整总资产缺失；仅可见富途实时资产和旧OCR指示值",
+    "target_start_date": "缺失",
+    "target_start_assets": "缺失",
+    "gap_to_annualized_40_plus": "缺失",
+    "gap_to_annualized_40_plus_reason": "目标起算资产/日期未在 user_config.json 中登记",
+    "gap_to_annualized_100_plus": "缺失",
+    "gap_to_annualized_100_plus_reason": "目标起算资产/日期未在 user_config.json 中登记",
+    "user_config_path": "C:\\AI_Investment_System\\data\\user_config.json"
+  },
+  "appendix": {
+    "source_files": [
+      "C:\\AI_Investment_System\\data\\position_snapshot.json",
+      "C:\\AI_Investment_System\\data\\user_config.json",
+      "C:\\AI_Investment_System\\reports\\scan\\机会发现MVP候选池V1.json",
+      "C:\\AI_Investment_System\\reports\\scan\\机会过滤器V3_结果.json",
+      "C:\\AI_Investment_System\\reports\\scan\\长期初步观察池V3.json",
+      "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\ibkr_ocr.txt",
+      "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\sbi_ocr.txt",
+      "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\bitflyer_ocr.txt"
+    ],
+    "output_files": {
+      "json": "C:\\AI_Investment_System\\reports\\handoff\\V1_3_Asset_Management_Data_2026-06-26.json",
+      "markdown": "C:\\AI_Investment_System\\reports\\handoff\\V1_3_Asset_Management_Data_2026-06-26.md",
+      "daily_report_json_copy": "C:\\AI_Investment_System\\reports\\daily_report\\V1_3_Asset_Management_Data_2026-06-26.json",
+      "daily_report_markdown_copy": "C:\\AI_Investment_System\\reports\\daily_report\\V1_3_Asset_Management_Data_2026-06-26.md"
+    },
+    "logs": [
+      "本任务只准备数据，不生成产品正文，不写投资建议，不下单。",
+      "FUTU 持仓和现金通过 OpenD 只读接口取得。"
+    ]
+  }
+}
