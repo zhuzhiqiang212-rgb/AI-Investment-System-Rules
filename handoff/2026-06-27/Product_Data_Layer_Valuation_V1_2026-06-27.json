@@ -1,0 +1,3994 @@
+{
+  "task": "TASK-DATA-001 估值数据层补全",
+  "date": "2026-06-27",
+  "generated_at": "2026-06-27 01:14:41 JST",
+  "scope": "Product_Data_Layer valuation capability; no funnel/process/report changes; no investment advice",
+  "data_quality": {
+    "status": "PARTIAL",
+    "source": "yfinance.info / Yahoo Finance",
+    "known_limitations": [
+      "yfinance可用字段取决于Yahoo Finance覆盖；缺失字段逐项记录原因。",
+      "四价格为机械估值接口输出，不是交易建议。",
+      "本脚本可对任意候选symbol运行；默认输入来自当前Product_Data_Layer候选层和V1.3重点持仓。"
+    ]
+  },
+  "status_rules": {
+    "PASS": "核心字段完整且主要辅助字段基本完整；允许计算四价格并进入动作层。",
+    "PASS-C": "Forward PE + Forward EPS + 当前价完整；允许计算四价格，但辅助字段提示持续完善。",
+    "BLOCK": "缺少Forward PE或Forward EPS等核心字段；不能计算四价格，不得进入动作层。"
+  },
+  "four_price_interface_rule": {
+    "method": "forward_eps × forward_pe mechanical anchor",
+    "opportunity_price": "0.8 × forward_eps × forward_pe",
+    "reasonable_price": "1.0 × forward_eps × forward_pe",
+    "expensive_price": "1.2 × forward_eps × forward_pe",
+    "risk_price": "0.65 × forward_eps × forward_pe",
+    "is_trade_instruction": false
+  },
+  "source_files": [
+    "C:\\AI_Investment_System\\reports\\handoff\\Product_Data_Layer_2026-06-25.json",
+    "C:\\AI_Investment_System\\reports\\handoff\\Product_Data_Layer_2026-06-26_V1_3_FOUNDATION.json"
+  ],
+  "summary": {
+    "total_symbols": 74,
+    "by_status": {
+      "PASS": 64,
+      "BLOCK": 7,
+      "PASS-C": 3
+    }
+  },
+  "valuation_records": [
+    {
+      "symbol": "2158.T",
+      "input_codes": [
+        "JP.2158"
+      ],
+      "names": [
+        "Fronteo"
+      ],
+      "source_layers": [
+        "candidate_ranking"
+      ],
+      "company_name": "FRONTEO, Inc.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:33 JST",
+      "timestamp": "2026-06-27T01:14:35.388950+09:00",
+      "source_url": "https://finance.yahoo.com/quote/2158.T",
+      "errors": [],
+      "current_price": 580.0,
+      "forward_pe": 54.20561,
+      "trailing_pe": 41.907513,
+      "ev_ebitda": 21.813,
+      "price_sales": 2.973345,
+      "peg": "缺失",
+      "eps_ttm": 13.84,
+      "forward_eps": 10.7,
+      "eps_growth": 0.195,
+      "revenue_growth": 0.62,
+      "roe": 0.15393,
+      "roic": "缺失",
+      "operating_margin": 0.1753,
+      "free_cash_flow": -692625024,
+      "market_cap": 22725271552,
+      "enterprise_value": 25367992320,
+      "fcf_yield": -0.030478,
+      "missing_field_reasons": {
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 464.0,
+        "reasonable_price": 580.0,
+        "expensive_price": 696.0,
+        "risk_price": 377.0,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "368A.T",
+      "input_codes": [
+        "JP.368A"
+      ],
+      "names": [
+        "Kitazato"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "KITAZATO CORPORATION",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:33 JST",
+      "timestamp": "2026-06-27T01:14:35.792355+09:00",
+      "source_url": "https://finance.yahoo.com/quote/368A.T",
+      "errors": [],
+      "current_price": 1280.0,
+      "forward_pe": "缺失",
+      "trailing_pe": 13.148434,
+      "ev_ebitda": 6.285,
+      "price_sales": 4.67708,
+      "peg": "缺失",
+      "eps_ttm": 97.35,
+      "forward_eps": "缺失",
+      "eps_growth": -0.076,
+      "revenue_growth": -0.01,
+      "roe": 0.20102,
+      "roic": "缺失",
+      "operating_margin": 0.53468,
+      "free_cash_flow": 3265874944,
+      "market_cap": 51200000000,
+      "enterprise_value": 38025998336,
+      "fcf_yield": 0.063787,
+      "missing_field_reasons": {
+        "forward_pe": "yfinance.info 未返回 `forwardPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "forward_eps": "yfinance.info 未返回 `forwardEps` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "BLOCK",
+      "action_layer_eligibility": "blocked_candidate_layer_only"
+    },
+    {
+      "symbol": "3993.T",
+      "input_codes": [
+        "JP.3993"
+      ],
+      "names": [
+        "PKSHA Technology"
+      ],
+      "source_layers": [
+        "candidate_ranking"
+      ],
+      "company_name": "PKSHA Technology Inc.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:33 JST",
+      "timestamp": "2026-06-27T01:14:35.595476+09:00",
+      "source_url": "https://finance.yahoo.com/quote/3993.T",
+      "errors": [],
+      "current_price": 2512.0,
+      "forward_pe": 27.453552,
+      "trailing_pe": 31.934908,
+      "ev_ebitda": 12.024,
+      "price_sales": 2.560088,
+      "peg": "缺失",
+      "eps_ttm": 78.66,
+      "forward_eps": 91.5,
+      "eps_growth": 0.265,
+      "revenue_growth": 0.891,
+      "roe": 0.07162,
+      "roic": "缺失",
+      "operating_margin": 0.18741,
+      "free_cash_flow": 3926000128,
+      "market_cap": 77854826496,
+      "enterprise_value": 73804898304,
+      "fcf_yield": 0.050427,
+      "missing_field_reasons": {
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 2009.6,
+        "reasonable_price": 2512.0,
+        "expensive_price": 3014.4,
+        "risk_price": 1632.8,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "4063.T",
+      "input_codes": [
+        "JP.4063"
+      ],
+      "names": [
+        "信越化学工业"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Shin-Etsu Chemical Co., Ltd.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:33 JST",
+      "timestamp": "2026-06-27T01:14:35.636518+09:00",
+      "source_url": "https://finance.yahoo.com/quote/4063.T",
+      "errors": [],
+      "current_price": 6835.0,
+      "forward_pe": 20.72908,
+      "trailing_pe": 27.081104,
+      "ev_ebitda": 13.699,
+      "price_sales": 4.937905,
+      "peg": 1.99,
+      "eps_ttm": 252.39,
+      "forward_eps": 329.73,
+      "eps_growth": -0.063,
+      "revenue_growth": 0.013,
+      "roe": 0.1068,
+      "roic": "缺失",
+      "operating_margin": 0.21435,
+      "free_cash_flow": 229346492416,
+      "market_cap": 12710016188416,
+      "enterprise_value": 12030570397696,
+      "fcf_yield": 0.018045,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 5467.9996,
+        "reasonable_price": 6834.9995,
+        "expensive_price": 8201.9995,
+        "risk_price": 4442.7497,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "4543.T",
+      "input_codes": [
+        "JP.4543"
+      ],
+      "names": [
+        "泰尔茂"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Terumo Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:33 JST",
+      "timestamp": "2026-06-27T01:14:35.704877+09:00",
+      "source_url": "https://finance.yahoo.com/quote/4543.T",
+      "errors": [],
+      "current_price": 2212.0,
+      "forward_pe": 21.722479,
+      "trailing_pe": 24.009552,
+      "ev_ebitda": 11.869,
+      "price_sales": 2.882719,
+      "peg": 2.18,
+      "eps_ttm": 92.13,
+      "forward_eps": 101.83,
+      "eps_growth": 0.436,
+      "revenue_growth": 0.138,
+      "roe": 0.09205,
+      "roic": "缺失",
+      "operating_margin": 0.14914,
+      "free_cash_flow": 64105500672,
+      "market_cap": 3262883561472,
+      "enterprise_value": 3383122722816,
+      "fcf_yield": 0.019647,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 1769.6,
+        "reasonable_price": 2212.0,
+        "expensive_price": 2654.4,
+        "risk_price": 1437.8,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "4568.T",
+      "input_codes": [
+        "JP.4568"
+      ],
+      "names": [
+        "第一三共"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Daiichi Sankyo Company, Limited",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:33 JST",
+      "timestamp": "2026-06-27T01:14:35.704470+09:00",
+      "source_url": "https://finance.yahoo.com/quote/4568.T",
+      "errors": [],
+      "current_price": 2535.5,
+      "forward_pe": 17.661606,
+      "trailing_pe": 18.060404,
+      "ev_ebitda": 14.747,
+      "price_sales": 2.173167,
+      "peg": 1.68,
+      "eps_ttm": 140.39,
+      "forward_eps": 143.56,
+      "eps_growth": -0.504,
+      "revenue_growth": 0.137,
+      "roe": 0.15809,
+      "roic": "缺失",
+      "operating_margin": -0.00795,
+      "free_cash_flow": -225473626112,
+      "market_cap": 4613730729984,
+      "enterprise_value": 4520813789184,
+      "fcf_yield": -0.04887,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 2028.4001,
+        "reasonable_price": 2535.5002,
+        "expensive_price": 3042.6002,
+        "risk_price": 1648.0751,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "5574.T",
+      "input_codes": [
+        "JP.5574"
+      ],
+      "names": [
+        "ABEJA"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "ABEJA, Inc.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:33 JST",
+      "timestamp": "2026-06-27T01:14:35.648733+09:00",
+      "source_url": "https://finance.yahoo.com/quote/5574.T",
+      "errors": [],
+      "current_price": 2072.0,
+      "forward_pe": 44.36831,
+      "trailing_pe": 39.984562,
+      "ev_ebitda": 30.781,
+      "price_sales": 4.986119,
+      "peg": "缺失",
+      "eps_ttm": 51.82,
+      "forward_eps": 46.7,
+      "eps_growth": -0.036,
+      "revenue_growth": 0.11,
+      "roe": 0.11931,
+      "roic": "缺失",
+      "operating_margin": 0.14397,
+      "free_cash_flow": 640124992,
+      "market_cap": 20587685888,
+      "enterprise_value": 17083712512,
+      "fcf_yield": 0.031093,
+      "missing_field_reasons": {
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 1657.6001,
+        "reasonable_price": 2072.0001,
+        "expensive_price": 2486.4001,
+        "risk_price": 1346.8001,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "5885.T",
+      "input_codes": [
+        "JP.5885"
+      ],
+      "names": [
+        "GDEP Advance"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "GDEP ADVANCE,Inc.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:33 JST",
+      "timestamp": "2026-06-27T01:14:35.647005+09:00",
+      "source_url": "https://finance.yahoo.com/quote/5885.T",
+      "errors": [],
+      "current_price": 2793.0,
+      "forward_pe": "缺失",
+      "trailing_pe": 24.152542,
+      "ev_ebitda": 13.053,
+      "price_sales": 2.602595,
+      "peg": "缺失",
+      "eps_ttm": 115.64,
+      "forward_eps": "缺失",
+      "eps_growth": 1.835,
+      "revenue_growth": 0.091,
+      "roe": 0.21512,
+      "roic": "缺失",
+      "operating_margin": 0.12535,
+      "free_cash_flow": "缺失",
+      "market_cap": 15228251136,
+      "enterprise_value": 13267567616,
+      "fcf_yield": "缺失",
+      "missing_field_reasons": {
+        "forward_pe": "yfinance.info 未返回 `forwardPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "forward_eps": "yfinance.info 未返回 `forwardEps` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用",
+        "free_cash_flow": "yfinance.info 未返回 `freeCashflow` 或值不可用",
+        "fcf_yield": "缺少 free_cash_flow 或 market_cap"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "BLOCK",
+      "action_layer_eligibility": "blocked_candidate_layer_only"
+    },
+    {
+      "symbol": "6471.T",
+      "input_codes": [
+        "JP.6471"
+      ],
+      "names": [
+        "日本精工"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "NSK Ltd.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:35 JST",
+      "timestamp": "2026-06-27T01:14:36.000392+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6471.T",
+      "errors": [],
+      "current_price": 1161.0,
+      "forward_pe": 19.962173,
+      "trailing_pe": 24.967741,
+      "ev_ebitda": 4.472,
+      "price_sales": 0.623162,
+      "peg": 1.51,
+      "eps_ttm": 46.5,
+      "forward_eps": 58.16,
+      "eps_growth": 0.381,
+      "revenue_growth": 0.268,
+      "roe": 0.03571,
+      "roic": "缺失",
+      "operating_margin": 0.04281,
+      "free_cash_flow": -10693624832,
+      "market_cap": 568101699584,
+      "enterprise_value": 405445246976,
+      "fcf_yield": -0.018823,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 928.8,
+        "reasonable_price": 1161.0,
+        "expensive_price": 1393.2,
+        "risk_price": 754.65,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "6503.T",
+      "input_codes": [
+        "JP.6503"
+      ],
+      "names": [
+        "三菱电机"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Mitsubishi Electric Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:35 JST",
+      "timestamp": "2026-06-27T01:14:36.220207+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6503.T",
+      "errors": [],
+      "current_price": 5858.0,
+      "forward_pe": 35.47293,
+      "trailing_pe": 29.564955,
+      "ev_ebitda": 20.604,
+      "price_sales": 2.033679,
+      "peg": 5.11,
+      "eps_ttm": 198.14,
+      "forward_eps": 165.14,
+      "eps_growth": "缺失",
+      "revenue_growth": "缺失",
+      "roe": 0.09964,
+      "roic": "缺失",
+      "operating_margin": 0.06351,
+      "free_cash_flow": 338096881664,
+      "market_cap": 11988021280768,
+      "enterprise_value": 11768424300544,
+      "fcf_yield": 0.028203,
+      "missing_field_reasons": {
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "revenue_growth": "yfinance.info 未返回 `revenueGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 4686.3997,
+        "reasonable_price": 5857.9997,
+        "expensive_price": 7029.5996,
+        "risk_price": 3807.6998,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "6592.T",
+      "input_codes": [
+        "JP.6592"
+      ],
+      "names": [
+        "万宝至马达"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Mabuchi Motor Co., Ltd.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:35 JST",
+      "timestamp": "2026-06-27T01:14:36.315234+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6592.T",
+      "errors": [],
+      "current_price": 1609.0,
+      "forward_pe": 12.245985,
+      "trailing_pe": 15.203629,
+      "ev_ebitda": 7.019,
+      "price_sales": 1.92094,
+      "peg": 1.26,
+      "eps_ttm": 105.83,
+      "forward_eps": 131.39,
+      "eps_growth": 0.785,
+      "revenue_growth": 0.073,
+      "roe": 0.08934,
+      "roic": "缺失",
+      "operating_margin": 0.10565,
+      "free_cash_flow": "缺失",
+      "market_cap": 391543291904,
+      "enterprise_value": 263945715712,
+      "fcf_yield": "缺失",
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用",
+        "free_cash_flow": "yfinance.info 未返回 `freeCashflow` 或值不可用",
+        "fcf_yield": "缺少 free_cash_flow 或 market_cap"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 1287.2,
+        "reasonable_price": 1609.0,
+        "expensive_price": 1930.8,
+        "risk_price": 1045.85,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "6702.T",
+      "input_codes": [
+        "JP.6702"
+      ],
+      "names": [
+        "富士通"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Fujitsu Limited",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:35 JST",
+      "timestamp": "2026-06-27T01:14:36.304121+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6702.T",
+      "errors": [],
+      "current_price": 3199.0,
+      "forward_pe": 21.087673,
+      "trailing_pe": 18.519161,
+      "ev_ebitda": 10.728,
+      "price_sales": 1.584242,
+      "peg": 0.28,
+      "eps_ttm": 172.74,
+      "forward_eps": 151.7,
+      "eps_growth": "缺失",
+      "revenue_growth": "缺失",
+      "roe": 0.15623,
+      "roic": "缺失",
+      "operating_margin": 0.13057,
+      "free_cash_flow": 497066377216,
+      "market_cap": 5549553876992,
+      "enterprise_value": 5251955425280,
+      "fcf_yield": 0.089569,
+      "missing_field_reasons": {
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "revenue_growth": "yfinance.info 未返回 `revenueGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 2559.2,
+        "reasonable_price": 3199.0,
+        "expensive_price": 3838.8,
+        "risk_price": 2079.35,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "6723.T",
+      "input_codes": [
+        "JP.6723"
+      ],
+      "names": [
+        "瑞萨电子"
+      ],
+      "source_layers": [
+        "candidate_ranking"
+      ],
+      "company_name": "Renesas Electronics Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:35 JST",
+      "timestamp": "2026-06-27T01:14:36.302315+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6723.T",
+      "errors": [],
+      "current_price": 4800.0,
+      "forward_pe": 18.173004,
+      "trailing_pe": "缺失",
+      "ev_ebitda": 26.174,
+      "price_sales": 6.252919,
+      "peg": 2.55,
+      "eps_ttm": -28.58,
+      "forward_eps": 264.12805,
+      "eps_growth": 1.585,
+      "revenue_growth": 0.232,
+      "roe": -0.00389,
+      "roic": "缺失",
+      "operating_margin": 0.24342,
+      "free_cash_flow": 205169623040,
+      "market_cap": 8708615045120,
+      "enterprise_value": 9691232993280,
+      "fcf_yield": 0.023559,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 3840.0001,
+        "reasonable_price": 4800.0001,
+        "expensive_price": 5760.0001,
+        "risk_price": 3120.0001,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "6857.T",
+      "input_codes": [
+        "JP.6857"
+      ],
+      "names": [
+        "爱德万测试"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Advantest Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:35 JST",
+      "timestamp": "2026-06-27T01:14:36.352746+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6857.T",
+      "errors": [],
+      "current_price": 32440.0,
+      "forward_pe": 136.45732,
+      "trailing_pe": 63.190292,
+      "ev_ebitda": 49.027,
+      "price_sales": 20.833553,
+      "peg": 2.31,
+      "eps_ttm": 513.37,
+      "forward_eps": 237.73,
+      "eps_growth": 2.204,
+      "revenue_growth": 0.412,
+      "roe": 0.57646,
+      "roic": "缺失",
+      "operating_margin": 0.46671,
+      "free_cash_flow": 240920756224,
+      "market_cap": 23512955748352,
+      "enterprise_value": 25726241734656,
+      "fcf_yield": 0.010246,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 25951.9989,
+        "reasonable_price": 32439.9987,
+        "expensive_price": 38927.9984,
+        "risk_price": 21085.9991,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "6902.T",
+      "input_codes": [
+        "JP.6902"
+      ],
+      "names": [
+        "日本电装"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "DENSO Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:35 JST",
+      "timestamp": "2026-06-27T01:14:36.354647+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6902.T",
+      "errors": [],
+      "current_price": 1875.0,
+      "forward_pe": 9.724094,
+      "trailing_pe": 7.271106,
+      "ev_ebitda": 5.209,
+      "price_sales": 0.669443,
+      "peg": 2.19,
+      "eps_ttm": 257.87,
+      "forward_eps": 192.82,
+      "eps_growth": 0.689,
+      "revenue_growth": 0.091,
+      "roe": 0.08941,
+      "roic": "缺失",
+      "operating_margin": 0.09092,
+      "free_cash_flow": 192762494976,
+      "market_cap": 5047580622848,
+      "enterprise_value": 4895716933632,
+      "fcf_yield": 0.038189,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 1499.9998,
+        "reasonable_price": 1874.9998,
+        "expensive_price": 2249.9998,
+        "risk_price": 1218.7499,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "6954.T",
+      "input_codes": [
+        "6954.T",
+        "JP.6954"
+      ],
+      "names": [
+        "发那科"
+      ],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples",
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Fanuc Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:35 JST",
+      "timestamp": "2026-06-27T01:14:36.589334+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6954.T",
+      "errors": [],
+      "current_price": 7026.0,
+      "forward_pe": 40.58691,
+      "trailing_pe": 39.299698,
+      "ev_ebitda": 26.472,
+      "price_sales": 7.642963,
+      "peg": 3.67,
+      "eps_ttm": 178.78,
+      "forward_eps": 173.11,
+      "eps_growth": 0.11,
+      "revenue_growth": 0.106,
+      "roe": 0.09352,
+      "roic": "缺失",
+      "operating_margin": 0.23904,
+      "free_cash_flow": 159451873280,
+      "market_cap": 6556370862080,
+      "enterprise_value": 6129454153728,
+      "fcf_yield": 0.02432,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 5620.8,
+        "reasonable_price": 7026.0,
+        "expensive_price": 8431.2,
+        "risk_price": 4566.9,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "6981.T",
+      "input_codes": [
+        "JP.6981"
+      ],
+      "names": [
+        "村田制作所"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Murata Manufacturing Co., Ltd.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:36.738891+09:00",
+      "source_url": "https://finance.yahoo.com/quote/6981.T",
+      "errors": [],
+      "current_price": 10770.0,
+      "forward_pe": 45.391327,
+      "trailing_pe": 84.33169,
+      "ev_ebitda": 40.994,
+      "price_sales": 10.70785,
+      "peg": 3.04,
+      "eps_ttm": 127.71,
+      "forward_eps": 237.27,
+      "eps_growth": 1.408,
+      "revenue_growth": 0.118,
+      "roe": 0.08826,
+      "roic": "缺失",
+      "operating_margin": 0.28057,
+      "free_cash_flow": 115032498176,
+      "market_cap": 19604531314688,
+      "enterprise_value": 20926089396224,
+      "fcf_yield": 0.005868,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 8616.0001,
+        "reasonable_price": 10770.0002,
+        "expensive_price": 12924.0002,
+        "risk_price": 7000.5001,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "7701.T",
+      "input_codes": [
+        "JP.7701"
+      ],
+      "names": [
+        "岛津"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Shimadzu Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:36.840274+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7701.T",
+      "errors": [],
+      "current_price": 4048.0,
+      "forward_pe": 18.86388,
+      "trailing_pe": 19.343431,
+      "ev_ebitda": 10.369,
+      "price_sales": 2.085913,
+      "peg": 0.47,
+      "eps_ttm": 209.27,
+      "forward_eps": 214.59,
+      "eps_growth": 0.219,
+      "revenue_growth": 0.047,
+      "roe": 0.1138,
+      "roic": "缺失",
+      "operating_margin": 0.14485,
+      "free_cash_flow": 31783749632,
+      "market_cap": 1169630035968,
+      "enterprise_value": 975532720128,
+      "fcf_yield": 0.027174,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 3238.4,
+        "reasonable_price": 4048.0,
+        "expensive_price": 4857.6,
+        "risk_price": 2631.2,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "7707.T",
+      "input_codes": [
+        "JP.7707"
+      ],
+      "names": [
+        "Precision System Science"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Precision System Science Co., Ltd.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:37.060531+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7707.T",
+      "errors": [],
+      "current_price": 187.0,
+      "forward_pe": 7.391305,
+      "trailing_pe": "缺失",
+      "ev_ebitda": 25.192,
+      "price_sales": 1.025392,
+      "peg": "缺失",
+      "eps_ttm": -1.29,
+      "forward_eps": 25.3,
+      "eps_growth": "缺失",
+      "revenue_growth": -0.017,
+      "roe": 0.03474,
+      "roic": "缺失",
+      "operating_margin": 0.03939,
+      "free_cash_flow": "缺失",
+      "market_cap": 5135164416,
+      "enterprise_value": 5158078464,
+      "fcf_yield": "缺失",
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用",
+        "free_cash_flow": "yfinance.info 未返回 `freeCashflow` 或值不可用",
+        "fcf_yield": "缺少 free_cash_flow 或 market_cap"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 149.6,
+        "reasonable_price": 187.0,
+        "expensive_price": 224.4,
+        "risk_price": 121.55,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS-C",
+      "action_layer_eligibility": "allowed_for_four_price_with_missing_auxiliary_fields"
+    },
+    {
+      "symbol": "7716.T",
+      "input_codes": [
+        "JP.7716"
+      ],
+      "names": [
+        "Nakanishi"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Nakanishi Inc.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:37.102211+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7716.T",
+      "errors": [],
+      "current_price": 2989.0,
+      "forward_pe": 22.39119,
+      "trailing_pe": "缺失",
+      "ev_ebitda": 10.389,
+      "price_sales": 2.916107,
+      "peg": "缺失",
+      "eps_ttm": -28.69,
+      "forward_eps": 133.49,
+      "eps_growth": 8.167,
+      "revenue_growth": 0.213,
+      "roe": 0.00987,
+      "roic": "缺失",
+      "operating_margin": 0.20789,
+      "free_cash_flow": "缺失",
+      "market_cap": 248234606592,
+      "enterprise_value": 220219654144,
+      "fcf_yield": "缺失",
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用",
+        "free_cash_flow": "yfinance.info 未返回 `freeCashflow` 或值不可用",
+        "fcf_yield": "缺少 free_cash_flow 或 market_cap"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 2391.2,
+        "reasonable_price": 2989.0,
+        "expensive_price": 3586.7999,
+        "risk_price": 1942.85,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS-C",
+      "action_layer_eligibility": "allowed_for_four_price_with_missing_auxiliary_fields"
+    },
+    {
+      "symbol": "7727.T",
+      "input_codes": [
+        "JP.7727"
+      ],
+      "names": [
+        "Oval"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "OVAL Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:36.953821+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7727.T",
+      "errors": [],
+      "current_price": 781.0,
+      "forward_pe": "缺失",
+      "trailing_pe": 12.020932,
+      "ev_ebitda": 6.535,
+      "price_sales": 1.020048,
+      "peg": "缺失",
+      "eps_ttm": 64.97,
+      "forward_eps": "缺失",
+      "eps_growth": 0.822,
+      "revenue_growth": 0.025,
+      "roe": 0.08828,
+      "roic": "缺失",
+      "operating_margin": 0.06017,
+      "free_cash_flow": 969249984,
+      "market_cap": 15901535232,
+      "enterprise_value": 14939151360,
+      "fcf_yield": 0.060953,
+      "missing_field_reasons": {
+        "forward_pe": "yfinance.info 未返回 `forwardPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "forward_eps": "yfinance.info 未返回 `forwardEps` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "BLOCK",
+      "action_layer_eligibility": "blocked_candidate_layer_only"
+    },
+    {
+      "symbol": "7730.T",
+      "input_codes": [
+        "JP.7730"
+      ],
+      "names": [
+        "Mani"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Mani, Inc.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:36.970460+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7730.T",
+      "errors": [],
+      "current_price": 1704.0,
+      "forward_pe": 22.983545,
+      "trailing_pe": 29.920982,
+      "ev_ebitda": 12.497,
+      "price_sales": 5.368744,
+      "peg": "缺失",
+      "eps_ttm": 56.95,
+      "forward_eps": 74.14,
+      "eps_growth": 0.492,
+      "revenue_growth": 0.157,
+      "roe": 0.10177,
+      "roic": "缺失",
+      "operating_margin": 0.34344,
+      "free_cash_flow": 5547125248,
+      "market_cap": 167848427520,
+      "enterprise_value": 145165942784,
+      "fcf_yield": 0.033048,
+      "missing_field_reasons": {
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 1363.2,
+        "reasonable_price": 1704.0,
+        "expensive_price": 2044.8,
+        "risk_price": 1107.6,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "7733.T",
+      "input_codes": [
+        "JP.7733"
+      ],
+      "names": [
+        "奥林巴斯"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Olympus Corporation",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:37.168040+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7733.T",
+      "errors": [],
+      "current_price": 1684.0,
+      "forward_pe": 13.403375,
+      "trailing_pe": 27.529837,
+      "ev_ebitda": 9.085,
+      "price_sales": 1.76978,
+      "peg": 3.61,
+      "eps_ttm": 61.17,
+      "forward_eps": 125.64,
+      "eps_growth": -0.387,
+      "revenue_growth": 0.085,
+      "roe": 0.08719,
+      "roic": "缺失",
+      "operating_margin": 0.15875,
+      "free_cash_flow": 2468499968,
+      "market_cap": 1788674441216,
+      "enterprise_value": 1852391161856,
+      "fcf_yield": 0.00138,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 1347.2,
+        "reasonable_price": 1684.0,
+        "expensive_price": 2020.8,
+        "risk_price": 1094.6,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "7749.T",
+      "input_codes": [
+        "JP.7749"
+      ],
+      "names": [
+        "美迪克"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Medikit Co.,Ltd.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:37.326972+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7749.T",
+      "errors": [],
+      "current_price": 2805.0,
+      "forward_pe": "缺失",
+      "trailing_pe": 13.6,
+      "ev_ebitda": 3.13,
+      "price_sales": 1.707709,
+      "peg": "缺失",
+      "eps_ttm": 206.25,
+      "forward_eps": "缺失",
+      "eps_growth": -0.094,
+      "revenue_growth": 0.02,
+      "roe": 0.06539,
+      "roic": "缺失",
+      "operating_margin": 0.11533,
+      "free_cash_flow": -209000000,
+      "market_cap": 40611033088,
+      "enterprise_value": 19749425152,
+      "fcf_yield": -0.005146,
+      "missing_field_reasons": {
+        "forward_pe": "yfinance.info 未返回 `forwardPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "forward_eps": "yfinance.info 未返回 `forwardEps` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "BLOCK",
+      "action_layer_eligibility": "blocked_candidate_layer_only"
+    },
+    {
+      "symbol": "7769.T",
+      "input_codes": [
+        "JP.7769"
+      ],
+      "names": [
+        "丽声"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Rhythm Co.,Ltd.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:37.359204+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7769.T",
+      "errors": [],
+      "current_price": 3725.0,
+      "forward_pe": "缺失",
+      "trailing_pe": 12.932681,
+      "ev_ebitda": 7.892,
+      "price_sales": 0.85332,
+      "peg": "缺失",
+      "eps_ttm": 288.03,
+      "forward_eps": "缺失",
+      "eps_growth": -0.594,
+      "revenue_growth": 0.235,
+      "roe": 0.07084,
+      "roic": "缺失",
+      "operating_margin": 0.02225,
+      "free_cash_flow": 887625024,
+      "market_cap": 29657139200,
+      "enterprise_value": 23960221696,
+      "fcf_yield": 0.02993,
+      "missing_field_reasons": {
+        "forward_pe": "yfinance.info 未返回 `forwardPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "forward_eps": "yfinance.info 未返回 `forwardEps` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "BLOCK",
+      "action_layer_eligibility": "blocked_candidate_layer_only"
+    },
+    {
+      "symbol": "7775.T",
+      "input_codes": [
+        "JP.7775"
+      ],
+      "names": [
+        "大研医器"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Daiken Medical Co., Ltd.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:37.483417+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7775.T",
+      "errors": [],
+      "current_price": 416.0,
+      "forward_pe": 9.869514,
+      "trailing_pe": 12.951432,
+      "ev_ebitda": 7.435,
+      "price_sales": 1.161422,
+      "peg": "缺失",
+      "eps_ttm": 32.12,
+      "forward_eps": 42.15,
+      "eps_growth": -0.419,
+      "revenue_growth": 0.054,
+      "roe": 0.12059,
+      "roic": "缺失",
+      "operating_margin": 0.067,
+      "free_cash_flow": 169624992,
+      "market_cap": 11951029248,
+      "enterprise_value": 11412301824,
+      "fcf_yield": 0.014193,
+      "missing_field_reasons": {
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 332.8,
+        "reasonable_price": 416.0,
+        "expensive_price": 499.2,
+        "risk_price": 270.4,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "7782.T",
+      "input_codes": [
+        "JP.7782"
+      ],
+      "names": [
+        "新视野光学"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Sincere Co., LTD.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:37.457974+09:00",
+      "source_url": "https://finance.yahoo.com/quote/7782.T",
+      "errors": [],
+      "current_price": 457.0,
+      "forward_pe": 33.11594,
+      "trailing_pe": 11.220231,
+      "ev_ebitda": 5.011,
+      "price_sales": 0.380806,
+      "peg": "缺失",
+      "eps_ttm": 40.73,
+      "forward_eps": 13.8,
+      "eps_growth": -0.242,
+      "revenue_growth": 0.24,
+      "roe": 0.09113,
+      "roic": "缺失",
+      "operating_margin": 0.0739,
+      "free_cash_flow": "缺失",
+      "market_cap": 2982088960,
+      "enterprise_value": 3076479488,
+      "fcf_yield": "缺失",
+      "missing_field_reasons": {
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用",
+        "free_cash_flow": "yfinance.info 未返回 `freeCashflow` 或值不可用",
+        "fcf_yield": "缺少 free_cash_flow 或 market_cap"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 365.6,
+        "reasonable_price": 457.0,
+        "expensive_price": 548.4,
+        "risk_price": 297.05,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "8035.T",
+      "input_codes": [
+        "JP.8035"
+      ],
+      "names": [
+        "Tokyo Electron"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Tokyo Electron Limited",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:36 JST",
+      "timestamp": "2026-06-27T01:14:37.575248+09:00",
+      "source_url": "https://finance.yahoo.com/quote/8035.T",
+      "errors": [],
+      "current_price": 72920.0,
+      "forward_pe": 56.95985,
+      "trailing_pe": 58.306145,
+      "ev_ebitda": 46.244,
+      "price_sales": 13.573799,
+      "peg": 2.65,
+      "eps_ttm": 1250.64,
+      "forward_eps": 1280.2,
+      "eps_growth": 0.505,
+      "revenue_growth": 0.086,
+      "roe": 0.2927,
+      "roic": "缺失",
+      "operating_margin": 0.2889,
+      "free_cash_flow": 229109252096,
+      "market_cap": 33168027549696,
+      "enterprise_value": 32661389180928,
+      "fcf_yield": 0.006908,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 58336.0,
+        "reasonable_price": 72920.0,
+        "expensive_price": 87504.0,
+        "risk_price": 47398.0,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "8750.T",
+      "input_codes": [
+        "8750.T",
+        "JP.8750"
+      ],
+      "names": [
+        "第一生命控股"
+      ],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples",
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Daiichi Life Group, Inc.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:37.668026+09:00",
+      "source_url": "https://finance.yahoo.com/quote/8750.T",
+      "errors": [],
+      "current_price": 1726.5,
+      "forward_pe": 4.66773,
+      "trailing_pe": 14.238001,
+      "ev_ebitda": 13.784,
+      "price_sales": 0.60662,
+      "peg": 3.52,
+      "eps_ttm": 121.26,
+      "forward_eps": 369.88,
+      "eps_growth": -0.355,
+      "revenue_growth": 0.263,
+      "roe": 0.11062,
+      "roic": "缺失",
+      "operating_margin": 0.01031,
+      "free_cash_flow": 1108229619712,
+      "market_cap": 6217042231296,
+      "enterprise_value": 6752546848768,
+      "fcf_yield": 0.178257,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 1381.2,
+        "reasonable_price": 1726.5,
+        "expensive_price": 2071.8,
+        "risk_price": 1122.225,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "8766.T",
+      "input_codes": [
+        "JP.8766"
+      ],
+      "names": [
+        "东京海上控股"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Tokio Marine Holdings, Inc.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:37.869851+09:00",
+      "source_url": "https://finance.yahoo.com/quote/8766.T",
+      "errors": [],
+      "current_price": 6903.0,
+      "forward_pe": 14.001461,
+      "trailing_pe": 13.382834,
+      "ev_ebitda": 5.645,
+      "price_sales": 1.580918,
+      "peg": 1.62,
+      "eps_ttm": 515.81,
+      "forward_eps": 493.02,
+      "eps_growth": -0.48,
+      "revenue_growth": -0.045,
+      "roe": 0.18701,
+      "roic": "缺失",
+      "operating_margin": 0.37648,
+      "free_cash_flow": 1071688384512,
+      "market_cap": 13196414943232,
+      "enterprise_value": 12098978447360,
+      "fcf_yield": 0.081211,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 5522.4002,
+        "reasonable_price": 6903.0003,
+        "expensive_price": 8283.6004,
+        "risk_price": 4486.9502,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "9434.T",
+      "input_codes": [
+        "JP.9434"
+      ],
+      "names": [
+        "软银公司"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "SoftBank Corp.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:37.944481+09:00",
+      "source_url": "https://finance.yahoo.com/quote/9434.T",
+      "errors": [],
+      "current_price": 204.7,
+      "forward_pe": 17.661777,
+      "trailing_pe": 18.179396,
+      "ev_ebitda": 9.275,
+      "price_sales": 1.390969,
+      "peg": 2.03,
+      "eps_ttm": 11.26,
+      "forward_eps": 11.59,
+      "eps_growth": "缺失",
+      "revenue_growth": "缺失",
+      "roe": 0.16267,
+      "roic": "缺失",
+      "operating_margin": 0.08928,
+      "free_cash_flow": 1615376023552,
+      "market_cap": 9790584520704,
+      "enterprise_value": 16474375716864,
+      "fcf_yield": 0.164993,
+      "missing_field_reasons": {
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "revenue_growth": "yfinance.info 未返回 `revenueGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 163.76,
+        "reasonable_price": 204.7,
+        "expensive_price": 245.64,
+        "risk_price": 133.055,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "9984.T",
+      "input_codes": [
+        "JP.9984"
+      ],
+      "names": [
+        "软银集团"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "SoftBank Group Corp.",
+      "currency": "JPY",
+      "exchange": "JPX",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:37.945971+09:00",
+      "source_url": "https://finance.yahoo.com/quote/9984.T",
+      "errors": [],
+      "current_price": 6226.0,
+      "forward_pe": 21.084356,
+      "trailing_pe": 7.134427,
+      "ev_ebitda": 63.079,
+      "price_sales": 4.549697,
+      "peg": 1244.77,
+      "eps_ttm": 872.67,
+      "forward_eps": 295.29,
+      "eps_growth": 2.607,
+      "revenue_growth": 0.071,
+      "roe": 0.32724,
+      "roic": "缺失",
+      "operating_margin": -0.20402,
+      "free_cash_flow": -1433729105920,
+      "market_cap": 35481496584192,
+      "enterprise_value": 58629524815872,
+      "fcf_yield": -0.040408,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 4980.7996,
+        "reasonable_price": 6225.9995,
+        "expensive_price": 7471.1994,
+        "risk_price": 4046.8997,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "AAPL",
+      "input_codes": [
+        "US.AAPL"
+      ],
+      "names": [
+        "苹果"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Apple Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:37.958566+09:00",
+      "source_url": "https://finance.yahoo.com/quote/AAPL",
+      "errors": [],
+      "current_price": 276.125,
+      "forward_pe": 28.73632,
+      "trailing_pe": 33.469696,
+      "ev_ebitda": 25.363,
+      "price_sales": 8.983538,
+      "peg": 2.37,
+      "eps_ttm": 8.25,
+      "forward_eps": 9.60892,
+      "eps_growth": 0.218,
+      "revenue_growth": 0.166,
+      "roe": 1.41471,
+      "roic": "缺失",
+      "operating_margin": 0.32275,
+      "free_cash_flow": 101090746368,
+      "market_cap": 4055546200064,
+      "enterprise_value": 4057429966848,
+      "fcf_yield": 0.024927,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 220.9,
+        "reasonable_price": 276.125,
+        "expensive_price": 331.35,
+        "risk_price": 179.4812,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "ABBV",
+      "input_codes": [
+        "ABBV"
+      ],
+      "names": [],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples"
+      ],
+      "company_name": "AbbVie Inc.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:37.969857+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ABBV",
+      "errors": [],
+      "current_price": 247.7499,
+      "forward_pe": 15.206872,
+      "trailing_pe": 121.44603,
+      "ev_ebitda": 16.485,
+      "price_sales": 6.967999,
+      "peg": 0.65,
+      "eps_ttm": 2.04,
+      "forward_eps": 16.29197,
+      "eps_growth": -0.462,
+      "revenue_growth": 0.124,
+      "roe": "缺失",
+      "roic": "缺失",
+      "operating_margin": 0.32156,
+      "free_cash_flow": 20811624448,
+      "market_cap": 437722742784,
+      "enterprise_value": 493142999040,
+      "fcf_yield": 0.047545,
+      "missing_field_reasons": {
+        "roe": "yfinance.info 未返回 `returnOnEquity` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 198.1999,
+        "reasonable_price": 247.7499,
+        "expensive_price": 297.2999,
+        "risk_price": 161.0374,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "ADBE",
+      "input_codes": [
+        "US.ADBE"
+      ],
+      "names": [
+        "Adobe"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Adobe Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:38.113483+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ADBE",
+      "errors": [],
+      "current_price": 201.1,
+      "forward_pe": 7.301619,
+      "trailing_pe": 11.503438,
+      "ev_ebitda": 8.051,
+      "price_sales": 3.172365,
+      "peg": 0.54,
+      "eps_ttm": 17.48,
+      "forward_eps": 27.53911,
+      "eps_growth": 0.079,
+      "revenue_growth": 0.127,
+      "roe": 0.62954,
+      "roic": "缺失",
+      "operating_margin": 0.35328,
+      "free_cash_flow": 9218374656,
+      "market_cap": 79929335808,
+      "enterprise_value": 78331478016,
+      "fcf_yield": 0.115332,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 160.8641,
+        "reasonable_price": 201.0801,
+        "expensive_price": 241.2961,
+        "risk_price": 130.7021,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "ADSK",
+      "input_codes": [
+        "US.ADSK"
+      ],
+      "names": [
+        "欧特克"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Autodesk, Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:38.185221+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ADSK",
+      "errors": [],
+      "current_price": 194.89,
+      "forward_pe": 13.660961,
+      "trailing_pe": 28.451096,
+      "ev_ebitda": 18.622,
+      "price_sales": 5.481564,
+      "peg": 0.74,
+      "eps_ttm": 6.85,
+      "forward_eps": 14.2662,
+      "eps_growth": 2.314,
+      "revenue_growth": 0.184,
+      "roe": 0.50396,
+      "roic": "缺失",
+      "operating_margin": 0.29524,
+      "free_cash_flow": 3060999936,
+      "market_cap": 41150095360,
+      "enterprise_value": 39833030656,
+      "fcf_yield": 0.074386,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 155.912,
+        "reasonable_price": 194.89,
+        "expensive_price": 233.868,
+        "risk_price": 126.6785,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "ASML",
+      "input_codes": [
+        "US.ASML"
+      ],
+      "names": [
+        "阿斯麦"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "ASML Holding N.V.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:38.286844+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ASML",
+      "errors": [],
+      "current_price": 1789.69,
+      "forward_pe": 37.46453,
+      "trailing_pe": 60.74983,
+      "ev_ebitda": 3102.55,
+      "price_sales": 20.472628,
+      "peg": 2.63,
+      "eps_ttm": 29.46,
+      "forward_eps": 47.77025,
+      "eps_growth": 0.192,
+      "revenue_growth": 0.132,
+      "roe": 0.52236,
+      "roic": "缺失",
+      "operating_margin": 0.3602,
+      "free_cash_flow": 8243274752,
+      "market_cap": 689778130944,
+      "enterprise_value": 39416038948864,
+      "fcf_yield": 0.011951,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 1431.752,
+        "reasonable_price": 1789.69,
+        "expensive_price": 2147.628,
+        "risk_price": 1163.2985,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "ASYS",
+      "input_codes": [
+        "US.ASYS"
+      ],
+      "names": [
+        "Amtech Systems"
+      ],
+      "source_layers": [
+        "candidate_ranking"
+      ],
+      "company_name": "Amtech Systems, Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:38.501315+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ASYS",
+      "errors": [],
+      "current_price": 19.325,
+      "forward_pe": 24.15625,
+      "trailing_pe": 107.361115,
+      "ev_ebitda": 35.867,
+      "price_sales": 4.285645,
+      "peg": 0.37,
+      "eps_ttm": 0.18,
+      "forward_eps": 0.8,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.314,
+      "roe": 0.04574,
+      "roic": "缺失",
+      "operating_margin": 0.08765,
+      "free_cash_flow": 10993000,
+      "market_cap": 337880256,
+      "enterprise_value": 294034144,
+      "fcf_yield": 0.032535,
+      "missing_field_reasons": {
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 15.46,
+        "reasonable_price": 19.325,
+        "expensive_price": 23.19,
+        "risk_price": 12.5613,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "AVGO",
+      "input_codes": [
+        "US.AVGO"
+      ],
+      "names": [
+        "博通"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Broadcom Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:38.589558+09:00",
+      "source_url": "https://finance.yahoo.com/quote/AVGO",
+      "errors": [],
+      "current_price": 371.85,
+      "forward_pe": 19.171696,
+      "trailing_pe": 61.769104,
+      "ev_ebitda": 43.912,
+      "price_sales": 23.44274,
+      "peg": 0.69,
+      "eps_ttm": 6.02,
+      "forward_eps": 19.39578,
+      "eps_growth": 0.854,
+      "revenue_growth": 0.479,
+      "roe": 0.37281,
+      "roic": "缺失",
+      "operating_margin": 0.48988,
+      "free_cash_flow": 27212249088,
+      "market_cap": 1769106309120,
+      "enterprise_value": 1847973773312,
+      "fcf_yield": 0.015382,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 297.48,
+        "reasonable_price": 371.85,
+        "expensive_price": 446.22,
+        "risk_price": 241.7025,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "BTC-USD",
+      "input_codes": [
+        "BTC"
+      ],
+      "names": [
+        "BTC"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Bitcoin USD",
+      "currency": "USD",
+      "exchange": "CCC",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:38.696115+09:00",
+      "source_url": "https://finance.yahoo.com/quote/BTC-USD",
+      "errors": [],
+      "current_price": 60095.37,
+      "forward_pe": "缺失",
+      "trailing_pe": "缺失",
+      "ev_ebitda": "缺失",
+      "price_sales": "缺失",
+      "peg": "缺失",
+      "eps_ttm": "缺失",
+      "forward_eps": "缺失",
+      "eps_growth": "缺失",
+      "revenue_growth": "缺失",
+      "roe": "缺失",
+      "roic": "缺失",
+      "operating_margin": "缺失",
+      "free_cash_flow": "缺失",
+      "market_cap": 1204868874240,
+      "enterprise_value": "缺失",
+      "fcf_yield": "缺失",
+      "missing_field_reasons": {
+        "forward_pe": "yfinance.info 未返回 `forwardPE` 或值不可用",
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "ev_ebitda": "yfinance.info 未返回 `enterpriseToEbitda` 或值不可用",
+        "price_sales": "yfinance.info 未返回 `priceToSalesTrailing12Months` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "eps_ttm": "yfinance.info 未返回 `trailingEps` 或值不可用",
+        "forward_eps": "yfinance.info 未返回 `forwardEps` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "revenue_growth": "yfinance.info 未返回 `revenueGrowth` 或值不可用",
+        "roe": "yfinance.info 未返回 `returnOnEquity` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用",
+        "operating_margin": "yfinance.info 未返回 `operatingMargins` 或值不可用",
+        "free_cash_flow": "yfinance.info 未返回 `freeCashflow` 或值不可用",
+        "enterprise_value": "yfinance.info 未返回 `enterpriseValue` 或值不可用",
+        "fcf_yield": "缺少 free_cash_flow 或 market_cap"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "BLOCK",
+      "action_layer_eligibility": "blocked_candidate_layer_only"
+    },
+    {
+      "symbol": "CAH",
+      "input_codes": [
+        "US.CAH"
+      ],
+      "names": [
+        "卡地纳健康"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Cardinal Health, Inc.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:38.586496+09:00",
+      "source_url": "https://finance.yahoo.com/quote/CAH",
+      "errors": [],
+      "current_price": 239.13,
+      "forward_pe": 19.932816,
+      "trailing_pe": 36.508396,
+      "ev_ebitda": 15.052,
+      "price_sales": 0.223366,
+      "peg": 1.44,
+      "eps_ttm": 6.55,
+      "forward_eps": 11.9968,
+      "eps_growth": -0.195,
+      "revenue_growth": 0.11,
+      "roe": "缺失",
+      "roic": "缺失",
+      "operating_margin": 0.01413,
+      "free_cash_flow": 4849999872,
+      "market_cap": 56005648384,
+      "enterprise_value": 60118822912,
+      "fcf_yield": 0.086598,
+      "missing_field_reasons": {
+        "roe": "yfinance.info 未返回 `returnOnEquity` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 191.304,
+        "reasonable_price": 239.13,
+        "expensive_price": 286.956,
+        "risk_price": 155.4345,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "CNC",
+      "input_codes": [
+        "CNC"
+      ],
+      "names": [],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples"
+      ],
+      "company_name": "Centene Corporation",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:37 JST",
+      "timestamp": "2026-06-27T01:14:38.500654+09:00",
+      "source_url": "https://finance.yahoo.com/quote/CNC",
+      "errors": [],
+      "current_price": 65.345,
+      "forward_pe": 14.602301,
+      "trailing_pe": "缺失",
+      "ev_ebitda": 8.507,
+      "price_sales": 0.180939,
+      "peg": 1.21,
+      "eps_ttm": -13.05,
+      "forward_eps": 4.47498,
+      "eps_growth": 0.183,
+      "revenue_growth": 0.051,
+      "roe": -0.26044,
+      "roic": "缺失",
+      "operating_margin": 0.05069,
+      "free_cash_flow": 6847499776,
+      "market_cap": 32267165696,
+      "enterprise_value": 24713232384,
+      "fcf_yield": 0.212213,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 52.276,
+        "reasonable_price": 65.345,
+        "expensive_price": 78.414,
+        "risk_price": 42.4743,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "COHR",
+      "input_codes": [
+        "COHR"
+      ],
+      "names": [],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples"
+      ],
+      "company_name": "Coherent Corp.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:38.756942+09:00",
+      "source_url": "https://finance.yahoo.com/quote/COHR",
+      "errors": [],
+      "current_price": 378.67,
+      "forward_pe": 46.31035,
+      "trailing_pe": 178.61794,
+      "ev_ebitda": 61.667,
+      "price_sales": 11.221116,
+      "peg": 0.92,
+      "eps_ttm": 2.12,
+      "forward_eps": 8.17679,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.205,
+      "roe": 0.04718,
+      "roic": "缺失",
+      "operating_margin": 0.13572,
+      "free_cash_flow": -197631744,
+      "market_cap": 74082746368,
+      "enterprise_value": 81014202368,
+      "fcf_yield": -0.002668,
+      "missing_field_reasons": {
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 302.936,
+        "reasonable_price": 378.67,
+        "expensive_price": 454.404,
+        "risk_price": 246.1355,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "COIN",
+      "input_codes": [
+        "US.COIN"
+      ],
+      "names": [
+        "Coinbase"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Coinbase Global, Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:38.844489+09:00",
+      "source_url": "https://finance.yahoo.com/quote/COIN",
+      "errors": [],
+      "current_price": 147.98,
+      "forward_pe": 29.804033,
+      "trailing_pe": 54.40441,
+      "ev_ebitda": 34.989,
+      "price_sales": 6.202218,
+      "peg": 0.9,
+      "eps_ttm": 2.72,
+      "forward_eps": 4.9651,
+      "eps_growth": "缺失",
+      "revenue_growth": -0.308,
+      "roe": 0.06686,
+      "roic": "缺失",
+      "operating_margin": -0.07097,
+      "free_cash_flow": 2407562752,
+      "market_cap": 38986924032,
+      "enterprise_value": 35074850816,
+      "fcf_yield": 0.061753,
+      "missing_field_reasons": {
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 118.384,
+        "reasonable_price": 147.98,
+        "expensive_price": 177.576,
+        "risk_price": 96.187,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "CRCL",
+      "input_codes": [
+        "US.CRCL"
+      ],
+      "names": [
+        "Circle"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Circle Internet Group",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:38.946955+09:00",
+      "source_url": "https://finance.yahoo.com/quote/CRCL",
+      "errors": [],
+      "current_price": 73.23,
+      "forward_pe": 32.885757,
+      "trailing_pe": "缺失",
+      "ev_ebitda": -116.98,
+      "price_sales": 6.838685,
+      "peg": 4.34,
+      "eps_ttm": -0.23,
+      "forward_eps": 2.2268,
+      "eps_growth": -0.809,
+      "revenue_growth": 0.2,
+      "roe": -0.02976,
+      "roic": "缺失",
+      "operating_margin": 0.06483,
+      "free_cash_flow": -141372752,
+      "market_cap": 19573698560,
+      "enterprise_value": 15603441664,
+      "fcf_yield": -0.007223,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 58.584,
+        "reasonable_price": 73.23,
+        "expensive_price": 87.876,
+        "risk_price": 47.5995,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "CRDO",
+      "input_codes": [
+        "US.CRDO"
+      ],
+      "names": [
+        "Credo Technology"
+      ],
+      "source_layers": [
+        "candidate_ranking"
+      ],
+      "company_name": "Credo Technology Group Holding Ltd",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:39.131212+09:00",
+      "source_url": "https://finance.yahoo.com/quote/CRDO",
+      "errors": [],
+      "current_price": 251.955,
+      "forward_pe": 28.269941,
+      "trailing_pe": 99.98215,
+      "ev_ebitda": 101.25,
+      "price_sales": 35.19098,
+      "peg": "缺失",
+      "eps_ttm": 2.52,
+      "forward_eps": 8.91247,
+      "eps_growth": 3.432,
+      "revenue_growth": 1.57,
+      "roe": 0.34408,
+      "roic": "缺失",
+      "operating_margin": 0.35662,
+      "free_cash_flow": 250810128,
+      "market_cap": 46984040448,
+      "enterprise_value": 48563834880,
+      "fcf_yield": 0.005338,
+      "missing_field_reasons": {
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 201.564,
+        "reasonable_price": 251.955,
+        "expensive_price": 302.346,
+        "risk_price": 163.7708,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "CVLT",
+      "input_codes": [
+        "US.CVLT"
+      ],
+      "names": [
+        "康沃系统"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Commvault Systems, Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:39.136657+09:00",
+      "source_url": "https://finance.yahoo.com/quote/CVLT",
+      "errors": [],
+      "current_price": 137.845,
+      "forward_pe": 22.63684,
+      "trailing_pe": 87.24367,
+      "ev_ebitda": 46.581,
+      "price_sales": 4.823706,
+      "peg": 3.17,
+      "eps_ttm": 1.58,
+      "forward_eps": 6.08941,
+      "eps_growth": -0.502,
+      "revenue_growth": 0.133,
+      "roe": 0.42486,
+      "roic": "缺失",
+      "operating_margin": 0.11306,
+      "free_cash_flow": 289540640,
+      "market_cap": 5709772800,
+      "enterprise_value": 5543923200,
+      "fcf_yield": 0.05071,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 110.276,
+        "reasonable_price": 137.845,
+        "expensive_price": 165.414,
+        "risk_price": 89.5992,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "CVS",
+      "input_codes": [
+        "CVS"
+      ],
+      "names": [],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples"
+      ],
+      "company_name": "CVS Health Corporation",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:39.373659+09:00",
+      "source_url": "https://finance.yahoo.com/quote/CVS",
+      "errors": [],
+      "current_price": 104.96,
+      "forward_pe": 12.52004,
+      "trailing_pe": 46.035088,
+      "ev_ebitda": 12.994,
+      "price_sales": 0.330166,
+      "peg": 0.29,
+      "eps_ttm": 2.28,
+      "forward_eps": 8.38336,
+      "eps_growth": 0.631,
+      "revenue_growth": 0.061,
+      "roe": 0.03752,
+      "roic": "缺失",
+      "operating_margin": 0.04124,
+      "free_cash_flow": 5201625088,
+      "market_cap": 133921325056,
+      "enterprise_value": 200262549504,
+      "fcf_yield": 0.038841,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 83.968,
+        "reasonable_price": 104.96,
+        "expensive_price": 125.952,
+        "risk_price": 68.224,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "DELL",
+      "input_codes": [
+        "DELL"
+      ],
+      "names": [],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples"
+      ],
+      "company_name": "Dell Technologies Inc.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:39.272382+09:00",
+      "source_url": "https://finance.yahoo.com/quote/DELL",
+      "errors": [],
+      "current_price": 387.605,
+      "forward_pe": 18.109982,
+      "trailing_pe": 30.835722,
+      "ev_ebitda": 20.314,
+      "price_sales": 1.868987,
+      "peg": 0.71,
+      "eps_ttm": 12.57,
+      "forward_eps": 21.40284,
+      "eps_growth": 2.825,
+      "revenue_growth": 0.875,
+      "roe": "缺失",
+      "roic": "缺失",
+      "operating_margin": 0.08857,
+      "free_cash_flow": 5434124800,
+      "market_cap": 250448035840,
+      "enterprise_value": 285710811136,
+      "fcf_yield": 0.021698,
+      "missing_field_reasons": {
+        "roe": "yfinance.info 未返回 `returnOnEquity` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 310.084,
+        "reasonable_price": 387.605,
+        "expensive_price": 465.1261,
+        "risk_price": 251.9433,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "DOCU",
+      "input_codes": [
+        "US.DOCU"
+      ],
+      "names": [
+        "DocuSign"
+      ],
+      "source_layers": [
+        "candidate_ranking"
+      ],
+      "company_name": "DocuSign, Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:39.501132+09:00",
+      "source_url": "https://finance.yahoo.com/quote/DOCU",
+      "errors": [],
+      "current_price": 44.2505,
+      "forward_pe": 8.682068,
+      "trailing_pe": 28.73409,
+      "ev_ebitda": 19.297,
+      "price_sales": 2.571268,
+      "peg": 0.52,
+      "eps_ttm": 1.54,
+      "forward_eps": 5.09677,
+      "eps_growth": 0.176,
+      "revenue_growth": 0.087,
+      "roe": 0.1644,
+      "roic": "缺失",
+      "operating_margin": 0.13407,
+      "free_cash_flow": 1250368768,
+      "market_cap": 8449394176,
+      "enterprise_value": 7476662272,
+      "fcf_yield": 0.147983,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 35.4004,
+        "reasonable_price": 44.2505,
+        "expensive_price": 53.1006,
+        "risk_price": 28.7628,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "DQ",
+      "input_codes": [
+        "US.DQ"
+      ],
+      "names": [
+        "大全新能源"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Daqo New Energy Corp.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:39.367060+09:00",
+      "source_url": "https://finance.yahoo.com/quote/DQ",
+      "errors": [],
+      "current_price": 12.6,
+      "forward_pe": -11.512526,
+      "trailing_pe": "缺失",
+      "ev_ebitda": -8.027,
+      "price_sales": 1.500456,
+      "peg": 0.15,
+      "eps_ttm": -2.79,
+      "forward_eps": -1.09446,
+      "eps_growth": "缺失",
+      "revenue_growth": -0.784,
+      "roe": -0.04187,
+      "roic": "缺失",
+      "operating_margin": -5.64374,
+      "free_cash_flow": -290246496,
+      "market_cap": 852593344,
+      "enterprise_value": 518340864,
+      "fcf_yield": -0.340428,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "ELV",
+      "input_codes": [
+        "ELV"
+      ],
+      "names": [],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples"
+      ],
+      "company_name": "Elevance Health, Inc.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:39.648447+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ELV",
+      "errors": [],
+      "current_price": 391.57,
+      "forward_pe": 13.388153,
+      "trailing_pe": 16.598984,
+      "ev_ebitda": 9.252,
+      "price_sales": 0.424289,
+      "peg": 1.41,
+      "eps_ttm": 23.59,
+      "forward_eps": 29.2475,
+      "eps_growth": -0.168,
+      "revenue_growth": 0.026,
+      "roe": 0.12086,
+      "roic": "缺失",
+      "operating_margin": 0.05303,
+      "free_cash_flow": 4298625024,
+      "market_cap": 85034278912,
+      "enterprise_value": 79020335104,
+      "fcf_yield": 0.050552,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 313.256,
+        "reasonable_price": 391.57,
+        "expensive_price": 469.884,
+        "risk_price": 254.5205,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "EMR",
+      "input_codes": [
+        "US.EMR"
+      ],
+      "names": [
+        "艾默生电气"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Emerson Electric Co.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:38 JST",
+      "timestamp": "2026-06-27T01:14:39.546388+09:00",
+      "source_url": "https://finance.yahoo.com/quote/EMR",
+      "errors": [],
+      "current_price": 143.105,
+      "forward_pe": 19.963284,
+      "trailing_pe": 33.126156,
+      "ev_ebitda": 15.947,
+      "price_sales": 4.376125,
+      "peg": 1.97,
+      "eps_ttm": 4.32,
+      "forward_eps": 7.16841,
+      "eps_growth": 0.279,
+      "revenue_growth": 0.029,
+      "roe": 0.12328,
+      "roic": "缺失",
+      "operating_margin": 0.24244,
+      "free_cash_flow": 3272250112,
+      "market_cap": 80153100288,
+      "enterprise_value": 93686931456,
+      "fcf_yield": 0.040825,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 114.484,
+        "reasonable_price": 143.105,
+        "expensive_price": 171.726,
+        "risk_price": 93.0183,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "ETH-USD",
+      "input_codes": [
+        "ETH"
+      ],
+      "names": [
+        "ETH"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Ethereum USD",
+      "currency": "USD",
+      "exchange": "CCC",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:39.748535+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ETH-USD",
+      "errors": [],
+      "current_price": 1577.43,
+      "forward_pe": "缺失",
+      "trailing_pe": "缺失",
+      "ev_ebitda": "缺失",
+      "price_sales": "缺失",
+      "peg": "缺失",
+      "eps_ttm": "缺失",
+      "forward_eps": "缺失",
+      "eps_growth": "缺失",
+      "revenue_growth": "缺失",
+      "roe": "缺失",
+      "roic": "缺失",
+      "operating_margin": "缺失",
+      "free_cash_flow": "缺失",
+      "market_cap": 190391091200,
+      "enterprise_value": "缺失",
+      "fcf_yield": "缺失",
+      "missing_field_reasons": {
+        "forward_pe": "yfinance.info 未返回 `forwardPE` 或值不可用",
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "ev_ebitda": "yfinance.info 未返回 `enterpriseToEbitda` 或值不可用",
+        "price_sales": "yfinance.info 未返回 `priceToSalesTrailing12Months` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "eps_ttm": "yfinance.info 未返回 `trailingEps` 或值不可用",
+        "forward_eps": "yfinance.info 未返回 `forwardEps` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "revenue_growth": "yfinance.info 未返回 `revenueGrowth` 或值不可用",
+        "roe": "yfinance.info 未返回 `returnOnEquity` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用",
+        "operating_margin": "yfinance.info 未返回 `operatingMargins` 或值不可用",
+        "free_cash_flow": "yfinance.info 未返回 `freeCashflow` 或值不可用",
+        "enterprise_value": "yfinance.info 未返回 `enterpriseValue` 或值不可用",
+        "fcf_yield": "缺少 free_cash_flow 或 market_cap"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "BLOCK",
+      "action_layer_eligibility": "blocked_candidate_layer_only"
+    },
+    {
+      "symbol": "ETN",
+      "input_codes": [
+        "US.ETN"
+      ],
+      "names": [
+        "伊顿"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Eaton Corporation plc",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:39.750052+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ETN",
+      "errors": [],
+      "current_price": 400.63,
+      "forward_pe": 25.5019,
+      "trailing_pe": 39.27745,
+      "ev_ebitda": 29.034,
+      "price_sales": 5.454198,
+      "peg": 3.06,
+      "eps_ttm": 10.2,
+      "forward_eps": 15.70981,
+      "eps_growth": -0.094,
+      "revenue_growth": 0.168,
+      "roe": 0.20845,
+      "roic": "缺失",
+      "operating_margin": 0.16105,
+      "free_cash_flow": 2646500096,
+      "market_cap": 155564638208,
+      "enterprise_value": 184161517568,
+      "fcf_yield": 0.017012,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 320.504,
+        "reasonable_price": 400.63,
+        "expensive_price": 480.756,
+        "risk_price": 260.4095,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "FTV",
+      "input_codes": [
+        "US.FTV"
+      ],
+      "names": [
+        "Fortive"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "opportunity_pool"
+      ],
+      "company_name": "Fortive Corporation",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:39.891397+09:00",
+      "source_url": "https://finance.yahoo.com/quote/FTV",
+      "errors": [],
+      "current_price": 61.22,
+      "forward_pe": 19.012482,
+      "trailing_pe": 36.011765,
+      "ev_ebitda": 18.529,
+      "price_sales": 4.406571,
+      "peg": 0.98,
+      "eps_ttm": 1.7,
+      "forward_eps": 3.21999,
+      "eps_growth": -0.124,
+      "revenue_growth": 0.077,
+      "roe": 0.06814,
+      "roic": "缺失",
+      "operating_margin": 0.17926,
+      "free_cash_flow": 953612480,
+      "market_cap": 18663591936,
+      "enterprise_value": 22053369856,
+      "fcf_yield": 0.051095,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 48.976,
+        "reasonable_price": 61.22,
+        "expensive_price": 73.464,
+        "risk_price": 39.793,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "GE",
+      "input_codes": [
+        "US.GE"
+      ],
+      "names": [
+        "GE航天航空"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "candidate_ranking",
+        "initial_decision_targets",
+        "opportunity_pool"
+      ],
+      "company_name": "GE Aerospace",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:39.980307+09:00",
+      "source_url": "https://finance.yahoo.com/quote/GE",
+      "errors": [],
+      "current_price": 370.255,
+      "forward_pe": 42.62473,
+      "trailing_pe": 45.937344,
+      "ev_ebitda": 36.1,
+      "price_sales": 8.007232,
+      "peg": 8.81,
+      "eps_ttm": 8.06,
+      "forward_eps": 8.68639,
+      "eps_growth": -0.018,
+      "revenue_growth": 0.247,
+      "roe": 0.45428,
+      "roic": "缺失",
+      "operating_margin": 0.20207,
+      "free_cash_flow": 5667999744,
+      "market_cap": 386853404672,
+      "enterprise_value": 398433714176,
+      "fcf_yield": 0.014652,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 296.204,
+        "reasonable_price": 370.255,
+        "expensive_price": 444.306,
+        "risk_price": 240.6658,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "GEV",
+      "input_codes": [
+        "US.GEV"
+      ],
+      "names": [
+        "GE Vernova"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "GE Vernova Inc.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:40.125221+09:00",
+      "source_url": "https://finance.yahoo.com/quote/GEV",
+      "errors": [],
+      "current_price": 1061.78,
+      "forward_pe": 43.316975,
+      "trailing_pe": 31.05528,
+      "ev_ebitda": 83.986,
+      "price_sales": 7.246261,
+      "peg": 1.83,
+      "eps_ttm": 34.19,
+      "forward_eps": 24.51187,
+      "eps_growth": 18.165,
+      "revenue_growth": 0.163,
+      "roe": 0.75708,
+      "roic": "缺失",
+      "operating_margin": 0.05461,
+      "free_cash_flow": 9315624960,
+      "market_cap": 285321527296,
+      "enterprise_value": 286813487104,
+      "fcf_yield": 0.03265,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 849.424,
+        "reasonable_price": 1061.7801,
+        "expensive_price": 1274.1361,
+        "risk_price": 690.157,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "GLW",
+      "input_codes": [
+        "GLW"
+      ],
+      "names": [],
+      "source_layers": [
+        "TASK-DATA-001 explicit acceptance examples"
+      ],
+      "company_name": "Corning Incorporated",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:40.124203+09:00",
+      "source_url": "https://finance.yahoo.com/quote/GLW",
+      "errors": [],
+      "current_price": 213.31,
+      "forward_pe": 50.777935,
+      "trailing_pe": 103.09663,
+      "ev_ebitda": 52.455,
+      "price_sales": 11.248247,
+      "peg": 1.61,
+      "eps_ttm": 2.07,
+      "forward_eps": 4.20281,
+      "eps_growth": 1.389,
+      "revenue_growth": 0.2,
+      "roe": 0.1674,
+      "roic": "缺失",
+      "operating_margin": 0.15661,
+      "free_cash_flow": 612000000,
+      "market_cap": 183668719616,
+      "enterprise_value": 204940034048,
+      "fcf_yield": 0.003332,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 170.728,
+        "reasonable_price": 213.41,
+        "expensive_price": 256.092,
+        "risk_price": 138.7165,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "HIMS",
+      "input_codes": [
+        "US.HIMS"
+      ],
+      "names": [
+        "Hims & Hers Health"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "candidate_ranking",
+        "initial_decision_targets",
+        "opportunity_pool"
+      ],
+      "company_name": "Hims & Hers Health, Inc.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:40.162433+09:00",
+      "source_url": "https://finance.yahoo.com/quote/HIMS",
+      "errors": [],
+      "current_price": 34.51,
+      "forward_pe": 38.77528,
+      "trailing_pe": "缺失",
+      "ev_ebitda": 95.331,
+      "price_sales": 3.37068,
+      "peg": 2.15,
+      "eps_ttm": -0.09,
+      "forward_eps": 0.89,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.038,
+      "roe": -0.02659,
+      "roic": "缺失",
+      "operating_margin": -0.07897,
+      "free_cash_flow": 174305120,
+      "market_cap": 7987604480,
+      "enterprise_value": 7952143360,
+      "fcf_yield": 0.021822,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 27.608,
+        "reasonable_price": 34.51,
+        "expensive_price": 41.412,
+        "risk_price": 22.4315,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "IMMR",
+      "input_codes": [
+        "US.IMMR"
+      ],
+      "names": [
+        "浸入科技"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "candidate_ranking",
+        "initial_decision_targets",
+        "opportunity_pool"
+      ],
+      "company_name": "Immersion Corporation",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:40.463563+09:00",
+      "source_url": "https://finance.yahoo.com/quote/IMMR",
+      "errors": [],
+      "current_price": 6.94,
+      "forward_pe": 12.618181,
+      "trailing_pe": "缺失",
+      "ev_ebitda": 9.968,
+      "price_sales": 0.1316,
+      "peg": 2.21,
+      "eps_ttm": -0.6,
+      "forward_eps": 0.55,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.1,
+      "roe": "缺失",
+      "roic": "缺失",
+      "operating_margin": 0.01158,
+      "free_cash_flow": "缺失",
+      "market_cap": 229717136,
+      "enterprise_value": 620579008,
+      "fcf_yield": "缺失",
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roe": "yfinance.info 未返回 `returnOnEquity` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用",
+        "free_cash_flow": "yfinance.info 未返回 `freeCashflow` 或值不可用",
+        "fcf_yield": "缺少 free_cash_flow 或 market_cap"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 5.552,
+        "reasonable_price": 6.94,
+        "expensive_price": 8.328,
+        "risk_price": 4.511,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS-C",
+      "action_layer_eligibility": "allowed_for_four_price_with_missing_auxiliary_fields"
+    },
+    {
+      "symbol": "INDI",
+      "input_codes": [
+        "US.INDI"
+      ],
+      "names": [
+        "indie Semiconductor"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "indie Semiconductor, Inc.",
+      "currency": "USD",
+      "exchange": "NCM",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:40.344135+09:00",
+      "source_url": "https://finance.yahoo.com/quote/INDI",
+      "errors": [],
+      "current_price": 3.585,
+      "forward_pe": 24.980839,
+      "trailing_pe": "缺失",
+      "ev_ebitda": -10.276,
+      "price_sales": 3.462338,
+      "peg": "缺失",
+      "eps_ttm": -0.76,
+      "forward_eps": 0.14351,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.026,
+      "roe": -0.4116,
+      "roic": "缺失",
+      "operating_margin": -0.70089,
+      "free_cash_flow": -1717250,
+      "market_cap": 757469632,
+      "enterprise_value": 1060481920,
+      "fcf_yield": -0.002267,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 2.868,
+        "reasonable_price": 3.585,
+        "expensive_price": 4.302,
+        "risk_price": 2.3303,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "ISRG",
+      "input_codes": [
+        "US.ISRG"
+      ],
+      "names": [
+        "直觉外科公司"
+      ],
+      "source_layers": [
+        "candidate_ranking"
+      ],
+      "company_name": "Intuitive Surgical, Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:40.365862+09:00",
+      "source_url": "https://finance.yahoo.com/quote/ISRG",
+      "errors": [],
+      "current_price": 405.328,
+      "forward_pe": 34.391216,
+      "trailing_pe": 49.250065,
+      "ev_ebitda": 35.3,
+      "price_sales": 13.56556,
+      "peg": 2.11,
+      "eps_ttm": 8.23,
+      "forward_eps": 11.7858,
+      "eps_growth": 0.188,
+      "revenue_growth": 0.23,
+      "roe": 0.17233,
+      "roic": "缺失",
+      "operating_margin": 0.30868,
+      "free_cash_flow": 2254087424,
+      "market_cap": 143552118784,
+      "enterprise_value": 137160744960,
+      "fcf_yield": 0.015702,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 324.2624,
+        "reasonable_price": 405.328,
+        "expensive_price": 486.3936,
+        "risk_price": 263.4632,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "MEI",
+      "input_codes": [
+        "US.MEI"
+      ],
+      "names": [
+        "Methode Electronics"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "candidate_ranking",
+        "initial_decision_targets",
+        "opportunity_pool"
+      ],
+      "company_name": "Methode Electronics, Inc.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:40.493217+09:00",
+      "source_url": "https://finance.yahoo.com/quote/MEI",
+      "errors": [],
+      "current_price": 18.6809,
+      "forward_pe": 26.687002,
+      "trailing_pe": "缺失",
+      "ev_ebitda": 11.484,
+      "price_sales": 0.650162,
+      "peg": 0.78,
+      "eps_ttm": -1.01,
+      "forward_eps": 0.7,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.159,
+      "roe": -0.05209,
+      "roic": "缺失",
+      "operating_margin": 0.04998,
+      "free_cash_flow": 56162500,
+      "market_cap": 662645312,
+      "enterprise_value": 849792512,
+      "fcf_yield": 0.084755,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 14.9447,
+        "reasonable_price": 18.6809,
+        "expensive_price": 22.4171,
+        "risk_price": 12.1426,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "META",
+      "input_codes": [
+        "US.META"
+      ],
+      "names": [
+        "Meta Platforms"
+      ],
+      "source_layers": [
+        "candidate_ranking",
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Meta Platforms, Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:39 JST",
+      "timestamp": "2026-06-27T01:14:40.718661+09:00",
+      "source_url": "https://finance.yahoo.com/quote/META",
+      "errors": [],
+      "current_price": 555.76,
+      "forward_pe": 15.333019,
+      "trailing_pe": 20.194767,
+      "ev_ebitda": 12.658,
+      "price_sales": 6.562777,
+      "peg": 0.81,
+      "eps_ttm": 27.52,
+      "forward_eps": 36.24596,
+      "eps_growth": 0.624,
+      "revenue_growth": 0.331,
+      "roe": 0.3293,
+      "roic": "缺失",
+      "operating_margin": 0.40617,
+      "free_cash_flow": 25558249472,
+      "market_cap": 1410754150400,
+      "enterprise_value": 1383622901760,
+      "fcf_yield": 0.018117,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 444.608,
+        "reasonable_price": 555.76,
+        "expensive_price": 666.912,
+        "risk_price": 361.244,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "MSFT",
+      "input_codes": [
+        "US.MSFT"
+      ],
+      "names": [
+        "微软"
+      ],
+      "source_layers": [
+        "candidate_ranking",
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Microsoft Corporation",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:40.697490+09:00",
+      "source_url": "https://finance.yahoo.com/quote/MSFT",
+      "errors": [],
+      "current_price": 368.65,
+      "forward_pe": 19.033148,
+      "trailing_pe": 21.95652,
+      "ev_ebitda": 14.465,
+      "price_sales": 8.604225,
+      "peg": 1.13,
+      "eps_ttm": 16.79,
+      "forward_eps": 19.36884,
+      "eps_growth": 0.234,
+      "revenue_growth": 0.183,
+      "roe": 0.34014,
+      "roic": "缺失",
+      "operating_margin": 0.46326,
+      "free_cash_flow": 37011251200,
+      "market_cap": 2738492538880,
+      "enterprise_value": 2668178702336,
+      "fcf_yield": 0.013515,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 294.92,
+        "reasonable_price": 368.65,
+        "expensive_price": 442.38,
+        "risk_price": 239.6225,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "MSTR",
+      "input_codes": [
+        "US.MSTR"
+      ],
+      "names": [
+        "Strategy"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Strategy Inc",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:40.879005+09:00",
+      "source_url": "https://finance.yahoo.com/quote/MSTR",
+      "errors": [],
+      "current_price": 85.13,
+      "forward_pe": 19.07906,
+      "trailing_pe": "缺失",
+      "ev_ebitda": -3.212,
+      "price_sales": 62.097614,
+      "peg": 2.85,
+      "eps_ttm": -36.99,
+      "forward_eps": 4.46196,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.119,
+      "roe": -0.30756,
+      "roic": "缺失",
+      "operating_margin": -116.41528,
+      "free_cash_flow": -8699502592,
+      "market_cap": 30456832000,
+      "enterprise_value": 44938809344,
+      "fcf_yield": -0.285634,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 68.104,
+        "reasonable_price": 85.13,
+        "expensive_price": 102.156,
+        "risk_price": 55.3345,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "MU",
+      "input_codes": [
+        "US.MU"
+      ],
+      "names": [
+        "美光科技"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "candidate_ranking",
+        "initial_decision_targets",
+        "opportunity_pool"
+      ],
+      "company_name": "Micron Technology, Inc.",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:40.744137+09:00",
+      "source_url": "https://finance.yahoo.com/quote/MU",
+      "errors": [],
+      "current_price": 1168.2,
+      "forward_pe": 7.851225,
+      "trailing_pe": 26.376156,
+      "ev_ebitda": 19.777,
+      "price_sales": 14.615028,
+      "peg": 0.31,
+      "eps_ttm": 44.29,
+      "forward_eps": 148.79205,
+      "eps_growth": 13.685,
+      "revenue_growth": 3.457,
+      "roe": 0.66638,
+      "roic": "缺失",
+      "operating_margin": 0.8037,
+      "free_cash_flow": 7639499776,
+      "market_cap": 1319356989440,
+      "enterprise_value": 1349249662976,
+      "fcf_yield": 0.00579,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 934.5599,
+        "reasonable_price": 1168.1999,
+        "expensive_price": 1401.8398,
+        "risk_price": 759.3299,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "MVIS",
+      "input_codes": [
+        "US.MVIS"
+      ],
+      "names": [
+        "维视图像"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "MicroVision, Inc.",
+      "currency": "USD",
+      "exchange": "NGM",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:40.942282+09:00",
+      "source_url": "https://finance.yahoo.com/quote/MVIS",
+      "errors": [],
+      "current_price": 0.2925,
+      "forward_pe": -1.539474,
+      "trailing_pe": "缺失",
+      "ev_ebitda": -1.59,
+      "price_sales": 64.87061,
+      "peg": "缺失",
+      "eps_ttm": -0.31,
+      "forward_eps": -0.19,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.587,
+      "roe": -1.97302,
+      "roic": "缺失",
+      "operating_margin": -22.13155,
+      "free_cash_flow": -30871876,
+      "market_cap": 100808936,
+      "enterprise_value": 110099736,
+      "fcf_yield": -0.306241,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "NNOX",
+      "input_codes": [
+        "US.NNOX"
+      ],
+      "names": [
+        "Nano X Imaging"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Nano-X Imaging Ltd.",
+      "currency": "USD",
+      "exchange": "NGM",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:41.116037+09:00",
+      "source_url": "https://finance.yahoo.com/quote/NNOX",
+      "errors": [],
+      "current_price": 1.0798,
+      "forward_pe": -5.399,
+      "trailing_pe": "缺失",
+      "ev_ebitda": -0.505,
+      "price_sales": 5.176244,
+      "peg": "缺失",
+      "eps_ttm": -1.15,
+      "forward_eps": -0.2,
+      "eps_growth": "缺失",
+      "revenue_growth": 0.531,
+      "roe": -0.50116,
+      "roic": "缺失",
+      "operating_margin": -3.37045,
+      "free_cash_flow": -28597250,
+      "market_cap": 75143528,
+      "enterprise_value": 24988928,
+      "fcf_yield": -0.380568,
+      "missing_field_reasons": {
+        "trailing_pe": "yfinance.info 未返回 `trailingPE` 或值不可用",
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "eps_growth": "yfinance.info 未返回 `earningsGrowth` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "BLOCK",
+        "reason": "缺少 current_price / forward_pe / forward_eps，不能机械计算四价格",
+        "opportunity_price": "缺失",
+        "reasonable_price": "缺失",
+        "expensive_price": "缺失",
+        "risk_price": "缺失",
+        "method": "forward_eps × valuation multiple; not trade advice"
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "NVDA",
+      "input_codes": [
+        "US.NVDA"
+      ],
+      "names": [
+        "英伟达"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "NVIDIA Corporation",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:41.065390+09:00",
+      "source_url": "https://finance.yahoo.com/quote/NVDA",
+      "errors": [],
+      "current_price": 193.82,
+      "forward_pe": 15.226637,
+      "trailing_pe": 29.636087,
+      "ev_ebitda": 28.376,
+      "price_sales": 18.519451,
+      "peg": 0.61,
+      "eps_ttm": 6.54,
+      "forward_eps": 12.72901,
+      "eps_growth": 2.145,
+      "revenue_growth": 0.852,
+      "roe": 1.14288,
+      "roic": "缺失",
+      "operating_margin": 0.65596,
+      "free_cash_flow": 46335873024,
+      "market_cap": 4694514073600,
+      "enterprise_value": 4696549883904,
+      "fcf_yield": 0.00987,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 155.056,
+        "reasonable_price": 193.82,
+        "expensive_price": 232.584,
+        "risk_price": 125.983,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "OLED",
+      "input_codes": [
+        "US.OLED"
+      ],
+      "names": [
+        "Universal Display"
+      ],
+      "source_layers": [
+        "candidate_pool",
+        "candidate_ranking"
+      ],
+      "company_name": "Universal Display Corporation",
+      "currency": "USD",
+      "exchange": "NMS",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:41.082285+09:00",
+      "source_url": "https://finance.yahoo.com/quote/OLED",
+      "errors": [],
+      "current_price": 87.47,
+      "forward_pe": 17.647747,
+      "trailing_pe": 19.48107,
+      "ev_ebitda": 13.312,
+      "price_sales": 6.526746,
+      "peg": 1.0,
+      "eps_ttm": 4.49,
+      "forward_eps": 4.95644,
+      "eps_growth": -0.437,
+      "revenue_growth": -0.145,
+      "roe": 0.12697,
+      "roic": "缺失",
+      "operating_margin": 0.30062,
+      "free_cash_flow": 129271624,
+      "market_cap": 4089300480,
+      "enterprise_value": 3598279936,
+      "fcf_yield": 0.031612,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 69.976,
+        "reasonable_price": 87.47,
+        "expensive_price": 104.964,
+        "risk_price": 56.8555,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "VRT",
+      "input_codes": [
+        "US.VRT"
+      ],
+      "names": [
+        "Vertiv Holdings"
+      ],
+      "source_layers": [
+        "v1_3_foundation_valuation_anchor_base"
+      ],
+      "company_name": "Vertiv Holdings Co",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:41.312475+09:00",
+      "source_url": "https://finance.yahoo.com/quote/VRT",
+      "errors": [],
+      "current_price": 303.79,
+      "forward_pe": 34.322132,
+      "trailing_pe": 76.521416,
+      "ev_ebitda": 52.798,
+      "price_sales": 10.761238,
+      "peg": 1.59,
+      "eps_ttm": 3.97,
+      "forward_eps": 8.85114,
+      "eps_growth": 1.357,
+      "revenue_growth": 0.301,
+      "roe": 0.45097,
+      "roic": "缺失",
+      "operating_margin": 0.16365,
+      "free_cash_flow": 1964749952,
+      "market_cap": 116688412672,
+      "enterprise_value": 125818707968,
+      "fcf_yield": 0.016838,
+      "missing_field_reasons": {
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 243.032,
+        "reasonable_price": 303.79,
+        "expensive_price": 364.548,
+        "risk_price": 197.4635,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    },
+    {
+      "symbol": "WRBY",
+      "input_codes": [
+        "US.WRBY"
+      ],
+      "names": [
+        "Warby Parker"
+      ],
+      "source_layers": [
+        "candidate_pool"
+      ],
+      "company_name": "Warby Parker Inc.",
+      "currency": "USD",
+      "exchange": "NYQ",
+      "data_source": "yfinance.info / Yahoo Finance",
+      "updated_at": "2026-06-27 01:14:40 JST",
+      "timestamp": "2026-06-27T01:14:41.395952+09:00",
+      "source_url": "https://finance.yahoo.com/quote/WRBY",
+      "errors": [],
+      "current_price": 28.94,
+      "forward_pe": 43.583027,
+      "trailing_pe": 2894.0,
+      "ev_ebitda": 72.098,
+      "price_sales": 3.98776,
+      "peg": "缺失",
+      "eps_ttm": 0.01,
+      "forward_eps": 0.66402,
+      "eps_growth": -0.096,
+      "revenue_growth": 0.083,
+      "roe": 0.00369,
+      "roic": "缺失",
+      "operating_margin": 0.00951,
+      "free_cash_flow": 32268876,
+      "market_cap": 3551378944,
+      "enterprise_value": 3324056064,
+      "fcf_yield": 0.009086,
+      "missing_field_reasons": {
+        "peg": "yfinance.info 未返回 `pegRatio` 或值不可用",
+        "roic": "yfinance.info 未返回 `returnOnCapital` 或值不可用"
+      },
+      "four_price_interface": {
+        "status": "CALCULATED",
+        "reason": "使用 Forward EPS 与当前 Forward PE 作为机械估值锚；不含投资建议",
+        "opportunity_price": 23.152,
+        "reasonable_price": 28.94,
+        "expensive_price": 34.728,
+        "risk_price": 18.811,
+        "method": "opportunity=0.8×forwardEPS×forwardPE; reasonable=1.0×; expensive=1.2×; risk=0.65×",
+        "is_trade_instruction": false
+      },
+      "valuation_status": "PASS",
+      "action_layer_eligibility": "allowed_for_four_price_and_action_layer"
+    }
+  ]
+}
