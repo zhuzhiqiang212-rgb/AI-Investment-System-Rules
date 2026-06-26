@@ -1,0 +1,3162 @@
+# V1.3 数据底座完成文件
+
+- 日期: 2026-06-26
+- 生成时间: 2026-06-26 13:10:39 JST
+- 数据质量: PARTIAL
+- JSON: C:\AI_Investment_System\reports\handoff\Product_Data_Layer_2026-06-26_V1_3_FOUNDATION.json
+
+## 已建设底座
+- 四账户数据底座
+- 估值锚数据底座
+- 赛道数据底座
+- 仓位计算底座
+- 动态排行榜底座
+
+## 数据质量警告
+- FUTU为实时OpenD；IBKR/SBI/BitFlyer为旧OCR快照，保留数量但执行可信度低。
+- Forward PE/EPS一致预期/目标价/NAV多数需要付费或官方结构化源，当前字段已固定但值缺失。
+- 建议股数计算需要目标仓位/可用现金/账户映射规则；未获GPT V6批准前不输出数量。
+
+## JSON明细
+```json
+{
+  "task": "V1.3 数据底座一次性建设任务",
+  "date": "2026-06-26",
+  "generated_at": "2026-06-26 13:10:39 JST",
+  "scope": "数据底座；不写产品、不写日报、不写研究、不下投资建议",
+  "data_quality": {
+    "status": "PARTIAL",
+    "errors": [],
+    "warnings": [
+      "FUTU为实时OpenD；IBKR/SBI/BitFlyer为旧OCR快照，保留数量但执行可信度低。",
+      "Forward PE/EPS一致预期/目标价/NAV多数需要付费或官方结构化源，当前字段已固定但值缺失。",
+      "建议股数计算需要目标仓位/可用现金/账户映射规则；未获GPT V6批准前不输出数量。"
+    ]
+  },
+  "refresh_policy": {
+    "daily_auto_refresh": [
+      "FUTU OpenD持仓与行情",
+      "Yahoo chart价格/MA50/MA100/MA200",
+      "机会过滤器/排行榜读取既有结果"
+    ],
+    "stale_snapshot_refresh_needed": [
+      "IBKR",
+      "SBI",
+      "BitFlyer"
+    ],
+    "manual_or_paid_source_needed": [
+      "Forward PE",
+      "EPS一致预期",
+      "主要目标价",
+      "SoftBank官方NAV/净债务",
+      "MSTR完整债务/可转债余额"
+    ]
+  },
+  "four_account_base": {
+    "accounts": [
+      {
+        "account": "FUTU",
+        "source_type": "OpenD实时只读",
+        "status": "realtime",
+        "confidence": "high",
+        "positions": [
+          {
+            "code": "JP.4568",
+            "name": "第一三共",
+            "quantity": 6500.0,
+            "cost": 2948.3846,
+            "average_cost": 3140.3083,
+            "current_price": 2534.5,
+            "market_value": 16490500.0,
+            "currency": "JPY",
+            "pnl": -2674000.0,
+            "pnl_pct": -13.950000000000001,
+            "today_pnl": -191750.0,
+            "account_weight_pct": 26.914,
+            "track": "防御",
+            "horizon": "中期",
+            "is_overlap_holding": true,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU",
+              "SBI"
+            ]
+          },
+          {
+            "code": "JP.7832",
+            "name": "万代南梦宫",
+            "quantity": 500.0,
+            "cost": 4272.0,
+            "average_cost": 4322.0,
+            "current_price": 3695.0,
+            "market_value": 1849500.0,
+            "currency": "JPY",
+            "pnl": -286500.0,
+            "pnl_pct": -13.41,
+            "today_pnl": -16000.0,
+            "account_weight_pct": 3.0185,
+            "track": "其它",
+            "horizon": "中期",
+            "is_overlap_holding": false,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU"
+            ]
+          },
+          {
+            "code": "JP.7974",
+            "name": "任天堂",
+            "quantity": 2000.0,
+            "cost": 8246.8,
+            "average_cost": 8246.8,
+            "current_price": 6588.0,
+            "market_value": 13182000.0,
+            "currency": "JPY",
+            "pnl": -3311600.0,
+            "pnl_pct": -20.080000000000002,
+            "today_pnl": -536000.0,
+            "account_weight_pct": 21.5142,
+            "track": "其它",
+            "horizon": "中期",
+            "is_overlap_holding": false,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU"
+            ]
+          },
+          {
+            "code": "JP.8766",
+            "name": "东京海上控股",
+            "quantity": 600.0,
+            "cost": 4908.3333,
+            "average_cost": 5541.25,
+            "current_price": 6813.0,
+            "market_value": 4083600.0,
+            "currency": "JPY",
+            "pnl": 1138600.0,
+            "pnl_pct": 38.66,
+            "today_pnl": -26400.0,
+            "account_weight_pct": 6.6648,
+            "track": "防御",
+            "horizon": "中期",
+            "is_overlap_holding": false,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU"
+            ]
+          },
+          {
+            "code": "JP.9984",
+            "name": "软银集团",
+            "quantity": 4100.0,
+            "cost": 3601.1585,
+            "average_cost": 4457.5992,
+            "current_price": 6145.0,
+            "market_value": 25149400.0,
+            "currency": "JPY",
+            "pnl": 10384650.0,
+            "pnl_pct": 70.33,
+            "today_pnl": -4034400.0,
+            "account_weight_pct": 41.0461,
+            "track": "AI算力",
+            "horizon": "长期",
+            "is_overlap_holding": false,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU"
+            ]
+          },
+          {
+            "code": "US.AVGO",
+            "name": "博通",
+            "quantity": 150.0,
+            "cost": 383.125,
+            "average_cost": 383.125,
+            "current_price": 378.91,
+            "market_value": 55716.0,
+            "currency": "USD",
+            "pnl": -1752.75,
+            "pnl_pct": -3.05,
+            "today_pnl": -1120.5,
+            "account_weight_pct": 0.0909,
+            "track": "AI算力",
+            "horizon": "长期",
+            "is_overlap_holding": false,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU"
+            ]
+          },
+          {
+            "code": "US.COIN",
+            "name": "Coinbase",
+            "quantity": 200.0,
+            "cost": 228.899,
+            "average_cost": 228.899,
+            "current_price": 142.52,
+            "market_value": 28528.0,
+            "currency": "USD",
+            "pnl": -17251.7,
+            "pnl_pct": -37.68,
+            "today_pnl": 24.0,
+            "account_weight_pct": 0.0466,
+            "track": "加密",
+            "horizon": "波段",
+            "is_overlap_holding": true,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU",
+              "IBKR"
+            ]
+          },
+          {
+            "code": "US.CRCL",
+            "name": "Circle",
+            "quantity": 400.0,
+            "cost": 94.918,
+            "average_cost": 94.918,
+            "current_price": 68.81,
+            "market_value": 27600.0,
+            "currency": "USD",
+            "pnl": -10367.0,
+            "pnl_pct": -27.310000000000002,
+            "today_pnl": 76.0,
+            "account_weight_pct": 0.045,
+            "track": "加密",
+            "horizon": "波段",
+            "is_overlap_holding": false,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU"
+            ]
+          },
+          {
+            "code": "US.MSFT",
+            "name": "微软",
+            "quantity": 550.0,
+            "cost": 405.705,
+            "average_cost": 406.665,
+            "current_price": 352.83,
+            "market_value": 193990.5,
+            "currency": "USD",
+            "pnl": -29147.23,
+            "pnl_pct": -13.059999999999999,
+            "today_pnl": -66.0,
+            "account_weight_pct": 0.3166,
+            "track": "AI算力",
+            "horizon": "长期",
+            "is_overlap_holding": true,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU",
+              "IBKR"
+            ]
+          },
+          {
+            "code": "US.MSTR",
+            "name": "Strategy",
+            "quantity": 700.0,
+            "cost": 181.267,
+            "average_cost": 181.267,
+            "current_price": 85.33,
+            "market_value": 59570.0,
+            "currency": "USD",
+            "pnl": -67316.58,
+            "pnl_pct": -53.05,
+            "today_pnl": -161.0,
+            "account_weight_pct": 0.0972,
+            "track": "加密",
+            "horizon": "波段",
+            "is_overlap_holding": true,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU",
+              "IBKR"
+            ]
+          },
+          {
+            "code": "US.NVDA",
+            "name": "英伟达",
+            "quantity": 780.0,
+            "cost": 116.426,
+            "average_cost": 179.965,
+            "current_price": 195.74,
+            "market_value": 150329.4,
+            "currency": "USD",
+            "pnl": 59516.76,
+            "pnl_pct": 65.53999999999999,
+            "today_pnl": -2347.8,
+            "account_weight_pct": 0.2454,
+            "track": "AI算力",
+            "horizon": "长期",
+            "is_overlap_holding": true,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU",
+              "IBKR"
+            ]
+          },
+          {
+            "code": "US.TSM",
+            "name": "台积电",
+            "quantity": 1.0,
+            "cost": -23351.29,
+            "average_cost": 153.123,
+            "current_price": 434.99,
+            "market_value": 429.02,
+            "currency": "USD",
+            "pnl": 23780.31,
+            "pnl_pct": 0.0,
+            "today_pnl": -5.97,
+            "account_weight_pct": 0.0007,
+            "track": "其它",
+            "horizon": "中期",
+            "is_overlap_holding": false,
+            "confidence": "high_realtime_opend",
+            "source": "Futu OpenD position_snapshot + quote snapshot",
+            "duplicate_query_count_before_dedup": 3,
+            "overlap_accounts": [
+              "FUTU"
+            ]
+          }
+        ],
+        "account_cash": "缺失",
+        "account_total": {
+          "value": "缺失",
+          "reason": "本脚本不调用交易资金接口；资金底层由既有Product_Data_Layer现金模块刷新"
+        },
+        "leverage_or_margin": {
+          "is_margin_account": true,
+          "details": "Futu账户记录为MARGIN；实际融资余额需资金接口每日刷新"
+        }
+      },
+      {
+        "account": "IBKR",
+        "source_type": "旧OCR账户快照",
+        "status": "stale_snapshot",
+        "source_file": "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\ibkr_ocr.txt",
+        "snapshot_date": "2026-06-01 15:49:21 JST",
+        "is_stale": true,
+        "stale_days": 25,
+        "confidence": "low",
+        "positions": [
+          {
+            "code": "COIN",
+            "name": "Coinbase",
+            "quantity": 45,
+            "confidence": "low_ocr"
+          },
+          {
+            "code": "IBKR",
+            "name": "Interactive Brokers",
+            "quantity": 14.3669,
+            "confidence": "low_ocr"
+          },
+          {
+            "code": "META",
+            "name": "Meta",
+            "quantity": 95,
+            "confidence": "low_ocr"
+          },
+          {
+            "code": "MSFT",
+            "name": "Microsoft",
+            "quantity": 140,
+            "confidence": "low_ocr"
+          },
+          {
+            "code": "MSTR",
+            "name": "Strategy",
+            "quantity": 158,
+            "confidence": "low_ocr"
+          },
+          {
+            "code": "NVDA",
+            "name": "NVIDIA",
+            "quantity": 190,
+            "confidence": "low_ocr"
+          }
+        ],
+        "account_total": {
+          "value": 202679.34,
+          "currency": "USD",
+          "confidence": "low_ocr"
+        },
+        "raw_ocr_excerpt": "=== page 1 ===\n23°37 am inl => (\n= RAHA Qk @\nBE RAM #28 ROMS\n27TH A] eM\nSee All Orders & Trades\n\n=== page 2 ===\n23:37 = ml = |\n= RABAS Q & ©\nso 8 ##® wmme\nta, HZ MIM ago C\nSh 8S RIS Km TRINA\na RM tree BYE\nBit (USD) v\nSa RIM 202,679.34\n55S (MaMa 0.00\nBI— AS RRMe\nes 202,274.06\nPA\nZ> eS thn\nReg TS Tak ME IN) G70 24\n\n=== page 3 ===\n23:36 am tls (\n= KAAS Q £& @\nPSMA SARS\nVv\n202,679 0\nHB RM f= alle\n1\nPa Raitt x4 ie RS +\nCOIN nasvao.nms © 188.30 +6.05 45 —\nIBKRnasoaonms * 86.61 +3.58 14.3669 =\nMETA wasoao.nms ® 632.43 — -2.86 95 —\nMSFT wasoao.nms @ 449.99 +23.00 140 =\nMSTR wasononns # 158.96 $7.32 158 —\nNVDA wasoao.ns® 212.49 = -1.76 190 —\nERG\nUSD WE 4.30K TAiMa\nAIWs 4.30K Taina",
+        "required_fields_not_reliable": [
+          "成本",
+          "市值",
+          "盈亏",
+          "占账户比例",
+          "融资/杠杆"
+        ]
+      },
+      {
+        "account": "SBI",
+        "source_type": "旧OCR账户快照",
+        "status": "stale_snapshot",
+        "source_file": "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\sbi_ocr.txt",
+        "snapshot_date": "2026-06-01 15:49:25 JST",
+        "is_stale": true,
+        "stale_days": 25,
+        "confidence": "low",
+        "positions": [
+          {
+            "code": "4568",
+            "name": "第一三共/OCR候选",
+            "quantity": 3400,
+            "confidence": "very_low_ocr"
+          },
+          {
+            "code": "6758",
+            "name": "Sony/OCR候选",
+            "quantity": 1000,
+            "confidence": "very_low_ocr"
+          },
+          {
+            "code": "6857",
+            "name": "Advantest/OCR候选",
+            "quantity": 800,
+            "confidence": "very_low_ocr"
+          },
+          {
+            "code": "7203",
+            "name": "Toyota/OCR候选",
+            "quantity": 800,
+            "confidence": "very_low_ocr"
+          },
+          {
+            "code": "8001",
+            "name": "Itochu/OCR候选",
+            "quantity": 600,
+            "confidence": "very_low_ocr"
+          },
+          {
+            "code": "8750",
+            "name": "第一生命/OCR候选",
+            "quantity": 900,
+            "confidence": "very_low_ocr"
+          }
+        ],
+        "account_total": {
+          "value": 18326715,
+          "currency": "JPY",
+          "confidence": "low_ocr"
+        },
+        "raw_ocr_excerpt": "=== page 1 ===\n23:56 mm ils? @\nEMRE @\nai EG] AMVEMR EBL\nBAA PEOkR] = ER] ER\nRFCM SHAMS VECKA.\n\n=== page 2 ===\n23:56 =m mS @\nOe (S\n(RAE EU aiib = ea RH\nBRtRH2Ss# A) 18,326,715\n[CBS 8)\nxETRAISIAR, SRSA ICBHAHNE\noe (RBOBEAISET yy RBICBRVUE\n\n=== page 3 ===\n23:56 am mS 7\nOe ee C\nRA LS ay (mts m RA\n\naM (misma at eR: wes\nar (mis m BAAR 8\n\nBai) RARE eee )\n\nFa) GES) aemgzaay A bt\nBSH 3,400 9,181,700\n4568 HE ()\nY-=-—A\\-7F 1,000*% 3,444,000\n6758 FE (0)\nPRNVFAR 8001 20,936,000\n6857 HE (0)\nkaye 800K 2,433,600\n7203 RE (0)\nFRE 600% 1,161,300\n8001 HE ()\nB-—JSIIIN—-T 900K 1,472,400\n8750 tee (N)\n\n=== page 4 ===\n23:55 ma nS @\nDES ie\nRA GL a iiet= bam RD\naria at AM: WE\nay (Mi im 2 BAAR 8\nii WH ae M38 i )\n0) meet @ APRA\nBSH\n4568 $3 3,278.0F\nYI-FW-TF\n6758 4S 4,128.0\nPRENYFA\n6857 435E 26,158.04\nka97B8\n7208 4358 2,956.0\nFR\n8001 455E 1,987.04\nB-—JSIAIIN-T\n8750 tS 441284 0H",
+        "required_fields_not_reliable": [
+          "成本",
+          "市值",
+          "盈亏",
+          "占账户比例",
+          "融资/杠杆"
+        ]
+      },
+      {
+        "account": "BitFlyer",
+        "source_type": "旧OCR账户快照",
+        "status": "stale_snapshot",
+        "source_file": "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\bitflyer_ocr.txt",
+        "snapshot_date": "2026-06-01 15:49:30 JST",
+        "is_stale": true,
+        "stale_days": 25,
+        "confidence": "low",
+        "positions": [
+          {
+            "code": "BTC",
+            "name": "Bitcoin",
+            "quantity": 1.1408405,
+            "confidence": "low_ocr"
+          },
+          {
+            "code": "ETH",
+            "name": "Ethereum",
+            "quantity": 9.37526,
+            "confidence": "low_ocr"
+          }
+        ],
+        "account_total": {
+          "value": 16714738,
+          "currency": "JPY",
+          "confidence": "low_ocr"
+        },
+        "raw_ocr_excerpt": "=== page 1 ===\n23:26 =m wiles (12\n< RS ON 43\nf Py td\n16,714,738 JPY\n\nY) Japanese Yen 295,363 Py\n\n@ Ptcen 13,389,507 spy\n1.1408405 BTC\n\nme heen 3,029,868 JPY\n\n9.37526 ETH\n\n[x] XRP O uPY\nO XRP\n\nD) Dogecoin 0 upy\n0 DOGE\n\n&) Shiba Inu 0 upY\n0 SHIB\n\n=== page 2 ===\n23:27 am ats (12\n< RS BTC/JPY sec\n\n12,500,000\n\n12,000,000\n\n11,730,611\nitll! thnavtlltrstonttttits:\n\n18 5/7 5/21 6/4\n— 11,734,602\nFe 5) {mht BS |e 11,733,952\n11,733,496\n11,730,611 0.001 11733140\n11,733,000 0.00361932 11,733,000\n11,731,809 0.00115479 11,732,630\n11,732,629\n11,731,808 0.0006787 11,731,036\n11,731,035\n0\nDE 11,730,639\nBitcoin Japanese Yen 11,730,636\n1.1408405BTC 295,363 JPY 11,730,635\nRS a 11,730,631\nes 11,730,630\n16,714,738 JPY 11,730,621\na a3g6T\n_— LTP 11,730,611 0.06%\n\nERB ARR 11,723,143\n-3,316,231 JPY 34,342 JPY 11,723,142\nAyrtezs 11,723,131\n> 11,723,130\nSoar lAL 11,723,061\nCy 11 7F7OO F7R7Z\n\n=== page 3 ===\n23:27 am ats (12\n< Rs ETH/JPY 0c\n350,000\n320,365\nLotito Merreestete lal:\nnx) 5/7 5/21 6/4\n320,985\nfS5 (mits AS |= 320,950\n320,913\n320,365 0.099 390.904\n320,216 4.669 320,894\n320,045 00188991 320,849\n320826\n320,309 0.01 320,785\n320,769\n|\ngael 320,721\nEthereum Japanese Yen 320,720\n9.37526 ETH 295,363 JPY 320,719\nware 320,659\nnee 320,656\n16,712,459 JPY 320,647\n520 368\n= LTP 320,365 0.07%\nERB ARR 320,415\n-3,316,231 JPY 34,342 JPY 320,413\n34,342 JPY 390,386\na QON QE/\n\n=== page 4 ===\n23:26 ma ul = €\nann ,.\nse bitFlyer ao\n16,710,709 spy\nFURR\n+37,681 spy\nEb News Bitcoin price\nARGCPH DAT AENSIAR Lightning\nmy\n© BT",
+        "required_fields_not_reliable": [
+          "成本",
+          "市值",
+          "盈亏",
+          "占账户比例",
+          "融资/杠杆"
+        ]
+      }
+    ],
+    "overlap_summary": {
+      "overlap_codes": [
+        "JP.4568",
+        "US.COIN",
+        "US.MSFT",
+        "US.MSTR",
+        "US.NVDA"
+      ],
+      "note": "仅FUTU与旧OCR账户之间可见重叠；非执行级。"
+    }
+  },
+  "valuation_anchor_base": [
+    {
+      "code": "US.NVDA",
+      "name": "英伟达",
+      "track": "AI算力",
+      "current_price": 195.74,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 210.2128,
+      "ma100": 196.1671,
+      "ma200": 190.5314,
+      "week_52_high": 236.264633141,
+      "week_52_low": 151.288496939,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 39.946,
+      "futu_pe_ttm_ratio": 29.975,
+      "market_cap": 4736908000000.0,
+      "data_time": "2026-06-26 00:10:39.016",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.MSFT",
+      "name": "微软",
+      "track": "AI算力",
+      "current_price": 352.83,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": 8.855,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": 15803000000.0,
+      "ma50": 411.7388,
+      "ma100": 401.9482,
+      "ma200": 448.6147,
+      "week_52_high": 551.048444232,
+      "week_52_low": 349.2,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 25.867,
+      "futu_pe_ttm_ratio": 21.014,
+      "market_cap": 2620974616612.32,
+      "data_time": "2026-06-26 00:10:09.750",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.AVGO",
+      "name": "博通",
+      "track": "AI算力",
+      "current_price": 378.91,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 412.5994,
+      "ma100": 370.5912,
+      "ma200": 361.1746,
+      "week_52_high": 494.217819315,
+      "week_52_low": 260.744988281,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 79.436,
+      "futu_pe_ttm_ratio": 63.046,
+      "market_cap": 1802694712824.18,
+      "data_time": "2026-06-26 00:10:39.629",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.META",
+      "name": "Meta Platforms",
+      "track": "AI算力",
+      "current_price": 542.87,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": 6.816,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": 13229000000.0,
+      "ma50": 615.325,
+      "ma100": 622.8886,
+      "ma200": 651.0967,
+      "week_52_high": 793.648790593,
+      "week_52_low": 519.77826057,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 23.11,
+      "futu_pe_ttm_ratio": 19.74,
+      "market_cap": 1378033859042.48,
+      "data_time": "2026-06-26 00:09:15.614",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.MSTR",
+      "name": "Strategy",
+      "track": "加密",
+      "current_price": 85.33,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": 0.61034,
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 151.7692,
+      "ma100": 142.1148,
+      "ma200": 187.184,
+      "week_52_high": 457.22,
+      "week_52_low": 85.0,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": -5.602,
+      "futu_pe_ttm_ratio": -2.306,
+      "market_cap": 29903716917.76,
+      "data_time": "2026-06-26 00:10:40.550",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.COIN",
+      "name": "Coinbase",
+      "track": "加密",
+      "current_price": 142.52,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 183.6014,
+      "ma100": 181.2371,
+      "ma200": 235.1495,
+      "week_52_high": 444.645,
+      "week_52_low": 139.36,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 32.026,
+      "futu_pe_ttm_ratio": 52.397,
+      "market_cap": 37548428370.32,
+      "data_time": "2026-06-26 00:09:56.532",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.CRCL",
+      "name": "Circle",
+      "track": "加密",
+      "current_price": 68.81,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 99.655,
+      "ma100": 94.5478,
+      "ma200": 98.5007,
+      "week_52_high": 262.97,
+      "week_52_low": 49.9,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": -239.756,
+      "futu_pe_ttm_ratio": -215.705,
+      "market_cap": 17104516624.3,
+      "data_time": "2026-06-26 00:09:48.150",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.GEV",
+      "name": "GE Vernova",
+      "track": "AI电力",
+      "current_price": 1085.47,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": 7.573,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": 4968000000.0,
+      "ma50": 1029.6656,
+      "ma100": 941.4432,
+      "ma200": 782.3729,
+      "week_52_high": 1181.346391136,
+      "week_52_low": 480.898321749,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 61.36,
+      "futu_pe_ttm_ratio": 31.72,
+      "market_cap": 291687492972.65,
+      "data_time": "2026-06-26 00:08:25.954",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.VRT",
+      "name": "Vertiv Holdings",
+      "track": "AI电力",
+      "current_price": 325.57,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 324.037,
+      "ma100": 287.096,
+      "ma200": 228.0474,
+      "week_52_high": 379.856596613,
+      "week_52_low": 109.940020182,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 95.475,
+      "futu_pe_ttm_ratio": 81.801,
+      "market_cap": 125054307225.12,
+      "data_time": "2026-06-26 00:10:05.026",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "US.ETN",
+      "name": "伊顿",
+      "track": "AI电力",
+      "current_price": 419.87,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": 5.741,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": 545000000.0,
+      "ma50": 406.2388,
+      "ma100": 387.8628,
+      "ma200": 370.1888,
+      "week_52_high": 436.74,
+      "week_52_low": 310.088495005,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 40.063,
+      "futu_pe_ttm_ratio": 40.962,
+      "market_cap": 163035521000.0,
+      "data_time": "2026-06-26 00:04:07.462",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.9984",
+      "name": "软银集团",
+      "track": "AI算力",
+      "current_price": 6145.0,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": 0.495,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 6341.46,
+      "ma100": 5144.86,
+      "ma200": 4950.4137,
+      "week_52_high": 9074.0,
+      "week_52_low": 2551.25,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 31.537,
+      "futu_pe_ttm_ratio": 11.488,
+      "market_cap": 35099306697400.0,
+      "data_time": "2026-06-26 13:10:39",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.8035",
+      "name": "Tokyo Electron",
+      "track": "AI算力",
+      "current_price": 72610.0,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": -0.664,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 55718.8,
+      "ma100": 48351.1,
+      "ma200": 39906.1,
+      "week_52_high": 79800.0,
+      "week_52_low": 19870.0,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 58.047,
+      "futu_pe_ttm_ratio": 58.047,
+      "market_cap": 33983856743130.0,
+      "data_time": "2026-06-26 13:10:38",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.6857",
+      "name": "爱德万测试",
+      "track": "AI算力",
+      "current_price": 32350.0,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": 4.241,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 28220.8,
+      "ma100": 26475.4,
+      "ma200": 22502.35,
+      "week_52_high": 35940.0,
+      "week_52_low": 9744.0,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 63.023,
+      "futu_pe_ttm_ratio": 63.023,
+      "market_cap": 23680200000000.0,
+      "data_time": "2026-06-26 13:10:38",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.4063",
+      "name": "信越化学工业",
+      "track": "AI算力",
+      "current_price": 6953.0,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": -1.529,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 7170.96,
+      "ma100": 6584.28,
+      "ma200": 5711.375,
+      "week_52_high": 7930.0,
+      "week_52_low": 4280.0,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 27.537,
+      "futu_pe_ttm_ratio": 27.537,
+      "market_cap": 13801676249345.0,
+      "data_time": "2026-06-26 13:10:36",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.6954",
+      "name": "发那科",
+      "track": "其它",
+      "current_price": 7094.0,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": 8.557,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 7337.12,
+      "ma100": 6767.8,
+      "ma200": 5986.655,
+      "week_52_high": 8880.0,
+      "week_52_low": 3699.0,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 39.748,
+      "futu_pe_ttm_ratio": 39.748,
+      "market_cap": 6968240618420.0,
+      "data_time": "2026-06-26 13:10:38",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.6981",
+      "name": "村田制作所",
+      "track": "AI算力",
+      "current_price": 10925.0,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": 2.522,
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": 182229000000.0,
+      "ma50": 7721.38,
+      "ma100": 5681.92,
+      "ma200": 4360.58,
+      "week_52_high": 12895.0,
+      "week_52_low": 2075.5,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 85.585,
+      "futu_pe_ttm_ratio": 85.585,
+      "market_cap": 21445795134775.0,
+      "data_time": "2026-06-26 13:10:37",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "长期初步观察池V3"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.8766",
+      "name": "东京海上控股",
+      "track": "防御",
+      "current_price": 6813.0,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 7228.02,
+      "ma100": 6851.55,
+      "ma200": 6408.95,
+      "week_52_high": 8038.0,
+      "week_52_low": 5300.0,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 13.215,
+      "futu_pe_ttm_ratio": 13.215,
+      "market_cap": 13176342000000.0,
+      "data_time": "2026-06-26 13:10:19",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.8750",
+      "name": "第一生命控股",
+      "track": "防御",
+      "current_price": 1719.5,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 1607.55,
+      "ma100": 1537.79,
+      "ma200": 1378.6825,
+      "week_52_high": 1860.0,
+      "week_52_low": 1052.0,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 14.182,
+      "futu_pe_ttm_ratio": 14.182,
+      "market_cap": 6227848829070.5,
+      "data_time": "2026-06-26 13:10:36",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "JP.4568",
+      "name": "第一三共",
+      "track": "防御",
+      "current_price": 2534.5,
+      "currency": "JPY",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 2635.14,
+      "ma100": 2766.57,
+      "ma200": 3164.595,
+      "week_52_high": 4178.0,
+      "week_52_low": 2390.0,
+      "major_target_price": "缺失",
+      "futu_pe_ratio": 18.055,
+      "futu_pe_ttm_ratio": 18.055,
+      "market_cap": 4721503142350.5,
+      "data_time": "2026-06-26 13:10:36",
+      "data_sources": [
+        "Futu OpenD get_market_snapshot",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "BTC",
+      "name": "BTC",
+      "track": "加密",
+      "current_price": 59871.84,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 70633.9645,
+      "ma100": 71847.6681,
+      "ma200": 76155.1118,
+      "week_52_high": "缺失",
+      "week_52_low": "缺失",
+      "major_target_price": "缺失",
+      "futu_pe_ratio": "缺失",
+      "futu_pe_ttm_ratio": "缺失",
+      "market_cap": "缺失",
+      "data_time": "2026-06-26 13:10:39 JST",
+      "data_sources": [
+        "缺失",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    },
+    {
+      "code": "ETH",
+      "name": "ETH",
+      "track": "加密",
+      "current_price": 1552.56,
+      "currency": "USD",
+      "forward_pe": "缺失",
+      "ps": "缺失",
+      "nav": "缺失",
+      "mnav": "不适用",
+      "eps_consensus": {
+        "2026": "缺失",
+        "2027": "缺失"
+      },
+      "fcf": "缺失",
+      "ma50": 1934.6177,
+      "ma100": 2077.4125,
+      "ma200": 2335.3027,
+      "week_52_high": "缺失",
+      "week_52_low": "缺失",
+      "major_target_price": "缺失",
+      "futu_pe_ratio": "缺失",
+      "futu_pe_ttm_ratio": "缺失",
+      "market_cap": "缺失",
+      "data_time": "2026-06-26 13:10:39 JST",
+      "data_sources": [
+        "缺失",
+        "Yahoo chart 1y daily",
+        "缺失"
+      ],
+      "confidence": "medium",
+      "missing_fields": [
+        "forward_pe",
+        "eps_consensus",
+        "major_target_price"
+      ],
+      "notes": "不输出交易建议；仅供Claude计算估值锚。"
+    }
+  ],
+  "track_base": [
+    {
+      "track": "AI算力",
+      "lifecycle": "成长中期",
+      "current_stage": "龙头盈利兑现 + 估值分化",
+      "top3_leaders": [
+        "NVDA",
+        "AVGO",
+        "TSM"
+      ],
+      "flow_rotation_direction": "缺失",
+      "valuation_state": "高分化；需个股估值锚判定",
+      "catalysts": [
+        "AI Capex",
+        "推理需求",
+        "先进封装/算力供给"
+      ],
+      "risks": [
+        "估值拥挤",
+        "Capex放缓",
+        "毛利率回落"
+      ]
+    },
+    {
+      "track": "AI电力",
+      "lifecycle": "成长早中期",
+      "current_stage": "数据中心电力约束主题扩散",
+      "top3_leaders": [
+        "GEV",
+        "VRT",
+        "ETN"
+      ],
+      "flow_rotation_direction": "缺失",
+      "valuation_state": "缺失",
+      "catalysts": [
+        "电网投资",
+        "数据中心电力需求",
+        "能源基础设施订单"
+      ],
+      "risks": [
+        "订单兑现",
+        "估值过热",
+        "政策/利率敏感"
+      ]
+    },
+    {
+      "track": "加密",
+      "lifecycle": "高波动周期",
+      "current_stage": "BTC价格驱动 + 相关股高Beta",
+      "top3_leaders": [
+        "BTC",
+        "MSTR",
+        "COIN"
+      ],
+      "flow_rotation_direction": "缺失",
+      "valuation_state": "mNAV/交易量驱动；需每日刷新",
+      "catalysts": [
+        "BTC价格",
+        "ETF资金流",
+        "监管/稳定币政策"
+      ],
+      "risks": [
+        "BTC回撤",
+        "杠杆清算",
+        "监管变化"
+      ]
+    },
+    {
+      "track": "防御",
+      "lifecycle": "成熟期",
+      "current_stage": "组合稳定器",
+      "top3_leaders": [
+        "东京海上",
+        "第一生命",
+        "第一三共"
+      ],
+      "flow_rotation_direction": "缺失",
+      "valuation_state": "缺失",
+      "catalysts": [
+        "利率",
+        "医药管线",
+        "汇率"
+      ],
+      "risks": [
+        "日元/利率反转",
+        "药品管线失败",
+        "保险赔付周期"
+      ]
+    },
+    {
+      "track": "机器人（占位）",
+      "lifecycle": "占位",
+      "current_stage": "待数据接入",
+      "top3_leaders": [],
+      "flow_rotation_direction": "缺失",
+      "valuation_state": "缺失",
+      "catalysts": [],
+      "risks": [
+        "数据未接入"
+      ]
+    },
+    {
+      "track": "AI医疗（占位）",
+      "lifecycle": "占位",
+      "current_stage": "待数据接入",
+      "top3_leaders": [],
+      "flow_rotation_direction": "缺失",
+      "valuation_state": "缺失",
+      "catalysts": [],
+      "risks": [
+        "数据未接入"
+      ]
+    }
+  ],
+  "position_calculation_base": {
+    "price_band_outputs": [
+      {
+        "code": "US.NVDA",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 151.288496939,
+        "reasonable_price": 196.1671,
+        "expensive_price": 236.264633141,
+        "risk_price": 190.5314,
+        "current_price": 195.74,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.MSFT",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 349.2,
+        "reasonable_price": 401.9482,
+        "expensive_price": 551.048444232,
+        "risk_price": 448.6147,
+        "current_price": 352.83,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.AVGO",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 260.744988281,
+        "reasonable_price": 370.5912,
+        "expensive_price": 494.217819315,
+        "risk_price": 361.1746,
+        "current_price": 378.91,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.META",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 519.77826057,
+        "reasonable_price": 622.8886,
+        "expensive_price": 793.648790593,
+        "risk_price": 651.0967,
+        "current_price": 542.87,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.MSTR",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 85.0,
+        "reasonable_price": 142.1148,
+        "expensive_price": 457.22,
+        "risk_price": 187.184,
+        "current_price": 85.33,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.COIN",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 139.36,
+        "reasonable_price": 181.2371,
+        "expensive_price": 444.645,
+        "risk_price": 235.1495,
+        "current_price": 142.52,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.CRCL",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 49.9,
+        "reasonable_price": 94.5478,
+        "expensive_price": 262.97,
+        "risk_price": 98.5007,
+        "current_price": 68.81,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.GEV",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 480.898321749,
+        "reasonable_price": 941.4432,
+        "expensive_price": 1181.346391136,
+        "risk_price": 782.3729,
+        "current_price": 1085.47,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.VRT",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 109.940020182,
+        "reasonable_price": 287.096,
+        "expensive_price": 379.856596613,
+        "risk_price": 228.0474,
+        "current_price": 325.57,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "US.ETN",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 310.088495005,
+        "reasonable_price": 387.8628,
+        "expensive_price": 436.74,
+        "risk_price": 370.1888,
+        "current_price": 419.87,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.9984",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 2551.25,
+        "reasonable_price": 5144.86,
+        "expensive_price": 9074.0,
+        "risk_price": 4950.4137,
+        "current_price": 6145.0,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.8035",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 19870.0,
+        "reasonable_price": 48351.1,
+        "expensive_price": 79800.0,
+        "risk_price": 39906.1,
+        "current_price": 72610.0,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.6857",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 9744.0,
+        "reasonable_price": 26475.4,
+        "expensive_price": 35940.0,
+        "risk_price": 22502.35,
+        "current_price": 32350.0,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.4063",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 4280.0,
+        "reasonable_price": 6584.28,
+        "expensive_price": 7930.0,
+        "risk_price": 5711.375,
+        "current_price": 6953.0,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.6954",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 3699.0,
+        "reasonable_price": 6767.8,
+        "expensive_price": 8880.0,
+        "risk_price": 5986.655,
+        "current_price": 7094.0,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.6981",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 2075.5,
+        "reasonable_price": 5681.92,
+        "expensive_price": 12895.0,
+        "risk_price": 4360.58,
+        "current_price": 10925.0,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.8766",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 5300.0,
+        "reasonable_price": 6851.55,
+        "expensive_price": 8038.0,
+        "risk_price": 6408.95,
+        "current_price": 6813.0,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.8750",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 1052.0,
+        "reasonable_price": 1537.79,
+        "expensive_price": 1860.0,
+        "risk_price": 1378.6825,
+        "current_price": 1719.5,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "JP.4568",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 2390.0,
+        "reasonable_price": 2766.57,
+        "expensive_price": 4178.0,
+        "risk_price": 3164.595,
+        "current_price": 2534.5,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "BTC",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 76155.1118,
+        "reasonable_price": 71847.6681,
+        "expensive_price": "缺失",
+        "risk_price": 76155.1118,
+        "current_price": 59871.84,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      },
+      {
+        "code": "ETH",
+        "calculation_basis": "mechanical_anchor_only_not_trade_advice",
+        "opportunity_price": 2335.3027,
+        "reasonable_price": 2077.4125,
+        "expensive_price": "缺失",
+        "risk_price": 2335.3027,
+        "current_price": 1552.56,
+        "suggested_share_count": {
+          "value": "缺失",
+          "reason": "缺少GPT V6批准的目标仓位/可用现金/账户映射输入；不得输出建议数量"
+        }
+      }
+    ],
+    "share_count_engine_status": "field_ready_but_not_enabled",
+    "share_count_engine_missing_inputs": [
+      "target_weight",
+      "usable_cash_by_account",
+      "account_trade_unit",
+      "GPT_V6_approved_position_rule"
+    ]
+  },
+  "dynamic_ranking_base": {
+    "opportunity_ranking_source": "机会过滤器V3_结果.json",
+    "short_top3": [
+      {
+        "code": "US.IMMR",
+        "ticker": "IMMR",
+        "name": "浸入科技",
+        "score": {
+          "total": 72.25,
+          "technical": 85.0,
+          "event": 45,
+          "valuation": 50.0,
+          "portfolio": 100,
+          "details": [
+            "200MA距离:35.0",
+            "20MA切入:25.0",
+            "突破状态:10.0",
+            "量能:15.0"
+          ],
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.IMMR",
+          "ticker": "IMMR",
+          "name": "浸入科技",
+          "plates": [
+            "概念: AI眼镜概念股"
+          ],
+          "last_price": 6.68,
+          "change_pct": 3.4055727554179516,
+          "volume_today": 690864.0,
+          "avg20_vol": 521734.4,
+          "vol_ratio": 1.324168005789919,
+          "daily_state": "区间内",
+          "ma20": 6.5040000000000004,
+          "ma20_side": "上方",
+          "ma20_dist": 2.7060270602705883,
+          "ma50": 6.3081744185,
+          "ma50_side": "上方",
+          "ma50_dist": 5.8943452864832935,
+          "ma200": 6.42125932246,
+          "ma200_side": "上方",
+          "ma200_dist": 4.029438223044313,
+          "volume_state": "温和放量 1.32x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "价格站上三均线且放量"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失"
+        ]
+      },
+      {
+        "code": "US.HIMS",
+        "ticker": "HIMS",
+        "name": "Hims & Hers Health",
+        "score": {
+          "total": 72.1,
+          "technical": 84.76,
+          "event": 45,
+          "valuation": 50.0,
+          "portfolio": 100,
+          "details": [
+            "200MA距离:33.5",
+            "20MA切入:11.2",
+            "突破状态:20.0",
+            "量能:20.0"
+          ],
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.HIMS",
+          "ticker": "HIMS",
+          "name": "Hims & Hers Health",
+          "plates": [
+            "概念: AI医疗概念股"
+          ],
+          "last_price": 35.47,
+          "change_pct": 11.22608968328629,
+          "volume_today": 31903478.0,
+          "avg20_vol": 18447264.55,
+          "vol_ratio": 1.729442211528321,
+          "daily_state": "突破近期高点(33.45)",
+          "ma20": 27.697000000000003,
+          "ma20_side": "上方",
+          "ma20_dist": 28.06441130808388,
+          "ma50": 26.644000000000002,
+          "ma50_side": "上方",
+          "ma50_dist": 33.12565680828703,
+          "ma200": 33.35705,
+          "ma200_side": "上方",
+          "ma200_dist": 6.334343114873753,
+          "volume_state": "显著放量 1.73x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "放量突破近期高点",
+            "成交量>20日均量1.5倍",
+            "价格站上三均线且放量"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失"
+        ]
+      },
+      {
+        "code": "US.GE",
+        "ticker": "GE",
+        "name": "GE航天航空",
+        "score": {
+          "total": 71.51,
+          "technical": 71.26,
+          "event": 75,
+          "valuation": 50.0,
+          "portfolio": 100,
+          "details": [
+            "200MA距离:21.3",
+            "20MA切入:20.0",
+            "突破状态:10.0",
+            "量能:20.0"
+          ],
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.GE",
+          "ticker": "GE",
+          "name": "GE航天航空",
+          "plates": [
+            "概念: 人工智能"
+          ],
+          "last_price": 357.64,
+          "change_pct": 0.17085398986080857,
+          "volume_today": 7763392.0,
+          "avg20_vol": 4832038.25,
+          "vol_ratio": 1.6066495334551625,
+          "daily_state": "区间内",
+          "ma20": 327.07,
+          "ma20_side": "上方",
+          "ma20_dist": 9.346623047054138,
+          "ma50": 307.732,
+          "ma50_side": "上方",
+          "ma50_dist": 16.218007876983865,
+          "ma200": 304.97996478596497,
+          "ma200_side": "上方",
+          "ma200_dist": 17.266719553526034,
+          "volume_state": "显著放量 1.61x",
+          "earnings_date": "2026-07-16",
+          "earnings_window": "未来30天内",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍",
+            "价格站上20/50/200MA且均线多头排列",
+            "价格站上三均线且放量",
+            "财报窗口未来30天内"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "历史估值分位缺失"
+        ]
+      }
+    ],
+    "medium_top3": [
+      {
+        "code": "US.MEI",
+        "ticker": "MEI",
+        "name": "Methode Electronics",
+        "score": {
+          "total": 76.3,
+          "technical": 72.0,
+          "event_trend": 100,
+          "valuation": 50.0,
+          "portfolio": 100,
+          "details": [
+            "200MA距离:7.0",
+            "均线结构:40.0",
+            "趋势确认:25.0"
+          ],
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.MEI",
+          "ticker": "MEI",
+          "name": "Methode Electronics",
+          "plates": [
+            "概念: 功率半导体"
+          ],
+          "last_price": 14.02,
+          "change_pct": 21.175453759723407,
+          "volume_today": 1617324.0,
+          "avg20_vol": 552606.7,
+          "vol_ratio": 2.926718043773266,
+          "daily_state": "突破近期高点(13.53)",
+          "ma20": 11.761,
+          "ma20_side": "上方",
+          "ma20_dist": 19.207550378369188,
+          "ma50": 9.89640566562,
+          "ma50_side": "上方",
+          "ma50_dist": 41.66759603140886,
+          "ma200": 7.829822724094999,
+          "ma200_side": "上方",
+          "ma200_dist": 79.05897098865013,
+          "volume_state": "显著放量 2.93x",
+          "earnings_date": "2026-06-24",
+          "earnings_window": "未来7天内",
+          "selected": true,
+          "reasons": [
+            "放量突破近期高点",
+            "成交量>20日均量1.5倍",
+            "价格站上20/50/200MA且均线多头排列",
+            "价格站上三均线且放量",
+            "财报窗口未来7天内"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "历史估值分位缺失"
+        ]
+      },
+      {
+        "code": "US.MU",
+        "ticker": "MU",
+        "name": "美光科技",
+        "score": {
+          "total": 76.3,
+          "technical": 72.0,
+          "event_trend": 100,
+          "valuation": 50.0,
+          "portfolio": 100,
+          "details": [
+            "200MA距离:7.0",
+            "均线结构:40.0",
+            "趋势确认:25.0"
+          ],
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.MU",
+          "ticker": "MU",
+          "name": "美光科技",
+          "plates": [
+            "行业: 半导体",
+            "概念: 半导体精选",
+            "概念: 人工智能",
+            "概念: AI PC"
+          ],
+          "last_price": 1133.99,
+          "change_pct": 8.704071166326365,
+          "volume_today": 64642538.0,
+          "avg20_vol": 53662864.45,
+          "vol_ratio": 1.204604686360532,
+          "daily_state": "突破近期高点(1110.40)",
+          "ma20": 965.5775,
+          "ma20_side": "上方",
+          "ma20_dist": 17.44163466940769,
+          "ma50": 732.7991999999999,
+          "ma50_side": "上方",
+          "ma50_dist": 54.74771260667317,
+          "ma200": 400.62187909278504,
+          "ma200_side": "上方",
+          "ma200_dist": 183.05743125361485,
+          "volume_state": "温和放量 1.20x",
+          "earnings_date": "2026-06-24",
+          "earnings_window": "未来7天内",
+          "selected": true,
+          "reasons": [
+            "放量突破近期高点",
+            "价格站上20/50/200MA且均线多头排列",
+            "价格站上三均线且放量",
+            "财报窗口未来7天内"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": true
+        },
+        "data_gaps": [
+          "历史估值分位缺失"
+        ]
+      },
+      {
+        "code": "US.GE",
+        "ticker": "GE",
+        "name": "GE航天航空",
+        "score": {
+          "total": 75.75,
+          "technical": 86.26,
+          "event_trend": 75,
+          "valuation": 50.0,
+          "portfolio": 100,
+          "details": [
+            "200MA距离:21.3",
+            "均线结构:40.0",
+            "趋势确认:25.0"
+          ],
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.GE",
+          "ticker": "GE",
+          "name": "GE航天航空",
+          "plates": [
+            "概念: 人工智能"
+          ],
+          "last_price": 357.64,
+          "change_pct": 0.17085398986080857,
+          "volume_today": 7763392.0,
+          "avg20_vol": 4832038.25,
+          "vol_ratio": 1.6066495334551625,
+          "daily_state": "区间内",
+          "ma20": 327.07,
+          "ma20_side": "上方",
+          "ma20_dist": 9.346623047054138,
+          "ma50": 307.732,
+          "ma50_side": "上方",
+          "ma50_dist": 16.218007876983865,
+          "ma200": 304.97996478596497,
+          "ma200_side": "上方",
+          "ma200_dist": 17.266719553526034,
+          "volume_state": "显著放量 1.61x",
+          "earnings_date": "2026-07-16",
+          "earnings_window": "未来30天内",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍",
+            "价格站上20/50/200MA且均线多头排列",
+            "价格站上三均线且放量",
+            "财报窗口未来30天内"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "历史估值分位缺失"
+        ]
+      }
+    ],
+    "long_top10": [
+      {
+        "code": "US.MVIS",
+        "ticker": "MVIS",
+        "name": "维视图像",
+        "score": {
+          "total": 65.0,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 100,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA超过30%，低位候选",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.MVIS",
+          "ticker": "MVIS",
+          "name": "维视图像",
+          "plates": [
+            "概念: AI眼镜概念股"
+          ],
+          "last_price": 0.3642,
+          "change_pct": -2.228187919463076,
+          "volume_today": 14768914.0,
+          "avg20_vol": 8530115.0,
+          "vol_ratio": 1.7313850985596326,
+          "daily_state": "区间内",
+          "ma20": 0.467795,
+          "ma20_side": "下方",
+          "ma20_dist": -22.145384196068786,
+          "ma50": 0.573916,
+          "ma50_side": "下方",
+          "ma50_dist": -36.541235999693335,
+          "ma200": 0.8520005,
+          "ma200_side": "下方",
+          "ma200_dist": -57.25354621270762,
+          "volume_state": "显著放量 1.73x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.DQ",
+        "ticker": "DQ",
+        "name": "大全新能源",
+        "score": {
+          "total": 65.0,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 100,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA超过30%，低位候选",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.DQ",
+          "ticker": "DQ",
+          "name": "大全新能源",
+          "plates": [
+            "行业: 半导体设备与材料"
+          ],
+          "last_price": 14.18,
+          "change_pct": -1.9363762102351356,
+          "volume_today": 1793946.0,
+          "avg20_vol": 1038320.35,
+          "vol_ratio": 1.727738457596444,
+          "daily_state": "区间内",
+          "ma20": 16.076,
+          "ma20_side": "下方",
+          "ma20_dist": -11.793978601642207,
+          "ma50": 18.5302,
+          "ma50_side": "下方",
+          "ma50_dist": -23.476271168147132,
+          "ma200": 25.093000000000004,
+          "ma200_side": "下方",
+          "ma200_dist": -43.49021639501057,
+          "volume_state": "显著放量 1.73x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.NNOX",
+        "ticker": "NNOX",
+        "name": "Nano X Imaging",
+        "score": {
+          "total": 65.0,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 100,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA超过30%，低位候选",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.NNOX",
+          "ticker": "NNOX",
+          "name": "Nano X Imaging",
+          "plates": [
+            "概念: AI医疗概念股"
+          ],
+          "last_price": 1.67,
+          "change_pct": -3.4682080924855474,
+          "volume_today": 1488657.0,
+          "avg20_vol": 1159173.8,
+          "vol_ratio": 1.2842396886472072,
+          "daily_state": "区间内",
+          "ma20": 1.841,
+          "ma20_side": "下方",
+          "ma20_dist": -9.288430200977727,
+          "ma50": 1.916,
+          "ma50_side": "下方",
+          "ma50_dist": -12.839248434237993,
+          "ma200": 2.8783999999999996,
+          "ma200_side": "下方",
+          "ma200_dist": -41.9816564758199,
+          "volume_state": "温和放量 1.28x",
+          "earnings_date": "2026-06-25",
+          "earnings_window": "未来7天内",
+          "selected": true,
+          "reasons": [
+            "财报窗口未来7天内"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.ADBE",
+        "ticker": "ADBE",
+        "name": "Adobe",
+        "score": {
+          "total": 65.0,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 100,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA超过30%，低位候选",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.ADBE",
+          "ticker": "ADBE",
+          "name": "Adobe",
+          "plates": [
+            "概念: 人工智能",
+            "概念: AI应用软件股"
+          ],
+          "last_price": 195.16,
+          "change_pct": -0.5706134094151216,
+          "volume_today": 15852478.0,
+          "avg20_vol": 7498036.9,
+          "vol_ratio": 2.114217122617788,
+          "daily_state": "区间内",
+          "ma20": 235.7335,
+          "ma20_side": "下方",
+          "ma20_dist": -17.211596994063207,
+          "ma50": 241.66150000000002,
+          "ma50_side": "下方",
+          "ma50_dist": -19.242411389484882,
+          "ma200": 295.298825,
+          "ma200_side": "下方",
+          "ma200_dist": -33.91101369942804,
+          "volume_state": "显著放量 2.11x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": true
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.ADSK",
+        "ticker": "ADSK",
+        "name": "欧特克",
+        "score": {
+          "total": 64.25,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 95,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA 10-30%，低位/修复候选；放量企稳/修复加分",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.ADSK",
+          "ticker": "ADSK",
+          "name": "欧特克",
+          "plates": [
+            "概念: AI眼镜概念股"
+          ],
+          "last_price": 193.82,
+          "change_pct": 0.38846014398923323,
+          "volume_today": 9213532.0,
+          "avg20_vol": 2981869.6,
+          "vol_ratio": 3.089850743305475,
+          "daily_state": "区间内",
+          "ma20": 223.398,
+          "ma20_side": "下方",
+          "ma20_dist": -13.240046911789726,
+          "ma50": 232.5194,
+          "ma50_side": "下方",
+          "ma50_dist": -16.64351447664152,
+          "ma200": 269.771175,
+          "ma200_side": "下方",
+          "ma200_dist": -28.153925266478165,
+          "volume_state": "显著放量 3.09x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.OLED",
+        "ticker": "OLED",
+        "name": "Universal Display",
+        "score": {
+          "total": 64.25,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 95,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA 10-30%，低位/修复候选；放量企稳/修复加分",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.OLED",
+          "ticker": "OLED",
+          "name": "Universal Display",
+          "plates": [
+            "概念: AI眼镜概念股"
+          ],
+          "last_price": 88.94,
+          "change_pct": 5.229531471840976,
+          "volume_today": 1930703.0,
+          "avg20_vol": 685573.1,
+          "vol_ratio": 2.816188383120633,
+          "daily_state": "区间内",
+          "ma20": 90.41622544475,
+          "ma20_side": "下方",
+          "ma20_dist": -1.632699703497431,
+          "ma50": 92.65842927332,
+          "ma50_side": "下方",
+          "ma50_dist": -4.0130501914202865,
+          "ma200": 113.712129132955,
+          "ma200_side": "下方",
+          "ma200_dist": -21.784948819303896,
+          "volume_state": "显著放量 2.82x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.DOCU",
+        "ticker": "DOCU",
+        "name": "DocuSign",
+        "score": {
+          "total": 64.25,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 95,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA 10-30%，低位/修复候选；放量企稳/修复加分",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.DOCU",
+          "ticker": "DOCU",
+          "name": "DocuSign",
+          "plates": [
+            "概念: AI应用软件股"
+          ],
+          "last_price": 43.47,
+          "change_pct": 2.090183184593708,
+          "volume_today": 9475165.0,
+          "avg20_vol": 4263836.55,
+          "vol_ratio": 2.222215811720081,
+          "daily_state": "区间内",
+          "ma20": 48.08425,
+          "ma20_side": "下方",
+          "ma20_dist": -9.596177542542517,
+          "ma50": 47.235299999999995,
+          "ma50_side": "下方",
+          "ma50_dist": -7.971368870315199,
+          "ma200": 58.835024999999995,
+          "ma200_side": "下方",
+          "ma200_dist": -26.11543889035485,
+          "volume_state": "显著放量 2.22x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.CLBT",
+        "ticker": "CLBT",
+        "name": "Cellebrite",
+        "score": {
+          "total": 64.25,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 95,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA 10-30%，低位/修复候选；放量企稳/修复加分",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.CLBT",
+          "ticker": "CLBT",
+          "name": "Cellebrite",
+          "plates": [
+            "概念: AI应用软件股"
+          ],
+          "last_price": 12.83,
+          "change_pct": 2.8869286287088958,
+          "volume_today": 4430612.0,
+          "avg20_vol": 2023685.3,
+          "vol_ratio": 2.1893779630657,
+          "daily_state": "区间内",
+          "ma20": 13.462,
+          "ma20_side": "下方",
+          "ma20_dist": -4.694696181845193,
+          "ma50": 13.136099999999999,
+          "ma50_side": "下方",
+          "ma50_dist": -2.3302197760370236,
+          "ma200": 15.729825,
+          "ma200_side": "下方",
+          "ma200_dist": -18.4352019173767,
+          "volume_state": "显著放量 2.19x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.LIF",
+        "ticker": "LIF",
+        "name": "Life360",
+        "score": {
+          "total": 64.25,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 95,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA 10-30%，低位/修复候选；放量企稳/修复加分",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.LIF",
+          "ticker": "LIF",
+          "name": "Life360",
+          "plates": [
+            "概念: AI应用软件股"
+          ],
+          "last_price": 49.02,
+          "change_pct": 4.2091836734693855,
+          "volume_today": 1417348.0,
+          "avg20_vol": 684364.9,
+          "vol_ratio": 2.0710413406648995,
+          "daily_state": "区间内",
+          "ma20": 45.1115,
+          "ma20_side": "上方",
+          "ma20_dist": 8.664087871163684,
+          "ma50": 43.812,
+          "ma50_side": "上方",
+          "ma50_dist": 11.887154204327599,
+          "ma200": 64.314275,
+          "ma200_side": "下方",
+          "ma200_dist": -23.78052928373987,
+          "volume_state": "显著放量 2.07x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      },
+      {
+        "code": "US.ISRG",
+        "ticker": "ISRG",
+        "name": "直觉外科公司",
+        "score": {
+          "total": 64.25,
+          "valuation": 50.0,
+          "quality_non_moat": 50,
+          "technical_bottom": 95,
+          "portfolio": 100,
+          "notes": [
+            "历史估值分位缺失，按基准分处理",
+            "ROE/毛利率/营收增速缺失，经营质量按基准分；非护城河评分",
+            "低于200MA 10-30%，低位/修复候选；放量企稳/修复加分",
+            "当前富途快照未持有，组合分给满分"
+          ],
+          "veto": []
+        },
+        "row": {
+          "code": "US.ISRG",
+          "ticker": "ISRG",
+          "name": "直觉外科公司",
+          "plates": [
+            "概念: AI医疗概念股"
+          ],
+          "last_price": 406.78,
+          "change_pct": 1.1437664727236507,
+          "volume_today": 4404200.0,
+          "avg20_vol": 2400126.4,
+          "vol_ratio": 1.8349866907009564,
+          "daily_state": "区间内",
+          "ma20": 418.3935,
+          "ma20_side": "下方",
+          "ma20_dist": -2.775736238732207,
+          "ma50": 439.7316,
+          "ma50_side": "下方",
+          "ma50_dist": -7.4935710783578084,
+          "ma200": 490.68949999999995,
+          "ma200_side": "下方",
+          "ma200_dist": -17.100325154705775,
+          "volume_state": "显著放量 1.83x",
+          "earnings_date": "N/A",
+          "earnings_window": "接口未返回未来财报日期",
+          "selected": true,
+          "reasons": [
+            "成交量>20日均量1.5倍"
+          ],
+          "history_error": "",
+          "snapshot_error": "",
+          "previously_discussed": false
+        },
+        "data_gaps": [
+          "未来财报日期缺失",
+          "历史估值分位缺失",
+          "ROE/毛利率/营收增速缺失；未计算护城河"
+        ]
+      }
+    ],
+    "account_ranking_realtime_futu_only": {
+      "largest_positions": [
+        {
+          "code": "JP.9984",
+          "name": "软银集团",
+          "quantity": 4100.0,
+          "cost": 3601.1585,
+          "average_cost": 4457.5992,
+          "current_price": 6145.0,
+          "market_value": 25149400.0,
+          "currency": "JPY",
+          "pnl": 10384650.0,
+          "pnl_pct": 70.33,
+          "today_pnl": -4034400.0,
+          "account_weight_pct": 41.0461,
+          "track": "AI算力",
+          "horizon": "长期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "JP.4568",
+          "name": "第一三共",
+          "quantity": 6500.0,
+          "cost": 2948.3846,
+          "average_cost": 3140.3083,
+          "current_price": 2534.5,
+          "market_value": 16490500.0,
+          "currency": "JPY",
+          "pnl": -2674000.0,
+          "pnl_pct": -13.950000000000001,
+          "today_pnl": -191750.0,
+          "account_weight_pct": 26.914,
+          "track": "防御",
+          "horizon": "中期",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "SBI"
+          ]
+        },
+        {
+          "code": "JP.7974",
+          "name": "任天堂",
+          "quantity": 2000.0,
+          "cost": 8246.8,
+          "average_cost": 8246.8,
+          "current_price": 6588.0,
+          "market_value": 13182000.0,
+          "currency": "JPY",
+          "pnl": -3311600.0,
+          "pnl_pct": -20.080000000000002,
+          "today_pnl": -536000.0,
+          "account_weight_pct": 21.5142,
+          "track": "其它",
+          "horizon": "中期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "JP.8766",
+          "name": "东京海上控股",
+          "quantity": 600.0,
+          "cost": 4908.3333,
+          "average_cost": 5541.25,
+          "current_price": 6813.0,
+          "market_value": 4083600.0,
+          "currency": "JPY",
+          "pnl": 1138600.0,
+          "pnl_pct": 38.66,
+          "today_pnl": -26400.0,
+          "account_weight_pct": 6.6648,
+          "track": "防御",
+          "horizon": "中期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "JP.7832",
+          "name": "万代南梦宫",
+          "quantity": 500.0,
+          "cost": 4272.0,
+          "average_cost": 4322.0,
+          "current_price": 3695.0,
+          "market_value": 1849500.0,
+          "currency": "JPY",
+          "pnl": -286500.0,
+          "pnl_pct": -13.41,
+          "today_pnl": -16000.0,
+          "account_weight_pct": 3.0185,
+          "track": "其它",
+          "horizon": "中期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "US.MSFT",
+          "name": "微软",
+          "quantity": 550.0,
+          "cost": 405.705,
+          "average_cost": 406.665,
+          "current_price": 352.83,
+          "market_value": 193990.5,
+          "currency": "USD",
+          "pnl": -29147.23,
+          "pnl_pct": -13.059999999999999,
+          "today_pnl": -66.0,
+          "account_weight_pct": 0.3166,
+          "track": "AI算力",
+          "horizon": "长期",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "IBKR"
+          ]
+        },
+        {
+          "code": "US.NVDA",
+          "name": "英伟达",
+          "quantity": 780.0,
+          "cost": 116.426,
+          "average_cost": 179.965,
+          "current_price": 195.74,
+          "market_value": 150329.4,
+          "currency": "USD",
+          "pnl": 59516.76,
+          "pnl_pct": 65.53999999999999,
+          "today_pnl": -2347.8,
+          "account_weight_pct": 0.2454,
+          "track": "AI算力",
+          "horizon": "长期",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "IBKR"
+          ]
+        },
+        {
+          "code": "US.MSTR",
+          "name": "Strategy",
+          "quantity": 700.0,
+          "cost": 181.267,
+          "average_cost": 181.267,
+          "current_price": 85.33,
+          "market_value": 59570.0,
+          "currency": "USD",
+          "pnl": -67316.58,
+          "pnl_pct": -53.05,
+          "today_pnl": -161.0,
+          "account_weight_pct": 0.0972,
+          "track": "加密",
+          "horizon": "波段",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "IBKR"
+          ]
+        },
+        {
+          "code": "US.AVGO",
+          "name": "博通",
+          "quantity": 150.0,
+          "cost": 383.125,
+          "average_cost": 383.125,
+          "current_price": 378.91,
+          "market_value": 55716.0,
+          "currency": "USD",
+          "pnl": -1752.75,
+          "pnl_pct": -3.05,
+          "today_pnl": -1120.5,
+          "account_weight_pct": 0.0909,
+          "track": "AI算力",
+          "horizon": "长期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "US.COIN",
+          "name": "Coinbase",
+          "quantity": 200.0,
+          "cost": 228.899,
+          "average_cost": 228.899,
+          "current_price": 142.52,
+          "market_value": 28528.0,
+          "currency": "USD",
+          "pnl": -17251.7,
+          "pnl_pct": -37.68,
+          "today_pnl": 24.0,
+          "account_weight_pct": 0.0466,
+          "track": "加密",
+          "horizon": "波段",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "IBKR"
+          ]
+        }
+      ],
+      "largest_losses": [
+        {
+          "code": "JP.7974",
+          "name": "任天堂",
+          "quantity": 2000.0,
+          "cost": 8246.8,
+          "average_cost": 8246.8,
+          "current_price": 6588.0,
+          "market_value": 13182000.0,
+          "currency": "JPY",
+          "pnl": -3311600.0,
+          "pnl_pct": -20.080000000000002,
+          "today_pnl": -536000.0,
+          "account_weight_pct": 21.5142,
+          "track": "其它",
+          "horizon": "中期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "JP.4568",
+          "name": "第一三共",
+          "quantity": 6500.0,
+          "cost": 2948.3846,
+          "average_cost": 3140.3083,
+          "current_price": 2534.5,
+          "market_value": 16490500.0,
+          "currency": "JPY",
+          "pnl": -2674000.0,
+          "pnl_pct": -13.950000000000001,
+          "today_pnl": -191750.0,
+          "account_weight_pct": 26.914,
+          "track": "防御",
+          "horizon": "中期",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "SBI"
+          ]
+        },
+        {
+          "code": "JP.7832",
+          "name": "万代南梦宫",
+          "quantity": 500.0,
+          "cost": 4272.0,
+          "average_cost": 4322.0,
+          "current_price": 3695.0,
+          "market_value": 1849500.0,
+          "currency": "JPY",
+          "pnl": -286500.0,
+          "pnl_pct": -13.41,
+          "today_pnl": -16000.0,
+          "account_weight_pct": 3.0185,
+          "track": "其它",
+          "horizon": "中期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "US.MSTR",
+          "name": "Strategy",
+          "quantity": 700.0,
+          "cost": 181.267,
+          "average_cost": 181.267,
+          "current_price": 85.33,
+          "market_value": 59570.0,
+          "currency": "USD",
+          "pnl": -67316.58,
+          "pnl_pct": -53.05,
+          "today_pnl": -161.0,
+          "account_weight_pct": 0.0972,
+          "track": "加密",
+          "horizon": "波段",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "IBKR"
+          ]
+        },
+        {
+          "code": "US.MSFT",
+          "name": "微软",
+          "quantity": 550.0,
+          "cost": 405.705,
+          "average_cost": 406.665,
+          "current_price": 352.83,
+          "market_value": 193990.5,
+          "currency": "USD",
+          "pnl": -29147.23,
+          "pnl_pct": -13.059999999999999,
+          "today_pnl": -66.0,
+          "account_weight_pct": 0.3166,
+          "track": "AI算力",
+          "horizon": "长期",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "IBKR"
+          ]
+        },
+        {
+          "code": "US.COIN",
+          "name": "Coinbase",
+          "quantity": 200.0,
+          "cost": 228.899,
+          "average_cost": 228.899,
+          "current_price": 142.52,
+          "market_value": 28528.0,
+          "currency": "USD",
+          "pnl": -17251.7,
+          "pnl_pct": -37.68,
+          "today_pnl": 24.0,
+          "account_weight_pct": 0.0466,
+          "track": "加密",
+          "horizon": "波段",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "IBKR"
+          ]
+        },
+        {
+          "code": "US.CRCL",
+          "name": "Circle",
+          "quantity": 400.0,
+          "cost": 94.918,
+          "average_cost": 94.918,
+          "current_price": 68.81,
+          "market_value": 27600.0,
+          "currency": "USD",
+          "pnl": -10367.0,
+          "pnl_pct": -27.310000000000002,
+          "today_pnl": 76.0,
+          "account_weight_pct": 0.045,
+          "track": "加密",
+          "horizon": "波段",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "US.AVGO",
+          "name": "博通",
+          "quantity": 150.0,
+          "cost": 383.125,
+          "average_cost": 383.125,
+          "current_price": 378.91,
+          "market_value": 55716.0,
+          "currency": "USD",
+          "pnl": -1752.75,
+          "pnl_pct": -3.05,
+          "today_pnl": -1120.5,
+          "account_weight_pct": 0.0909,
+          "track": "AI算力",
+          "horizon": "长期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "US.TSM",
+          "name": "台积电",
+          "quantity": 1.0,
+          "cost": -23351.29,
+          "average_cost": 153.123,
+          "current_price": 434.99,
+          "market_value": 429.02,
+          "currency": "USD",
+          "pnl": 23780.31,
+          "pnl_pct": 0.0,
+          "today_pnl": -5.97,
+          "account_weight_pct": 0.0007,
+          "track": "其它",
+          "horizon": "中期",
+          "is_overlap_holding": false,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU"
+          ]
+        },
+        {
+          "code": "US.NVDA",
+          "name": "英伟达",
+          "quantity": 780.0,
+          "cost": 116.426,
+          "average_cost": 179.965,
+          "current_price": 195.74,
+          "market_value": 150329.4,
+          "currency": "USD",
+          "pnl": 59516.76,
+          "pnl_pct": 65.53999999999999,
+          "today_pnl": -2347.8,
+          "account_weight_pct": 0.2454,
+          "track": "AI算力",
+          "horizon": "长期",
+          "is_overlap_holding": true,
+          "confidence": "high_realtime_opend",
+          "source": "Futu OpenD position_snapshot + quote snapshot",
+          "duplicate_query_count_before_dedup": 3,
+          "overlap_accounts": [
+            "FUTU",
+            "IBKR"
+          ]
+        }
+      ]
+    }
+  },
+  "appendix": {
+    "source_files": [
+      "C:\\AI_Investment_System\\data\\position_snapshot.json",
+      "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\ibkr_ocr.txt",
+      "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\sbi_ocr.txt",
+      "C:\\Users\\zhu20\\OneDrive\\文档\\New project 2\\tmp\\gdoc_fix\\ocr_out\\bitflyer_ocr.txt",
+      "C:\\AI_Investment_System\\reports\\scan\\长期初步观察池V3.json",
+      "C:\\AI_Investment_System\\reports\\scan\\机会过滤器V3_结果.json"
+    ],
+    "script_path": "C:\\AI_Investment_System\\scripts\\build_v13_data_foundation.py"
+  }
+}
+```
