@@ -1,4 +1,4 @@
-# Generated reports and validation artifacts
+﻿# Generated reports and validation artifacts
 reports/daily/
 reports/daily*.html
 reports/history/
@@ -45,3 +45,39 @@ system/scripts/tmp_*
 !system/*.md
 !system/*.json
 !templates/*.html
+# === Sensitive account/holding/cash/report data: keep only on Drive, never push to GitHub ===
+data/
+00_请先看这里/
+Daily_Report/
+*持仓*
+*现金*
+*unified_holdings*
+四账户*
+latest_direction_card.md
+latest_risk_card.md
+latest_execution_card.md
+
+# Daily products and private generated artifacts
+reports/daily/
+reports/history/
+reports/validation/
+*.pdf
+*.docx
+*.xlsx
+*.xls
+*.png
+*.jpg
+*.jpeg
+# Sensitive task packages containing account/holding/cash details
+/docs/tasks/TASK-2026-07-02-004_TASK_PACKAGE.md
+/docs/tasks/TASK-2026-07-02-005_TASK_PACKAGE.md
+/docs/tasks/TASK-2026-07-02-006_TASK_PACKAGE.md
+/docs/tasks/TASK-2026-07-02-007_TASK_PACKAGE.md
+# Confirmed sensitive files excluded from GitHub sync until sanitized
+/scripts/futu_position_fetch.py
+/docs/tasks/TASK-2026-06-15-001_TASK_PACKAGE.md
+# Confirmed numeric co-occurrence risk files excluded from this GitHub sync
+/docs/gen_report_20260617.py
+/docs/gen_report_V3_20260617.py
+/docs/V6_线程快照_20260618.md
+

@@ -1,0 +1,14 @@
+{
+  "last_writeback_time": "2026-06-05T22:35:06+09:00",
+  "writeback_date": "2026-06-05",
+  "latest_files_updated": true,
+  "dashboards_updated": true,
+  "status_json_synced": true,
+  "start_here_updated": true,
+  "history_archived": true,
+  "validation_package_created": true,
+  "next_task_valid": true,
+  "has_conflict": false,
+  "conflict_reason": "",
+  "chatgpt_validation_required": true
+}

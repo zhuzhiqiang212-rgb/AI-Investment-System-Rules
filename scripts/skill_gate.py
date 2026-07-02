@@ -174,3 +174,178 @@ def run_gate(report_path: Path) -> bool:
             print(f"  ✗ {f}")
         write_failure_log(report_path, failures)
         return False
+
+# ═══════════════════════════════════════════════════════
+# AI_PROJECT_GOVERNANCE_V2  流程合规检查模块
+# TASK-2026-06-10-001 REV-A
+# 生效时间：2026-06-10 JST
+# 本模块不修改投资逻辑，只检查任务流程合规性。
+# 仅在兼容性检查确认缺失时，补充必要 import（见下方注释）。
+# ═══════════════════════════════════════════════════════
+
+# [兼容性 import 占位]
+# 第一阶段检查确认 ROOT / datetime / timezone / timedelta 均已存在。
+# 本追加区块不补充 import，避免修改现有 import 区域。
+
+PROCESS_VIOLATION_CODES = {
+    "PV-001": "未提交 PROPOSAL 直接要求 IMPLEMENTATION",
+    "PV-002": "PROPOSAL 必填字段缺失",
+    "PV-003": "未获得 APPROVAL 直接执行任务",
+    "PV-004": "执行人 = 验收人（自验违规）",
+    "PV-005": "执行超出 APPROVAL 批准范围",
+    "PV-006": "维护线程禁止执行正式日报生产任务",
+    "PV-007": "主线程禁止做无关临时测试",
+    "PV-008": "任务未经验收即宣布 CLOSE",
+    "PV-009": "验收包缺少必填字段",
+    "PV-010": "账户操作未经用户确认",
+}
+
+PROPOSAL_REQUIRED_FIELDS = [
+    "任务名称", "执行对话", "提案人", "预期执行人",
+    "预期验收人", "任务类型", "影响范围",
+    "是否涉及账户操作", "是否涉及规则变更",
+]
+
+ACCEPTANCE_REQUIRED_FIELDS = [
+    "文件名", "文件路径", "文件大小", "最后修改时间",
+    "状态", "执行人", "预检人", "最终验收人",
+    "发给谁", "下一步唯一动作", "可直接执行指令", "是否成功生成",
+]
+
+
+def process_gate(task_context: dict) -> tuple[bool, list[str]]:
+    """
+    AI_PROJECT_GOVERNANCE_V2 流程合规检查。
+
+    task_context 字段说明：
+      stage                  : str   当前阶段
+                                     proposal / approval /
+                                     implementation / acceptance / close
+      proposer               : str   提案人
+      executor               : str   执行人
+      acceptor               : str   验收人
+      approved               : bool  是否已获 APPROVAL
+      thread                 : str   执行对话线程标识
+      task_type              : str   daily_report / maintenance /
+                                     governance / analysis / temp_test
+      affects_account        : bool  是否涉及账户操作
+      user_confirmed         : bool  账户操作是否经用户确认
+      proposal_text          : str   PROPOSAL 原文（字段完整性检查用）
+      acceptance_package_path: str   验收包路径（close 阶段必填）
+
+    返回：
+      (True,  [])            → 合规，调用方可继续执行
+      (False, [违规列表])    → 违规，调用方必须调用
+                               emit_process_violation() 后停止
+    """
+    violations = []
+    stage = task_context.get("stage", "")
+
+    # PROPOSAL 阶段：必填字段完整性检查
+    if stage == "proposal":
+        proposal_text = task_context.get("proposal_text", "")
+        missing = [f for f in PROPOSAL_REQUIRED_FIELDS
+                   if f not in proposal_text]
+        if missing:
+            violations.append(
+                f"PV-002: PROPOSAL 必填字段缺失 → {', '.join(missing)}"
+            )
+
+    # IMPLEMENTATION 阶段
+    if stage == "implementation":
+        if not task_context.get("approved"):
+            violations.append(
+                "PV-003: 未获得 APPROVAL，禁止 IMPLEMENTATION"
+            )
+
+        executor = task_context.get("executor", "")
+        acceptor = task_context.get("acceptor", "")
+        if executor and acceptor and executor == acceptor:
+            violations.append(
+                "PV-004: 执行人 = 验收人，自验违规"
+            )
+
+        thread    = task_context.get("thread", "")
+        task_type = task_context.get("task_type", "")
+        if "系统维护" in thread and task_type == "daily_report":
+            violations.append(
+                "PV-006: 维护线程禁止执行正式日报生产任务"
+            )
+        if "投研总控台" in thread and task_type == "temp_test":
+            violations.append(
+                "PV-007: 主线程禁止做无关临时测试"
+            )
+
+    # CLOSE 阶段
+    if stage == "close":
+        if not task_context.get("acceptance_package_path"):
+            violations.append(
+                "PV-008: 任务未经验收，禁止 CLOSE"
+            )
+
+    # 任何阶段：账户操作检查
+    if (task_context.get("affects_account")
+            and not task_context.get("user_confirmed")):
+        violations.append(
+            "PV-010: 账户操作未经用户确认"
+        )
+
+    return len(violations) == 0, violations
+
+
+def emit_process_violation(
+    violations: list[str],
+    role: str,
+    stage: str,
+    task_id: str = "",
+) -> None:
+    """
+    输出标准 PROCESS_VIOLATION 并写入 skill_gate_failure_log.md。
+
+    调用方职责：
+      process_gate() 返回 violations 后，调用方必须：
+        1. 调用本函数输出违规记录
+        2. 停止所有后续任务
+        3. 等待用户输出 RESUME_AFTER_VIOLATION 后方可继续
+    """
+    now = datetime.now(
+        timezone(timedelta(hours=9))
+    ).strftime("%Y-%m-%d %H:%M:%S JST")
+
+    # 标准输出
+    print("PROCESS_VIOLATION")
+    if task_id:
+        print(f"TASK_ID：{task_id}")
+    for v in violations:
+        print(f"  违规：{v}")
+    print(f"违规角色：{role}")
+    print(f"当前阶段：{stage}")
+    print(f"发生时间：{now}")
+    print(
+        "阻断效果：后续所有任务已暂停，"
+        "等待用户手动输出 RESUME_AFTER_VIOLATION 解除"
+    )
+
+    # 写入失败日志
+    log_path = ROOT / "reports/validation/skill_gate_failure_log.md"
+    existing = ""
+    if log_path.exists():
+        existing = log_path.read_text(encoding="utf-8", errors="ignore")
+
+    entry = f"\n## PROCESS_VIOLATION 记录 {now}\n\n"
+    if task_id:
+        entry += f"TASK_ID：{task_id}\n"
+    entry += f"违规角色：{role}\n"
+    entry += f"当前阶段：{stage}\n"
+    entry += "违规内容：\n"
+    for v in violations:
+        entry += f"  - {v}\n"
+    entry += (
+        "阻断状态：所有后续任务暂停\n"
+        "解除方式：用户输出 RESUME_AFTER_VIOLATION + 原因\n\n---\n"
+    )
+
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_path.write_text(entry + existing, encoding="utf-8")
+    print(f"[process_gate] 违规日志已写入：{log_path}")
+

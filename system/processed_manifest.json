@@ -1,0 +1,64 @@
+{
+  "rule": "资料增量处理机制 V1",
+  "inbox": "G:\\我的云端硬盘\\AI_Investment_System\\inbox\\",
+  "processed_root": "G:\\我的云端硬盘\\AI_Investment_System\\processed\\YYYY-MM-DD\\",
+  "scan_scope": "inbox_only",
+  "full_drive_scan_allowed": false,
+  "duplicate_policy": "skip_if_file_already_in_manifest",
+  "processed_files": [
+    {
+      "name": "26-06-4-7湖水.gdoc",
+      "extension": ".gdoc",
+      "length": 189,
+      "mtime": "2026-06-04 10:41:08 +09:00",
+      "sha256": null,
+      "category": "湖水观点",
+      "read_status": "失败",
+      "enters_judgement": "NO",
+      "status": "failed",
+      "processed_path": "G:\\我的云端硬盘\\AI_Investment_System\\processed\\2026-06-04\\26-06-4-7湖水.gdoc",
+      "processed_at": "2026-06-04 10:49:24 +09:00",
+      "original_path": "G:\\我的云端硬盘\\AI_Investment_System\\inbox\\26-06-4-7湖水.gdoc"
+    },
+    {
+      "name": "26-06-4-6 Tech Daily 06 03.pdf",
+      "extension": ".pdf",
+      "length": 3690032,
+      "mtime": "2026-06-04 10:39:51 +09:00",
+      "sha256": "6957E2224B1723EB3C0CB8B9D86F99D1777C6B327F79C261F720E74C881E90F7",
+      "category": "新闻资料 / Tech Daily",
+      "read_status": "成功（使用ChatGPT提取内容）",
+      "enters_judgement": "YES",
+      "status": "success",
+      "processed_path": "G:\\我的云端硬盘\\AI_Investment_System\\processed\\2026-06-04\\26-06-4-6 Tech Daily 06 03.pdf",
+      "processed_at": "2026-06-04 12:47:08 +09:00",
+      "original_path": "G:\\我的云端硬盘\\AI_Investment_System\\inbox\\26-06-4-6 Tech Daily 06 03.pdf"
+    },
+    {
+      "name": "26-06-04-5 宏观：ADP就业和ISM服务业PMI 偏热.pdf",
+      "extension": ".pdf",
+      "length": 394350,
+      "mtime": "2026-06-04 10:38:14 +09:00",
+      "sha256": "ACF24DE1874E4339C01613C6AFE6C256A1FE261C20304E2D2BF05BC121199ECD",
+      "category": "湖水观点 / 宏观资料",
+      "read_status": "成功",
+      "enters_judgement": "YES",
+      "status": "success",
+      "processed_path": "G:\\我的云端硬盘\\AI_Investment_System\\processed\\2026-06-04\\26-06-04-5 宏观：ADP就业和ISM服务业PMI 偏热.pdf",
+      "processed_at": "2026-06-04 12:47:08 +09:00",
+      "original_path": "G:\\我的云端硬盘\\AI_Investment_System\\inbox\\26-06-04-5 宏观：ADP就业和ISM服务业PMI 偏热.pdf"
+    },
+    {
+      "name": "执行纪律文字",
+      "category": "用户直接提供文字",
+      "status": "success",
+      "read_status": "成功",
+      "enters_judgement": "YES",
+      "original_path": "direct_user_text",
+      "processed_path": "G:\\我的云端硬盘\\AI_Investment_System\\inputs\\inbox_extracted_2026-06-04.md",
+      "sha256": null,
+      "processed_at": "2026-06-04 12:47:08 +09:00"
+    }
+  ],
+  "updated_at": "2026-06-04 12:47:08 +09:00"
+}
