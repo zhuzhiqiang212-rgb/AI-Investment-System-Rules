@@ -130,10 +130,20 @@ def evidence_event_sections(link: dict[str, Any]) -> str:
     return f'<div class="event-grid">{sections}</div>'
 
 
+def unify_strength_words(text: Any) -> str:
+    """强弱标签统一一套词(治#27)：把「状态·力度」中的力度 强/中/弱、及独立(强)/(中)/(弱)
+    归一到卡片同用的 很硬/一般/偏软；只动力度位，不动状态词(偏紧/走强/走弱/不避险)。"""
+    s = str(text or "")
+    for a, b in (("·强」", "·很硬」"), ("·中」", "·一般」"), ("·弱」", "·偏软」"),
+                 ("(强)", "(很硬)"), ("(中)", "(一般)"), ("(弱)", "(偏软)")):
+        s = s.replace(a, b)
+    return s
+
+
 def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, ruler_anchor: str) -> str:
     strength = link.get("strength")
     direction = link.get("direction")
-    evidence = link.get("evidence")
+    evidence = unify_strength_words(link.get("evidence"))
     # 大白话(事实→对你意味着什么)当主文放最显眼处；无 plain 则退回术语拼句(兼容旧数据)
     plain_main = link.get("plain") or (
         f"{title}：往「{direction}」方向，这层今天证据{plain_strength(strength)}。（今日无大白话·见下方系统依据）"
@@ -160,7 +170,7 @@ def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, rule
         <div class="meta">力度：{esc(plain_strength(strength))} ｜ 往哪个方向：{esc(direction)}</div>
         <div class="detail">{esc(evidence)}</div>
         {evidence_event_sections(link)}
-        <div class="meta">这条对应哪把尺（判断依据规则）：<a href="#{esc(ruler_anchor)}" style="color:#8fd6ff;">右栏{esc(ruler_no)} 完整底子</a></div>
+        <div class="meta">这条对应哪把尺（判断依据规则）：<a href="#{esc(ruler_anchor)}" style="color:#8fd6ff;">右栏{esc(ruler_no)} 这把尺</a></div>
       </details>
     </details>
     """
@@ -1092,6 +1102,8 @@ def plain_certainty(certainty: Any) -> str:
     """确定性=我们对这条判断的把握有多大。高→把握大 中→把握一般 弱→把握小 证伪→被事实推翻了。
     返回纯人话文本（调用处自行 esc()）。"""
     text = str(certainty or "").strip()
+    if text == "强":  # 把握用高/中/弱标度；数据里漏进力度词"强"时按等价的"高"归一(治#15·与动作列一致)
+        text = "高"
     mapping = {"高": "把握大", "中": "把握一般", "弱": "把握小", "证伪": "被事实推翻了"}
     if text in mapping:
         return mapping[text]
@@ -1143,6 +1155,22 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
 
     cost_html = cost_pnl_cell(symbol, cost_by_ticker)
 
+    # 极小仓提示(治#25)：市值不足全组合0.2%的零头仓(如台积电1股$453·占约0.03%)→标"极小仓"，
+    # 免小白把叙事上听着重要、实际是零头的仓当核心大仓。通用按占比判定，不硬编码单只、不写死行业叙事。
+    tiny_html = ""
+    _base = symbol.split(".")[-1]
+    _agg = cost_by_ticker.get(_base) or {}
+    _mv = _agg.get("market_value_usd")
+    _total_mv = sum(float((v or {}).get("market_value_usd") or 0) for v in cost_by_ticker.values())
+    if _mv and _total_mv and (float(_mv) / _total_mv) < 0.002:
+        _pct = float(_mv) / _total_mv * 100
+        tiny_html = (
+            '<div class="dc-tiny" style="background:#2a2410;border:1px solid #6a5420;color:#ffe4a8;'
+            'border-radius:8px;padding:6px 10px;margin:6px 0;font-size:12.5px;line-height:1.6;">'
+            f'⚠ <b>极小仓</b>：这只只占约 {_pct:.2f}% 仓位（市值 {money(_mv, "$")}），是零头/象征性持仓——'
+            '在叙事里可能听着重要，但你实际押注很小，<b>别当重仓理解</b>。</div>'
+        )
+
     if has_pack(item.get("symbol"), item.get("name")):
         research = '<span style="color:#7ee0a0;">这只我们深研过了，见下方</span>'
     else:
@@ -1192,6 +1220,7 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
         <div class="dc-title">{esc(name)}（{esc(symbol)}）</div>
         <div class="dc-badge {tone}">{badge_text}</div>
       </div>
+      {tiny_html}
       {now_row}
       {ladder}
       <div class="dc-row"><div class="dc-lab">能不能<br>拿得住</div><div class="dc-val">{gate_block}</div></div>
@@ -1632,7 +1661,8 @@ def macro_section(snapshot: dict[str, Any], yield_curve: dict[str, Any] | None =
         inv = yc.get("inverted")
         status = "逆风" if inv else "中性"
         sentence = "曲线倒挂·历史衰退信号，警惕" if inv else "曲线正斜率·未倒挂"
-        sentence += "（短端用3月^IRX，非2年；真2年待FRED源）"
+        _yc_dd = yc.get("data_date") or yc.get("date")
+        sentence += f"（已接入·⑤资金在用；最近快照{_yc_dd}；短端用3月^IRX，非2年，真2年待FRED源）"
         rows.append(macro_row("收益率曲线(10年-3月)(长短期利率谁高·倒挂常预警衰退)", f"10年{fmt_level(us10y)} − 3月{fmt_level(us3m)} = 利差{fmt_level(spread)}%", status, sentence))
     else:
         rows.append(macro_row("收益率曲线(10年-3月)(长短期利率谁高·倒挂常预警衰退)", "这项还没接进来·源没连", "待接入", "收益率曲线的数据源还没连上"))
@@ -1741,6 +1771,8 @@ def iteration_action(certainty: Any) -> tuple[str, str]:
     """按确定性 derive 一个迭代动作(动作文字HTML, 颜色)。只给建议/提醒，不自动执行。
     动作文字为本函数自撰的静态文案，内含<b>标签为有意HTML，不经esc；确定性取值由调用处另行esc。"""
     c = "" if certainty is None else str(certainty).strip()
+    if c == "强":  # 把握标度归一：力度词"强"≡把握"高"(治#15·与把握列一致)
+        c = "高"
     if c == "高":
         return (
             "🎓 毕业候选：这条判断连续判对了，可以升级成“系统自动判”（<b>但要你点头</b>，动的是系统的魂，不自动毕业）",
@@ -1844,11 +1876,13 @@ def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any]) -> str
 
 
 def right_ruler_card(no: str, title: str, filename: str, summary: str, anchor_id: str) -> str:
+    # 徽章按内部真实审核状态标(治#19)：①世界观已过审；②-⑥结构定稿·左栏已在用、仍待董事长审
+    badge = "尺·已过审" if no == "①" else "尺·待审(左栏已在用)"
     ruler_path = ROOT / "00_请先看这里" / filename
     if not ruler_path.exists():
         return f"""
     <details class="card static" id="{esc(anchor_id)}">
-      <summary><span>{esc(no)} {esc(title)}</span><b>完整底子</b></summary>
+      <summary><span>{esc(no)} {esc(title)}</span><b>{esc(badge)}</b></summary>
       <p class="plain">缺底子文件：{esc(filename)}</p>
     </details>
     """
@@ -1858,7 +1892,7 @@ def right_ruler_card(no: str, title: str, filename: str, summary: str, anchor_id
     srcdoc = html.escape(ruler_text, quote=True)
     return f"""
     <details class="card static" id="{esc(anchor_id)}" ontoggle="var f=this.querySelector('iframe'); if(f){{setTimeout(function(){{try{{f.style.height=f.contentWindow.document.documentElement.scrollHeight+'px';}}catch(e){{}}}},30);}}">
-      <summary><span>{esc(no)} {esc(title)}</span><b>完整底子</b></summary>
+      <summary><span>{esc(no)} {esc(title)}</span><b>{esc(badge)}</b></summary>
       <p class="plain">{esc(summary)}</p>
       <iframe srcdoc="{srcdoc}" style="width:100%;height:600px;border:0;background:#0e1621;" onload="try{{this.style.height=this.contentWindow.document.documentElement.scrollHeight+'px';}}catch(e){{}}"></iframe>
     </details>
@@ -1907,7 +1941,12 @@ def build(date: str) -> str:
         for item in cost_data.get("aggregate_by_ticker", [])
         if item.get("ticker")
     }
-    yc = read_json(yc_path) if yc_path.exists() else {}
+    # 收益率曲线：当日文件缺失则回退到最近快照(与⑤资金同源·单一来源)，避免⑦读数表标"源没连"而⑤在用(治#2)
+    if yc_path.exists():
+        yc = read_json(yc_path)
+    else:
+        _yc_snaps = sorted((ROOT / "data" / "market").glob("yield_curve_*.json"))
+        yc = read_json(_yc_snaps[-1]) if _yc_snaps else {}
     snapshot = read_json(snapshot_path) if snapshot_path.exists() else {"assets": []}
     quality = pdca_daily.get("decision_quality", {})
 
@@ -1951,7 +1990,8 @@ def build(date: str) -> str:
 
     # 页头主句用短版一句话方向(治#21 超长run-on)；长版折进"展开看各层"
     today_short = production.get("today_direction_short") or "今天：守核心、不追高、控AI集中"
-    today_long = str(production.get("today_direction") or "")
+    # 强弱标签统一一套词(治#27)：页头「状态·力度」里的力度 → 与卡片同用 很硬/一般/偏软
+    today_long = unify_strength_words(production.get("today_direction"))
     today_sentence = today_short  # 主句=短版
     confidence_line = f"今天下手的底气：{plain_decision_quality(quality.get('level'))}，因为{quality.get('reason')}"
     # 页脚闭环只留一行简短因果，不整段复述 today_direction(治#22)
@@ -1965,8 +2005,10 @@ def build(date: str) -> str:
     n_pass = hs.get("符合", 0)
     n_check = hs.get("受检", 0)
     n_pend = hs.get("待补", 0)
-    badge_text = (f"五关已接通·多数受检中（符合{n_pass}/受检{n_check}"
-                  + (f"/待补{n_pend}" if n_pend else "") + "）·相对估值精算迭代中")
+    # 受检=正在一关一关检查、还没走完五关(给小白一句解释·治#28)
+    badge_text = (f"五关已接通·多数还在逐关检查中（符合{n_pass}/受检{n_check}"
+                  + (f"/待补{n_pend}" if n_pend else "")
+                  + "）·相对估值精算迭代中　※受检=正在一关一关查、还没走完五关")
 
     # A · 护城河重评提示：沿用超阈值 → 页首醒目横幅(只提示不改评级·总则第十二条)
     moat_reeval_msg = production.get("fingerprint", {}).get("moat_reeval_msg")
@@ -1982,6 +2024,10 @@ def build(date: str) -> str:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "sources": [str(path) for path in sources],
     }
+
+    # 行情实际日期(单一来源=求证表 inputs_used.snapshot_data_date)，与运行日区分标清(治#13)
+    _snap_dd = str((daily.get("rule_engine", {}) or {}).get("inputs_used", {}).get("snapshot_data_date", ""))[:10]
+    market_date_text = _snap_dd if _snap_dd else "待接"
 
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -2094,7 +2140,7 @@ def build(date: str) -> str:
       <details class="today-long"><summary>展开看各层（总闸/战略/资金/板块的完整判断）</summary>
         <div>{esc(today_long)}</div>
       </details>
-      <div class="finger">数据日期 {esc(date[:4] + "-" + date[4:6] + "-" + date[6:])} · 生成 {esc(str(fingerprint.get('generated_at', ''))[:16].replace('T', ' '))} UTC · 本页所有数字由当日零件现读现算
+      <div class="finger">运行日 {esc(date[:4] + "-" + date[4:6] + "-" + date[6:])} · 行情截至 {esc(market_date_text)}（休市/快照沿用最近交易日） · 生成 {esc(str(fingerprint.get('generated_at', ''))[:16].replace('T', ' '))} UTC · 本页所有数字由当日零件现读现算
         <details style="margin-top:4px;">
           <summary style="cursor:pointer;color:#8ea3b6;display:inline;background:transparent;padding:0;font-size:12px;">数据来源与指纹（点开可查）</summary>
           <div style="font-size:11px;color:#6f8496;word-break:break-all;margin-top:4px;">
@@ -2112,7 +2158,7 @@ def build(date: str) -> str:
         {left}
       </div>
       <aside>
-        <h2 class="col-title">右栏·静态·完整底子</h2>
+        <h2 class="col-title">右栏·静态·判断依据的尺（①已过审／②-⑥待审）</h2>
         {right}
       </aside>
     </section>
