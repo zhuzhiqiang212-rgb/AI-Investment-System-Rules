@@ -642,7 +642,8 @@ def holding_price_ladder(item: dict[str, Any], ma_by_symbol: dict[str, dict[str,
 #    现金≥5%检查=待数据；分母口径=持仓 market_value 合计（无现金数据时）。
 
 # 加密敞口代理集（base ticker，纯锚定义；CC.前缀自动归加密）
-CRYPTO_TICKERS = {"MSTR", "COIN", "BTC", "ETH", "BTCUSD", "ETHUSD"}
+# 加密≤12%纪律含全部5只：MSTR/COIN/CRCL/BTC/ETH 合并算(生产规范§4·治验收硬伤1)
+CRYPTO_TICKERS = {"MSTR", "COIN", "CRCL", "BTC", "ETH", "BTCUSD", "ETHUSD"}
 # 广义AI供应链节点集（可切窄=改成 {"算力","电力"}；范围留架构师裁）
 AI_SUPPLY_NODE_CLASSES = {"算力", "电力", "半导体设备", "存储", "代工", "盟友节点", "盟友", "盟友链", "AI软件应用"}
 
@@ -807,7 +808,24 @@ def _mv_usd(item: dict[str, Any], usdjpy: float) -> tuple[float | None, str]:
     return mv, "no_fx"
 
 
-def portfolio_concentration(holdings: list[dict[str, Any]], known_cash_usd: float | None = None) -> dict[str, Any]:
+def _crypto_mv_fallback(symbol: str, cost_by_ticker: dict[str, dict[str, Any]] | None) -> float | None:
+    """加密持仓(如CC.BTCUSD/CC.ETHUSD)在 production 里 market_value 常为 None →
+    回退到 unified_holdings 的 market_value_usd，让5只加密都进分母(治验收硬伤1)。BTCUSD→BTC 归一。"""
+    if not cost_by_ticker:
+        return None
+    base = symbol.split(".")[-1].upper()
+    for key in (base, base.replace("USD", "")):
+        agg = cost_by_ticker.get(key)
+        if agg and agg.get("market_value_usd") is not None:
+            try:
+                return float(agg["market_value_usd"])
+            except (TypeError, ValueError):
+                pass
+    return None
+
+
+def portfolio_concentration(holdings: list[dict[str, Any]], known_cash_usd: float | None = None,
+                            cost_by_ticker: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
     """从 production.holdings 的 market_value 现算各类占比（结构化、不靠散文）。
     关键修正（货币混算 bug）：各持仓 market_value 币种不同——日股 JP.* 是日元、
     美股 US.* / 加密 CC.* 是美元。旧逻辑直接相加导致日元项被当美元、总额虚高、占比全错。
@@ -832,6 +850,12 @@ def portfolio_concentration(holdings: list[dict[str, Any]], known_cash_usd: floa
         mv_usd, note = _mv_usd(h, usdjpy)
         symbol = str(h.get("symbol") or "")
         if mv_usd is None:
+            # 加密缺 market_value → 回退 unified_holdings 市值(5只加密都入分母·治硬伤1)
+            if _is_crypto(symbol):
+                fb = _crypto_mv_fallback(symbol, cost_by_ticker)
+                if fb is not None:
+                    priced.append((h, fb))
+                    continue
             mv_missing.append(symbol)
             continue
         if note == "no_fx":
@@ -852,7 +876,9 @@ def portfolio_concentration(holdings: list[dict[str, Any]], known_cash_usd: floa
         symbol = str(h.get("symbol") or "")
         pct = (mv / total_mv * 100.0) if total_mv > 0 else 0.0
         crypto = _is_crypto(symbol)
-        ai = (not crypto) and _is_ai_supply(h)
+        # AI篮子按节点口径(算力/半导体设备/存储/代工/盟友链/AI软件应用)——含爱德万/闪迪/META
+        # ，与卡片第1关"AI承接节点"同源(治验收硬伤1·AI篮子补全)。
+        ai = (not crypto) and _on_ai_node(h)
         defensive = (not crypto) and (not ai) and _is_defensive(h)
         if crypto:
             crypto_mv += mv
@@ -1130,6 +1156,8 @@ def plain_valuation(label: Any) -> str:
 def plain_moat_phrase(moat: dict[str, Any] | None) -> str:
     """护城河=靠什么长期赚钱、对手难抢。返回一句人话短语（放进句子里用）。"""
     grade = str((moat or {}).get("moat_grade") or "待补护城河").strip()
+    if ("资产" in grade) or ("不适用" in grade):  # BTC/ETH 资产口径·护城河不适用(治硬伤3·非"待补")
+        return "资产口径·护城河不适用（比特币/以太坊是资产、无企业护城河，只按加密≤12%纪律＋币价管）"
     if grade == "宽护城河":
         return "护城河宽·很能守（靠什么长期赚钱、对手难抢）"
     if grade == "窄护城河":
@@ -1208,7 +1236,11 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
         hard_h = hard_gate_conclusion(item, ai_strength, sector_state)
     else:
         hard_h = plain_hard(item.get("hard_filter"))
-    soft_h = plain_soft(item.get("soft_filter", {}).get("label"))
+    # 第2关位置=独立的均线读数(现价vs年线MA200/60日高低)，与第3关估值是两回事(治硬伤2·非估值派生)
+    _soft = item.get("soft_filter", {}) or {}
+    soft_h = plain_soft(_soft.get("label"))
+    if _soft.get("status") == "OK" and not symbol.startswith("CC."):
+        soft_h += '<span style="color:#8ea3b6;font-size:12px;">（均线读数·现价vs年线MA200/60日高低·独立于估值）</span>'
     _val_label = str(item.get("valuation", {}).get("label") or "")
     if symbol.startswith("CC."):  # BTC/ETH等资产：大白话说清资产口径，不再笼统"估值没做"(治②)
         val_h = "资产·不做企业估值（比特币/以太坊是资产、没有财报，只看币价+仓位纪律，不给公司估值区间）"
@@ -1244,7 +1276,9 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
             '在叙事里可能听着重要，但你实际押注很小，<b>别当重仓理解</b>。</div>'
         )
 
-    if has_pack(item.get("symbol"), item.get("name")):
+    if symbol.startswith("CC."):  # 资产口径：不做企业深研(治硬伤3·非"待补")
+        research = '<span style="color:#8fd6ff;">资产口径·不做企业深研（只看币价+加密≤12%纪律）</span>'
+    elif has_pack(item.get("symbol"), item.get("name")):
         research = '<span style="color:#7ee0a0;">这只我们深研过了，见下方</span>'
     else:
         research = '<span style="color:#9aa8b5;">这只还没深研</span>'
@@ -1281,12 +1315,19 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
             f'<div class="dc-val">{items}</div></div>'
         )
 
-    # 基本面缺(护城河未评 或 无个股深研)→动作旁标"初判"，诚实说还没真正进决策
+    # 基本面缺(护城河未评 或 无个股深研)→动作旁标"初判"，诚实说还没真正进决策。
+    # 加密资产(CC.*)例外：资产口径·护城河/企业深研本就不适用，不是"待补"、不制造假断点(治硬伤3)。
     moat_info = item.get("moat", {}) or {}
     moat_scored = moat_info.get("total_score") is not None
     has_research = has_pack(item.get("symbol"), item.get("name"))
+    is_asset = symbol.startswith("CC.")
     prelim_html = ""
-    if (not moat_scored) or (not has_research):
+    if is_asset:
+        prelim_html = (
+            '<div class="dc-prelim" style="color:#8fd6ff;font-size:12px;margin-top:5px;line-height:1.6;">'
+            '（<b>资产口径·已定死</b>：比特币/以太坊是资产、不做企业估值与护城河，只按"加密≤12%纪律＋币价"管；这不是"待补"）</div>'
+        )
+    elif (not moat_scored) or (not has_research):
         prelim_html = (
             '<div class="dc-prelim" style="color:#ffcf6b;font-size:12px;margin-top:5px;line-height:1.6;">'
             '（这是按方向/位置/估值的<b>初判</b>；护城河/深研还没做、还没真正进决策，待补全再定）</div>'
@@ -1801,7 +1842,7 @@ def opportunity_section(production: dict[str, Any]) -> str:
       <div class="dc-row dc-judge"><div class="dc-lab">为什么</div><div class="dc-val">{why}</div></div>
     </div>"""
         )
-    ch1_html = "".join(ch1_cards) if ch1_cards else '<p class="plain">今天没有可换的对比。</p>'
+    ch1_html = "".join(ch1_cards) if ch1_cards else ('<p class="plain">当前无换仓对比达标。<b>换的条件（4条全满足才提示"换"）</b>：①候选护城河更宽 ②候选回到便宜买点 ③被换的那只涨回止盈线 ④换完总敞口不升。这是<b>常年盯的清单</b>，条件没同时到就先不换（不是"今天没有"）。</p>')
 
     # 通道② 新机会 → 每项一张卡：新冒出的候选（默认只观察·不下买入结论）
     ch2_cards: list[str] = []
@@ -1833,12 +1874,12 @@ def opportunity_section(production: dict[str, Any]) -> str:
       <div class="dc-row dc-judge"><div class="dc-lab">为什么</div><div class="dc-val">{why}</div></div>
     </div>"""
         )
-    ch2_html = "".join(ch2_cards) if ch2_cards else '<p class="plain">今天没有新冒出的候选。</p>'
+    ch2_html = "".join(ch2_cards) if ch2_cards else ('<p class="plain">当前无新候选进池。<b>进池条件</b>：属某AI承接节点＋当日有证据支撑＋过前3关。<b>AI 已超配（见⑨集中度）时，新 AI 候选只能"换"不能"加"</b>——所以现在盯的是"换谁划算"而非"再买"。这是<b>常备清单</b>，不是"今天有没有"。</p>')
 
     return f"""
     <details class="card">
-      <summary><span>⑧ 机会池双通道</span><b>动态</b></summary>
-      <p class="plain">这一栏在问两件事：一是手里的能不能换成更好的同类，二是有没有新冒出来的机会。凡是我们还没研究透它靠什么长期赚钱（护城河）的，今天一律先观察，不下买卖结论。</p>
+      <summary><span>⑧ 机会池（常备换仓清单·不是"今天有没有"）</span><b>动态</b></summary>
+      <p class="plain">机会池是<b>常年盯着的清单</b>：什么价买、换谁、什么条件才换掉现有持仓——不天天换。它问两件事：手里的能不能换成更好的同类、有没有新冒出的机会。还没研究透护城河的，先观察不下买卖结论。</p>
       <h3>手里的能不能换成更好的？（换仓对比）</h3>
       {ch1_html}
       <h3>有没有新冒出来的机会？（新机会）</h3>
@@ -1855,7 +1896,7 @@ def iteration_action(certainty: Any) -> tuple[str, str]:
         c = "高"
     if c == "高":
         return (
-            "🎓 毕业候选：这条判断连续判对了，可以升级成“系统自动判”（<b>但要你点头</b>，动的是系统的魂，不自动毕业）",
+            "🎓 毕业候选：把握已到高位，可考虑升级成“系统自动判”（<b>仍需实绩累计支撑</b>；<b>要你点头</b>才升级，不自动毕业）",
             "#3ec38a",
         )
     if c == "证伪":
@@ -1867,7 +1908,7 @@ def iteration_action(certainty: Any) -> tuple[str, str]:
     return ("— 还在攒把握", "#9aa8b5")
 
 
-def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any]) -> str:
+def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any], daily: dict[str, Any] | None = None) -> str:
     quality = pdca_daily.get("decision_quality", {})
     ring_list = pdca_daily.get("rings", [])
     rings = []
@@ -1878,6 +1919,22 @@ def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any]) -> str
             f"<td>{esc(ring.get('daily_score'))}</td><td>{esc(plain_certainty(ring.get('current_certainty')))}</td>"
             f"<td>{esc(ring.get('score_reason'))}</td>"
             f"<td><span style=\"color:{act_color};font-weight:700;\">{act_text}</span></td></tr>"
+        )
+    # 收全闭环(治硬伤5·缺环即不合格)：记分卡5环外，补 手段层④ 与 中国支线⑦，不漏环。
+    _ring_names = " ".join(str(r.get("ring_name") or "") for r in ring_list)
+    if daily is not None and "手段" not in _ring_names:
+        _mlink = find_link(daily, ["手段层"]) or {}
+        rings.append(
+            f"<tr><td>手段层(FIMA/稳定币/加密)</td><td>{esc(plain_strength(_mlink.get('strength')))}</td>"
+            f"<td>—</td><td>{esc(plain_certainty(_mlink.get('current_certainty') or _mlink.get('strength')))}</td>"
+            f"<td>{esc(_mlink.get('direction') or '读证据链手段层·本环未单列记分')}</td>"
+            f"<td><span style=\"color:#9aa8b5;\">— 跟随手段层证据，暂不单独打分（待记分卡纳入）</span></td></tr>"
+        )
+    if "中国" not in _ring_names:
+        rings.append(
+            "<tr><td>中国支线</td><td>待接真源</td><td>—</td><td>待接真源</td>"
+            "<td>稀土/自主可控/港股真源未接·骨架一环</td>"
+            "<td><span style=\"color:#9aa8b5;\">— 待接真源后纳入记分（不编、不硬推）</span></td></tr>"
         )
     tracks = []
     for item in pdca_review.get("certainty_trajectories", []):
@@ -1932,6 +1989,23 @@ def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any]) -> str
     else:
         iter_text = "待月度触发（定期出'该改什么'走董事长拍板）"
 
+    # 回校世界观(治硬伤5·大闭环转回来)：把当日各环证据绕回三支柱做支持/证伪
+    _recheck_html = ""
+    if daily is not None:
+        _w = (find_link(daily, ["总命题", "世界"]) or {}).get("direction") or "待判"
+        _g = (find_link(daily, ["总闸", "美联储"]) or {}).get("direction") or "待判"
+        _s = (find_link(daily, ["战略指向"]) or {}).get("direction") or "待判"
+        _bk = (find_link(daily, ["板块轮动"]) or {}).get("direction") or "待判"
+        _refuted = ("证伪" in f"{_w}{_g}{_s}") or ("反转" in str(_w))
+        _verdict = "整体支持三支柱、无 regime 反转" if not _refuted else "出现证伪信号·需重审三支柱"
+        _recheck_html = (
+            '<div class="meta" style="background:#12261c;border:1px solid #285039;border-radius:8px;'
+            'padding:8px 12px;margin:6px 0;font-size:12.8px;color:#a7d8bb;">'
+            f'↺ <b>回校世界观（大闭环转回来）</b>：本日 总闸『{esc(_g)}』· 战略『{esc(_s)}』· 板块『{esc(_bk)}』 '
+            f'→ 绕回三支柱「美国优先·阵营化·集中砸AI」：<b>{esc(_verdict)}</b>；世界观『{esc(_w)}』。'
+            '（大闭环：世界观→…→板块→回校世界观，转得回来）</div>'
+        )
+
     return f"""
     <details class="card">
       <summary><span>⑩ 复盘记分卡（看我们最近判得准不准·该升级还是该回炉）</span><b>{esc(plain_decision_quality(quality.get('level')))}</b></summary>
@@ -1939,7 +2013,8 @@ def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any]) -> str
       <table><thead><tr><th>这一环</th><th>证据有多硬</th><th>今天打分</th><th>我们的把握</th><th>为什么</th><th>接下来该怎么办</th></tr></thead><tbody>{''.join(rings)}</tbody></table>
       <ul>{''.join(tracks)}</ul>
       <div class="meta">周复盘：{esc(weekly.get('status', '待累积'))}</div>
-      <h3>⑦复盘·5迭代动作</h3>
+      {_recheck_html}
+      <h3>复盘·5迭代动作</h3>
       <p class="plain">复盘不是打完分就完——按每一环我们的把握，给出接下来该往哪走。下面都是<b>建议/提醒</b>，毕业（升级成系统自动判）、回炉（推翻重审）都不自动执行，动系统的魂要你点头。</p>
       <p class="plain">每一环接下来该怎么办（按我们的把握现算）：</p>
       <ul>{act_lines_html}</ul>
@@ -2059,7 +2134,7 @@ def build(date: str) -> str:
         evidence_card("⑥", "板块轮动", find_link(daily, ["板块轮动"]), "④", "right-ruler-4", *_br[5]),
     ]
     _known_cash = (cost_data.get("summary", {}) or {}).get("known_cash_usd")
-    concentration = portfolio_concentration(production.get("holdings", []), _known_cash)
+    concentration = portfolio_concentration(production.get("holdings", []), _known_cash, cost_by_ticker)
     # 五关第1关真结论要引证据链的战略力度/板块方向(动态·改数据跟着变)
     _strat = find_link(daily, ["战略指向"]) or {}
     _sector = find_link(daily, ["板块轮动"]) or {}
@@ -2099,7 +2174,7 @@ def build(date: str) -> str:
       <p class="plain">每只持仓一张决策卡：一个明确动作＋买卖价不打架＋看图现价落在哪区。只给守/卖/观望，不下单。上限类(AI/单一/加密)超标的持仓卡自动追加"别加"。</p>
       {holding_cards}
     </details>
-    """ + stock_research_html + pdca_section(pdca_daily, pdca_review)
+    """ + stock_research_html + pdca_section(pdca_daily, pdca_review, daily)
 
     right = "".join([
         right_ruler_card("①", "世界观", "右栏_完整世界观描述.html", "旧的全球化大水漫灌、大家一起涨时代结束，进入美国优先·阵营化·集中砸钱给AI的新秩序——这是全系统一切判断的最上层源头。", "right-ruler-1"),
@@ -2124,7 +2199,7 @@ def build(date: str) -> str:
 
     # ⑤ 徽章：复用 gate-1 计数(与⑨小标题、每卡第1关同一源·治打回·§8无自相矛盾)。
     badge_text = (f"五关·第1关方向已判：{g1_ai}只在AI承接节点上 · {g1_crypto}只加密按纪律控敞口 · {g1_div}只非AI分散仓；"
-                  f"估值精算(DCF)与均线软性仍在补。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
+                  f"第2关位置已用均线现算（MA200/60日高低）；估值第3关有相对估值、DCF精算待补。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
                   f"逐关=方向→位置→估值→护城河→深研，一关一关过（不是没做）")
 
     # A · 护城河重评提示：沿用超阈值 → 页首醒目横幅(只提示不改评级·总则第十二条)
@@ -2376,7 +2451,7 @@ def render_selected(date: str, symbols: list[str]) -> str:
 
     holdings = production.get("holdings", [])
     # 集中度按【全持仓】现算（口径一致），"别加"只落到选定卡上
-    concentration = portfolio_concentration(holdings, (cost_data.get("summary", {}) or {}).get("known_cash_usd"))
+    concentration = portfolio_concentration(holdings, (cost_data.get("summary", {}) or {}).get("known_cash_usd"), cost_by_ticker)
     by_symbol = {str(h.get("symbol") or ""): h for h in holdings}
     picked = [by_symbol[s] for s in symbols if s in by_symbol]
 
