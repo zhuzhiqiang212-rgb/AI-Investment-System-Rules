@@ -146,10 +146,21 @@ def unify_certainty_words(text: Any) -> str:
     return str(text or "").replace("强", "高")
 
 
-def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, ruler_anchor: str) -> str:
+def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, ruler_anchor: str,
+                  bridge_up: str = "", bridge_down: str = "") -> str:
     strength = link.get("strength")
     direction = link.get("direction")
     evidence = unify_strength_words(link.get("evidence"))
+    # 上下咬合(承上/启下)——证据链闭环的关键(生产标准§1·总则第十)。显眼处两句、不藏进折叠。
+    bridge_html = ""
+    if bridge_up or bridge_down:
+        rows = ""
+        if bridge_up:
+            rows += f'<div style="margin:2px 0;">↑ <b>承上</b>：{esc(bridge_up)}</div>'
+        if bridge_down:
+            rows += f'<div style="margin:2px 0;">↓ <b>启下</b>：{esc(bridge_down)}</div>'
+        bridge_html = (f'<div class="bridge" style="background:#12202c;border:1px solid #26485f;'
+                       f'border-radius:8px;padding:7px 11px;margin:6px 0;font-size:13px;color:#bcd8ee;">{rows}</div>')
     # 大白话(事实→对你意味着什么)当主文放最显眼处；无 plain 则退回术语拼句(兼容旧数据)
     plain_main = link.get("plain") or (
         f"{title}：往「{direction}」方向，这层今天证据{plain_strength(strength)}。（今日无大白话·见下方系统依据）"
@@ -171,6 +182,7 @@ def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, rule
       <summary><span>{esc(no)} {esc(title)}</span><b>{esc(plain_strength(strength))}</b></summary>
       <p class="macro-plain">{esc(plain_main)}</p>
       <p class="plain">今天这层怎么判：{badge}</p>
+      {bridge_html}
       <details class="term-fold">
         <summary>系统内部依据（读数 + 规则·想深究再看，可不看）</summary>
         <div class="meta">力度：{esc(plain_strength(strength))} ｜ 往哪个方向：{esc(direction)}</div>
@@ -709,6 +721,23 @@ def _is_defensive(item: dict[str, Any]) -> bool:
     return any(sig in text for sig in DEFENSIVE_SIGNALS)
 
 
+def hard_gate_conclusion(item: dict[str, Any], ai_strength: str = "", sector_state: str = "") -> str:
+    """五关·第1关(硬性/方向)真结论——替掉"受检"占位(生产标准§2)。
+    输出「属哪承接节点 + 该节点今日方向(引②战略/⑥板块) + 符/不符方向」，随证据链动态变。"""
+    node = _holding_node(item) or "未归类节点"
+    sym = str(item.get("symbol") or "")
+    ai_up = ("强" in str(ai_strength)) or ("走强" in str(ai_strength))
+    sector_weak = ("走弱" in str(sector_state)) or ("弱" in str(sector_state))
+    if _is_crypto(sym):
+        return "属「加密簇」·不在AI战略承接链 → 方向不以AI强弱论；按加密≤12%纪律管敞口、守核心不追"
+    if _is_ai_supply(item):
+        base = f"属「{node}」AI承接节点，战略AI今日{'走强·符合方向' if ai_up else '力度转弱·仍在AI主线内'}（引②战略）"
+        return base + ("；但半导体板块今日走弱（引⑥板块）→ 符合方向但不追高" if sector_weak else " → 符合方向")
+    if _is_defensive(item):
+        return f"属「{node}」防御节点·非AI承接链 → 作抗跌分散仓（方向中性·不随AI强弱进出）"
+    return f"属「{node}」·非AI承接节点 → 作非AI分散仓（方向中性·稳组合、不追AI）"
+
+
 def _mv(item: dict[str, Any]) -> float | None:
     try:
         v = item.get("market_value")
@@ -772,7 +801,7 @@ def _mv_usd(item: dict[str, Any], usdjpy: float) -> tuple[float | None, str]:
     return mv, "no_fx"
 
 
-def portfolio_concentration(holdings: list[dict[str, Any]]) -> dict[str, Any]:
+def portfolio_concentration(holdings: list[dict[str, Any]], known_cash_usd: float | None = None) -> dict[str, Any]:
     """从 production.holdings 的 market_value 现算各类占比（结构化、不靠散文）。
     关键修正（货币混算 bug）：各持仓 market_value 币种不同——日股 JP.* 是日元、
     美股 US.* / 加密 CC.* 是美元。旧逻辑直接相加导致日元项被当美元、总额虚高、占比全错。
@@ -855,8 +884,20 @@ def portfolio_concentration(holdings: list[dict[str, Any]]) -> dict[str, Any]:
         "over": False, "short": defensive_pct < CONC_LOWER_LIMITS["防御"], "members": defensive_members,
     }
 
-    # 现金：无结构化现金总额 → 标待接入、不编数、检查=待数据
-    cash_status = "待接入·无结构化现金数据（现金≥5%检查=待数据；分母口径=持仓market_value合计）"
+    # 现金：有结构化现金总额则据实接入(治§5·现金≥5%可查)；无则如实待接入、不编数。
+    # 现金线用[持仓+现金]为分母(浮层检查正确口径)；其余各类占比仍用持仓合计分母(口径不变·不涟漪决策)。
+    cash_amount = None
+    cash_pct = None
+    cash_ok = None
+    if known_cash_usd and known_cash_usd > 0:
+        cash_amount = float(known_cash_usd)
+        denom_incl_cash = total_mv + cash_amount
+        cash_pct = (cash_amount / denom_incl_cash * 100.0) if denom_incl_cash > 0 else None
+        cash_ok = (cash_pct is not None and cash_pct >= CONC_LOWER_LIMITS["现金"])
+        cash_status = (f"现金 ${cash_amount:,.0f}（来源 unified_holdings·已接入）≈ 占[持仓+现金] {cash_pct:.1f}%"
+                       f"（{'达标·≥5%下限' if cash_ok else '不足5%下限'}）；注：其余各类占比分母=持仓市值合计，现金线单独用[持仓+现金]")
+    else:
+        cash_status = "待接入·无结构化现金数据（现金≥5%检查=待数据；分母口径=持仓market_value合计）"
 
     # over_limit_symbols：属超标上限类的 symbol → {类名: 超限百分点}
     over_limit_symbols: dict[str, dict[str, float]] = {}
@@ -881,6 +922,9 @@ def portfolio_concentration(holdings: list[dict[str, Any]]) -> dict[str, Any]:
         "singles": singles,
         "over_limit_symbols": over_limit_symbols,
         "cash_status": cash_status,
+        "cash_amount": cash_amount,
+        "cash_pct": cash_pct,
+        "cash_ok": cash_ok,
         "mv_missing": mv_missing,
         "upper_limits": CONC_UPPER_LIMITS,
         "lower_limits": CONC_LOWER_LIMITS,
@@ -944,12 +988,24 @@ def concentration_summary_table(conc: dict[str, Any]) -> str:
     rows.append(_upper_row("AI供应链"))
     rows.append(_upper_row("加密"))
     rows.append(_lower_row("防御"))
-    # 现金：待接入
-    rows.append(
-        f"<tr><td>{esc(CONC_NAME_PLAIN['现金'])}</td><td style='color:#9aa8b5;'>这项还没接进来</td><td>至少留 ≥5%（下限）</td>"
-        f"<td><span style='color:#9aa8b5;'>⚪ 还没有现金数据·这项检查=等数据</span></td>"
-        f"<td style='color:#8ea3b6;font-size:12px;'>{esc(conc.get('cash_status', ''))}</td></tr>"
-    )
+    # 现金：有真数据则据实显示占比+达标判定；无则待接入(治§5)
+    cash_pct = conc.get("cash_pct")
+    if cash_pct is not None:
+        cash_ok = conc.get("cash_ok")
+        cash_val = f"{cash_pct:.1f}%"
+        cash_verdict = (f"<span style='color:#3ec38a;font-weight:700;'>🟢 达标（现金 ≥5%下限）</span>" if cash_ok
+                        else f"<span style='color:#ffd479;font-weight:700;'>🟡 现金不足5%下限</span>")
+        rows.append(
+            f"<tr><td>{esc(CONC_NAME_PLAIN['现金'])}</td><td>{esc(cash_val)}</td><td>至少留 ≥5%（下限）</td>"
+            f"<td>{cash_verdict}</td>"
+            f"<td style='color:#8ea3b6;font-size:12px;'>{esc(conc.get('cash_status', ''))}</td></tr>"
+        )
+    else:
+        rows.append(
+            f"<tr><td>{esc(CONC_NAME_PLAIN['现金'])}</td><td style='color:#9aa8b5;'>这项还没接进来</td><td>至少留 ≥5%（下限）</td>"
+            f"<td><span style='color:#9aa8b5;'>⚪ 还没有现金数据·这项检查=等数据</span></td>"
+            f"<td style='color:#8ea3b6;font-size:12px;'>{esc(conc.get('cash_status', ''))}</td></tr>"
+        )
 
     # 单一标的超限（若有）
     over_singles = [s for s in conc.get("singles", []) if s["over"]]
@@ -1129,7 +1185,7 @@ def plain_decision_quality(level: Any) -> str:
     return text
 
 
-def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], cost_by_ticker: dict[str, dict[str, Any]], concentration: dict[str, Any] | None = None) -> str:
+def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], cost_by_ticker: dict[str, dict[str, Any]], concentration: dict[str, Any] | None = None, ai_strength: str = "", sector_state: str = "") -> str:
     """每只持仓一张决策卡（display-only）。动作沿用上游 item.action，不自创买卖决策。
     concentration(可选)：portfolio_concentration() 结果。若该 holding 属某"超上限"的上限类
     (AI/单一/加密) → 在理由处自动追加"别加"句（红/黄提示），与"守·先别动"并存不矛盾。"""
@@ -1140,7 +1196,12 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
     now_line, ladder = holding_price_ladder(item, ma_by_symbol, target_by_base)
 
     # 四道关全翻成人话（每关：这是在问啥 + 人话答案）
-    hard_h = plain_hard(item.get("hard_filter"))
+    # 第1关硬性/方向：出真结论(承接节点+今日方向+符/不符)替掉"受检"占位(生产标准§2)；
+    # 有证据链上下文(ai_strength/sector_state)时用真结论，否则退回 plain_hard(兼容子集渲染)。
+    if ai_strength or sector_state:
+        hard_h = hard_gate_conclusion(item, ai_strength, sector_state)
+    else:
+        hard_h = plain_hard(item.get("hard_filter"))
     soft_h = plain_soft(item.get("soft_filter", {}).get("label"))
     _val_label = str(item.get("valuation", {}).get("label") or "")
     if symbol.startswith("CC."):  # BTC/ETH等资产：大白话说清资产口径，不再笼统"估值没做"(治②)
@@ -1905,6 +1966,25 @@ def right_ruler_card(no: str, title: str, filename: str, summary: str, anchor_id
     """
 
 
+def build_chain_bridges(daily: dict[str, Any]) -> list[tuple[str, str]]:
+    """按固定链序(世界观→总闸→战略→手段→资金→板块)为每环生成承上/启下句，
+    形成上下咬合闭环(生产标准§1·总则第十)。方向取自各环 direction，随数据动态变。"""
+    order = [
+        ("世界观", ["总命题", "世界"]), ("总闸", ["总闸", "美联储"]), ("战略层", ["战略指向"]),
+        ("手段层", ["手段层"]), ("资金轮动", ["资金轮动"]), ("板块轮动", ["板块轮动"]),
+    ]
+    dirs = [(nm, str((find_link(daily, ks) or {}).get("direction") or "待判")) for nm, ks in order]
+    n = len(dirs)
+    out: list[tuple[str, str]] = []
+    for i, (nm, d) in enumerate(dirs):
+        up = ("这是全链最上层源头·无上一环；世界观定调其下所有环。" if i == 0
+              else f"上一环「{dirs[i-1][0]}」判『{dirs[i-1][1]}』，本环据此前提往下判。")
+        down = (f"本环『{d}』→ 六环汇总成今日操作口径（守核心/别加/该减），见首屏。" if i == n - 1
+                else f"本环『{d}』→ 顶出下一环「{dirs[i+1][0]}」该如何看。")
+        out.append((up, down))
+    return out
+
+
 def build(date: str) -> str:
     daily_path = ROOT / "data" / "evidence_chain" / f"daily_{date}.json"
     production_path = ROOT / "data" / "reports" / f"production_{date}.json"
@@ -1956,16 +2036,23 @@ def build(date: str) -> str:
     snapshot = read_json(snapshot_path) if snapshot_path.exists() else {"assets": []}
     quality = pdca_daily.get("decision_quality", {})
 
+    _br = build_chain_bridges(daily)  # 承上启下(上下咬合·生产标准§1)
     evidence_cards = [
-        evidence_card("①", "世界观", find_link(daily, ["总命题", "世界"]), "①", "right-ruler-1"),
-        evidence_card("②", "总闸", find_link(daily, ["总闸", "美联储"]), "③", "right-ruler-3"),
-        evidence_card("③", "战略", find_link(daily, ["战略指向"]), "②", "right-ruler-2"),
-        evidence_card("④", "手段层·资金管道(稳定币/加密)", find_link(daily, ["手段层"]), "③", "right-ruler-3"),
-        evidence_card("⑤", "资金轮动", find_link(daily, ["资金轮动"]), "③", "right-ruler-3"),
-        evidence_card("⑥", "板块轮动", find_link(daily, ["板块轮动"]), "④", "right-ruler-4"),
+        evidence_card("①", "世界观", find_link(daily, ["总命题", "世界"]), "①", "right-ruler-1", *_br[0]),
+        evidence_card("②", "总闸", find_link(daily, ["总闸", "美联储"]), "③", "right-ruler-3", *_br[1]),
+        evidence_card("③", "战略", find_link(daily, ["战略指向"]), "②", "right-ruler-2", *_br[2]),
+        evidence_card("④", "手段层·资金管道(稳定币/加密)", find_link(daily, ["手段层"]), "③", "right-ruler-3", *_br[3]),
+        evidence_card("⑤", "资金轮动", find_link(daily, ["资金轮动"]), "③", "right-ruler-3", *_br[4]),
+        evidence_card("⑥", "板块轮动", find_link(daily, ["板块轮动"]), "④", "right-ruler-4", *_br[5]),
     ]
-    concentration = portfolio_concentration(production.get("holdings", []))
-    holding_cards = "".join(holding_decision_card(item, ma_by_symbol, target_by_base, cost_by_ticker, concentration) for item in production.get("holdings", []))
+    _known_cash = (cost_data.get("summary", {}) or {}).get("known_cash_usd")
+    concentration = portfolio_concentration(production.get("holdings", []), _known_cash)
+    # 五关第1关真结论要引证据链的战略力度/板块方向(动态·改数据跟着变)
+    _strat = find_link(daily, ["战略指向"]) or {}
+    _sector = find_link(daily, ["板块轮动"]) or {}
+    ai_strength = f"{_strat.get('strength', '')}{_strat.get('direction', '')}"
+    sector_state = str(_sector.get("direction", ""))
+    holding_cards = "".join(holding_decision_card(item, ma_by_symbol, target_by_base, cost_by_ticker, concentration, ai_strength, sector_state) for item in production.get("holdings", []))
     try:
         judgment_html = judgment_card(date)
     except Exception:  # 判断包缺失/异常不报错，正常跳过
@@ -1975,7 +2062,17 @@ def build(date: str) -> str:
     except Exception:  # 个股研究缺失/异常不报错，正常跳过
         stock_research_html = ""
     # 判断包卡紧跟①世界观 evidence_card 之后、macro_section 之前
-    evidence_html = evidence_cards[0] + judgment_html + "".join(evidence_cards[1:])
+    # 中国支线骨架(治§3·不再整条缺失)：结构占位+明确待接真源，不编造数据
+    china_branch = """
+    <details class="card">
+      <summary><span>⑦ 中国支线（稀土/自主可控/港股方向）</span><b>待接真源</b></summary>
+      <p class="plain">这一支追"中国这边的对应机会与风险"——稀土管制、自主可控（半导体国产替代）、港股AI/科技方向。<b>目前真数据源还没接</b>，按铁律不编、不拿旧数字冒充，先立骨架、标清缺什么。</p>
+      <div class="meta" style="background:#12202c;border:1px solid #26485f;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:12.5px;color:#bcd8ee;">
+        待接真源：① 稀土/管制政策真新闻（可接 Google News RSS 关键词"稀土 出口管制/自主可控/国产替代"）；② 港股AI/科技板块行情（需 OpenD 港股或指数源）；③ A股承接节点指数。接上后本支按证据链同规格出"今日事件+数据+推理+承上启下"。
+      </div>
+    </details>
+    """
+    evidence_html = evidence_cards[0] + judgment_html + "".join(evidence_cards[1:]) + china_branch
     left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production) + f"""
     {concentration_summary_table(concentration)}
     <details class="card" open>
@@ -2265,7 +2362,7 @@ def render_selected(date: str, symbols: list[str]) -> str:
 
     holdings = production.get("holdings", [])
     # 集中度按【全持仓】现算（口径一致），"别加"只落到选定卡上
-    concentration = portfolio_concentration(holdings)
+    concentration = portfolio_concentration(holdings, (cost_data.get("summary", {}) or {}).get("known_cash_usd"))
     by_symbol = {str(h.get("symbol") or ""): h for h in holdings}
     picked = [by_symbol[s] for s in symbols if s in by_symbol]
 
