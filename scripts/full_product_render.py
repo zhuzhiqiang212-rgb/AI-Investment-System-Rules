@@ -1249,9 +1249,16 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
     else:
         research = '<span style="color:#9aa8b5;">这只还没深研</span>'
 
-    # 理由：给董事长看的是人话（caveat 或"照上面四关来"）；上游术语版 one_line_reason
-    # 属数据、不改内容，降级成灰色小字"内部依据"，只留作可核对、不当主文案。
-    reason_raw = esc(item.get("one_line_reason"))
+    # 理由：给董事长看的是人话（caveat 或"照上面四关来"）；下附术语版"内部依据"。
+    # 内部依据的"硬性"取本卡第1关 gate-1 真结论(与上方"方向对不对"同源)，不再用上游 pipeline 的
+    # "硬性=受检→受检"(治打回·清受检残留·一张卡内前后不矛盾)；无 gate 上下文时退回 one_line_reason。
+    if ai_strength or sector_state:
+        _soft_lab = str((item.get("soft_filter") or {}).get("label") or "技术待补")
+        _val_lab = str((item.get("valuation") or {}).get("label") or "估值待补")
+        _moat_grade = str((item.get("moat") or {}).get("moat_grade") or "待补护城河")
+        reason_raw = esc(f"硬性/方向：{hard_h}｜软性={_soft_lab}｜估值={_val_lab}｜护城河={_moat_grade}")
+    else:
+        reason_raw = esc(item.get("one_line_reason"))
     if caveat:
         reason_plain = esc(caveat)
     else:
@@ -2059,6 +2066,12 @@ def build(date: str) -> str:
     ai_strength = f"{_strat.get('strength', '')}{_strat.get('direction', '')}"
     sector_state = str(_sector.get("direction", ""))
     holding_cards = "".join(holding_decision_card(item, ma_by_symbol, target_by_base, cost_by_ticker, concentration, ai_strength, sector_state) for item in production.get("holdings", []))
+    # ⑨小标题计数 与 每卡第1关 与 顶部徽章 取同一 gate-1 源(治打回·清"受检"·三处同口径)
+    _hlds_all = production.get("holdings", [])
+    g1_ai = sum(1 for h in _hlds_all if (not _is_crypto(str(h.get("symbol") or ""))) and _on_ai_node(h))
+    g1_crypto = sum(1 for h in _hlds_all if _is_crypto(str(h.get("symbol") or "")))
+    g1_div = max(0, len(_hlds_all) - g1_ai - g1_crypto)
+    gate1_summary = f"符合AI方向{g1_ai} · 加密控敞口{g1_crypto} · 非AI分散{g1_div}"
     try:
         judgment_html = judgment_card(date)
     except Exception:  # 判断包缺失/异常不报错，正常跳过
@@ -2082,7 +2095,7 @@ def build(date: str) -> str:
     left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production) + f"""
     {concentration_summary_table(concentration)}
     <details class="card">
-      <summary><span>⑨ 持仓</span><b>{fmt_summary(production.get('holding_summary'))}</b></summary>
+      <summary><span>⑨ 持仓</span><b>{esc(gate1_summary)}</b></summary>
       <p class="plain">每只持仓一张决策卡：一个明确动作＋买卖价不打架＋看图现价落在哪区。只给守/卖/观望，不下单。上限类(AI/单一/加密)超标的持仓卡自动追加"别加"。</p>
       {holding_cards}
     </details>
@@ -2109,12 +2122,8 @@ def build(date: str) -> str:
     s_dir = find_link(daily, ['战略指向']).get('direction')
     close_loop = f"闭环：世界观{w_dir} → 总闸{f_dir} → 战略{s_dir}，一条线推出今天「{today_short}」的口径。"
 
-    # ⑤ 徽章：与卡片第1关真结论同口径(节点归属·治·不再以"受检"当主词·§8无自相矛盾)。
-    _hlds = production.get("holdings", [])
-    n_ai = sum(1 for h in _hlds if (not _is_crypto(str(h.get("symbol") or ""))) and _on_ai_node(h))
-    n_crypto = sum(1 for h in _hlds if _is_crypto(str(h.get("symbol") or "")))
-    n_div = max(0, len(_hlds) - n_ai - n_crypto)
-    badge_text = (f"五关·第1关方向已判：{n_ai}只在AI承接节点上 · {n_crypto}只加密按纪律控敞口 · {n_div}只非AI分散仓；"
+    # ⑤ 徽章：复用 gate-1 计数(与⑨小标题、每卡第1关同一源·治打回·§8无自相矛盾)。
+    badge_text = (f"五关·第1关方向已判：{g1_ai}只在AI承接节点上 · {g1_crypto}只加密按纪律控敞口 · {g1_div}只非AI分散仓；"
                   f"估值精算(DCF)与均线软性仍在补。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
                   f"逐关=方向→位置→估值→护城河→深研，一关一关过（不是没做）")
 
