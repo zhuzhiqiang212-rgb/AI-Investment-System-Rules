@@ -79,7 +79,7 @@ def stock_research_section(holdings: Any) -> str:
     if not cards:
         return ""
     return f"""
-    <details class="card" open>
+    <details class="card">
       <summary><span>个股深度研究（漏斗第5关·已出）</span><b>已出</b></summary>
       <p class="plain">已完成深度研究的持仓，嵌入其判断包全文；未研究的持仓在持仓表内标"待补个股研究"。</p>
       {''.join(cards)}

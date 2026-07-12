@@ -178,7 +178,7 @@ def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, rule
     else:
         badge = '<span style="font-size:15px;font-weight:700;color:#9aa8b5;">⚠ 这层今天没有够硬的新证据，先不下新结论</span>'
     return f"""
-    <details class="card" open>
+    <details class="card">
       <summary><span>{esc(no)} {esc(title)}</span><b>{esc(plain_strength(strength))}</b></summary>
       <p class="macro-plain">{esc(plain_main)}</p>
       <p class="plain">今天这层怎么判：{badge}</p>
@@ -721,6 +721,12 @@ def _is_defensive(item: dict[str, Any]) -> bool:
     return any(sig in text for sig in DEFENSIVE_SIGNALS)
 
 
+def _on_ai_node(item: dict[str, Any]) -> bool:
+    """该持仓是否坐在AI承接节点上(节点归属·第1关方向口径)：算力/半导体设备/存储/代工/盟友链/AI软件应用。
+    注：这是"在不在AI承接链上"的方向判定，与⑨集中度的"AI敞口占比(45%限·窄口径)"是两个不同度量。"""
+    return (_holding_node(item) or "") in AI_SUPPLY_NODE_CLASSES
+
+
 def hard_gate_conclusion(item: dict[str, Any], ai_strength: str = "", sector_state: str = "") -> str:
     """五关·第1关(硬性/方向)真结论——替掉"受检"占位(生产标准§2)。
     输出「属哪承接节点 + 该节点今日方向(引②战略/⑥板块) + 符/不符方向」，随证据链动态变。"""
@@ -730,7 +736,7 @@ def hard_gate_conclusion(item: dict[str, Any], ai_strength: str = "", sector_sta
     sector_weak = ("走弱" in str(sector_state)) or ("弱" in str(sector_state))
     if _is_crypto(sym):
         return "属「加密簇」·不在AI战略承接链 → 方向不以AI强弱论；按加密≤12%纪律管敞口、守核心不追"
-    if _is_ai_supply(item):
+    if _on_ai_node(item):
         base = f"属「{node}」AI承接节点，战略AI今日{'走强·符合方向' if ai_up else '力度转弱·仍在AI主线内'}（引②战略）"
         return base + ("；但半导体板块今日走弱（引⑥板块）→ 符合方向但不追高" if sector_weak else " → 符合方向")
     if _is_defensive(item):
@@ -1735,7 +1741,7 @@ def macro_section(snapshot: dict[str, Any], yield_curve: dict[str, Any] | None =
         rows.append(macro_row("收益率曲线(10年-3月)(长短期利率谁高·倒挂常预警衰退)", "这项还没接进来·源没连", "待接入", "收益率曲线的数据源还没连上"))
 
     return f"""
-    <details class="card" open>
+    <details class="card">
       <summary><span>⑦ 宏观指标读数（钱往哪流·外部读数先机器粗读一遍·细看由人来判）</span><b>宏观</b></summary>
       <p class="plain">这些是"钱往哪流"这一层今天的外部读数，只做机器初步粗读；接不到的就标"还没接进来"，绝不拿旧数字冒充。状态词：顺风=眼下对我们有利、逆风=对我们不利、中性=没啥影响。</p>
       <table><thead><tr><th>看的是啥</th><th>今天数值</th><th>怎么读（对我们利不利）</th></tr></thead><tbody>{''.join(rows)}</tbody></table>
@@ -1823,7 +1829,7 @@ def opportunity_section(production: dict[str, Any]) -> str:
     ch2_html = "".join(ch2_cards) if ch2_cards else '<p class="plain">今天没有新冒出的候选。</p>'
 
     return f"""
-    <details class="card" open>
+    <details class="card">
       <summary><span>⑧ 机会池双通道</span><b>动态</b></summary>
       <p class="plain">这一栏在问两件事：一是手里的能不能换成更好的同类，二是有没有新冒出来的机会。凡是我们还没研究透它靠什么长期赚钱（护城河）的，今天一律先观察，不下买卖结论。</p>
       <h3>手里的能不能换成更好的？（换仓对比）</h3>
@@ -1920,7 +1926,7 @@ def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any]) -> str
         iter_text = "待月度触发（定期出'该改什么'走董事长拍板）"
 
     return f"""
-    <details class="card" open>
+    <details class="card">
       <summary><span>⑩ 复盘记分卡（看我们最近判得准不准·该升级还是该回炉）</span><b>{esc(plain_decision_quality(quality.get('level')))}</b></summary>
       <p class="plain">今天下手的底气：{esc(plain_decision_quality(quality.get('level')))}（决策质量分=今天我们出手有多有把握），为什么：{esc(quality.get('reason'))}</p>
       <table><thead><tr><th>这一环</th><th>证据有多硬</th><th>今天打分</th><th>我们的把握</th><th>为什么</th><th>接下来该怎么办</th></tr></thead><tbody>{''.join(rings)}</tbody></table>
@@ -2075,7 +2081,7 @@ def build(date: str) -> str:
     evidence_html = evidence_cards[0] + judgment_html + "".join(evidence_cards[1:]) + china_branch
     left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production) + f"""
     {concentration_summary_table(concentration)}
-    <details class="card" open>
+    <details class="card">
       <summary><span>⑨ 持仓</span><b>{fmt_summary(production.get('holding_summary'))}</b></summary>
       <p class="plain">每只持仓一张决策卡：一个明确动作＋买卖价不打架＋看图现价落在哪区。只给守/卖/观望，不下单。上限类(AI/单一/加密)超标的持仓卡自动追加"别加"。</p>
       {holding_cards}
@@ -2103,15 +2109,14 @@ def build(date: str) -> str:
     s_dir = find_link(daily, ['战略指向']).get('direction')
     close_loop = f"闭环：世界观{w_dir} → 总闸{f_dir} → 战略{s_dir}，一条线推出今天「{today_short}」的口径。"
 
-    # ⑤ 徽章按真实符合/受检数动态显示，不写死"五关全通"(治#14)
-    hs = production.get("holding_summary", {}) or {}
-    n_pass = hs.get("符合", 0)
-    n_check = hs.get("受检", 0)
-    n_pend = hs.get("待补", 0)
-    # 受检=正在一关一关检查、还没走完五关(给小白一句解释·治#28)
-    badge_text = (f"五关已接通·多数还在逐关检查中（符合{n_pass}/受检{n_check}"
-                  + (f"/待补{n_pend}" if n_pend else "")
-                  + "）·相对估值精算迭代中　※受检=正在一关一关查、还没走完五关")
+    # ⑤ 徽章：与卡片第1关真结论同口径(节点归属·治·不再以"受检"当主词·§8无自相矛盾)。
+    _hlds = production.get("holdings", [])
+    n_ai = sum(1 for h in _hlds if (not _is_crypto(str(h.get("symbol") or ""))) and _on_ai_node(h))
+    n_crypto = sum(1 for h in _hlds if _is_crypto(str(h.get("symbol") or "")))
+    n_div = max(0, len(_hlds) - n_ai - n_crypto)
+    badge_text = (f"五关·第1关方向已判：{n_ai}只在AI承接节点上 · {n_crypto}只加密按纪律控敞口 · {n_div}只非AI分散仓；"
+                  f"估值精算(DCF)与均线软性仍在补。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
+                  f"逐关=方向→位置→估值→护城河→深研，一关一关过（不是没做）")
 
     # A · 护城河重评提示：沿用超阈值 → 页首醒目横幅(只提示不改评级·总则第十二条)
     moat_reeval_msg = production.get("fingerprint", {}).get("moat_reeval_msg")
