@@ -151,6 +151,23 @@ def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, rule
     strength = link.get("strength")
     direction = link.get("direction")
     evidence = unify_strength_words(link.get("evidence"))
+    # 今日真事件·带链接(生产规范3.1)：有 news_items(含url)则输出可点开的 <a href>；抓不到url的标待接。
+    news_items = link.get("news_items") or []
+    news_html = ""
+    if news_items:
+        rows = ""
+        for n in news_items[:3]:
+            title = esc(str(n.get("title") or ""))
+            src = esc(str(n.get("source") or ""))
+            url = str(n.get("url") or "").strip()
+            if url.startswith("http"):
+                rows += f'<li><a href="{esc(url)}" target="_blank" style="color:#8fd6ff;">{title}</a>{f"（{src}）" if src else ""}</li>'
+            else:
+                rows += f'<li>{title}{f"（{src}）" if src else ""} <span style="color:#9aa8b5;">·链接待接</span></li>'
+        news_html = (f'<div class="news" style="background:#101a24;border:1px solid #24384a;border-radius:8px;'
+                     f'padding:7px 11px;margin:6px 0;font-size:12.8px;"><b style="color:#bcd8ee;">今日真事件（点开看原文）</b>'
+                     f'<ul style="margin:4px 0 0;padding-left:18px;">{rows}</ul></div>')
+
     # 上下咬合(承上/启下)——证据链闭环的关键(生产标准§1·总则第十)。显眼处两句、不藏进折叠。
     bridge_html = ""
     if bridge_up or bridge_down:
@@ -182,6 +199,7 @@ def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, rule
       <summary><span>{esc(no)} {esc(title)}</span><b>{esc(plain_strength(strength))}</b></summary>
       <p class="macro-plain">{esc(plain_main)}</p>
       <p class="plain">今天这层怎么判：{badge}</p>
+      {news_html}
       {bridge_html}
       <details class="term-fold">
         <summary>系统内部依据（读数 + 规则·想深究再看，可不看）</summary>
@@ -1219,7 +1237,7 @@ def plain_decision_quality(level: Any) -> str:
     return text
 
 
-def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], cost_by_ticker: dict[str, dict[str, Any]], concentration: dict[str, Any] | None = None, ai_strength: str = "", sector_state: str = "") -> str:
+def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], cost_by_ticker: dict[str, dict[str, Any]], concentration: dict[str, Any] | None = None, ai_strength: str = "", sector_state: str = "", dcf_by_symbol: dict[str, dict[str, Any]] | None = None) -> str:
     """每只持仓一张决策卡（display-only）。动作沿用上游 item.action，不自创买卖决策。
     concentration(可选)：portfolio_concentration() 结果。若该 holding 属某"超上限"的上限类
     (AI/单一/加密) → 在理由处自动追加"别加"句（红/黄提示），与"守·先别动"并存不矛盾。"""
@@ -1246,8 +1264,13 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
         val_h = "资产·不做企业估值（比特币/以太坊是资产、没有财报，只看币价+仓位纪律，不给公司估值区间）"
     else:
         val_h = plain_valuation(_val_label)
-        if _val_label and "待" not in _val_label:  # 有估值实例→标"相对估值·非精算"(治#5/③)
-            val_h += '<span style="color:#8ea3b6;font-size:12px;">（相对估值·非精算·来源valuation实例）</span>'
+        # 第3关估值：有DCF精算(可信度A)则优先显示合理区/目标价；无则相对估值+标"待DCF"(派工单§2.3)
+        _dcf = (dcf_by_symbol or {}).get(symbol)
+        if _dcf and _dcf.get("status") == "OK":
+            _c = esc(str(_dcf.get("currency", "$")))
+            val_h += (f'<span style="color:#7ee0a0;font-size:12px;">（<b>DCF精算·可信度A</b>：合理区 {_c}{esc(str(_dcf.get("reasonable_low")))}~{_c}{esc(str(_dcf.get("reasonable_high")))}、目标价 {_c}{esc(str(_dcf.get("target")))}；假设见dcf_results）</span>')
+        elif _val_label and "待" not in _val_label:  # 有估值实例→标"相对估值·非精算·待DCF"(治#5/③)
+            val_h += '<span style="color:#8ea3b6;font-size:12px;">（相对估值·非精算·来源valuation实例·<b>DCF待补</b>）</span>'
         if _val_label in ("贵", "偏贵"):  # 估值偏贵→动作统一带"可择机减"(治#7/#13·卡与研究不打架)
             val_h += '<span style="color:#ffd479;font-size:12px;">→ 偏贵·可择机减回纪律</span>'
     moat_h = plain_moat(item.get("moat", {}))
@@ -1770,7 +1793,17 @@ def macro_section(snapshot: dict[str, Any], yield_curve: dict[str, Any] | None =
                               "已接入·FRED经济日历(总闸②在用)；月度级、非当日"))
     else:
         rows.append(macro_row("CPI/PCE(物价涨得快不快·通胀)", "这项还没接进来", "待接入", "FRED经济日历本次没取到·待接"))
-    rows.append(macro_row("FIMA对谁开关(美联储给谁开美元供应的龙头)", "这项还没接进来", "待接入", "这项要靠人读美联储公告来判·不是数字接口·真没接"))
+    # FIMA 固定输入位(派工单§2.2)：读 data/macro/fima_status.json；人工更新了就显示，没更新标"待人工读公告更新"
+    _fima_path = ROOT / "data" / "macro" / "fima_status.json"
+    _fima = read_json(_fima_path) if _fima_path.exists() else {}
+    if str(_fima.get("status") or "").strip() not in ("", "待接"):
+        _fima_val = str(_fima.get("state_text") or "已更新")
+        _fima_url = str(_fima.get("source_url") or "").strip()
+        if _fima_url.startswith("http"):
+            _fima_val += f'（<a href="{esc(_fima_url)}" target="_blank" style="color:#8fd6ff;">来源</a>·{esc(str(_fima.get("date") or ""))}）'
+        rows.append(macro_row("FIMA对谁开关(美联储给谁开美元供应的龙头)", _fima_val, "中性", esc(str(_fima.get("one_line") or "人工读公告更新"))))
+    else:
+        rows.append(macro_row("FIMA对谁开关(美联储给谁开美元供应的龙头)", "待人工读美联储公告更新", "待接入", "非数字接口·靠人读公告；固定输入位 data/macro/fima_status.json 已建、待理解岗/董事长填"))
     stable_today, stable_sentence = stablecoin_supply_row()
     stable_status = "待接入" if stable_today.startswith("待接入") else "中性"
     rows.append(macro_row("稳定币市值(链上有多少'数字美元'·加密市场的水位)", stable_today, stable_status, stable_sentence))
@@ -2140,7 +2173,14 @@ def build(date: str) -> str:
     _sector = find_link(daily, ["板块轮动"]) or {}
     ai_strength = f"{_strat.get('strength', '')}{_strat.get('direction', '')}"
     sector_state = str(_sector.get("direction", ""))
-    holding_cards = "".join(holding_decision_card(item, ma_by_symbol, target_by_base, cost_by_ticker, concentration, ai_strength, sector_state) for item in production.get("holdings", []))
+    # DCF 精算结果(派工单§2.3)：有则第3关用精算值(可信度A)、无则相对估值标待DCF
+    _dcf_path = ROOT / "data" / "valuation" / f"dcf_results_{date}.json"
+    dcf_by_symbol = {}
+    if _dcf_path.exists():
+        for r in (read_json(_dcf_path).get("results") or []):
+            if r.get("symbol"):
+                dcf_by_symbol[str(r["symbol"])] = r
+    holding_cards = "".join(holding_decision_card(item, ma_by_symbol, target_by_base, cost_by_ticker, concentration, ai_strength, sector_state, dcf_by_symbol) for item in production.get("holdings", []))
     # ⑨小标题计数 与 每卡第1关 与 顶部徽章 取同一 gate-1 源(治打回·清"受检"·三处同口径)
     _hlds_all = production.get("holdings", [])
     g1_ai = sum(1 for h in _hlds_all if (not _is_crypto(str(h.get("symbol") or ""))) and _on_ai_node(h))

@@ -6,7 +6,8 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PACK_DIR = ROOT / "00_请先看这里"
+# 个股判断包收进子文件夹 00_请先看这里/个股判断包/(派工单2026-07-13)；兼容旧位(父目录)。
+PACK_DIRS = [ROOT / "00_请先看这里" / "个股判断包", ROOT / "00_请先看这里"]
 
 
 def esc(value: Any) -> str:
@@ -34,11 +35,14 @@ def _find_pack(symbol: Any, name: Any) -> Path | None:
         tokens.append(name_token)
     if not tokens:
         return None
-    for path in PACK_DIR.glob("个股判断包_*.html"):
-        upper_name = path.name.upper()
-        for token in tokens:
-            if token in upper_name:
-                return path
+    for pack_dir in PACK_DIRS:
+        if not pack_dir.exists():
+            continue
+        for path in sorted(pack_dir.glob("个股判断包_*.html")):
+            upper_name = path.name.upper()
+            for token in tokens:
+                if token in upper_name:
+                    return path
     return None
 
 

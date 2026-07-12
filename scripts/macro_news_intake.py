@@ -81,8 +81,9 @@ def fetch_news(query: str, limit: int = 6) -> list[dict[str, str]] | None:
         src_el = it.find("source")
         if src_el is not None and src_el.text:
             src = html.unescape(src_el.text.strip())
+        link = html.unescape((it.findtext("link") or "").strip())  # 真新闻url·让证据链可点(派工单§2.1)
         if title:
-            items.append({"title": title, "source": src})
+            items.append({"title": title, "source": src, "url": link})
     return items or None
 
 
@@ -186,6 +187,7 @@ def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str,
             node["direction"] = sc["direction"]
             node["today_events"] = [f"真新闻：{h}" for h in heads]
             node["background"] = [f"关键词打分 多{sc['bull']}-空{sc['bear']}=净{sc['bull']-sc['bear']}"]
+            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", "")} for n in strat_news[:3]]
             node["source"] = f"Google News RSS·q=[{QUERIES['strategy']}]·{len(strat_news)}条"
             node["_state"] = sc["state"]
             if sc["strength"] == "强":
@@ -216,6 +218,7 @@ def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str,
             node["direction"] = sc["direction"]
             node["today_events"] = [f"真新闻：{h}" for h in heads]
             node["background"] = [f"关键词打分 正{sc['pos']}/负{sc['neg']}", "FIMA 定量数值仍待机械层"]
+            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", "")} for n in means_news[:3]]
             node["source"] = f"Google News RSS·q=[{QUERIES['means']}]·{len(means_news)}条"
             node["_state"] = sc["state"]
             if "偏松" in sc["state"] or "活跃" in sc["state"]:
@@ -246,6 +249,7 @@ def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str,
             node["direction"] = sc["direction"]
             node["today_events"] = [f"真新闻：{h}" for h in heads]
             node["background"] = [f"regime关键词命中={sc['regime_hits']}", "三支柱框架延续"]
+            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", "")} for n in world_news[:3]]
             node["source"] = f"Google News RSS·q=[{QUERIES['world']}]·{len(world_news)}条"
             node["_state"] = sc["state"]
             if "增多" in sc["state"]:
