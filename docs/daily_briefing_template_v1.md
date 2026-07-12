@@ -491,3 +491,73 @@ NEXT_ACTION    : 每天运行 auto_briefing.py，
               月末填写 monthly_return_tracking_v1.md，
               积累数据后 Claude 自动触发 G-10
 NEXT_THREAD    : AI投研总控台 + 正式日报生产
+
+────────────────────────────────────────
+AUTO BRIEFING [2026-07-03]（由 auto_briefing.py 自动写入）
+────────────────────────────────────────
+日期: 2026-07-03
+周期: UNKNOWN  置信度: C
+第0层 今日结论 : 证据不足，仅观察，不执行任何操作
+第1层 唯一动作 : {'富途': '持有，不加仓（UNKNOWN期间）', 'SBI': '持有，不加仓（UNKNOWN期间）', 'IBKR': '持有，不加仓', 'BF': '持有，观察BTC走势'}
+第2层 最不能做 : 禁止加杠杆 / 当日数据：周期=UNKNOWN；置信度=C；美股信号=C（数据缺失）；加密信号=C（DATA_GAP）；加密占比=0.00%
+NEXT_OWNER     : 用户
+NEXT_ACTION    : 每天运行 auto_briefing.py，
+              月末填写 monthly_return_tracking_v1.md，
+              积累数据后 Claude 自动触发 G-10
+NEXT_THREAD    : AI投研总控台 + 正式日报生产
+
+────────────────────────────────────────
+AUTO BRIEFING [2026-07-07]（由 auto_briefing.py 自动写入）
+────────────────────────────────────────
+日期: 2026-07-07
+周期: BULL_MID  置信度: B
+第0层 今日结论 : 谨慎布局，控制仓位，等待更强确认信号
+第1层 唯一动作 : {'富途': '持有，等待置信度升A级后再评估核心AI加仓', 'SBI': '持有，等待BOJ结果后判断', 'IBKR': '持有', 'BF': '持有，不加仓（B级）'}
+第2层 最不能做 : 禁止追高 / 当日数据：周期=BULL_MID；置信度=B；美股信号=B；加密信号=C；加密占比=0.00%
+NEXT_OWNER     : 用户
+NEXT_ACTION    : 每天运行 auto_briefing.py，
+              月末填写 monthly_return_tracking_v1.md，
+              积累数据后 Claude 自动触发 G-10
+NEXT_THREAD    : AI投研总控台 + 正式日报生产
+
+────────────────────────────────────────
+AUTO BRIEFING [2026-07-08]（由 auto_briefing.py 自动写入）
+────────────────────────────────────────
+日期: 2026-07-08
+周期: TRANSITION  置信度: A
+第0层 今日结论 : 当前周期 TRANSITION，置信度 A，请手动判断
+第1层 唯一动作 : {'富途': '持有，不加仓（TRANSITION期间）', 'SBI': '持有，不加仓（TRANSITION期间）', 'IBKR': '持有，不加仓', 'BF': '持有，观察BTC走势'}
+第2层 最不能做 : 禁止加杠杆 / 当日数据：周期=TRANSITION；置信度=A；美股信号=C；加密信号=C；加密占比=0.00%
+NEXT_OWNER     : 用户
+NEXT_ACTION    : 每天运行 auto_briefing.py，
+              月末填写 monthly_return_tracking_v1.md，
+              积累数据后 Claude 自动触发 G-10
+NEXT_THREAD    : AI投研总控台 + 正式日报生产
+
+────────────────────────────────────────
+AUTO BRIEFING [2026-07-09]（由 auto_briefing.py 自动写入）
+────────────────────────────────────────
+日期: 2026-07-09
+周期: TRANSITION  置信度: A
+第0层 今日结论 : 当前周期 TRANSITION，置信度 A，请手动判断
+第1层 唯一动作 : {'富途': '持有，不加仓（TRANSITION期间）', 'SBI': '持有，不加仓（TRANSITION期间）', 'IBKR': '持有，不加仓', 'BF': '持有，观察BTC走势'}
+第2层 最不能做 : 禁止加杠杆 / 当日数据：周期=TRANSITION；置信度=A；美股信号=C；加密信号=C；加密占比=0.00%
+NEXT_OWNER     : 用户
+NEXT_ACTION    : 每天运行 auto_briefing.py，
+              月末填写 monthly_return_tracking_v1.md，
+              积累数据后 Claude 自动触发 G-10
+NEXT_THREAD    : AI投研总控台 + 正式日报生产
+
+────────────────────────────────────────
+AUTO BRIEFING [2026-07-10]（由 auto_briefing.py 自动写入）
+────────────────────────────────────────
+日期: 2026-07-10
+周期: BULL_MID  置信度: A
+第0层 今日结论 : 允许分批布局AI核心，流动性支撑充足
+第1层 唯一动作 : {'富途': '持有核心AI，事件落地后再评估加仓', 'SBI': '持有，等待BOJ结果后判断', 'IBKR': '持有，若需操作先人工核对账户', 'BF': '持有，观察BTC是否确认突破'}
+第2层 最不能做 : 禁止追高 / 当日数据：周期=BULL_MID；置信度=A；美股信号=B；加密信号=B；加密占比=0.00%
+NEXT_OWNER     : 用户
+NEXT_ACTION    : 每天运行 auto_briefing.py，
+              月末填写 monthly_return_tracking_v1.md，
+              积累数据后 Claude 自动触发 G-10
+NEXT_THREAD    : AI投研总控台 + 正式日报生产

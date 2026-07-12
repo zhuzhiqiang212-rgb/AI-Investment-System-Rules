@@ -1,4 +1,4 @@
-﻿# skill_gate.py
+# skill_gate.py
 # AI投研总控台 V4 Skill 运行时质量门控
 # 在所有 dashboard.html 写入操作前调用此函数
 # Rule Source: GitHub primary, local fallback until GitHub push/auth is confirmed.
@@ -174,6 +174,117 @@ def run_gate(report_path: Path) -> bool:
             print(f"  ✗ {f}")
         write_failure_log(report_path, failures)
         return False
+
+
+
+# ═══════════════════════════════════════════════════════
+# Constitution compliance gate
+# TASK-2026-07-02-037
+# 本模块只做形式检查：是否写出“总则对照”声明及第六条防静态化自评。
+# 不判断声明语义是否正确，语义判断留给 Claude 第二质检与董事长终审。
+# ═══════════════════════════════════════════════════════
+
+CONSTITUTION_GATE_REQUIRED_MARKERS = ["总则对照", "第六条", "防静态化", "自评"]
+
+
+def is_constitution_task_package(target: Path) -> bool:
+    """Only docs/tasks/TASK-* packages are hard-blocked by the formal declaration gate.
+
+    Final products such as daily report HTML are exempt here because their
+    compliance is guaranteed by the producing task package and later semantic QA.
+    """
+    normalized = str(target).replace("\\", "/")
+    return "/docs/tasks/TASK-" in normalized or normalized.startswith("docs/tasks/TASK-")
+
+
+def constitution_gate(task_or_report_path: Path) -> tuple[bool, list[str]]:
+    """
+    总则合规形式检查。
+    PASS：目标文件存在，正文包含“总则对照”，并包含第六条防静态化自评相关关键词。
+    FAIL：缺文件或缺声明块。只做形式检查，不锁死具体答案。
+    """
+    target = Path(task_or_report_path)
+    failures: list[str] = []
+    if not target.exists():
+        failures.append(f"目标文件不存在：{target}")
+        return False, failures
+    if not is_constitution_task_package(target):
+        return True, []
+    content = target.read_text(encoding="utf-8-sig", errors="ignore")
+    if not all(marker in content for marker in CONSTITUTION_GATE_REQUIRED_MARKERS):
+        failures.append("缺总则六条对照声明；此硬闸仅适用于 docs/tasks/TASK-* 任务包，最终产品日报由生产任务担保并在语义质检中复核")
+    return len(failures) == 0, failures
+
+
+def run_constitution_gate(path: Path) -> bool:
+    """
+    对外主函数。PASS 返回 True；FAIL 返回 False 并复用 write_failure_log 记录。
+    """
+    target = Path(path)
+    passed, failures = constitution_gate(target)
+    if passed:
+        print(f"[constitution_gate] PASS：{target.name} 已包含总则对照与第六条防静态化自评。")
+        return True
+    print(f"[constitution_gate] FAIL：{target.name} 未通过总则合规形式检查。")
+    for failure in failures:
+        print(f"  ✗ {failure}")
+    write_failure_log(target, failures)
+    return False
+
+# ═══════════════════════════════════════════════════════
+# CEO self-discipline gate
+# TASK-2026-07-03-067
+# 本模块只做形式检查：CEO 设计或第二质检产出是否写明依据与质检清单。
+# 不判断声明语义是否正确，语义判断留给 Claude 第二质检与董事长终审。
+# ═══════════════════════════════════════════════════════
+
+CEO_BASIS_POINTERS = ["总则", "蓝图", "董事长"]
+CEO_QA_CHECKLIST_MARKERS = [
+    "质检清单",
+    "独立读实际文件",
+    "核对真数据",
+    "验证动态性",
+    "无乱码",
+    "对照总则六条",
+    "结构完整",
+]
+
+
+def ceo_design_gate(design_or_review_path: Path) -> tuple[bool, list[str]]:
+    """
+    CEO 自律形式检查。
+    PASS：目标文件存在，正文含设计依据声明，且含第二质检六项清单。
+    FAIL：缺依据声明或缺质检清单。只做形式检查，不锁死具体答案。
+    """
+    target = Path(design_or_review_path)
+    failures: list[str] = []
+    if not target.exists():
+        failures.append(f"目标文件不存在：{target}")
+        return False, failures
+    content = target.read_text(encoding="utf-8-sig", errors="ignore")
+    has_basis = "依据" in content and any(pointer in content for pointer in CEO_BASIS_POINTERS)
+    if not has_basis:
+        failures.append("CEO设计缺依据声明")
+    missing_checklist = [marker for marker in CEO_QA_CHECKLIST_MARKERS if marker not in content]
+    if missing_checklist:
+        failures.append("缺质检清单：" + "、".join(missing_checklist))
+    return len(failures) == 0, failures
+
+
+def run_ceo_gate(path: Path) -> bool:
+    """
+    对外主函数。PASS 返回 True；FAIL 返回 False 并复用 write_failure_log 记录。
+    """
+    target = Path(path)
+    passed, failures = ceo_design_gate(target)
+    if passed:
+        print(f"[ceo_design_gate] PASS：{target.name} 已包含设计依据与第二质检清单。")
+        return True
+    print(f"[ceo_design_gate] FAIL：{target.name} 未通过 CEO 自律形式检查。")
+    for failure in failures:
+        print(f"  ✗ {failure}")
+    write_failure_log(target, failures)
+    return False
 
 # ═══════════════════════════════════════════════════════
 # AI_PROJECT_GOVERNANCE_V2  流程合规检查模块
