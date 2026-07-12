@@ -140,6 +140,12 @@ def unify_strength_words(text: Any) -> str:
     return s
 
 
+def unify_certainty_words(text: Any) -> str:
+    """记分卡把握档位统一一套词：把握标度用 高/中/弱，数据里漏进的力度词"强"按等价的"高"归一
+    (强≡高·同 STRENGTH_RANK 3)，让把握列与把握轨迹全篇只用一个词。"""
+    return str(text or "").replace("强", "高")
+
+
 def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, ruler_anchor: str) -> str:
     strength = link.get("strength")
     direction = link.get("direction")
@@ -1801,7 +1807,7 @@ def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any]) -> str
         )
     tracks = []
     for item in pdca_review.get("certainty_trajectories", []):
-        tracks.append(f"<li>{esc(item.get('ring_name'))}：累计得分 {esc(item.get('cumulative_score'))}，把握变化过程 {esc(item.get('certainty_path_text'))}</li>")
+        tracks.append(f"<li>{esc(item.get('ring_name'))}：累计得分 {esc(item.get('cumulative_score'))}，把握变化过程 {esc(unify_certainty_words(item.get('certainty_path_text')))}</li>")
     weekly = pdca_review.get("multi_scale", {}).get("weekly", {})
 
     # ⑦复盘·5迭代动作：全部现算(从数据来)，只作建议/提醒，毕业/回炉不自动执行
