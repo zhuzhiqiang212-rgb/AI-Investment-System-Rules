@@ -1018,27 +1018,59 @@ def portfolio_concentration(holdings: list[dict[str, Any]], known_cash_usd: floa
     }
 
 
-def concentration_dont_add_lines(symbol: str, conc: dict[str, Any] | None) -> list[str]:
-    """若该 symbol 属某"超上限"的上限类(AI/单一/加密) → 生成"别加"大白话句子列表。
-    多类超标就都返回。不改上游action、不自创买卖——只按仓位纪律尺加"别加"约束。"""
+def concentration_dont_add_lines(symbol: str, conc: dict[str, Any] | None,
+                                 item: dict[str, Any] | None = None, val_label: str = "") -> list[str]:
+    """超上限类(AI/单一/加密)→生成"别加"+"减多少量"(股数/减后占比/腾出$)+"摆2-3条路让董事长选"(§3.4)。
+    不改上游action、不自创买卖——只按仓位纪律尺给约束与选项，最终减不减=董事长拍板。"""
     if not conc:
         return []
     over = conc.get("over_limit_symbols", {}).get(symbol)
     if not over:
         return []
+    total_mv = float(conc.get("total_mv") or 0.0)
+    singles = {s["symbol"]: s for s in conc.get("singles", [])}
+    single_pct = float(singles.get(symbol, {}).get("pct", 0.0))
+    stock_mv_usd = single_pct / 100.0 * total_mv if total_mv else 0.0
+    try:
+        shares = float((item or {}).get("quantity"))
+    except (TypeError, ValueError):
+        shares = None
+    price_usd = (stock_mv_usd / shares) if (shares and stock_mv_usd) else None
+
+    def _reduce(actual: float, limit: float, cat_disp: str) -> str:
+        # 减多少量=(实际占比−上限)×折美元总额÷该股现价(用户公式)；腾出≈需减美元
+        need_usd = (actual - limit) / 100.0 * total_mv
+        if price_usd and price_usd > 0:
+            red_shares = need_usd / price_usd
+            if cat_disp == "单一" or red_shares <= (shares or 0):
+                after = limit if cat_disp == "单一" else actual - (actual - limit)
+                return (f"减多少量：把{cat_disp}拉回≤{limit:.0f}%需减约 <b>{red_shares:,.0f} 股</b>"
+                        f"（=(({actual:.1f}%−{limit:.0f}%)×折美元总额${total_mv:,.0f})÷该股现价${price_usd:,.0f}）；"
+                        f"减后{cat_disp}占比≈{limit:.0f}%、腾出约 <b>${need_usd:,.0f}</b>。")
+            return (f"减多少量：把{cat_disp}拉回≤{limit:.0f}%需全类减约 ${need_usd:,.0f}，"
+                    f"光减这一只（市值约${stock_mv_usd:,.0f}）不够，需配合减别的{cat_disp}仓。")
+        return f"减多少量：待现价折美元后现算（缺该股现价/股数·标待接）。"
+
     lines: list[str] = []
     for cat_name, gap in over.items():
         if cat_name == "单一标的":
-            singles = {s["symbol"]: s for s in conc.get("singles", [])}
-            actual = singles.get(symbol, {}).get("pct", 0.0)
             limit = CONC_UPPER_LIMITS["单一标的"]
-            # 超单一上限→动作统一为"守·可减回纪律"(治#7/#13 卡说守·研究说减 的打架)
-            lines.append(f"这只单独一只已押太多（现在占 {actual:.1f}%，超单一上限 {limit:.0f}%）→ 守·可减回≤{limit:.0f}%纪律线（减到限内、不是清仓）")
+            lines.append(f"这只单独一只已押太多（现在占 {single_pct:.1f}%，超单一上限 {limit:.0f}%）→ 守·可减回≤{limit:.0f}%纪律线（减到限内、不是清仓）")
+            lines.append(_reduce(single_pct, limit, "单一"))
         else:
             cat = conc.get("categories", {}).get(cat_name, {})
-            actual = cat.get("pct", 0.0)
-            limit = cat.get("limit", 0.0)
-            lines.append(f"这类（{cat_name}）已经押得太多了，别再加了（现在占 {actual:.1f}%，超过了上限 {limit:.0f}%）")
+            actual = float(cat.get("pct", 0.0)); limit = float(cat.get("limit", 0.0))
+            lines.append(f"这类（{cat_name}）已押太多、别再加（现在占 {actual:.1f}%，超上限 {limit:.0f}%）")
+            lines.append(_reduce(actual, limit, cat_name))
+    # 摆2-3条路·董事长拍板(措辞按估值位置定)——不替他决定
+    cheap = any(k in str(val_label) for k in ("便宜", "偏便宜"))
+    path_a = ("路A：只减超出的部分、<b>别在便宜区把赢家砍了</b>——现价在便宜/合理区，等回合理区上沿/止盈价再减那一份。"
+              if cheap else "路A：现价已不算便宜，可按纪律先减超出部分、回到限内。")
+    lines.append("摆几条路·你拍板：")
+    lines.append(path_a)
+    lines.append("路B：不动这只，<b>改减别的更该减的仓</b>（质量更弱或更贵的同类），一样把敞口降回限内。")
+    lines.append("路C：<b>接受这次超配、先守</b>，盯住风险（波动/回撤/转弱），下次触价或证据转弱再减。")
+    lines.append("（决策依据·非指令；减不减、减哪条＝董事长拍板。非持牌投顾。）")
     return lines
 
 
@@ -1121,8 +1153,8 @@ def concentration_summary_table(conc: dict[str, Any]) -> str:
             f'{esc("、".join(no_fx))} 非JP/US/CC市场·无汇率，暂按原值计入分母（待补该市场汇率后重算）。'
         )
     note_parts.append(
-        'AI供应链口径(Code自决)：本表取AI主线核心持仓 NVDA/MSFT/AVGO/TSM/软银 现算(USDJPY归一)；'
-        '设备/存储/软件(爱德万/SNDK/META)暂未计入、要折进把其加进 AI_SUPPLY_HOLDINGS 即可(范围可迭代·代码一行可调)。'
+        'AI供应链口径：按承接节点计入(算力/半导体设备/存储/代工/盟友链/AI软件应用)，'
+        '设备/存储/软件(爱德万/SNDK/META)已按节点计入(USDJPY归一)、与卡片第1关"AI承接节点"同口径。'
         '此为全系统AI集中度的唯一现算来源，个股研究包不再各写死数字。'
     )
     missing_note = (
@@ -1364,14 +1396,15 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
 
     # 仓位纪律尺：属超上限类(AI/单一/加密)→自动追加"别加"句（红/黄提示·大白话）
     # 不改上游action、不自创买卖，只加"别加"约束；多类超标就都追加。
-    dont_add_lines = concentration_dont_add_lines(symbol, concentration)
+    # 超单一15%或类上限→补"减多少量+摆选项"五格(§3.4)；行内含受控<b>标签、不整体转义
+    dont_add_lines = concentration_dont_add_lines(symbol, concentration, item, _val_label)
     dont_add_html = ""
     if dont_add_lines:
         items = "".join(
-            f'<div class="dc-dontadd">· {esc(line)}</div>' for line in dont_add_lines
+            f'<div class="dc-dontadd">· {line}</div>' for line in dont_add_lines
         )
         dont_add_html = (
-            f'<div class="dc-row dc-dontadd-row"><div class="dc-lab">别再加</div>'
+            f'<div class="dc-row dc-dontadd-row"><div class="dc-lab">别再加·怎么减</div>'
             f'<div class="dc-val">{items}</div></div>'
         )
 
@@ -2143,6 +2176,42 @@ def build_chain_bridges(daily: dict[str, Any]) -> list[tuple[str, str]]:
     return out
 
 
+def sector_trend_section(daily: dict[str, Any]) -> str:
+    """板块趋势(§3.2)：每条趋势带 过去→现在→未来 + 时间窗；有真数据用、没有标待接真源。
+    方向取自当日证据链(动态·不写死)。"""
+    sector_dir = (find_link(daily, ["板块轮动"]) or {}).get("direction") or "待判"
+    strat_dir = (find_link(daily, ["战略指向"]) or {}).get("direction") or "待判"
+    means_dir = (find_link(daily, ["手段层"]) or {}).get("direction") or "待判"
+    rows = [
+        ("AI算力/半导体",
+         "AI资本开支爆发、算力/HBM/代工需求拉动，数年主升",
+         f"战略AI『{esc(strat_dir)}』、半导体板块今日『{esc(sector_dir)}』（引②③⑥·动态）",
+         "AI 资本开支未见拐点前仍是主线；短期随板块噪声波动、不追单日",
+         "<b>数年主线</b>（以AI资本开支周期为准）"),
+        ("稀土/自主可控",
+         "<span style='color:#9aa8b5;'>待接真源</span>（中国支线未接·不编）",
+         "<span style='color:#9aa8b5;'>待接真源</span>（稀土管制/国产替代真新闻待接）",
+         "<span style='color:#9aa8b5;'>待接真源</span>",
+         "<b>约 2 年窗口</b>（管制/替代节奏·董事长给的窗口定义）"),
+        ("稳定币/加密",
+         "稳定币立法+加密通道打开，成'钱进美元'的新管道",
+         f"手段层『{esc(means_dir)}』（引④·动态）",
+         "结构性通道、长期利多美元资产；受监管节奏影响短期波动",
+         "<b>结构性·多年</b>"),
+    ]
+    body = "".join(
+        f"<tr><td><b>{esc(name)}</b></td><td>{past}</td><td>{now}</td><td>{fut}</td><td>{win}</td></tr>"
+        for name, past, now, fut, win in rows
+    )
+    return f"""
+    <details class="card">
+      <summary><span>⑥b 板块趋势（现在什么热·接下来什么趋势）</span><b>过去→现在→未来</b></summary>
+      <p class="plain">每条主线看"过去怎么来的→现在什么状态→未来往哪走"，并标<b>时间窗多久</b>（如AI是数年主线、稀土约2年）。方向随当日证据链现算；没有真数据源的（稀土/自主可控）如实标"待接真源"、不编。</p>
+      <table><thead><tr><th>主线</th><th>过去</th><th>现在（引证据链·动态）</th><th>未来</th><th>时间窗</th></tr></thead><tbody>{body}</tbody></table>
+    </details>
+    """
+
+
 def build(date: str) -> str:
     daily_path = ROOT / "data" / "evidence_chain" / f"daily_{date}.json"
     production_path = ROOT / "data" / "reports" / f"production_{date}.json"
@@ -2255,7 +2324,7 @@ def build(date: str) -> str:
       </div>
     </details>
     """
-    evidence_html = evidence_cards[0] + judgment_html + "".join(evidence_cards[1:]) + china_branch
+    evidence_html = evidence_cards[0] + judgment_html + "".join(evidence_cards[1:]) + sector_trend_section(daily) + china_branch
     left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production) + f"""
     {concentration_summary_table(concentration)}
     <details class="card">
