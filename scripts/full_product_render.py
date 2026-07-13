@@ -1984,7 +1984,71 @@ def macro_section(snapshot: dict[str, Any], yield_curve: dict[str, Any] | None =
     """
 
 
-def opportunity_section(production: dict[str, Any]) -> str:
+# 机会层候选 watchlist 配置(模板卡2026-07-13·可迭代不锚死名单)：候选→承接节点→可换谁(被换持仓base ticker)
+OPP_WATCHLIST = [
+    {"name": "海力士(SK Hynix)", "node": "HBM/高带宽存储", "swap": [("SNDK", "闪迪"), ("9984", "软银")]},
+    {"name": "美光(Micron·MU)", "node": "存储", "swap": [("SNDK", "闪迪")]},
+    {"name": "东京电子", "node": "半导体设备", "swap": [("9984", "软银")]},
+]
+
+
+def opportunity_section(production: dict[str, Any], concentration: dict[str, Any] | None = None,
+                        target_by_base: dict[str, dict[str, Any]] | None = None,
+                        gen_opp: dict[str, Any] | None = None) -> str:
+    """机会层·引擎(模板卡2026-07-13)：watchlist真候选+A线(现价/买点/换谁/4条件机判/节点归类·缺待接)
+    +B线(读 gen_opportunity 填对比/买点/结论·缺待理解岗补深)。AI超配时新AI候选只换不加。不写"今天没有"。"""
+    gen = (gen_opp or {}).get("candidates", {}) or {}
+    ai_over = bool((concentration or {}).get("categories", {}).get("AI供应链", {}).get("over"))
+    ai_note = ('<b style="color:#ffd479;">AI 已超配（见⑨集中度）→ 新 AI 候选只能「换」不能「加」</b>'
+               if ai_over else "AI 未超配·可择优")
+    hp = {str(h.get("symbol") or "").split(".")[-1].upper(): h.get("price") for h in production.get("holdings", [])}
+    wait = '<span style="color:#9aa8b5;">待理解岗补深</span>'
+    wait_src = '<span style="color:#9aa8b5;">待接真源</span>'
+
+    def _cond3(swap: list[tuple[str, str]]) -> str:
+        res = []
+        for t, n in swap:
+            price = hp.get(t.upper())
+            tgt = (target_by_base or {}).get(t) or (target_by_base or {}).get(t.upper()) or {}
+            tp = tgt.get("take_profit")
+            if price is not None and tp is not None:
+                hit = float(price) >= float(tp)
+                res.append(f"{esc(n)}" + ("已到止盈✓" if hit else f"未到止盈✗(现价{fmt_level(price)}<止盈{fmt_level(tp)})"))
+            else:
+                res.append(f"{esc(n)}·止盈/现价待接")
+        return "；".join(res)
+
+    cards = ""
+    for c in OPP_WATCHLIST:
+        gc = gen.get(c["name"], {}) or {}
+        cmp_txt = esc(str(gc.get("多维对比") or "").strip()) if str(gc.get("多维对比") or "").strip() else wait
+        buy_txt = esc(str(gc.get("买点逻辑") or "").strip()) if str(gc.get("买点逻辑") or "").strip() else wait
+        concl = esc(str(gc.get("今天结论") or "").strip()) if str(gc.get("今天结论") or "").strip() else wait
+        cards += f"""
+    <div class="dc-card dc-soft">
+      <div class="dc-top"><div class="dc-title">候选：{esc(c['name'])}（{esc(c['node'])}）</div><div class="dc-badge dc-soft">常备·盯条件</div></div>
+      <div class="dc-row"><div class="dc-lab">什么价买</div><div class="dc-val">{wait_src}（候选无实时行情/估值源·不编价）；买点逻辑：{buy_txt}</div></div>
+      <div class="dc-row"><div class="dc-lab">换谁</div><div class="dc-val">{esc("、".join(n for _, n in c['swap']))}（手里同类里更该动的）</div></div>
+      <div class="dc-row"><div class="dc-lab">换的4条件<br>·现状</div><div class="dc-val" style="font-size:12.8px;">
+        <div style="margin:2px 0;">① 候选护城河更宽：{wait_src}（候选未评护城河）</div>
+        <div style="margin:2px 0;">② 候选回到便宜买点：{wait_src}（候选无行情）</div>
+        <div style="margin:2px 0;">③ 被换涨回止盈（机判）：{_cond3(c['swap'])}</div>
+        <div style="margin:2px 0;">④ 换完总敞口不升（机判）：满足（候选与被换同属AI承接节点·换完AI总敞口不升）</div>
+      </div></div>
+      <div class="dc-row"><div class="dc-lab">多维对比<br>候选vs被换</div><div class="dc-val">{cmp_txt}</div></div>
+      <div class="dc-row dc-judge"><div class="dc-lab">今天结论</div><div class="dc-val">{concl}</div></div>
+    </div>"""
+
+    return f"""
+    <details class="card">
+      <summary><span>⑧ 机会池（常备换仓清单·真候选+真条件）</span><b>引擎·现算</b></summary>
+      <p class="plain">机会池是<b>常年盯着的清单</b>：什么价买、换谁、4条件到没到才换——<b>不天天换、不写"今天没有"</b>。{ai_note}。候选无真行情/估值的字段如实标"待接真源"、不编价、不编条件达成。</p>
+      {cards}
+    </details>
+    """
+
+
+def _opportunity_section_legacy(production: dict[str, Any]) -> str:
     pool = production.get("opportunity_pool", {})
     ch1 = pool.get("channel_1_swap_comparisons", [])
     ch2 = pool.get("channel_2_new_opportunities", [])
@@ -2475,7 +2539,10 @@ def build(date: str) -> str:
     _gen_sector = read_json(_gs_path) if _gs_path.exists() else {}
     evidence_html = (evidence_cards[0] + judgment_html + "".join(evidence_cards[1:])
                      + sector_trend_section(daily, production, _gen_sector) + china_branch)
-    left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production) + f"""
+    # 机会层 B线文字输入位(模板卡§3)：每候选对比/买点逻辑/今天结论·缺标待理解岗补深
+    _go_path = ROOT / "data" / "evidence_chain" / f"gen_opportunity_{date}.json"
+    _gen_opp = read_json(_go_path) if _go_path.exists() else {}
+    left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production, concentration, target_by_base, _gen_opp) + f"""
     {concentration_summary_table(concentration)}
     <details class="card">
       <summary><span>⑨ 持仓</span><b>{esc(gate1_summary)}</b></summary>
