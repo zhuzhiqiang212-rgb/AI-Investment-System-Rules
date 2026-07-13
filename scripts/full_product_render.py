@@ -1075,7 +1075,10 @@ def concentration_dont_add_lines(symbol: str, conc: dict[str, Any] | None,
                         f"减后{cat_disp}占比≈{limit:.0f}%、腾出约 <b>${need_usd:,.0f}</b>。")
             return (f"减多少量：把{cat_disp}拉回≤{limit:.0f}%需全类减约 ${need_usd:,.0f}，"
                     f"光减这一只（市值约${stock_mv_usd:,.0f}）不够，需配合减别的{cat_disp}仓。")
-        return f"减多少量：待现价折美元后现算（缺该股现价/股数·标待接）。"
+        # 缺该股现价/股数(如BTC/ETH production无quantity)→不逐股，但用 total_mv 算出【需减美元】，与集中度%口径对齐
+        return (f"减多少量：把{cat_disp}拉回≤{limit:.0f}%需减约 <b>${need_usd:,.0f}</b>"
+                f"（全{cat_disp}现{actual:.1f}%·超{actual - limit:.1f}pt；折美元总额${total_mv:,.0f}）；"
+                f"具体减哪只/多少股由你定（本只缺实时股数）。")
 
     lines: list[str] = []
     for cat_name, gap in over.items():
@@ -1527,6 +1530,8 @@ def build_today_state(daily: dict[str, Any], production: dict[str, Any], ma_by_s
     }
     holding_levels: dict[str, str] = {}
     target_hits: dict[str, bool] = {}
+    cheap_hits: dict[str, bool] = {}
+    cheap_by_symbol: dict[str, Any] = {}
     name_by_symbol: dict[str, str] = {}
     price_by_symbol: dict[str, Any] = {}
     ma50_by_symbol: dict[str, Any] = {}
@@ -1569,6 +1574,13 @@ def build_today_state(daily: dict[str, Any], production: dict[str, Any], ma_by_s
             target_hits[symbol] = bool(take_profit is not None and price is not None and float(price) >= float(take_profit))
         except (TypeError, ValueError):
             target_hits[symbol] = False
+        # 便宜价=便宜买点(合理区下沿·估值口径)；现价≤便宜价→在便宜区(与巡检D段口径对齐·治"没碰关键价 vs 现价在便宜区"矛盾)
+        cheap = target.get("buy_price") if target else None
+        cheap_by_symbol[symbol] = cheap
+        try:
+            cheap_hits[symbol] = bool(cheap is not None and price is not None and float(price) <= float(cheap))
+        except (TypeError, ValueError):
+            cheap_hits[symbol] = False
 
     opp = production.get("opportunity_pool", {})
     opp_ch1 = [
@@ -1585,6 +1597,8 @@ def build_today_state(daily: dict[str, Any], production: dict[str, Any], ma_by_s
         "layer_strengths": layer_strengths,
         "holding_levels": holding_levels,
         "target_hits": target_hits,
+        "cheap_hits": cheap_hits,
+        "cheap_by_symbol": cheap_by_symbol,
         "opp_ch1": opp_ch1,
         "opp_ch2": opp_ch2,
         "name_by_symbol": name_by_symbol,
@@ -1680,8 +1694,12 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
             d_items.append(color_item(f"🟢 {name} 回踩到50日均价·便宜区·可考虑低吸（现价{fmt_level(price)}/50日线{fmt_level(ma50)}）", "#3ec38a"))
         if state["target_hits"].get(symbol):
             d_items.append(color_item(f"🟠 {name} 涨到了我们的目标价·考虑减仓（现价{fmt_level(price)}/目标{fmt_level(target)}）", "#ffa657"))
+        # 便宜价(估值口径·加仓买入线=bands.cheap，比持仓卡「合理区下沿」更低一档)：现价跌破买入线才算触发动作
+        cheap = state["cheap_by_symbol"].get(symbol)
+        if state.get("cheap_hits", {}).get(symbol):
+            d_items.append(color_item(f"🟢 {name} 现价已跌破加仓买入线·可分批低吸（现价{fmt_level(price)}/买入线{fmt_level(cheap)}）", "#3ec38a"))
     if not d_items:
-        d_items.append("<li>今天没有持仓碰到关键价（便宜价/危险价/目标价）</li>")
+        d_items.append("<li>今天没有持仓触发操作级关键价（跌破加仓买入线/危险价/目标价）；个别现价虽落在便宜区（低于合理区下沿），但还没跌到更低一档的加仓买入线，暂不构成动作</li>")
     weak_items = [
         color_item(f"⚠ {node} 这条判断的证据{plain_strength(strength)}（战略线要留意·请复核）", "#ffd479")
         for node, strength in state["layer_strengths"].items()
@@ -2366,6 +2384,7 @@ def china_section(date: str) -> str:
         <div><b style="color:#ffe4a8;">今天发生了啥</b>：{_b("今天发生了啥")}</div>
         <div style="margin-top:5px;"><b style="color:#ffe4a8;">为什么</b>：{_b("为什么")}</div>
         <div style="margin-top:5px;"><b style="color:#ffe4a8;">对你 · 怎么办</b>：{_b("对你怎么办")}</div>
+        <div style="margin-top:5px;color:#bcd8ee;"><b style="color:#ffe4a8;">一行判断</b>：{_b("一行判断")}</div>
       </div>
       <div class="meta" style="background:#12202c;border:1px solid #26485f;border-radius:8px;padding:7px 11px;margin:6px 0;font-size:12.5px;color:#bcd8ee;">
         数据源：稀土/自主可控真新闻已接 Google News RSS（见下方原件）；<b>港股AI/科技行情待接</b>（需 OpenD 港股/指数源）；A股承接节点指数待接。
