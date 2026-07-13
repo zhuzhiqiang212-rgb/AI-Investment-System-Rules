@@ -192,7 +192,8 @@ def main() -> int:
         ("6a 记分卡", "pdca_scorecard.py", None),
         ("6b 复盘", "pdca_review.py", None),
         ("7 生产线(三关+护城河沿用)", "production_pipeline.py", None),
-        ("7b DCF精算(覆盖大仓·可信度A)", "dcf_valuation.py", None),
+        ("7b DCF精算(覆盖能算的成长股·可信度A)", "dcf_valuation.py", None),
+        ("7c 机会层候选行情(Yahoo·只读)", "candidate_price_fetch.py", None),
         ("8 出完整产品", "full_product_render.py", None),
     ]
     for label, script, extra in chain:

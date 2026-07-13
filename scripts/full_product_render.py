@@ -1482,27 +1482,27 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
         <div class="dc-title">{esc(name)}（{esc(symbol)}）</div>
         <div class="dc-badge {tone}">{badge_text}</div>
       </div>
-      <div class="dc-action" style="background:#12202c;border-left:4px solid #5cc8ff;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:14.5px;">
+      <div class="dc-action" style="background:#12202c;border-left:4px solid #5cc8ff;border-radius:8px;padding:9px 13px;margin:7px 0;font-size:14.5px;line-height:1.75;">
         <b style="color:#ffe4a8;">今天该干嘛</b>：{act_sentence}{prelim_html}</div>
       {tiny_html}
-      <!-- ② 价位阶梯 -->
-      <div class="dc-row"><div class="dc-lab">② 价位<br>阶梯</div><div class="dc-val">{now_line}{ladder}</div></div>
-      <!-- ③ 多维体检·四维 -->
-      <div class="dc-row"><div class="dc-lab">③ 多维<br>体检</div><div class="dc-val">
-        <div style="margin:2px 0;">· <b>基本面</b>（生意/护城河/财报）：{moat_h}<br><span style="color:#bcd8ee;">└ 判读：{fund_read}</span></div>
-        <div style="margin:2px 0;">· <b>技术面</b>（均线位置）：{soft_h}</div>
-        <div style="margin:2px 0;">· <b>估值</b>（贵不贵）：{val_h}</div>
-        <div style="margin:2px 0;">· <b>风险</b>：<span style="color:#bcd8ee;">{risk_read}</span></div>
-        <div style="margin:2px 0;color:#8ea3b6;font-size:12px;">· 方向：{hard_h}</div>
+      <!-- ② 买卖价 -->
+      <div class="dc-row" style="margin:7px 0;"><div class="dc-lab">② 买卖价</div><div class="dc-val" style="line-height:1.8;">{ladder}</div></div>
+      <!-- ③ 几个角度看它 -->
+      <div class="dc-row" style="margin:7px 0;"><div class="dc-lab">③ 几个<br>角度看它</div><div class="dc-val" style="line-height:1.9;">
+        <div style="margin:5px 0;">· <b style="color:#ffe4a8;">生意硬不硬</b>：{moat_h}　{fund_read}</div>
+        <div style="margin:5px 0;">· <b style="color:#ffe4a8;">价位高不高（均线）</b>：{soft_h}</div>
+        <div style="margin:5px 0;">· <b style="color:#ffe4a8;">贵不贵</b>：{val_h}</div>
+        <div style="margin:5px 0;">· <b style="color:#ffe4a8;">要当心啥</b>：<span style="color:#bcd8ee;">{risk_read}</span></div>
+        <div style="margin:5px 0;color:#8ea3b6;font-size:12px;">· 方向：{hard_h}</div>
       </div></div>
-      <!-- ④ 同类对比 -->
-      <div class="dc-row"><div class="dc-lab">④ 同类<br>对比</div><div class="dc-val">{peer_cmp}</div></div>
+      <!-- ④ 跟同类比 -->
+      <div class="dc-row" style="margin:7px 0;"><div class="dc-lab">④ 跟同<br>类比</div><div class="dc-val" style="line-height:1.8;">{peer_cmp}</div></div>
       <!-- ⑤ 决策五格(超单一/类上限才展开) -->
       {dont_add_html}
       <!-- ⑥ 成本·赚亏 -->
-      <div class="dc-row"><div class="dc-lab">⑥ 我的成本·<br>赚还是亏</div><div class="dc-val">{cost_html}</div></div>
-      <!-- ⑦ 深研 L3 折叠 -->
-      <div class="dc-row"><div class="dc-lab">⑦ 深研</div><div class="dc-val">{research_fold}<div style="margin-top:4px;">{reason_html}</div></div></div>
+      <div class="dc-row" style="margin:7px 0;"><div class="dc-lab">⑥ 成本·<br>赚还是亏</div><div class="dc-val">{cost_html}</div></div>
+      <!-- ⑦ 深挖(点开看) -->
+      <div class="dc-row" style="margin:7px 0;"><div class="dc-lab">⑦ 深挖<br>(点开看)</div><div class="dc-val">{research_fold}<div style="margin-top:5px;">{reason_html}</div></div></div>
     </div>
     """
 
@@ -1994,7 +1994,8 @@ OPP_WATCHLIST = [
 
 def opportunity_section(production: dict[str, Any], concentration: dict[str, Any] | None = None,
                         target_by_base: dict[str, dict[str, Any]] | None = None,
-                        gen_opp: dict[str, Any] | None = None) -> str:
+                        gen_opp: dict[str, Any] | None = None,
+                        cand_prices: dict[str, Any] | None = None) -> str:
     """机会层·引擎(模板卡2026-07-13)：watchlist真候选+A线(现价/买点/换谁/4条件机判/节点归类·缺待接)
     +B线(读 gen_opportunity 填对比/买点/结论·缺待理解岗补深)。AI超配时新AI候选只换不加。不写"今天没有"。"""
     gen = (gen_opp or {}).get("candidates", {}) or {}
@@ -2018,25 +2019,35 @@ def opportunity_section(production: dict[str, Any], concentration: dict[str, Any
                 res.append(f"{esc(n)}·止盈/现价待接")
         return "；".join(res)
 
+    cprices = (cand_prices or {}).get("prices", {}) or {}
     cards = ""
     for c in OPP_WATCHLIST:
         gc = gen.get(c["name"], {}) or {}
+        # A线候选现价(Yahoo·接不到→待接不编价)；便宜买点仍需候选估值源→待接
+        _cp = cprices.get(c["name"], {}) or {}
+        if _cp.get("status") == "OK" and _cp.get("price") is not None:
+            price_txt = (f'现价 {esc(str(_cp.get("currency", "")))}{esc(str(_cp.get("price")))}'
+                         f'<span style="color:#8ea3b6;font-size:12px;">（Yahoo·{esc(str(_cp.get("yahoo", "")))}）</span>')
+            cond2 = f'{wait_src}（现价已接{esc(str(_cp.get("currency", "")))}{esc(str(_cp.get("price")))}·但候选没有估值源、算不出"便宜买点"→待接）'
+        else:
+            price_txt = f'{wait_src}（候选行情没接到·不编价）'
+            cond2 = f'{wait_src}（候选无行情+无估值·算不出便宜买点）'
         cmp_txt = esc(str(gc.get("多维对比") or "").strip()) if str(gc.get("多维对比") or "").strip() else wait
         buy_txt = esc(str(gc.get("买点逻辑") or "").strip()) if str(gc.get("买点逻辑") or "").strip() else wait
         concl = esc(str(gc.get("今天结论") or "").strip()) if str(gc.get("今天结论") or "").strip() else wait
         cards += f"""
-    <div class="dc-card dc-soft">
+    <div class="dc-card dc-soft" style="margin:9px 0;">
       <div class="dc-top"><div class="dc-title">候选：{esc(c['name'])}（{esc(c['node'])}）</div><div class="dc-badge dc-soft">常备·盯条件</div></div>
-      <div class="dc-row"><div class="dc-lab">什么价买</div><div class="dc-val">{wait_src}（候选无实时行情/估值源·不编价）；买点逻辑：{buy_txt}</div></div>
-      <div class="dc-row"><div class="dc-lab">换谁</div><div class="dc-val">{esc("、".join(n for _, n in c['swap']))}（手里同类里更该动的）</div></div>
-      <div class="dc-row"><div class="dc-lab">换的4条件<br>·现状</div><div class="dc-val" style="font-size:12.8px;">
-        <div style="margin:2px 0;">① 候选护城河更宽：{wait_src}（候选未评护城河）</div>
-        <div style="margin:2px 0;">② 候选回到便宜买点：{wait_src}（候选无行情）</div>
-        <div style="margin:2px 0;">③ 被换涨回止盈（机判）：{_cond3(c['swap'])}</div>
-        <div style="margin:2px 0;">④ 换完总敞口不升（机判）：满足（候选与被换同属AI承接节点·换完AI总敞口不升）</div>
+      <div class="dc-row" style="margin:6px 0;"><div class="dc-lab">多少钱<br>买</div><div class="dc-val" style="line-height:1.8;">{price_txt}；便宜买点：{buy_txt}</div></div>
+      <div class="dc-row" style="margin:6px 0;"><div class="dc-lab">换手里<br>谁</div><div class="dc-val">{esc("、".join(n for _, n in c['swap']))}（手里同类里更该动的）</div></div>
+      <div class="dc-row" style="margin:6px 0;"><div class="dc-lab">4个条件<br>到了没</div><div class="dc-val" style="line-height:1.9;">
+        <div style="margin:4px 0;">① 候选比被换更能守（护城河）：{wait_src}（候选底子还没评）</div>
+        <div style="margin:4px 0;">② 候选跌回便宜买点：{cond2}</div>
+        <div style="margin:4px 0;">③ 被换的涨到该卖价：{_cond3(c['swap'])}</div>
+        <div style="margin:4px 0;">④ 换完 AI 敞口不升：满足（候选和被换同属 AI 承接·换完不加 AI）</div>
       </div></div>
-      <div class="dc-row"><div class="dc-lab">多维对比<br>候选vs被换</div><div class="dc-val">{cmp_txt}</div></div>
-      <div class="dc-row dc-judge"><div class="dc-lab">今天结论</div><div class="dc-val">{concl}</div></div>
+      <div class="dc-row" style="margin:6px 0;"><div class="dc-lab">跟谁比<br>谁强</div><div class="dc-val" style="line-height:1.8;">{cmp_txt}</div></div>
+      <div class="dc-row dc-judge" style="margin:6px 0;"><div class="dc-lab">今天<br>咋办</div><div class="dc-val" style="line-height:1.8;">{concl}</div></div>
     </div>"""
 
     return f"""
@@ -2542,7 +2553,10 @@ def build(date: str) -> str:
     # 机会层 B线文字输入位(模板卡§3)：每候选对比/买点逻辑/今天结论·缺标待理解岗补深
     _go_path = ROOT / "data" / "evidence_chain" / f"gen_opportunity_{date}.json"
     _gen_opp = read_json(_go_path) if _go_path.exists() else {}
-    left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production, concentration, target_by_base, _gen_opp) + f"""
+    # 候选行情(A线·candidate_price_fetch产出)：现价现算·接不到标待接
+    _cp_path = ROOT / "data" / "market" / f"candidate_prices_{date}.json"
+    _cand_prices = read_json(_cp_path) if _cp_path.exists() else {}
+    left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production, concentration, target_by_base, _gen_opp, _cand_prices) + f"""
     {concentration_summary_table(concentration)}
     <details class="card">
       <summary><span>⑨ 持仓</span><b>{esc(gate1_summary)}</b></summary>
