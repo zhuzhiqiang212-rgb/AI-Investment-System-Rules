@@ -104,12 +104,36 @@ def evidence_sufficient(link: dict[str, Any]) -> bool:
     return True
 
 
+def event_list_linked(events: Any, news_items: Any) -> str:
+    """今日事件列表：若某条含 news_items 里的真新闻标题→把标题包成可点<a href>(治①·新闻真链接)。"""
+    items = events or []
+    ni = news_items or []
+    if not items:
+        return "<li>今日无新事件·读上一状态</li>"
+    out = ""
+    for ev in items:
+        s = str(ev)
+        hit = None
+        for n in ni:
+            title = str(n.get("title") or ""); url = str(n.get("url") or "").strip()
+            if title and title in s and url.startswith("http"):
+                hit = (title, url); break
+        if hit:
+            title, url = hit
+            before, _, after = s.partition(title)
+            out += (f'<li>{esc(before)}<a href="{esc(url)}" target="_blank" '
+                    f'style="color:#8fd6ff;">{esc(title)}</a>{esc(after)}</li>')
+        else:
+            out += f"<li>{esc(s)}</li>"
+    return out
+
+
 def evidence_event_sections(link: dict[str, Any]) -> str:
     if "today_events" in link or "background" in link:
         sections = f"""
         <section>
           <h3>今日事件</h3>
-          <ul>{event_list(link.get('today_events'))}</ul>
+          <ul>{event_list_linked(link.get('today_events'), link.get('news_items'))}</ul>
         </section>
         <section>
           <h3>背景</h3>
@@ -605,20 +629,26 @@ def holding_price_ladder(item: dict[str, Any], ma_by_symbol: dict[str, dict[str,
     badge = (f'<span class="dc-zone dc-zone-{zone_tone}">现价落在：{esc(zone or "见阶梯")}</span>'
              f' <span style="color:{_kou_color};font-size:11px;">〔{_kou}〕</span>')
 
+    # 阶梯文字：4价位+现价按价格从小到大排、现价摆对位置、同值合并不重复(治阶梯排序bug·§③)
+    _anchors = []
+    if sl_num is not None: _anchors.append((sl_num, "危险(跌破就止损)", sl_txt))
+    if fair_low_num is not None: _anchors.append((fair_low_num, "便宜买点(合理区下沿)", cheap_txt))
+    if fair_high_num is not None: _anchors.append((fair_high_num, "合理区上沿", high_txt))
+    if tp_num is not None: _anchors.append((tp_num, "想卖的价(止盈)", tp_txt))
+    if price_num is not None: _anchors.append((price_num, "现价", price_text))
+    _anchors.sort(key=lambda a: a[0])
+    _merged: list[list[Any]] = []
+    for _v, _lab, _tx in _anchors:
+        if _merged and abs(_merged[-1][0] - _v) < 0.005 * max(1.0, abs(_v)):
+            _merged[-1][1] = _merged[-1][1] + "／" + _lab   # 合理区上沿与止盈同值→合并、不重复显示
+        else:
+            _merged.append([_v, _lab, _tx])
+    sorted_line = ' ＜ '.join(f'{_lab}{_tx}' for _v, _lab, _tx in _merged)
+
     if not (stop is not None and low_buy is not None and top is not None
             and stop <= low_buy < top):
-        # 锚点不齐或次序异常：只给文字阶梯、不画会误导的矛盾图
-        parts: list[str] = []
-        if sl_txt is not None:
-            parts.append(f'危险(跌破就止损){sl_txt}')
-        if cheap_txt is not None:
-            parts.append(f'便宜买点(合理区下沿){cheap_txt}')
-        if high_txt is not None:
-            parts.append(f'合理区上沿{high_txt}')
-        parts.append(f'现价{price_text}')
-        if tp_txt is not None:
-            parts.append(f'想卖的价(止盈){tp_txt}')
-        line = ' ＜ '.join(parts)
+        # 锚点不齐或次序异常：只给文字阶梯（已按价格排序）、不画会误导的矛盾图
+        line = sorted_line
         bar_html = (
             '<div class="dc-row"><div class="dc-lab">价位阶梯</div>'
             f'<div class="dc-val"><div class="dc-ladder-line">{line}　{badge}</div></div></div>'
@@ -638,10 +668,7 @@ def holding_price_ladder(item: dict[str, Any], ma_by_symbol: dict[str, dict[str,
         f'<div class="dc-ladder-mark" style="left:{marker:.1f}%;">▲</div>'
         '</div>'
     )
-    line = (
-        f'危险(跌破就止损){sl_txt} ＜ 便宜买点(合理区下沿){cheap_txt} '
-        f'＜ 现价{price_text} ＜ 想卖的价(止盈){tp_txt}'
-    )
+    line = sorted_line  # 已按价格从小到大排、现价摆对位、同值合并(§③)
     bar_html = (
         '<div class="dc-row"><div class="dc-lab">价位阶梯</div>'
         f'<div class="dc-val">{bar}'
@@ -2261,7 +2288,7 @@ def build(date: str) -> str:
 
     # ⑤ 徽章：复用 gate-1 计数(与⑨小标题、每卡第1关同一源·治打回·§8无自相矛盾)。
     badge_text = (f"五关·第1关方向已判：{g1_ai}只在AI承接节点上 · {g1_crypto}只加密按纪律控敞口 · {g1_div}只非AI分散仓；"
-                  f"第2关位置已用均线现算（MA200/60日高低）；估值第3关有相对估值、DCF精算待补。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
+                  f"第2关位置已用均线现算（MA200/60日高低）；估值第3关：DCF已接（覆盖{len(dcf_by_symbol)}只·可信度A），其余相对估值·待DCF。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
                   f"逐关=方向→位置→估值→护城河→深研，一关一关过（不是没做）")
 
     # A · 护城河重评提示：沿用超阈值 → 页首醒目横幅(只提示不改评级·总则第十二条)
