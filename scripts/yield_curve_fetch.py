@@ -57,21 +57,29 @@ def fail_payload(date: str, reason: str) -> dict[str, Any]:
 
 
 def fetch_fred_dgs2() -> float | None:
-    """真 2 年美债收益率 FRED DGS2（keyless·派工单§3 替换3月^IRX代理）。失败→None。"""
-    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS2"
+    """真 2 年美债收益率 FRED DGS2（keyless·派工单§3 替换3月^IRX代理）。
+    DGS2 是日频大文件·易超时→用 cosd 限近90天缩小文件、重试3次、逐次加长超时。全失败→None(由调用方统一标待接)。"""
+    from datetime import date as _date
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": UA})
-        text = urllib.request.urlopen(req, timeout=8).read().decode("utf-8")
+        cosd = (datetime.now(JST).date() - timedelta(days=90)).isoformat()
     except Exception:
+        cosd = "2026-01-01"
+    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS2&cosd={cosd}"
+    for to in (12, 20, 30):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            text = urllib.request.urlopen(req, timeout=to).read().decode("utf-8")
+        except Exception:
+            continue
+        for line in reversed(text.strip().splitlines()[1:]):
+            _, _, v = line.partition(",")
+            v = v.strip()
+            if v and v != ".":
+                try:
+                    return float(v)
+                except ValueError:
+                    continue
         return None
-    for line in reversed(text.strip().splitlines()[1:]):
-        _, _, v = line.partition(",")
-        v = v.strip()
-        if v and v != ".":
-            try:
-                return float(v)
-            except ValueError:
-                continue
     return None
 
 

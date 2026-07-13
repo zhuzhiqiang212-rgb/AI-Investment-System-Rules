@@ -1621,7 +1621,7 @@ def change_items(date: str, state: dict[str, Any]) -> list[str]:
     return changes or ["较昨日无关键状态变化"]
 
 
-def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]]) -> str:
+def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], dcf_by_symbol: dict[str, dict[str, Any]] | None = None) -> str:
     state = build_today_state(daily, production, ma_by_symbol, target_by_base)
     d_items: list[str] = []
     for symbol, level in state["holding_levels"].items():
@@ -1660,9 +1660,14 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
         if (target_by_base.get(symbol.split(".")[-1]) or target_by_base.get(symbol) or {}).get("take_profit") is not None
     )
     target_pending_count = len(state["holding_levels"]) - true_target_count
+    # DCF/护城河待办从卡片实况现算(治派工单③)：资产口径(BTC/ETH·CC.*)不做企业估值/护城河、不计入待办。
+    _holds = production.get("holdings", [])
+    _stocks = [h for h in _holds if not str(h.get("symbol") or "").startswith("CC.")]
+    _dcf_done = len(dcf_by_symbol or {})
+    dcf_pending_count = max(0, len(_stocks) - _dcf_done)   # 待DCF的股票数=股票数−已精算数(与卡片"可信度A/待DCF"一致)
     moat_pending_count = sum(
-        1 for item in production.get("holdings", [])
-        if item.get("moat", {}).get("total_score") is None
+        1 for item in _stocks
+        if (item.get("moat", {}) or {}).get("total_score") is None
     )
     # 宏观"接没接"读真实接入状态(单一来源=求证表)，已被某环用上的标"已接入"·禁写死"没接"(治#1/2/3/16)
     _re = daily.get("rule_engine", {}) or {}
@@ -1688,7 +1693,7 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
     if _yc_us2y is not None:
         _connected.append("真2年美债(FRED DGS2)")
     else:
-        _pending.append("真2年美债(FRED DGS2抓取失败·回退3月^IRX)")
+        _pending.append("真2年美债待接真源·暂用3月^IRX代理")
     _curve_ok or _pending.append("收益率曲线")
     _stable_ok or _pending.append("稳定币市值")
     macro_status_line = (
@@ -1696,9 +1701,9 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
     )
     c_items = [
         f"均价线还没拉到：{('、'.join(ma_pending) if ma_pending else '无')}",
-        f"目标价还没做（DCF=按公司未来能赚的钱倒推它值多少）：{target_pending_count}只",
+        f"DCF精算还没做（DCF=按公司未来能赚的钱倒推它值多少）：{dcf_pending_count}只（已做{_dcf_done}只·见卡片「可信度A·DCF」；其余暂用相对估值·标待DCF；BTC/ETH资产口径不做估值·不计）",
         macro_status_line,
-        f"护城河（靠什么长期赚钱）还没评：{moat_pending_count}只",
+        f"护城河（靠什么长期赚钱）还没评：{moat_pending_count}只（BTC/ETH资产口径·护城河不适用·不计）",
         "还知道有两处没做：板块自动更新（分类规则还没定）、迷你趋势图（还没存够历史数据）",
     ]
 
@@ -1925,8 +1930,8 @@ def macro_section(snapshot: dict[str, Any], yield_curve: dict[str, Any] | None =
             row_lbl = "收益率曲线(10年-2年)(长短期利率谁高·倒挂常预警衰退)"
         else:
             short_v = yc.get("us3m"); spread = yc.get("spread_10y_3m"); short_lbl = "3月"
-            src_note = f"（已接入·⑤资金在用；最近快照{_yc_dd}；短端用3月^IRX代理·真2年待FRED抓通）"
-            row_lbl = "收益率曲线(10年-3月)(长短期利率谁高·倒挂常预警衰退)"
+            src_note = f"（已接入·⑤资金在用；最近快照{_yc_dd}；真2年美债待接真源·暂用3月^IRX代理）"
+            row_lbl = "收益率曲线(10年-短端)(长短期利率谁高·倒挂常预警衰退)"
         inv = (spread is not None and spread < 0)
         status = "逆风" if inv else "中性"
         sentence = ("曲线倒挂·历史衰退信号，警惕" if inv else "曲线正斜率·未倒挂") + src_note
@@ -2135,20 +2140,26 @@ def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any], daily:
     else:
         iter_text = "待月度触发（定期出'该改什么'走董事长拍板）"
 
-    # 回校世界观(治硬伤5·大闭环转回来)：把当日各环证据绕回三支柱做支持/证伪
+    # 回校世界观(治硬伤5·大闭环转回来)：按当日各环【力度】真判——任一环力度=证伪才"需重审"，
+    # 否则只说"维持·无反转"，不并列两句(治逻辑打架·派工单①)。不靠"反转"字样(会误配"无regime反转")。
     _recheck_html = ""
     if daily is not None:
-        _w = (find_link(daily, ["总命题", "世界"]) or {}).get("direction") or "待判"
         _g = (find_link(daily, ["总闸", "美联储"]) or {}).get("direction") or "待判"
         _s = (find_link(daily, ["战略指向"]) or {}).get("direction") or "待判"
         _bk = (find_link(daily, ["板块轮动"]) or {}).get("direction") or "待判"
-        _refuted = ("证伪" in f"{_w}{_g}{_s}") or ("反转" in str(_w))
-        _verdict = "整体支持三支柱、无 regime 反转" if not _refuted else "出现证伪信号·需重审三支柱"
+        _ring_str = {n: str((find_link(daily, k) or {}).get("strength") or "")
+                     for n, k in (("世界观", ["总命题", "世界"]), ("总闸", ["总闸", "美联储"]),
+                                  ("战略", ["战略指向"]), ("资金", ["资金轮动"]), ("板块", ["板块轮动"]))}
+        _refuted = [n for n, s in _ring_str.items() if "证伪" in s]
+        if _refuted:
+            _verdict = f"有环被证伪（{'、'.join(_refuted)}）→ 需重审三支柱、切备用逻辑"
+        else:
+            _verdict = "各环力度未见证伪 → 三支柱「美国优先·阵营化·集中砸AI」维持、无 regime 反转，大方向不变"
         _recheck_html = (
             '<div class="meta" style="background:#12261c;border:1px solid #285039;border-radius:8px;'
             'padding:8px 12px;margin:6px 0;font-size:12.8px;color:#a7d8bb;">'
             f'↺ <b>回校世界观（大闭环转回来）</b>：本日 总闸『{esc(_g)}』· 战略『{esc(_s)}』· 板块『{esc(_bk)}』 '
-            f'→ 绕回三支柱「美国优先·阵营化·集中砸AI」：<b>{esc(_verdict)}</b>；世界观『{esc(_w)}』。'
+            f'→ 绕回三支柱：<b>{esc(_verdict)}</b>。'
             '（大闭环：世界观→…→板块→回校世界观，转得回来）</div>'
         )
 
@@ -2546,7 +2557,7 @@ def build(date: str) -> str:
         </details>
       </div>
     </header>
-    {inspection_panel(date, daily, production, ma_by_symbol, target_by_base)}
+    {inspection_panel(date, daily, production, ma_by_symbol, target_by_base, dcf_by_symbol)}
     {chain_logic_section(daily)}
     <section class="grid">
       <div>
