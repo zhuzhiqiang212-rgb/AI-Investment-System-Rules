@@ -1044,7 +1044,8 @@ def portfolio_concentration(holdings: list[dict[str, Any]], known_cash_usd: floa
 
 
 def concentration_dont_add_lines(symbol: str, conc: dict[str, Any] | None,
-                                 item: dict[str, Any] | None = None, val_label: str = "") -> list[str]:
+                                 item: dict[str, Any] | None = None, val_label: str = "",
+                                 bailu_text: str = "") -> list[str]:
     """超上限类(AI/单一/加密)→生成"别加"+"减多少量"(股数/减后占比/腾出$)+"摆2-3条路让董事长选"(§3.4)。
     不改上游action、不自创买卖——只按仓位纪律尺给约束与选项，最终减不减=董事长拍板。"""
     if not conc:
@@ -1087,14 +1088,17 @@ def concentration_dont_add_lines(symbol: str, conc: dict[str, Any] | None,
             actual = float(cat.get("pct", 0.0)); limit = float(cat.get("limit", 0.0))
             lines.append(f"这类（{cat_name}）已押太多、别再加（现在占 {actual:.1f}%，超上限 {limit:.0f}%）")
             lines.append(_reduce(actual, limit, cat_name))
-    # 摆2-3条路·董事长拍板(措辞按估值位置定)——不替他决定
-    cheap = any(k in str(val_label) for k in ("便宜", "偏便宜"))
-    path_a = ("路A：只减超出的部分、<b>别在便宜区把赢家砍了</b>——现价在便宜/合理区，等回合理区上沿/止盈价再减那一份。"
-              if cheap else "路A：现价已不算便宜，可按纪律先减超出部分、回到限内。")
+    # 摆2-3条路·董事长拍板——理解岗(B线)供则用它、缺则机器按估值位置生成通用路A/B/C。不替他决定。
     lines.append("摆几条路·你拍板：")
-    lines.append(path_a)
-    lines.append("路B：不动这只，<b>改减别的更该减的仓</b>（质量更弱或更贵的同类），一样把敞口降回限内。")
-    lines.append("路C：<b>接受这次超配、先守</b>，盯住风险（波动/回撤/转弱），下次触价或证据转弱再减。")
+    if str(bailu_text or "").strip():
+        lines.append(esc(bailu_text.strip()))   # 理解岗摆路措辞(针对该只写透)
+    else:
+        cheap = any(k in str(val_label) for k in ("便宜", "偏便宜"))
+        path_a = ("路A：只减超出的部分、<b>别在便宜区把赢家砍了</b>——现价在便宜/合理区，等回合理区上沿/止盈价再减那一份。"
+                  if cheap else "路A：现价已不算便宜，可按纪律先减超出部分、回到限内。")
+        lines.append(path_a)
+        lines.append("路B：不动这只，<b>改减别的更该减的仓</b>（质量更弱或更贵的同类），一样把敞口降回限内。")
+        lines.append("路C：<b>接受这次超配、先守</b>，盯住风险（波动/回撤/转弱），下次触价或证据转弱再减。")
     lines.append("（决策依据·非指令；减不减、减哪条＝董事长拍板。非持牌投顾。）")
     return lines
 
@@ -1431,7 +1435,8 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
     # 仓位纪律尺：属超上限类(AI/单一/加密)→自动追加"别加"句（红/黄提示·大白话）
     # 不改上游action、不自创买卖，只加"别加"约束；多类超标就都追加。
     # 超单一15%或类上限→补"减多少量+摆选项"五格(§3.4)；行内含受控<b>标签、不整体转义
-    dont_add_lines = concentration_dont_add_lines(symbol, concentration, item, _val_label)
+    _bailu = str(((gen_holdings or {}).get(symbol) or {}).get("摆路措辞") or "").strip()
+    dont_add_lines = concentration_dont_add_lines(symbol, concentration, item, _val_label, _bailu)
     dont_add_html = ""
     if dont_add_lines:
         items = "".join(
