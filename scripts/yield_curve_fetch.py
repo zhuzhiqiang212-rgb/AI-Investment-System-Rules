@@ -148,8 +148,19 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 2
 
-    us2y = fetch_fred_dgs2()  # 真2年美债(FRED)·失败则回退3月代理
+    # 真2年美债：先 FRED DGS2，抓不通换备源 Yahoo 2YY=F(2年收益率期货)；都不行→None(回退3月代理)
+    us2y = fetch_fred_dgs2()
+    us2y_src = "FRED DGS2" if us2y is not None else ""
+    if us2y is None:
+        try:
+            us2y = round(fetch_regular_market_price("2YY=F"), 3)
+            us2y_src = "Yahoo 2YY=F(2年收益率期货·备源)"
+        except Exception:
+            us2y = None
     payload = ok_payload(args.date, us10y, us3m, us2y)
+    if us2y is not None and us2y_src:
+        payload["us2y_source"] = us2y_src
+        payload["short_end_note"] = f"短端已接真2年美债（{us2y_src}）；同时保留3月(^IRX)作对照"
     write_json(output_path, payload)
     print(json.dumps({
         "output": str(output_path),

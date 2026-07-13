@@ -1657,6 +1657,14 @@ def change_items(date: str, state: dict[str, Any]) -> list[str]:
     return changes or ["较昨日无关键状态变化"]
 
 
+def _mini_trend_status() -> str:
+    """迷你趋势图状态(派工单⑦)：数历史快照天数·攒数据中(需≥20天)·不编假图。"""
+    hist = ROOT / "data" / "market" / "history"
+    n = len(list(hist.glob("snap_*.json"))) if hist.exists() else 0
+    need = 20
+    return f"趋势图·攒数据中（现{n}天/需≥{need}天历史·从今天起每天存快照）" if n < need else f"趋势图·数据已够（{n}天）·可画"
+
+
 def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], dcf_by_symbol: dict[str, dict[str, Any]] | None = None) -> str:
     state = build_today_state(daily, production, ma_by_symbol, target_by_base)
     d_items: list[str] = []
@@ -1736,11 +1744,13 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
         f"宏观数据：已接入 {'、'.join(_connected) if _connected else '无'}；还没接 {'、'.join(_pending)}"
     )
     c_items = [
-        f"均价线还没拉到：{('、'.join(ma_pending) if ma_pending else '无')}",
+        # 均线口径对齐(派工单⑥)：全拉到就说"已接"、别说"还没拉到：无"与卡里"均线读数"打架
+        ("均价线：已接（MA200/60日·持仓卡「价位高不高」在用）" if not ma_pending
+         else f"均价线还没拉到：{('、'.join(ma_pending))}"),
         f"DCF精算还没做（DCF=按公司未来能赚的钱倒推它值多少）：{dcf_pending_count}只（已做{_dcf_done}只·见卡片「可信度A·DCF」；其余暂用相对估值·标待DCF；BTC/ETH资产口径不做估值·不计）",
         macro_status_line,
         f"护城河（靠什么长期赚钱）还没评：{moat_pending_count}只（BTC/ETH资产口径·护城河不适用·不计）",
-        "还知道有两处没做：板块自动更新（分类规则还没定）、迷你趋势图（还没存够历史数据）",
+        f"还知道有两处没做：板块自动更新（分类规则还没定）、迷你趋势图（{_mini_trend_status()}）",
     ]
 
     b_items = change_items(date, state)
@@ -2322,6 +2332,49 @@ def right_ruler_card(no: str, title: str, filename: str, summary: str, anchor_id
     """
 
 
+def china_section(date: str) -> str:
+    """中国支线(派工单⑤)：读 china_news_{当日}.json 真新闻(稀土/自主可控·带链接)+ gen_china_{当日}.json
+    理解岗大白话四步；某字段空→待理解岗补深不退占位。港股行情待 OpenD 港股→标待接。"""
+    cn = read_json(ROOT / "data" / "evidence_chain" / f"china_news_{date}.json") if (ROOT / "data" / "evidence_chain" / f"china_news_{date}.json").exists() else {}
+    gc = read_json(ROOT / "data" / "evidence_chain" / f"gen_china_{date}.json") if (ROOT / "data" / "evidence_chain" / f"gen_china_{date}.json").exists() else {}
+    wait = '<span style="color:#9aa8b5;">待理解岗补深</span>'
+    wait_src = '<span style="color:#9aa8b5;">待接真源</span>'
+
+    def _b(k: str) -> str:
+        v = str(gc.get(k) or "").strip()
+        return esc(v) if v else wait
+
+    # 稀土/自主可控 真新闻原件(带链接·A线)
+    src_rows, topics = "", (cn.get("topics", {}) or {})
+    for lb, tp in topics.items():
+        if tp.get("status") == "OK" and tp.get("items"):
+            for n in tp["items"][:3]:
+                t = esc(str(n.get("title") or "")); s = esc(str(n.get("source") or "")); u = str(n.get("url") or "").strip()
+                if u.startswith("http"):
+                    src_rows += f'<li><b>[{esc(lb)}]</b> <a href="{esc(u)}" target="_blank" style="color:#8fd6ff;">{t}</a>{f"（{s}）" if s else ""}</li>'
+                else:
+                    src_rows += f'<li><b>[{esc(lb)}]</b> {t}</li>'
+        else:
+            src_rows += f'<li><b>[{esc(lb)}]</b> {wait_src}（RSS 今日未抓到）</li>'
+    origin = (f'<details class="term-fold"><summary>稀土/自主可控·新闻原件（点开看）</summary>'
+              f'<ul style="margin:4px 0;padding-left:18px;font-size:12.8px;">{src_rows}</ul></details>') if src_rows else ""
+
+    return f"""
+    <details class="card">
+      <summary><span>⑦ 中国支线（稀土/自主可控/港股）</span><b>部分接通</b></summary>
+      <div class="four" style="font-size:13.8px;line-height:1.8;">
+        <div><b style="color:#ffe4a8;">今天发生了啥</b>：{_b("今天发生了啥")}</div>
+        <div style="margin-top:5px;"><b style="color:#ffe4a8;">为什么</b>：{_b("为什么")}</div>
+        <div style="margin-top:5px;"><b style="color:#ffe4a8;">对你 · 怎么办</b>：{_b("对你怎么办")}</div>
+      </div>
+      <div class="meta" style="background:#12202c;border:1px solid #26485f;border-radius:8px;padding:7px 11px;margin:6px 0;font-size:12.5px;color:#bcd8ee;">
+        数据源：稀土/自主可控真新闻已接 Google News RSS（见下方原件）；<b>港股AI/科技行情待接</b>（需 OpenD 港股/指数源）；A股承接节点指数待接。
+      </div>
+      {origin}
+    </details>
+    """
+
+
 def build_chain_bridges(daily: dict[str, Any]) -> list[tuple[str, str]]:
     """按固定链序(世界观→总闸→战略→手段→资金→板块)为每环生成承上/启下句，
     形成上下咬合闭环(生产标准§1·总则第十)。方向取自各环 direction，随数据动态变。"""
@@ -2369,16 +2422,17 @@ def _snapshot_change_pct(symbol: str) -> float | None:
 
 
 def sector_trend_section(daily: dict[str, Any], production: dict[str, Any] | None = None,
-                         gen_sector: dict[str, Any] | None = None) -> str:
+                         gen_sector: dict[str, Any] | None = None,
+                         stock_change: dict[str, Any] | None = None) -> str:
     """板块趋势·引擎(模板卡2026-07-13)：A线=细分表(冷热/驱动占位/你的仓)+四维信号灯+时间窗，数据现算/取不到标待接；
-    B线=读 gen_sector_{当日}.json 填文字，缺标'待理解岗补深'不退旧句。每日现算不写死。"""
+    B线=读 gen_sector_{当日}.json 填文字，缺标'待理解岗补深'不退旧句。每日现算不写死。
+    冷热优先各细分代表标的个股当日涨跌(派工单④)，取不到才 SOXX 代理/待接。"""
     gen = gen_sector or {}
     drivers = gen.get("sub_drivers", {}) or {}
     four = gen.get("four_dim", {}) or {}
     hold_by_tkr = {str(h.get("symbol") or "").split(".")[-1].upper(): str(h.get("name") or "")
                    for h in (production or {}).get("holdings", [])}
-    soft_by_tkr = {str(h.get("symbol") or "").split(".")[-1].upper(): (h.get("soft_filter") or {}).get("label")
-                   for h in (production or {}).get("holdings", [])}
+    chg = (stock_change or {}).get("changes", {}) or {}
     soxx = _snapshot_change_pct("SOXX")
     gate_dir = (find_link(daily, ["总闸", "美联储"]) or {}).get("direction") or "待判"
     sector_dir = (find_link(daily, ["板块轮动"]) or {}).get("direction") or "待判"
@@ -2386,14 +2440,22 @@ def sector_trend_section(daily: dict[str, Any], production: dict[str, Any] | Non
     wait_src = '<span style="color:#9aa8b5;">待接真源</span>'
 
     def _hotcold(sub: dict[str, Any]) -> str:
-        labs = sorted({soft_by_tkr.get(t) for t in sub["holdings"] if soft_by_tkr.get(t)})
-        pos = ("·你的仓位置：" + "、".join(esc(x) for x in labs)) if labs else ""
+        # 优先：各细分代表标的个股当日涨跌%(真数据)
+        pcs = []
+        for t in sub["holdings"]:
+            c = chg.get(t.upper()) or chg.get(t)
+            if c and c.get("status") == "OK" and c.get("change_pct") is not None:
+                pcs.append((hold_by_tkr.get(t.upper(), t), float(c["change_pct"])))
+        if pcs:
+            avg = sum(p for _, p in pcs) / len(pcs)
+            word = "偏冷·回调" if avg < -0.8 else ("偏热·主升" if avg > 0.8 else "温·横盘")
+            detail = "、".join(f"{esc(n)}{p:+.2f}%" for n, p in pcs)
+            return f'{word}<span style="color:#9aa8b5;">（个股当日：{detail}）</span>'
+        # 回退：半导体细分用 SOXX 板块级代理
         if sub.get("semi") and soxx is not None:
             base = "偏冷·回调" if soxx < -0.5 else ("偏热·主升" if soxx > 0.5 else "温·横盘")
-            return f'{base}<span style="color:#9aa8b5;">（半导体SOXX今日{soxx:+.2f}%代理{pos}；个股当日涨跌待接）</span>'
-        if labs:
-            return f'看位置<span style="color:#9aa8b5;">（{"、".join(esc(x) for x in labs)}·均线位置代理·个股当日涨跌待接）</span>'
-        return f'{wait_src}<span style="color:#9aa8b5;">（无代表标的当日行情+无持仓）</span>'
+            return f'{base}<span style="color:#9aa8b5;">（无个股行情·SOXX今日{soxx:+.2f}%代理）</span>'
+        return f'{wait_src}<span style="color:#9aa8b5;">（代表标的当日行情待接）</span>'
 
     rows = ""
     for sub in SECTOR_SUBS:
@@ -2534,22 +2596,15 @@ def build(date: str) -> str:
         stock_research_html = stock_research_section(production.get("holdings", []))
     except Exception:  # 个股研究缺失/异常不报错，正常跳过
         stock_research_html = ""
-    # 判断包卡紧跟①世界观 evidence_card 之后、macro_section 之前
-    # 中国支线骨架(治§3·不再整条缺失)：结构占位+明确待接真源，不编造数据
-    china_branch = """
-    <details class="card">
-      <summary><span>⑦ 中国支线（稀土/自主可控/港股方向）</span><b>待接真源</b></summary>
-      <p class="plain">这一支追"中国这边的对应机会与风险"——稀土管制、自主可控（半导体国产替代）、港股AI/科技方向。<b>目前真数据源还没接</b>，按铁律不编、不拿旧数字冒充，先立骨架、标清缺什么。</p>
-      <div class="meta" style="background:#12202c;border:1px solid #26485f;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:12.5px;color:#bcd8ee;">
-        待接真源：① 稀土/管制政策真新闻（可接 Google News RSS 关键词"稀土 出口管制/自主可控/国产替代"）；② 港股AI/科技板块行情（需 OpenD 港股或指数源）；③ A股承接节点指数。接上后本支按证据链同规格出"今日事件+数据+推理+承上启下"。
-      </div>
-    </details>
-    """
-    # 板块趋势 B线文字输入位(模板卡§3)：理解岗供则用、缺字段标待理解岗补深
+    # 中国支线(派工单⑤)：接稀土/自主可控真新闻+理解岗大白话、港股待接
+    china_branch = china_section(date)
+    # 板块趋势 B线文字输入位(模板卡§3)+个股当日涨跌(派工单④·冷热真数据)
     _gs_path = ROOT / "data" / "evidence_chain" / f"gen_sector_{date}.json"
     _gen_sector = read_json(_gs_path) if _gs_path.exists() else {}
+    _sc_path = ROOT / "data" / "market" / f"stock_change_{date}.json"
+    _stock_change = read_json(_sc_path) if _sc_path.exists() else {}
     evidence_html = (evidence_cards[0] + judgment_html + "".join(evidence_cards[1:])
-                     + sector_trend_section(daily, production, _gen_sector) + china_branch)
+                     + sector_trend_section(daily, production, _gen_sector, _stock_change) + china_branch)
     # 机会层 B线文字输入位(模板卡§3)：每候选对比/买点逻辑/今天结论·缺标待理解岗补深
     _go_path = ROOT / "data" / "evidence_chain" / f"gen_opportunity_{date}.json"
     _gen_opp = read_json(_go_path) if _go_path.exists() else {}

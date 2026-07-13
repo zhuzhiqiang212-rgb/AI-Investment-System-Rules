@@ -194,6 +194,9 @@ def main() -> int:
         ("7 生产线(三关+护城河沿用)", "production_pipeline.py", None),
         ("7b DCF精算(覆盖能算的成长股·可信度A)", "dcf_valuation.py", None),
         ("7c 机会层候选行情(Yahoo·只读)", "candidate_price_fetch.py", None),
+        ("7d 板块细分个股涨跌(Yahoo·只读)", "stock_change_fetch.py", None),
+        ("7e 中国支线稀土新闻(RSS·只读)", "china_news_fetch.py", None),
+        ("7f 迷你趋势图每日快照(攒历史)", "snapshot_history.py", None),
         ("8 出完整产品", "full_product_render.py", None),
     ]
     for label, script, extra in chain:
