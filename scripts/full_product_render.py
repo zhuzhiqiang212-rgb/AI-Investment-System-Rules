@@ -2230,38 +2230,88 @@ def build_chain_bridges(daily: dict[str, Any]) -> list[tuple[str, str]]:
     return out
 
 
-def sector_trend_section(daily: dict[str, Any]) -> str:
-    """板块趋势(§3.2)：每条趋势带 过去→现在→未来 + 时间窗；有真数据用、没有标待接真源。
-    方向取自当日证据链(动态·不写死)。"""
+# 板块细分映射表(模板卡2026-07-13§2·只锚定义不锚死名单·可迭代)：细分→代表标的+持仓归类(base ticker)
+SECTOR_SUBS = [
+    {"key": "GPU", "name": "GPU/AI加速芯片", "holdings": ["NVDA", "AVGO"], "semi": True},
+    {"key": "HBM", "name": "HBM/高带宽存储", "holdings": ["SNDK"], "semi": True, "cand": "海力士/美光(候选)"},
+    {"key": "FOUNDRY", "name": "先进代工+封装", "holdings": ["TSM"], "semi": True},
+    {"key": "TEST", "name": "测试设备", "holdings": ["6857"], "semi": True},
+    {"key": "OPTICAL", "name": "光模块/数据中心互联", "holdings": ["AVGO"], "semi": True},
+    {"key": "CPU", "name": "CPU/传统", "holdings": [], "semi": True},
+    {"key": "AIAPP", "name": "AI应用(软件/医疗)", "holdings": ["MSFT", "META"], "semi": False},
+]
+
+
+def _snapshot_change_pct(symbol: str) -> float | None:
+    """从市场快照取某标的当日涨跌%(A线真数据·取不到→None)。"""
+    snap_path = ROOT / "data" / "market" / "latest_market_snapshot.json"
+    if not snap_path.exists():
+        return None
+    try:
+        for a in read_json(snap_path).get("assets", []):
+            if str(a.get("symbol") or "").upper() == symbol.upper():
+                v = a.get("change_percent")
+                return float(v) if v is not None else None
+    except Exception:
+        return None
+    return None
+
+
+def sector_trend_section(daily: dict[str, Any], production: dict[str, Any] | None = None,
+                         gen_sector: dict[str, Any] | None = None) -> str:
+    """板块趋势·引擎(模板卡2026-07-13)：A线=细分表(冷热/驱动占位/你的仓)+四维信号灯+时间窗，数据现算/取不到标待接；
+    B线=读 gen_sector_{当日}.json 填文字，缺标'待理解岗补深'不退旧句。每日现算不写死。"""
+    gen = gen_sector or {}
+    drivers = gen.get("sub_drivers", {}) or {}
+    four = gen.get("four_dim", {}) or {}
+    hold_by_tkr = {str(h.get("symbol") or "").split(".")[-1].upper(): str(h.get("name") or "")
+                   for h in (production or {}).get("holdings", [])}
+    soft_by_tkr = {str(h.get("symbol") or "").split(".")[-1].upper(): (h.get("soft_filter") or {}).get("label")
+                   for h in (production or {}).get("holdings", [])}
+    soxx = _snapshot_change_pct("SOXX")
+    gate_dir = (find_link(daily, ["总闸", "美联储"]) or {}).get("direction") or "待判"
     sector_dir = (find_link(daily, ["板块轮动"]) or {}).get("direction") or "待判"
-    strat_dir = (find_link(daily, ["战略指向"]) or {}).get("direction") or "待判"
-    means_dir = (find_link(daily, ["手段层"]) or {}).get("direction") or "待判"
-    rows = [
-        ("AI算力/半导体",
-         "AI资本开支爆发、算力/HBM/代工需求拉动，数年主升",
-         f"战略AI『{esc(strat_dir)}』、半导体板块今日『{esc(sector_dir)}』（引②③⑥·动态）",
-         "AI 资本开支未见拐点前仍是主线；短期随板块噪声波动、不追单日",
-         "<b>数年主线</b>（以AI资本开支周期为准）"),
-        ("稀土/自主可控",
-         "<span style='color:#9aa8b5;'>待接真源</span>（中国支线未接·不编）",
-         "<span style='color:#9aa8b5;'>待接真源</span>（稀土管制/国产替代真新闻待接）",
-         "<span style='color:#9aa8b5;'>待接真源</span>",
-         "<b>约 2 年窗口</b>（管制/替代节奏·董事长给的窗口定义）"),
-        ("稳定币/加密",
-         "稳定币立法+加密通道打开，成'钱进美元'的新管道",
-         f"手段层『{esc(means_dir)}』（引④·动态）",
-         "结构性通道、长期利多美元资产；受监管节奏影响短期波动",
-         "<b>结构性·多年</b>"),
-    ]
-    body = "".join(
-        f"<tr><td><b>{esc(name)}</b></td><td>{past}</td><td>{now}</td><td>{fut}</td><td>{win}</td></tr>"
-        for name, past, now, fut, win in rows
-    )
+    wait = '<span style="color:#9aa8b5;">待理解岗补深</span>'
+    wait_src = '<span style="color:#9aa8b5;">待接真源</span>'
+
+    def _hotcold(sub: dict[str, Any]) -> str:
+        labs = sorted({soft_by_tkr.get(t) for t in sub["holdings"] if soft_by_tkr.get(t)})
+        pos = ("·你的仓位置：" + "、".join(esc(x) for x in labs)) if labs else ""
+        if sub.get("semi") and soxx is not None:
+            base = "偏冷·回调" if soxx < -0.5 else ("偏热·主升" if soxx > 0.5 else "温·横盘")
+            return f'{base}<span style="color:#9aa8b5;">（半导体SOXX今日{soxx:+.2f}%代理{pos}；个股当日涨跌待接）</span>'
+        if labs:
+            return f'看位置<span style="color:#9aa8b5;">（{"、".join(esc(x) for x in labs)}·均线位置代理·个股当日涨跌待接）</span>'
+        return f'{wait_src}<span style="color:#9aa8b5;">（无代表标的当日行情+无持仓）</span>'
+
+    rows = ""
+    for sub in SECTOR_SUBS:
+        mine = [hold_by_tkr[t] for t in sub["holdings"] if t in hold_by_tkr]
+        mine_txt = "、".join(esc(m) for m in mine) if mine else f'—（无持仓{("·" + esc(sub["cand"])) if sub.get("cand") else ""}）'
+        driver = esc(drivers.get(sub["key"], "").strip()) if drivers.get(sub["key"], "").strip() else wait
+        rows += (f"<tr><td><b>{esc(sub['name'])}</b></td><td>{_hotcold(sub)}</td>"
+                 f"<td>{driver}</td><td style='color:#bcd8ee;'>{mine_txt}</td></tr>")
+
+    top_line = esc(gen.get("top_line", "").strip()) if gen.get("top_line", "").strip() else wait
+    read_line = esc(gen.get("read_line", "").strip()) if gen.get("read_line", "").strip() else wait
+    dim_fund = esc(four.get("基本面", "").strip()) if four.get("基本面", "").strip() else wait
+    dim_event = esc(four.get("事件", "").strip()) if four.get("事件", "").strip() else wait
+    dim_tech = (f"半导体板块『{esc(sector_dir)}』" + (f"（SOXX今日{soxx:+.2f}%）" if soxx is not None else "（SOXX待接）"))
+    dim_macro = f"总闸『{esc(gate_dir)}』（利率/流动性环境·引②）"
+
     return f"""
     <details class="card">
-      <summary><span>⑥b 板块趋势（现在什么热·接下来什么趋势）</span><b>过去→现在→未来</b></summary>
-      <p class="plain">每条主线看"过去怎么来的→现在什么状态→未来往哪走"，并标<b>时间窗多久</b>（如AI是数年主线、稀土约2年）。方向随当日证据链现算；没有真数据源的（稀土/自主可控）如实标"待接真源"、不编。</p>
-      <table><thead><tr><th>主线</th><th>过去</th><th>现在（引证据链·动态）</th><th>未来</th><th>时间窗</th></tr></thead><tbody>{body}</tbody></table>
+      <summary><span>⑥b 板块趋势（细分冷热·四维信号·时间窗）</span><b>引擎·现算</b></summary>
+      <p class="plain"><b>顶部一句（过去→现在→未来+时间窗）</b>：{top_line}</p>
+      <p class="plain" style="margin-top:2px;color:#9db0c2;font-size:12px;">细分表：冷热=A线现算(个股当日涨跌待接·暂用SOXX+均线位置代理)；驱动逻辑=B线理解岗供；你的仓=按细分映射现算。只锚定义不锚死名单。</p>
+      <table><thead><tr><th>细分</th><th>冷热（A线·现算）</th><th>驱动逻辑（B线·理解岗）</th><th>你的持仓</th></tr></thead><tbody>{rows}</tbody></table>
+      <div style="margin-top:8px;font-size:13px;"><b>四维信号灯</b>：
+        <div style="margin:3px 0;">· <b>基本面/资本开支</b>（B）：{dim_fund}</div>
+        <div style="margin:3px 0;">· <b>技术面/板块位置</b>（A·现算）：{dim_tech}</div>
+        <div style="margin:3px 0;">· <b>事件催化</b>（B）：{dim_event}</div>
+        <div style="margin:3px 0;">· <b>宏观</b>（A·现算）：{dim_macro}</div>
+      </div>
+      <p class="plain" style="margin-top:6px;"><b>一句读法（四维合看·今天怎么读这条主线）</b>：{read_line}</p>
     </details>
     """
 
@@ -2381,7 +2431,11 @@ def build(date: str) -> str:
       </div>
     </details>
     """
-    evidence_html = evidence_cards[0] + judgment_html + "".join(evidence_cards[1:]) + sector_trend_section(daily) + china_branch
+    # 板块趋势 B线文字输入位(模板卡§3)：理解岗供则用、缺字段标待理解岗补深
+    _gs_path = ROOT / "data" / "evidence_chain" / f"gen_sector_{date}.json"
+    _gen_sector = read_json(_gs_path) if _gs_path.exists() else {}
+    evidence_html = (evidence_cards[0] + judgment_html + "".join(evidence_cards[1:])
+                     + sector_trend_section(daily, production, _gen_sector) + china_branch)
     left = evidence_html + macro_section(snapshot, yc, daily) + opportunity_section(production) + f"""
     {concentration_summary_table(concentration)}
     <details class="card">
