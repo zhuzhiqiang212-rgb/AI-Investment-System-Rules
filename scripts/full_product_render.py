@@ -170,68 +170,93 @@ def unify_certainty_words(text: Any) -> str:
     return str(text or "").replace("强", "高")
 
 
+def _layer_override(title: str, plain_layers: dict[str, Any] | None) -> dict[str, Any]:
+    """从 plain_{当日}.json 取本层理解岗四步(有非空文字才算供了)。"""
+    for k, v in (plain_layers or {}).items():
+        if not isinstance(v, dict):
+            continue
+        if (k in title) or title.startswith(k):
+            if any(str(v.get(f) or "").strip() for f in ("今天发生了啥", "为什么", "对你怎么办")):
+                return v
+    return {}
+
+
 def evidence_card(no: str, title: str, link: dict[str, Any], ruler_no: str, ruler_anchor: str,
-                  bridge_up: str = "", bridge_down: str = "") -> str:
+                  bridge_up: str = "", bridge_down: str = "", plain_layers: dict[str, Any] | None = None) -> str:
+    """证据链每层·新样式(派工单2026-07-13)：今天发生了啥(每条新闻讲透)→为什么→对你怎么办→一行判断；
+    新闻原件收最底层<details>折叠；删机器腔(站得住/命中N/证据有多硬)。四步优先理解岗(plain_json)、缺则机器初判回退+标待理解岗补深、无料标'今日无新事件·读上一状态'。"""
     strength = link.get("strength")
     direction = link.get("direction")
-    evidence = unify_strength_words(link.get("evidence"))
-    # 今日真事件·带链接(生产规范3.1)：有 news_items(含url)则输出可点开的 <a href>；抓不到url的标待接。
     news_items = link.get("news_items") or []
-    news_html = ""
-    if news_items:
-        rows = ""
-        for n in news_items[:3]:
-            title = esc(str(n.get("title") or ""))
-            src = esc(str(n.get("source") or ""))
-            url = str(n.get("url") or "").strip()
-            if url.startswith("http"):
-                rows += f'<li><a href="{esc(url)}" target="_blank" style="color:#8fd6ff;">{title}</a>{f"（{src}）" if src else ""}</li>'
-            else:
-                rows += f'<li>{title}{f"（{src}）" if src else ""} <span style="color:#9aa8b5;">·链接待接</span></li>'
-        news_html = (f'<div class="news" style="background:#101a24;border:1px solid #24384a;border-radius:8px;'
-                     f'padding:7px 11px;margin:6px 0;font-size:12.8px;"><b style="color:#bcd8ee;">今日真事件（点开看原文）</b>'
-                     f'<ul style="margin:4px 0 0;padding-left:18px;">{rows}</ul></div>')
+    ov = _layer_override(title, plain_layers)
 
-    # 上下咬合(承上/启下)——证据链闭环的关键(生产标准§1·总则第十)。显眼处两句、不藏进折叠。
+    # ① 今天发生了啥——每条新闻讲透(理解岗优先·否则据标题+摘要机器初判)
+    tag = '<span style="color:#9aa8b5;font-size:12px;">（机器初判·待理解岗补深）</span>'
+    if str(ov.get("今天发生了啥") or "").strip():
+        happened = esc(ov["今天发生了啥"]); happened_tag = ""
+    elif news_items:
+        bits = []
+        for n in news_items[:3]:
+            t = esc(str(n.get("title") or "")); s = esc(str(n.get("summary") or "").strip())
+            bits.append(f'<div style="margin:3px 0;">· <b>{t}</b>{("——" + s[:140]) if s else ""}</div>')
+        happened = "".join(bits); happened_tag = tag
+    else:
+        te = [str(e) for e in (link.get("today_events") or []) if str(e).strip()]
+        if te:
+            happened = "".join(f'<div style="margin:3px 0;">· {esc(e)}</div>' for e in te[:3]); happened_tag = tag
+        else:
+            happened = "今日无新事件·读上一状态。"; happened_tag = ""
+
+    # ② 为什么 / ③ 对你·怎么办——理解岗优先，否则从 plain 拆(→ 对你：)
+    plain = str(link.get("plain") or "")
+    if str(ov.get("为什么") or "").strip():
+        why = esc(ov["为什么"]); todo = esc(str(ov.get("对你怎么办") or "").strip()) or '<span style="color:#9aa8b5;">待理解岗补</span>'
+    elif "→ 对你：" in plain:
+        a, _, b = plain.partition("→ 对你：")
+        why = esc(a.strip()); todo = esc(b.strip())
+    elif plain:
+        why = esc(plain); todo = "按本层方向守核心/别加/该减，具体见持仓决策卡。"
+    else:
+        why = '<span style="color:#9aa8b5;">待理解岗补</span>'; todo = '<span style="color:#9aa8b5;">待理解岗补</span>'
+
+    # ④ 一行判断
+    judge = f'力度 <b>{esc(plain_strength(strength))}</b> · 方向 <b>{esc(direction)}</b>'
+
+    # 承上/启下(保留)
     bridge_html = ""
     if bridge_up or bridge_down:
-        rows = ""
-        if bridge_up:
-            rows += f'<div style="margin:2px 0;">↑ <b>承上</b>：{esc(bridge_up)}</div>'
-        if bridge_down:
-            rows += f'<div style="margin:2px 0;">↓ <b>启下</b>：{esc(bridge_down)}</div>'
+        r = ""
+        if bridge_up: r += f'<div style="margin:2px 0;">↑ <b>承上</b>：{esc(bridge_up)}</div>'
+        if bridge_down: r += f'<div style="margin:2px 0;">↓ <b>启下</b>：{esc(bridge_down)}</div>'
         bridge_html = (f'<div class="bridge" style="background:#12202c;border:1px solid #26485f;'
-                       f'border-radius:8px;padding:7px 11px;margin:6px 0;font-size:13px;color:#bcd8ee;">{rows}</div>')
-    # 大白话(事实→对你意味着什么)当主文放最显眼处；无 plain 则退回术语拼句(兼容旧数据)
-    plain_main = link.get("plain") or (
-        f"{title}：往「{direction}」方向，这层今天证据{plain_strength(strength)}。（今日无大白话·见下方系统依据）"
-    )
-    suff = evidence_sufficient(link)
-    if suff:
-        verdict, color, dot = decision_badge(strength)
-        verdict_plain = {
-            "支持": "这条判断今天站得住（有证据撑着）",
-            "转弱预警": "这条判断在转弱（证据变软了·留意）",
-            "证伪·切备用逻辑": "这条判断被事实推翻了·改走备用思路",
-        }.get(verdict, verdict)
-        dot_prefix = f"{dot} " if dot else ""
-        badge = f'<span style="font-size:15px;font-weight:700;color:{color};">{dot_prefix}{esc(verdict_plain)}</span><small>（这层今天证据有多硬：{esc(plain_strength(strength))}）</small>'
+                       f'border-radius:8px;padding:7px 11px;margin:6px 0;font-size:13px;color:#bcd8ee;">{r}</div>')
+
+    # 〔最底层·折叠〕新闻原件(标题+来源+可点链接)
+    src_rows = ""
+    for n in news_items[:3]:
+        t = esc(str(n.get("title") or "")); s = esc(str(n.get("source") or "")); u = str(n.get("url") or "").strip()
+        if u.startswith("http"):
+            src_rows += f'<li><a href="{esc(u)}" target="_blank" style="color:#8fd6ff;">{t}</a>{f"（{s}）" if s else ""}</li>'
+        else:
+            src_rows += f'<li>{t}{f"（{s}）" if s else ""} <span style="color:#9aa8b5;">·链接待接</span></li>'
+    ruler_line = f'<div class="meta">这条对应哪把尺：<a href="#{esc(ruler_anchor)}" style="color:#8fd6ff;">右栏{esc(ruler_no)} 这把尺</a></div>'
+    if src_rows:
+        origin = (f'<details class="term-fold"><summary>新闻原件（想看原文再点）</summary>'
+                  f'<ul style="margin:4px 0;padding-left:18px;font-size:12.8px;">{src_rows}</ul>{ruler_line}</details>')
     else:
-        badge = '<span style="font-size:15px;font-weight:700;color:#9aa8b5;">⚠ 这层今天没有够硬的新证据，先不下新结论</span>'
+        origin = f'<details class="term-fold"><summary>对应尺/系统读数（可不看）</summary>{ruler_line}</details>'
+
     return f"""
     <details class="card">
       <summary><span>{esc(no)} {esc(title)}</span><b>{esc(plain_strength(strength))}</b></summary>
-      <p class="macro-plain">{esc(plain_main)}</p>
-      <p class="plain">今天这层怎么判：{badge}</p>
-      {news_html}
+      <div class="four" style="font-size:13.8px;line-height:1.7;">
+        <div><b style="color:#ffe4a8;">今天发生了啥</b>{happened_tag}：{happened}</div>
+        <div style="margin-top:5px;"><b style="color:#ffe4a8;">为什么</b>：{why}</div>
+        <div style="margin-top:5px;"><b style="color:#ffe4a8;">对你 · 怎么办</b>：{todo}</div>
+        <div style="margin-top:5px;color:#bcd8ee;"><b style="color:#ffe4a8;">一行判断</b>：{judge}</div>
+      </div>
       {bridge_html}
-      <details class="term-fold">
-        <summary>系统内部依据（读数 + 规则·想深究再看，可不看）</summary>
-        <div class="meta">力度：{esc(plain_strength(strength))} ｜ 往哪个方向：{esc(direction)}</div>
-        <div class="detail">{esc(evidence)}</div>
-        {evidence_event_sections(link)}
-        <div class="meta">这条对应哪把尺（判断依据规则）：<a href="#{esc(ruler_anchor)}" style="color:#8fd6ff;">右栏{esc(ruler_no)} 这把尺</a></div>
-      </details>
+      {origin}
     </details>
     """
 
@@ -1622,9 +1647,11 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
         weak_items.append("<li>今天没有哪条判断证据转软或被推翻</li>")
     opp_ch1 = state.get("opp_ch1", [])
     opp_ch2 = state.get("opp_ch2", [])
-    opp_line = f"机会池：{len(opp_ch1)}个换仓对比、{len(opp_ch2)}个新机会，等你看"
+    # 机会池是常备换仓清单·不是"今天有没有"(与⑧同口径·派工单§3)：有触发就提示、没到条件写"持续盯"
     if opp_ch1 or opp_ch2:
-        opp_line += "；点下方⑥机会池查看"
+        opp_line = f"机会池（常备清单）：{len(opp_ch1)}个换仓对比、{len(opp_ch2)}个新机会到条件了，点下方⑧查看"
+    else:
+        opp_line = "机会池（常备换仓清单）：当前无候选到「换」的条件（护城河更宽+回便宜位+被换的涨回止盈+换完敞口不升），持续盯着·见下方⑧"
 
     ma_pending = [symbol for symbol, item in ma_by_symbol.items() if item.get("status") != "OK"]
     true_target_count = sum(
@@ -1651,7 +1678,17 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
     ("非农PAYEMS" not in _macro_cal) and _pending.append("非农")
     ("CPI" not in _macro_cal) and _pending.append("CPI/PCE")
     _pending.append("FIMA(靠人读美联储公告·非数字接口)")
-    _pending.append("真2年美债(现用3月^IRX替代)")
+    # 真2年美债：读最近 yield_curve 快照，有 us2y=已接(FRED DGS2)、无=回退3月代理·待接
+    _yc_us2y = None
+    for _p in sorted((ROOT / "data" / "market").glob("yield_curve_*.json")):
+        try:
+            _yc_us2y = read_json(_p).get("us2y")
+        except Exception:
+            pass
+    if _yc_us2y is not None:
+        _connected.append("真2年美债(FRED DGS2)")
+    else:
+        _pending.append("真2年美债(FRED DGS2抓取失败·回退3月^IRX)")
     _curve_ok or _pending.append("收益率曲线")
     _stable_ok or _pending.append("稳定币市值")
     macro_status_line = (
@@ -1676,7 +1713,7 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
       <h3>C 还缺的数据（等补上）</h3>
       <ul>{plain_items(c_items)}</ul>
       <h3>A 已自动刷好（这些不用你管）</h3>
-      <ul><li>今天这些都自动算好了：宏观指标、每只持仓的均价线和便宜/危险价、现价、各层判断今天证据有多硬——这些不用你管。</li></ul>
+      <ul><li>今天这些都自动算好了：宏观指标、每只持仓的均价线和便宜/危险价、现价、各层今天的力度与方向——这些不用你管。</li></ul>
       <h3>B 和昨天比有变化·要你确认</h3>
       <ul>{plain_items(b_items)}</ul>
     </details>
@@ -1878,18 +1915,24 @@ def macro_section(snapshot: dict[str, Any], yield_curve: dict[str, Any] | None =
     stable_status = "待接入" if stable_today.startswith("待接入") else "中性"
     rows.append(macro_row("稳定币市值(链上有多少'数字美元'·加密市场的水位)", stable_today, stable_status, stable_sentence))
     yc = yield_curve or {}
-    if yc.get("connection", {}).get("ok") and yc.get("spread_10y_3m") is not None:
+    if yc.get("connection", {}).get("ok") and (yc.get("spread_10y_2y") is not None or yc.get("spread_10y_3m") is not None):
         us10y = yc.get("us10y")
-        us3m = yc.get("us3m")
-        spread = yc.get("spread_10y_3m")
-        inv = yc.get("inverted")
-        status = "逆风" if inv else "中性"
-        sentence = "曲线倒挂·历史衰退信号，警惕" if inv else "曲线正斜率·未倒挂"
         _yc_dd = yc.get("data_date") or yc.get("date")
-        sentence += f"（已接入·⑤资金在用；最近快照{_yc_dd}；短端用3月^IRX，非2年，真2年待FRED源）"
-        rows.append(macro_row("收益率曲线(10年-3月)(长短期利率谁高·倒挂常预警衰退)", f"10年{fmt_level(us10y)} − 3月{fmt_level(us3m)} = 利差{fmt_level(spread)}%", status, sentence))
+        # 优先真2年美债(FRED DGS2·派工单§3)；缺则回退3月^IRX代理
+        if yc.get("us2y") is not None and yc.get("spread_10y_2y") is not None:
+            short_v = yc.get("us2y"); spread = yc.get("spread_10y_2y"); short_lbl = "2年"
+            src_note = f"（已接入·真2年美债FRED DGS2；⑤资金在用；最近快照{_yc_dd}）"
+            row_lbl = "收益率曲线(10年-2年)(长短期利率谁高·倒挂常预警衰退)"
+        else:
+            short_v = yc.get("us3m"); spread = yc.get("spread_10y_3m"); short_lbl = "3月"
+            src_note = f"（已接入·⑤资金在用；最近快照{_yc_dd}；短端用3月^IRX代理·真2年待FRED抓通）"
+            row_lbl = "收益率曲线(10年-3月)(长短期利率谁高·倒挂常预警衰退)"
+        inv = (spread is not None and spread < 0)
+        status = "逆风" if inv else "中性"
+        sentence = ("曲线倒挂·历史衰退信号，警惕" if inv else "曲线正斜率·未倒挂") + src_note
+        rows.append(macro_row(row_lbl, f"10年{fmt_level(us10y)} − {short_lbl}{fmt_level(short_v)} = 利差{fmt_level(spread)}%", status, sentence))
     else:
-        rows.append(macro_row("收益率曲线(10年-3月)(长短期利率谁高·倒挂常预警衰退)", "这项还没接进来·源没连", "待接入", "收益率曲线的数据源还没连上"))
+        rows.append(macro_row("收益率曲线(10年-短端)(长短期利率谁高·倒挂常预警衰退)", "这项还没接进来·源没连", "待接入", "收益率曲线的数据源还没连上"))
 
     return f"""
     <details class="card">
@@ -2113,7 +2156,7 @@ def pdca_section(pdca_daily: dict[str, Any], pdca_review: dict[str, Any], daily:
     <details class="card">
       <summary><span>⑩ 复盘记分卡（看我们最近判得准不准·该升级还是该回炉）</span><b>{esc(plain_decision_quality(quality.get('level')))}</b></summary>
       <p class="plain">今天下手的底气：{esc(plain_decision_quality(quality.get('level')))}（决策质量分=今天我们出手有多有把握），为什么：{esc(quality.get('reason'))}</p>
-      <table><thead><tr><th>这一环</th><th>证据有多硬</th><th>今天打分</th><th>我们的把握</th><th>为什么</th><th>接下来该怎么办</th></tr></thead><tbody>{''.join(rings)}</tbody></table>
+      <table><thead><tr><th>这一环</th><th>力度</th><th>今天打分</th><th>我们的把握</th><th>为什么</th><th>接下来该怎么办</th></tr></thead><tbody>{''.join(rings)}</tbody></table>
       <ul>{''.join(tracks)}</ul>
       <div class="meta">周复盘：{esc(weekly.get('status', '待累积'))}</div>
       {_recheck_html}
@@ -2264,13 +2307,16 @@ def build(date: str) -> str:
     quality = pdca_daily.get("decision_quality", {})
 
     _br = build_chain_bridges(daily)  # 承上启下(上下咬合·生产标准§1)
+    # 证据链大白话四步输入位(派工单§2)：理解岗供文字则用、缺则机器初判回退+标待理解岗补深
+    _plain_path = ROOT / "data" / "evidence_chain" / f"plain_{date}.json"
+    _pl = (read_json(_plain_path).get("layers") if _plain_path.exists() else {}) or {}
     evidence_cards = [
-        evidence_card("①", "世界观", find_link(daily, ["总命题", "世界"]), "①", "right-ruler-1", *_br[0]),
-        evidence_card("②", "总闸", find_link(daily, ["总闸", "美联储"]), "③", "right-ruler-3", *_br[1]),
-        evidence_card("③", "战略", find_link(daily, ["战略指向"]), "②", "right-ruler-2", *_br[2]),
-        evidence_card("④", "手段层·资金管道(稳定币/加密)", find_link(daily, ["手段层"]), "③", "right-ruler-3", *_br[3]),
-        evidence_card("⑤", "资金轮动", find_link(daily, ["资金轮动"]), "③", "right-ruler-3", *_br[4]),
-        evidence_card("⑥", "板块轮动", find_link(daily, ["板块轮动"]), "④", "right-ruler-4", *_br[5]),
+        evidence_card("①", "世界观", find_link(daily, ["总命题", "世界"]), "①", "right-ruler-1", *_br[0], _pl),
+        evidence_card("②", "总闸", find_link(daily, ["总闸", "美联储"]), "③", "right-ruler-3", *_br[1], _pl),
+        evidence_card("③", "战略", find_link(daily, ["战略指向"]), "②", "right-ruler-2", *_br[2], _pl),
+        evidence_card("④", "手段层·资金管道(稳定币/加密)", find_link(daily, ["手段层"]), "③", "right-ruler-3", *_br[3], _pl),
+        evidence_card("⑤", "资金轮动", find_link(daily, ["资金轮动"]), "③", "right-ruler-3", *_br[4], _pl),
+        evidence_card("⑥", "板块轮动", find_link(daily, ["板块轮动"]), "④", "right-ruler-4", *_br[5], _pl),
     ]
     _known_cash = (cost_data.get("summary", {}) or {}).get("known_cash_usd")
     concentration = portfolio_concentration(production.get("holdings", []), _known_cash, cost_by_ticker)

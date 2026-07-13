@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import re
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -82,8 +83,12 @@ def fetch_news(query: str, limit: int = 6) -> list[dict[str, str]] | None:
         if src_el is not None and src_el.text:
             src = html.unescape(src_el.text.strip())
         link = html.unescape((it.findtext("link") or "").strip())  # 真新闻url·让证据链可点(派工单§2.1)
+        # 正文摘要(RSS description)：给"提炼大白话"当原料(派工单§2)；Google News 的 description 含HTML，去标签取纯文本
+        desc = it.findtext("description") or ""
+        summary = re.sub(r"<[^>]+>", " ", html.unescape(desc))
+        summary = re.sub(r"\s+", " ", summary).strip()[:400]
         if title:
-            items.append({"title": title, "source": src, "url": link})
+            items.append({"title": title, "source": src, "url": link, "summary": summary})
     return items or None
 
 
@@ -187,15 +192,15 @@ def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str,
             node["direction"] = sc["direction"]
             node["today_events"] = [f"真新闻：{h}" for h in heads]
             node["background"] = [f"关键词打分 多{sc['bull']}-空{sc['bear']}=净{sc['bull']-sc['bear']}"]
-            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", "")} for n in strat_news[:3]]
+            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", ""), "summary": n.get("summary", "")} for n in strat_news[:3]]
             node["source"] = f"Google News RSS·q=[{QUERIES['strategy']}]·{len(strat_news)}条"
             node["_state"] = sc["state"]
             if sc["strength"] == "强":
-                node["plain"] = f"今天 AI 产业的好消息明显比坏消息多（利好{sc['bull']}条/利空{sc['bear']}条）→ 对你：AI 主线基本面还硬，核心仓可以守。"
+                node["plain"] = "今天 AI 产业的好消息明显多于坏消息，产业面在走强 → 对你：AI 主线基本面还硬，核心仓可以守、别追高。"
             elif sc["strength"] == "弱":
-                node["plain"] = f"今天 AI 产业的坏消息偏多（利好{sc['bull']}/利空{sc['bear']}）→ 对你：AI 主线要盯着点、别急着加仓。"
+                node["plain"] = "今天 AI 产业的坏消息偏多、产业面转弱 → 对你：AI 主线要盯着点、别急着加仓。"
             else:
-                node["plain"] = f"今天 AI 产业消息多空参半（利好{sc['bull']}/利空{sc['bear']}）→ 对你：AI 主线没大变，守着看。"
+                node["plain"] = "今天 AI 产业好坏消息参半、没大变 → 对你：AI 主线守着看，不追高也不慌。"
             report["auto_nodes"].append("战略产业面")
             report["fetched"]["strategy"] = {"count": len(strat_news), "score": sc}
         else:
@@ -218,13 +223,13 @@ def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str,
             node["direction"] = sc["direction"]
             node["today_events"] = [f"真新闻：{h}" for h in heads]
             node["background"] = [f"关键词打分 正{sc['pos']}/负{sc['neg']}", "FIMA 状态见⑦读数表·读固定输入位 data/macro/fima_status.json(人工读公告更新)"]
-            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", "")} for n in means_news[:3]]
+            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", ""), "summary": n.get("summary", "")} for n in means_news[:3]]
             node["source"] = f"Google News RSS·q=[{QUERIES['means']}]·{len(means_news)}条"
             node["_state"] = sc["state"]
             if "偏松" in sc["state"] or "活跃" in sc["state"]:
-                node["plain"] = f"稳定币/加密这条「钱进美元」的管道今天利好偏多（利好{sc['pos']}/利空{sc['neg']}）→ 对你：这条大通道在变活，长期利多美元资产。"
+                node["plain"] = "稳定币/加密这条「钱进美元」的管道今天利好偏多、在变活 → 对你：这条大通道长期利多美元资产，加密簇按纪律控敞口。"
             elif "受限" in sc["state"] or "偏紧" in sc["state"]:
-                node["plain"] = f"稳定币这条管道今天遇到监管收紧（利好{sc['pos']}/利空{sc['neg']}）→ 对你：短期情绪偏谨慎。"
+                node["plain"] = "稳定币这条管道今天遇到监管收紧 → 对你：短期情绪偏谨慎，加密簇别追。"
             else:
                 node["plain"] = "稳定币/加密通道今天没明显动作 → 对你：不影响今天动作。"
             report["auto_nodes"].append("手段层")
@@ -249,13 +254,13 @@ def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str,
             node["direction"] = sc["direction"]
             node["today_events"] = [f"真新闻：{h}" for h in heads]
             node["background"] = [f"regime关键词命中={sc['regime_hits']}", "三支柱框架延续"]
-            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", "")} for n in world_news[:3]]
+            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", ""), "summary": n.get("summary", "")} for n in world_news[:3]]
             node["source"] = f"Google News RSS·q=[{QUERIES['world']}]·{len(world_news)}条"
             node["_state"] = sc["state"]
             if "增多" in sc["state"]:
-                node["plain"] = f"今天扫了地缘新闻，紧张信号多了些（命中{sc['regime_hits']}条），但还没到掀翻大格局 → 对你：大方向暂不变，多留个心眼。"
+                node["plain"] = "地缘/秩序上的紧张信号今天多了一些，但还没到掀翻大格局的程度 → 对你：投资大方向暂时不变，多留个心眼、盯着点。"
             else:
-                node["plain"] = f"今天扫了地缘新闻，没有会掀翻世界大格局的大事（命中{sc['regime_hits']}条）→ 对你：投资大方向不变，照现有框架走。"
+                node["plain"] = "今天没有会掀翻世界大格局的地缘大事，三支柱（美国优先·阵营化·集中砸AI）延续 → 对你：投资大方向不变，照现有框架走。"
             report["auto_nodes"].append("世界观级")
             report["fetched"]["world"] = {"count": len(world_news), "score": sc}
         else:

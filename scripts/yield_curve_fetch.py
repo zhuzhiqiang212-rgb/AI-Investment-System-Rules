@@ -56,19 +56,45 @@ def fail_payload(date: str, reason: str) -> dict[str, Any]:
     }
 
 
-def ok_payload(date: str, us10y: float, us3m: float) -> dict[str, Any]:
+def fetch_fred_dgs2() -> float | None:
+    """真 2 年美债收益率 FRED DGS2（keyless·派工单§3 替换3月^IRX代理）。失败→None。"""
+    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS2"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        text = urllib.request.urlopen(req, timeout=8).read().decode("utf-8")
+    except Exception:
+        return None
+    for line in reversed(text.strip().splitlines()[1:]):
+        _, _, v = line.partition(",")
+        v = v.strip()
+        if v and v != ".":
+            try:
+                return float(v)
+            except ValueError:
+                continue
+    return None
+
+
+def ok_payload(date: str, us10y: float, us3m: float, us2y: float | None = None) -> dict[str, Any]:
     spread = round(us10y - us3m, 3)
+    spread_2y = round(us10y - us2y, 3) if us2y is not None else None
+    if us2y is not None:
+        note = "短端已接真2年美债(FRED DGS2)；同时保留3月(^IRX)作对照"
+    else:
+        note = "短端用3个月(^IRX)，非2年；真2年(FRED DGS2)今日抓取失败·待接"
     return {
         "task_id": "2b-1",
         "generated_at": now_jst(),
         "date": date,
         "connection": {"ok": True, "reason": ""},
-        "source": "Yahoo ^TNX / ^IRX",
-        "short_end_note": "短端用3个月(^IRX)，非2年；真2年美债待FRED源",
+        "source": "Yahoo ^TNX / ^IRX + FRED DGS2",
+        "short_end_note": note,
         "us10y": us10y,
         "us3m": us3m,
+        "us2y": us2y,
         "spread_10y_3m": spread,
-        "inverted": spread < 0,
+        "spread_10y_2y": spread_2y,
+        "inverted": (spread_2y < 0) if spread_2y is not None else (spread < 0),
         "status": "OK",
         "safety": {"read_only": True, "place_order_called": False, "published": False},
     }
@@ -114,7 +140,8 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 2
 
-    payload = ok_payload(args.date, us10y, us3m)
+    us2y = fetch_fred_dgs2()  # 真2年美债(FRED)·失败则回退3月代理
+    payload = ok_payload(args.date, us10y, us3m, us2y)
     write_json(output_path, payload)
     print(json.dumps({
         "output": str(output_path),
