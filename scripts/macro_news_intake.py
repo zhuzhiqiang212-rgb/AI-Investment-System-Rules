@@ -217,7 +217,7 @@ def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str,
             node["strength"] = sc["strength"]
             node["direction"] = sc["direction"]
             node["today_events"] = [f"真新闻：{h}" for h in heads]
-            node["background"] = [f"关键词打分 正{sc['pos']}/负{sc['neg']}", "FIMA 定量数值仍待机械层"]
+            node["background"] = [f"关键词打分 正{sc['pos']}/负{sc['neg']}", "FIMA 状态见⑦读数表·读固定输入位 data/macro/fima_status.json(人工读公告更新)"]
             node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", "")} for n in means_news[:3]]
             node["source"] = f"Google News RSS·q=[{QUERIES['means']}]·{len(means_news)}条"
             node["_state"] = sc["state"]

@@ -293,9 +293,13 @@ def target_price_block(symbol: str, price: Any, target_by_base: dict[str, dict[s
     take_profit = target.get("take_profit")
     currency = target.get("currency")
     symbol_currency = "¥" if currency == "JPY" else "$" if currency == "USD" else currency_for_symbol(symbol)
+    # 目标价口径标记按 target 真实来源(DCF覆盖→可信度A·DCF；否则情景版·可信度B·非DCF)，不写死(治§2.3)
+    _is_dcf = "DCF" in str(target.get("valuation_status") or "")
+    _mark = "可信度A·DCF精算" if _is_dcf else "情景版·可信度B·非DCF"
+    _mark_color = "#7ee0a0" if _is_dcf else "#ffa657"
     target_line = (
         f'<div>目标价(减仓线)：{esc(symbol_currency)}{esc(fmt_level(take_profit))}'
-        f'　<span style="color:#ffa657;font-size:12px;">〔情景版·可信度B·非DCF〕</span></div>'
+        f'　<span style="color:{_mark_color};font-size:12px;">〔{_mark}〕</span></div>'
     )
     if price is None:
         return target_line
@@ -593,7 +597,13 @@ def holding_price_ladder(item: dict[str, Any], ma_by_symbol: dict[str, dict[str,
     stop = sl_num          # 危险=止损价
     low_buy = fair_low_num  # 便宜买点=合理区下沿
     top = tp_num           # 想卖=止盈价
-    badge = f'<span class="dc-zone dc-zone-{zone_tone}">现价落在：{esc(zone or "见阶梯")}</span>'
+    # 价位口径标记(§2.3)：DCF覆盖→可信度A·DCF精算；否则相对估值·待DCF。让"什么价"标清来源。
+    _vstat = str(target.get("valuation_status") or "相对估值")
+    _is_dcf = "DCF" in _vstat
+    _kou = "价位来自DCF精算·可信度A" if _is_dcf else "价位来自相对估值·非精算·待DCF"
+    _kou_color = "#7ee0a0" if _is_dcf else "#8ea3b6"
+    badge = (f'<span class="dc-zone dc-zone-{zone_tone}">现价落在：{esc(zone or "见阶梯")}</span>'
+             f' <span style="color:{_kou_color};font-size:11px;">〔{_kou}〕</span>')
 
     if not (stop is not None and low_buy is not None and top is not None
             and stop <= low_buy < top):
@@ -2173,13 +2183,25 @@ def build(date: str) -> str:
     _sector = find_link(daily, ["板块轮动"]) or {}
     ai_strength = f"{_strat.get('strength', '')}{_strat.get('direction', '')}"
     sector_state = str(_sector.get("direction", ""))
-    # DCF 精算结果(派工单§2.3)：有则第3关用精算值(可信度A)、无则相对估值标待DCF
+    # DCF 精算结果(派工单§2.3)：有则第3关+决策卡"什么价"用精算值(可信度A)、无则相对估值标待DCF
     _dcf_path = ROOT / "data" / "valuation" / f"dcf_results_{date}.json"
     dcf_by_symbol = {}
     if _dcf_path.exists():
         for r in (read_json(_dcf_path).get("results") or []):
-            if r.get("symbol"):
+            if r.get("symbol") and r.get("status") == "OK":
                 dcf_by_symbol[str(r["symbol"])] = r
+                # DCF 覆盖的标的：把精算价注入 target_by_base，让决策卡"什么价"(价位阶梯)也用DCF(§2.3)
+                _sym = str(r["symbol"]); _cur = str(r.get("currency", "$"))
+                _dtgt = {
+                    "take_profit": r.get("reasonable_high"),   # 合理区上沿=减仓线
+                    "stop_loss": None,
+                    "buy_price": r.get("reasonable_low"),       # 合理区下沿=低吸线
+                    "fair_low": r.get("reasonable_low"), "fair_high": r.get("reasonable_high"),
+                    "valuation_status": "DCF精算·可信度A", "currency": _cur, "confidence": "A·DCF",
+                }
+                for _k in (_sym, _sym.split(".")[-1], r.get("name")):
+                    if _k:
+                        target_by_base[str(_k)] = _dtgt
     holding_cards = "".join(holding_decision_card(item, ma_by_symbol, target_by_base, cost_by_ticker, concentration, ai_strength, sector_state, dcf_by_symbol) for item in production.get("holdings", []))
     # ⑨小标题计数 与 每卡第1关 与 顶部徽章 取同一 gate-1 源(治打回·清"受检"·三处同口径)
     _hlds_all = production.get("holdings", [])
