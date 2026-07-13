@@ -1331,10 +1331,10 @@ def plain_decision_quality(level: Any) -> str:
     return text
 
 
-def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], cost_by_ticker: dict[str, dict[str, Any]], concentration: dict[str, Any] | None = None, ai_strength: str = "", sector_state: str = "", dcf_by_symbol: dict[str, dict[str, Any]] | None = None) -> str:
-    """每只持仓一张决策卡（display-only）。动作沿用上游 item.action，不自创买卖决策。
-    concentration(可选)：portfolio_concentration() 结果。若该 holding 属某"超上限"的上限类
-    (AI/单一/加密) → 在理由处自动追加"别加"句（红/黄提示），与"守·先别动"并存不矛盾。"""
+def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], cost_by_ticker: dict[str, dict[str, Any]], concentration: dict[str, Any] | None = None, ai_strength: str = "", sector_state: str = "", dcf_by_symbol: dict[str, dict[str, Any]] | None = None, gen_holdings: dict[str, Any] | None = None) -> str:
+    """每只持仓一张决策卡·7区重排(模板卡2026-07-13)：①动作条置顶 ②价位阶梯 ③多维体检四维 ④同类对比
+    ⑤决策五格(超限展开) ⑥成本盈亏 ⑦深研L3折叠。A线数据现算、B线读 gen_holdings 填文字·缺标待理解岗补深。
+    动作沿用上游 item.action，不自创买卖决策。"""
     name = item.get("name")
     symbol = str(item.get("symbol") or "")
     badge_text, tone, caveat = _action_badge(item.get("action"))
@@ -1393,12 +1393,21 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
             '在叙事里可能听着重要，但你实际押注很小，<b>别当重仓理解</b>。</div>'
         )
 
-    if symbol.startswith("CC."):  # 资产口径：不做企业深研(治硬伤3·非"待补")
-        research = '<span style="color:#8fd6ff;">资产口径·不做企业深研（只看币价+加密≤12%纪律）</span>'
-    elif has_pack(item.get("symbol"), item.get("name")):
-        research = '<span style="color:#7ee0a0;">这只我们深研过了，见下方</span>'
+    # ⑦ 个股深研·L3折叠(模板卡)：点开才展开·本卡决策的底账；资产口径不做企业深研；有包则嵌入
+    if symbol.startswith("CC."):
+        research_fold = ('<details class="term-fold"><summary>⑦ 个股深研（第5关·底账）</summary>'
+                         '<div class="meta" style="color:#8fd6ff;">资产口径·不做企业深研（只看币价+加密≤12%纪律）</div></details>')
     else:
-        research = '<span style="color:#9aa8b5;">这只还没深研</span>'
+        try:
+            _pack = stock_research_card(item.get("symbol"), item.get("name"))
+        except Exception:
+            _pack = ""
+        if _pack:
+            research_fold = ('<details class="term-fold"><summary>⑦ 个股深研（第5关深挖·本卡决策的底账·点开看）</summary>'
+                             + _pack + '</details>')
+        else:
+            research_fold = ('<details class="term-fold"><summary>⑦ 个股深研（第5关·底账）</summary>'
+                             '<div class="meta" style="color:#9aa8b5;">这只还没深研·待补</div></details>')
 
     # 理由：给董事长看的是人话（caveat 或"照上面四关来"）；下附术语版"内部依据"。
     # 内部依据的"硬性"取本卡第1关 gate-1 真结论(与上方"方向对不对"同源)，不再用上游 pipeline 的
@@ -1450,23 +1459,45 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
             '<div class="dc-prelim" style="color:#ffcf6b;font-size:12px;margin-top:5px;line-height:1.6;">'
             '（这是按方向/位置/估值的<b>初判</b>；护城河/深研还没做、还没真正进决策，待补全再定）</div>'
         )
-    # "现在：…"翻译已含允许的 <b>…</b>，不整体转义；紧跟徽章、显眼一行
-    now_row = f'<div class="dc-row dc-now"><div class="dc-lab">今天<br>该做啥</div><div class="dc-val">{now_line}{prelim_html}</div></div>'
+    # ── B线文字(读 gen_holdings·缺标待理解岗补深·不退旧说明书) ──
+    _gh = (gen_holdings or {}).get(symbol) or {}
+    _wait = '<span style="color:#9aa8b5;">待理解岗补深</span>'
+    def _bfield(k: str) -> str:
+        v = str(_gh.get(k) or "").strip()
+        return esc(v) if v else _wait
+    act_sentence = _bfield("动作句") if str(_gh.get("动作句") or "").strip() else (esc(caveat) if caveat else _wait)
+    fund_read = _bfield("基本面判读")
+    risk_read = _bfield("风险判读")
+    peer_cmp = _bfield("同类对比")
 
     return f"""
     <div class="dc-card {tone}">
+      <!-- ① 动作条·置顶醒目 -->
       <div class="dc-top">
         <div class="dc-title">{esc(name)}（{esc(symbol)}）</div>
         <div class="dc-badge {tone}">{badge_text}</div>
       </div>
+      <div class="dc-action" style="background:#12202c;border-left:4px solid #5cc8ff;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:14.5px;">
+        <b style="color:#ffe4a8;">今天该干嘛</b>：{act_sentence}{prelim_html}</div>
       {tiny_html}
-      {now_row}
-      {ladder}
-      <div class="dc-row"><div class="dc-lab">能不能<br>拿得住</div><div class="dc-val">{gate_block}</div></div>
-      <div class="dc-row"><div class="dc-lab">我的成本·<br>现在赚还是亏</div><div class="dc-val">{cost_html}</div></div>
-      <div class="dc-row"><div class="dc-lab">个股研究</div><div class="dc-val">{research}</div></div>
-      <div class="dc-row dc-judge"><div class="dc-lab">为什么</div><div class="dc-val">{reason_html}</div></div>
+      <!-- ② 价位阶梯 -->
+      <div class="dc-row"><div class="dc-lab">② 价位<br>阶梯</div><div class="dc-val">{now_line}{ladder}</div></div>
+      <!-- ③ 多维体检·四维 -->
+      <div class="dc-row"><div class="dc-lab">③ 多维<br>体检</div><div class="dc-val">
+        <div style="margin:2px 0;">· <b>基本面</b>（生意/护城河/财报）：{moat_h}<br><span style="color:#bcd8ee;">└ 判读：{fund_read}</span></div>
+        <div style="margin:2px 0;">· <b>技术面</b>（均线位置）：{soft_h}</div>
+        <div style="margin:2px 0;">· <b>估值</b>（贵不贵）：{val_h}</div>
+        <div style="margin:2px 0;">· <b>风险</b>：<span style="color:#bcd8ee;">{risk_read}</span></div>
+        <div style="margin:2px 0;color:#8ea3b6;font-size:12px;">· 方向：{hard_h}</div>
+      </div></div>
+      <!-- ④ 同类对比 -->
+      <div class="dc-row"><div class="dc-lab">④ 同类<br>对比</div><div class="dc-val">{peer_cmp}</div></div>
+      <!-- ⑤ 决策五格(超单一/类上限才展开) -->
       {dont_add_html}
+      <!-- ⑥ 成本·赚亏 -->
+      <div class="dc-row"><div class="dc-lab">⑥ 我的成本·<br>赚还是亏</div><div class="dc-val">{cost_html}</div></div>
+      <!-- ⑦ 深研 L3 折叠 -->
+      <div class="dc-row"><div class="dc-lab">⑦ 深研</div><div class="dc-val">{research_fold}<div style="margin-top:4px;">{reason_html}</div></div></div>
     </div>
     """
 
@@ -2405,7 +2436,10 @@ def build(date: str) -> str:
                 for _k in (_sym, _sym.split(".")[-1], r.get("name")):
                     if _k:
                         target_by_base[str(_k)] = _dtgt
-    holding_cards = "".join(holding_decision_card(item, ma_by_symbol, target_by_base, cost_by_ticker, concentration, ai_strength, sector_state, dcf_by_symbol) for item in production.get("holdings", []))
+    # 持仓卡 B线文字输入位(模板卡2026-07-13§3)：按 symbol 供动作句/基本面/风险/对比·缺标待理解岗补深
+    _gh_path = ROOT / "data" / "evidence_chain" / f"gen_holdings_{date}.json"
+    _gen_holdings = (read_json(_gh_path).get("holdings") if _gh_path.exists() else {}) or {}
+    holding_cards = "".join(holding_decision_card(item, ma_by_symbol, target_by_base, cost_by_ticker, concentration, ai_strength, sector_state, dcf_by_symbol, _gen_holdings) for item in production.get("holdings", []))
     # ⑨小标题计数 与 每卡第1关 与 顶部徽章 取同一 gate-1 源(治打回·清"受检"·三处同口径)
     _hlds_all = production.get("holdings", [])
     g1_ai = sum(1 for h in _hlds_all if (not _is_crypto(str(h.get("symbol") or ""))) and _on_ai_node(h))
@@ -2443,7 +2477,7 @@ def build(date: str) -> str:
       <p class="plain">每只持仓一张决策卡：一个明确动作＋买卖价不打架＋看图现价落在哪区。只给守/卖/观望，不下单。上限类(AI/单一/加密)超标的持仓卡自动追加"别加"。</p>
       {holding_cards}
     </details>
-    """ + stock_research_html + pdca_section(pdca_daily, pdca_review, daily)
+    """ + pdca_section(pdca_daily, pdca_review, daily)
 
     right = "".join([
         right_ruler_card("①", "世界观", "右栏_完整世界观描述.html", "旧的全球化大水漫灌、大家一起涨时代结束，进入美国优先·阵营化·集中砸钱给AI的新秩序——这是全系统一切判断的最上层源头。", "right-ruler-1"),
