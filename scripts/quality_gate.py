@@ -50,8 +50,8 @@ BUCKET_THRESHOLDS = {
                    "note": "低毛利制造(汽车/量产硬件/分销)·毛利率≥12%【试行初值·待终审】·不用45%线·重看trend+FCF+资产负债表"},
     "零售分销": {"gross_margin_min": None, "fcf_positive": True, "backlog_applies": False,
                  "note": "零售分销天生低毛利·毛利率豁免→看净利率/周转、FCF为正"},
-    "金融": {"gross_margin_min": None, "fcf_positive": None, "backlog_applies": False,
-             "note": "金融/控股/商社豁免毛利率/FCF→看净利率/ROE/坏账率、资本充足/拨备、杠杆/NAV；订单NA"},
+    "金融": {"gross_margin_min": None, "fcf_positive": None, "roe_min": 0.10, "backlog_applies": False,
+             "note": "金融/券商/控股/商社豁免毛利率/FCF→核心看ROE(≥10%试行初值·待终审)、资本充足/杠杆/NAV；订单NA"},
     "资产": {"gross_margin_min": None, "fcf_positive": None, "backlog_applies": False,
              "note": "无财报资产·质量关NA(只按仓位纪律+币价)"},
 }
@@ -64,7 +64,7 @@ def bucket_for(typ: str, override: Any = None) -> str:
         return b
     return INDUSTRY_BUCKET.get(typ, "制造软件品牌")
 IND_NAMES = {"gross_margin": "毛利率", "fcf": "自由现金流", "pricing_power": "订价权",
-             "balance_sheet": "资产负债表", "order_visibility": "订单可见度"}
+             "balance_sheet": "资产负债表", "order_visibility": "订单可见度", "roe": "ROE净资产收益率"}
 
 
 def _load_inputs() -> dict[str, dict]:
@@ -150,6 +150,19 @@ def grade_one(symbol: str, name: str, indicators: dict, is_active_node: bool, in
             hard.append("毛利率(持续低于门槛且下滑)")
         else:
             improving.append("毛利率(未达门槛·趋势未知·试行从宽按观察)")
+
+    # ROE(金融/券商/控股桶核心·豁免毛利/FCF后用它·尺:金融不与科技比毛利)。roe负/文本待接→留②·绝不③
+    roe_th = th.get("roe_min")
+    if roe_th is not None:
+        rv = _num(_raw("roe").get("value"))
+        if rv is None:                       # 文本(待接/负-描述串)→②不硬③
+            missing_core.append("ROE·待接")
+        elif rv >= roe_th:
+            ok.append(f"ROE{rv:.0%}≥门槛{roe_th:.0%}"); core_ok.append("ROE")
+        elif rv < 0:                         # ROE为负→留②观察·不硬判③(尺·派工单)
+            improving.append(f"ROE为负({rv:.0%})·留观察不杀(不硬③)")
+        else:
+            improving.append(f"ROE{rv:.0%}未达门槛{roe_th:.0%}·观察")
 
     # 自由现金流(核心·按行业；None=豁免)
     if th.get("fcf_positive"):

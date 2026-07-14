@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>派工单 · 金融桶ROE核心+爱德万FCF重跑 · 20260714</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;--bad:#ff6b6b;}
+*{box-sizing:border-box;}body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.7;font-size:15px;}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 80px;}
+.hdr{padding:16px 20px;background:linear-gradient(135deg,#20402f,#153025);border:1px solid #2f5540;border-radius:14px;margin-bottom:12px;}
+.hdr h1{font-size:19px;margin:0 0 4px;}.hdr .sub{color:#a9d0b9;font-size:12.5px;}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:11px 0;padding:13px 16px;}
+.sec h2{font-size:15.5px;margin:0 0 7px;color:#ffe4a8;}
+.sec p,.sec li{font-size:13.3px;}b{color:#fff;}.bad{color:#ff6b6b;}.good{color:#7ee0a0;}.key{color:#5cc8ff;}
+ol,ul{margin:6px 0;padding-left:20px;}li{margin:6px 0;}
+code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#9ed8ff;}
+.rule{background:#12261c;border:2px solid #285039;border-radius:10px;padding:11px 14px;margin:9px 0;}.rule b{color:#7ee0a0;}
+.hard{background:#2a1414;border:1px solid #5a2a2a;border-radius:10px;padding:11px 14px;margin:9px 0;}.hard b{color:#ff9a9a;}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hdr">
+  <h1>派工单 · 金融桶加 ROE 核心指标 + 爱德万补FCF · 重跑</h1>
+  <div class="sub">出单：Cowork（首席架构师）｜ 执行：机器侧 Code ｜ 2026-07-14 ｜ 依据尺：基本面质量关框架（试行）｜ 只读不下单</div>
+</div>
+
+<div class="rule"><b>■ 背景（董事长已确认）：</b>金融股不能用毛利率跟科技股比。上轮金融桶因"豁免毛利/FCF、却无金融专用核心指标"全卡在②。Cowork 已给 7 只金融补真 <code>roe</code> 字段，并给爱德万补真 FCF。现需 gate 吃这两处。</div>
+
+<div class="sec">
+  <h2>① 金融桶核心指标改用 ROE（改 quality_gate.py）</h2>
+  <p>Cowork 已在 <code>fundamentals.json</code> 给 7 只金融桶标的加了 <code>roe</code>（东京海上0.206、IBKR≈0.20、伊藤忠0.15；COIN/MSTR 负、CRCL 净利率≈8%、软银 NAV口径待接）。</p>
+  <p><b class="key">做</b>：quality_gate 对 <code>industry_bucket=金融</code> 的标的，<b>核心硬账改用 <code>roe</code></b>（豁免毛利/FCF）：<code>roe</code> 为数值且 <b>≥0.10（试行初值·待董事长终审）</b> 且无硬伤 → <b class="good">①优质</b>；<code>roe</code> 为负/文本待接 → <b>留②（不硬判③·防误杀）</b>。<code>_schema</code> 补 <code>roe</code> 说明。门槛数值注"试行初值·待董事长终审"。</p>
+</div>
+
+<div class="sec">
+  <h2>② 爱德万已补真FCF（数据已就位·仅需重跑）</h2>
+  <p>爱德万 <code>fcf</code> 已填真值 <code>¥43.5B(正·FY2025 H1·上年同期−¥8.4B转正)</code>。它毛利64.3%本已达标、原仅缺FCF卡②——重跑后应升①。</p>
+</div>
+
+<div class="sec">
+  <h2>③ 低毛利桶复核（附带·上轮遗留）</h2>
+  <p>索尼(~26%)、万代(营利率14%) 与丰田同属结构性低毛利，现挂"制造软件品牌≥45%"桶有误杀风险，fundamentals 已标"或需按低毛利桶复核"。Code 按判断把这两只归"低毛利制造"桶，门槛注"试行初值·待董事长终审"。</p>
+</div>
+
+<div class="hard">
+  <b>回报规矩</b>：①先 json 校验 <code>fundamentals.json</code> 可解析；②改/建文件+<code>py_compile</code> RC；③贴 <code>ledger_20260714</code> 新 ①/②/③/NA 分布（对比当前①5/②14/NA2），自证 东京海上/IBKR/伊藤忠 凭ROE升①、爱德万升①、COIN/MSTR/CRCL/软银 如实留②不硬判③；④乱码 <code>EF BF BD</code>=0；⑤推 GitHub 贴 commit；⑥首个报错停原样贴回。门槛终值、买卖、删文件才上呈董事长。
+</div>
+</div></body></html>
