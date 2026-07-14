@@ -1423,13 +1423,7 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
     else:
         quality_h = (f'<span style="color:{_qcolor};font-weight:700;">{esc(_qtier)} {_qlab}</span>'
                      f'<span style="color:#9aa8b5;font-size:12px;">（{_qwhy}；试行·不入世界观·{_qruler}）</span>')
-    gate_block = (
-        f'<div style="margin:2px 0;">· 方向对不对：{hard_h}</div>'
-        f'<div style="margin:2px 0;">· 账本硬不硬（质量关·试行）：{quality_h}</div>'
-        f'<div style="margin:2px 0;">· 位置贵不贵：{soft_h}</div>'
-        f'<div style="margin:2px 0;">· 价格值不值：{val_h}</div>'
-        f'<div style="margin:2px 0;">· 生意硬不硬（护城河=靠什么长期赚钱、对手难抢）：{moat_h}</div>'
-    )
+    # (序3清死代码)原 gate_block 已删：7区卡片改由"③几个角度看它"直接用 hard_h/quality_h/soft_h/val_h/moat_h·此变量早已无人引用
 
     cost_html = cost_pnl_cell(symbol, cost_by_ticker)
 
