@@ -1,0 +1,36 @@
+<h1>AI 双口径源头对账小结 · 2026-07-14</h1>
+<p>出账：机器侧 Code ｜ 依据：派工单_清尾三项 ③ ｜ 目的：核 AI 两个口径是否源头隔离清晰、无串源/漂移（历史曾出"52.4% vs 43%"打架）。只读不下单。</p>
+
+<h2>两口径定义</h2>
+<table border="1" cellpadding="6" style="border-collapse:collapse;">
+<tr><th>口径</th><th>是什么</th><th>取数源（代码）</th><th>输出形态</th><th>当前值(20260714)</th></tr>
+<tr>
+  <td><b>窄口径·集中度</b><br>AI供应链占比(45%限)</td>
+  <td>押在AI这条链上的<b>钱</b>占总仓多少（钱的集中度）</td>
+  <td>portfolio_concentration()：成员判定用 <code>_on_ai_node()</code>，按<b>市值</b>加总 ÷ 总市值</td>
+  <td>百分比%</td>
+  <td><b>66.8%</b>（超45%上限·成员8只）</td>
+</tr>
+<tr>
+  <td><b>宽口径·方向</b><br>在不在AI承接链上(第1关)</td>
+  <td>每只<b>在不在</b>AI承接节点上（方向判定·逐只布尔）</td>
+  <td>hard_gate_conclusion()/badge：成员判定用 <code>_on_ai_node()</code>，<b>逐只计数</b></td>
+  <td>只数（布尔汇总）</td>
+  <td><b>8只</b>（NVDA/MSFT/软银/爱德万/博通/闪迪/台积电/META）</td>
+</tr>
+</table>
+
+<h2>对账结论：一致·无串源</h2>
+<ul>
+<li><b>同一 membership 源</b>：两口径的"哪只算AI"<b>都只调 <code>_on_ai_node()</code></b>（→ <code>_holding_node()</code> ∈ <code>AI_SUPPLY_NODE_CLASSES</code>）。成员集完全相同（当前同为那 8 只），不存在各用一套名单→打架的可能。</li>
+<li><b>只是聚合方式不同</b>：窄口径把 8 只的<b>市值</b>加总算占比（66.8%）；宽口径把 8 只<b>逐只</b>报"在AI链上"（8只）。同源、不同视角，本就该一个是%、一个是只数，<b>不是矛盾</b>。</li>
+<li><b>历史"52.4% vs 43%"打架已消除</b>：当年是两处各用不同回退名单导致；现已统一到单一 <code>_on_ai_node</code>，源头隔离＝共用一个定义、无第二套名单可漂移。</li>
+<li><b>产品措辞不混</b>：⑨集中度写"AI供应链占比(45%限·窄口径)"；第1关写"在不在AI承接链上(方向)"，两处标注已注明是两个度量（代码注释 <code>_on_ai_node</code> 处）。</li>
+</ul>
+
+<h2>顺带清理（本轮已做·纯重构不改数）</h2>
+<ul>
+<li>删去孤儿函数 <code>_is_ai_supply</code> + 常量 <code>AI_SUPPLY_HOLDINGS</code>：两口径统一用 <code>_on_ai_node</code> 后它已无任何调用点（死代码）。删后 AI% 仍 66.8%、防御 members 仍 4568/8766，数值不变。</li>
+</ul>
+
+<p style="color:#888;font-size:12px;">本小结为对账记录·随代码现算·可独立复核（跑 full_product_render --date 20260714 复现 66.8% / 8只）。</p>

@@ -305,6 +305,26 @@ def build(date: str) -> dict[str, Any]:
     today_direction = evidence.get("derived", {}).get("today_direction", "待填")
     today_direction_short = evidence.get("derived", {}).get("today_direction_short", "")
 
+    # 基本面质量关(试行·尺=基本面质量关框架.html)：放硬性闸后、均线技术前·三档判定·防误杀三条·缺数待接不编
+    try:
+        import quality_gate as _qg_mod
+        _qg_inputs = _qg_mod._load_inputs()
+    except Exception as _qe:
+        _qg_mod = None
+        _qg_inputs = {}
+        _qg_err = str(_qe)
+
+    def _quality_for(symbol, name, effective_matched, pipeline_verdict):
+        if _qg_mod is None:
+            return {"tier": "待接", "tier_label": "质量关待接", "why": f"质量关模块不可用({_qg_err})"}
+        is_active = bool(effective_matched) or pipeline_verdict == "符合"   # 与硬性闸激活节点联动(防误杀之二)
+        ind = (_qg_inputs.get(str(symbol)) or _qg_inputs.get(str(symbol).split(".")[-1]) or {}).get("indicators", {})
+        r = _qg_mod.grade_one(symbol, name, ind, is_active)
+        r["industry_bucket"] = _qg_mod.INDUSTRY_BUCKET.get(r.get("type", ""), "制造软件品牌")
+        r["rule_source"] = _qg_mod.RULE_SOURCE
+        r["is_active_node"] = is_active
+        return r
+
     holding_results = []
     counts = {"符合": 0, "受检": 0, "待补": 0}
     for review in holdings.get("reviews", []):
@@ -318,10 +338,18 @@ def build(date: str) -> dict[str, Any]:
         else:
             pipeline_verdict = "受检"
         counts[pipeline_verdict] = counts.get(pipeline_verdict, 0) + 1
-        soft = tech_map.get(symbol, {}).get("technical", {"status": "待补", "label": "技术待补", "reason": "双通道无该标的"})
-        val = valuation_label(valuations.get(symbol), review.get("realtime_price"))
-        moat = moat_label(moats.get(symbol))
-        action, reason = decide_action(pipeline_verdict, soft.get("label", "技术待补"), val.get("label", "估值待补"), moat.get("moat_grade", "待补护城河"))
+        # 质量关：硬性闸之后立刻判(三档)；③淘汰的不再进后续均线/估值/护城河关，①②照常
+        quality = _quality_for(symbol, review.get("name"), effective_matched, pipeline_verdict)
+        if quality.get("tier") == "③":
+            soft = {"status": "跳过", "label": "质量关③淘汰·不进后续关", "reason": quality.get("why", "")}
+            val = {"status": "跳过", "label": "质量关③淘汰·不进后续关"}
+            moat = {"moat_grade": "跳过·质量关③淘汰"}
+            action, reason = "淘汰", f"质量关③硬伤·淘汰({quality.get('why','')})→不进后续关"
+        else:
+            soft = tech_map.get(symbol, {}).get("technical", {"status": "待补", "label": "技术待补", "reason": "双通道无该标的"})
+            val = valuation_label(valuations.get(symbol), review.get("realtime_price"))
+            moat = moat_label(moats.get(symbol))
+            action, reason = decide_action(pipeline_verdict, soft.get("label", "技术待补"), val.get("label", "估值待补"), moat.get("moat_grade", "待补护城河"))
         holding_results.append({
             "symbol": symbol,
             "name": review.get("name"),
@@ -332,21 +360,13 @@ def build(date: str) -> dict[str, Any]:
             "matched_node_classes_raw": matched,
             "matched_node_classes_effective": effective_matched,
             "hard_filter": pipeline_verdict,
+            "quality_gate": quality,          # 质量关在硬性闸之后·均线之前(尺·漏斗顺序)
             "soft_filter": soft,
             "valuation": val,
             "moat": moat,
             "action": action,
             "one_line_reason": reason,
         })
-    # 基本面质量关(试行·尺=基本面质量关框架.html)：放硬性闸之后·三档判定·防误杀三条·缺数待接不编(总则:不锚死名单)
-    try:
-        from quality_gate import grade_holdings as _grade_quality
-        _quality_map = _grade_quality(holding_results)
-        for _h in holding_results:
-            _h["quality_gate"] = _quality_map.get(str(_h.get("symbol")), {"tier": "②", "tier_label": "趋势观察·不杀", "why": "待接"})
-    except Exception as _qe:                     # 质量关消费方缺失时不破坏既有产出(试行·可降级)
-        for _h in holding_results:
-            _h.setdefault("quality_gate", {"tier": "待接", "tier_label": "质量关待接", "why": f"质量关模块不可用({_qe})"})
 
     opportunities = []
     for item in dual.get("channel_2_trade_price", {}).get("instruments", []):

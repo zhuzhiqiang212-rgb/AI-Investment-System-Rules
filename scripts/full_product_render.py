@@ -27,7 +27,9 @@ except Exception:
 
 try:
     import earnings_report  # 财报窗口(日历+出财报估值自动重算+触发提示·派工单2026-07-14)
-except Exception:
+except Exception as _er_imp_exc:                 # 不静默:import失败要出声(序5·别让功能悄悄消失)
+    import sys as _sys
+    print(f"[WARN] earnings_report import 失败·财报窗口将缺失: {_er_imp_exc}", file=_sys.stderr)
     earnings_report = None  # type: ignore[assignment]
 
 try:
@@ -345,92 +347,10 @@ def cost_pnl_cell(symbol: str, cost_by_ticker: dict[str, dict[str, Any]]) -> str
     return '<span style="color:#9aa8b5;">成本待补·不显示假盈亏</span>'
 
 
-def target_price_block(symbol: str, price: Any, target_by_base: dict[str, dict[str, Any]]) -> str:
-    base = symbol.split(".")[-1]
-    target = target_by_base.get(base) or target_by_base.get(symbol)
-    if not target or target.get("take_profit") is None:
-        return '<div style="color:#9aa8b5;">目标价：待估值中枢·DCF待做（不显示假目标）</div>'
-
-    take_profit = target.get("take_profit")
-    currency = target.get("currency")
-    symbol_currency = "¥" if currency == "JPY" else "$" if currency == "USD" else currency_for_symbol(symbol)
-    # 目标价口径标记按 target 真实来源(精算覆盖→可信度A·标清哪种法；否则情景版·可信度B)，不写死
-    _vs = str(target.get("valuation_status") or "")
-    _is_val = "精算" in _vs
-    _mark = f"可信度A·{_vs}" if _is_val else "情景版·可信度B·非精算"
-    _mark_color = "#7ee0a0" if _is_val else "#ffa657"
-    target_line = (
-        f'<div>目标价(减仓线)：{esc(symbol_currency)}{esc(fmt_level(take_profit))}'
-        f'　<span style="color:{_mark_color};font-size:12px;">〔{_mark}〕</span></div>'
-    )
-    if price is None:
-        return target_line
-    try:
-        price_num = float(price)
-        target_num = float(take_profit)
-    except (TypeError, ValueError):
-        return target_line
-
-    if price_num >= target_num:
-        return target_line + '<div><span style="font-size:15px;font-weight:700;color:#ffa657;">🟠 已达目标价·考虑减仓</span></div>'
-    return target_line + f'<div style="color:#9aa8b5;font-size:12px;">未到目标价（现价 {esc(symbol_currency)}{esc(fmt_level(price))}）</div>'
-
-
-def price_level_cell(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]]) -> str:
-    symbol = str(item.get("symbol") or "")
-    ma = ma_by_symbol.get(symbol)
-    price = None
-    if ma:
-        price = ma.get("realtime_price")
-    if price is None:
-        price = item.get("realtime_price") or item.get("price")
-
-    if not ma or ma.get("ma50") is None or ma.get("ma200") is None:
-        low_stop_block = '<span style="color:#9aa8b5;">待拉·无均线（不显示假价）</span>'
-        return low_stop_block + target_price_block(symbol, price, target_by_base)
-
-    ma50 = ma.get("ma50")
-    ma200 = ma.get("ma200")
-    symbol_currency = currency_for_symbol(symbol)
-
-    try:
-        price_num = float(price)
-        ma50_num = float(ma50)
-        ma200_num = float(ma200)
-    except (TypeError, ValueError):
-        low_stop_block = '<span style="color:#9aa8b5;">待拉·无均线（不显示假价）</span>'
-        return low_stop_block + target_price_block(symbol, price, target_by_base)
-
-    if price_num <= ma200_num:
-        badge = '<span style="font-size:15px;font-weight:700;color:#f0616d;">🔴 跌破年线·止损区：考虑减/止损</span>'
-    elif price_num <= ma50_num:
-        badge = '<span style="font-size:15px;font-weight:700;color:#3ec38a;">🟢 回踩50日·低吸区：可考虑低吸/加</span>'
-    else:
-        badge = '<span style="font-size:15px;font-weight:700;color:#9ed8ff;">⚪ 在均线上方·持有观察（未到低吸/止损价）</span>'
-
-    low_stop_block = (
-        f'<div>低吸(回踩50日)：{esc(symbol_currency)}{esc(fmt_level(ma50))}</div>'
-        f'<div>止损(跌破年线)：{esc(symbol_currency)}{esc(fmt_level(ma200))}</div>'
-        f'<div>{badge}</div>'
-        f'<div style="color:#9aa8b5;font-size:12px;">现价 {esc(symbol_currency)}{esc(fmt_level(price))}</div>'
-    )
-    return low_stop_block + target_price_block(symbol, price, target_by_base)
-
-
-def holding_row(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], cost_by_ticker: dict[str, dict[str, Any]]) -> str:
-    return f"""
-    <tr>
-      <td>{esc(item.get('name'))}<br><span>{esc(item.get('symbol'))}</span></td>
-      <td>{esc(item.get('hard_filter'))}</td>
-      <td>{esc(item.get('soft_filter', {}).get('label'))}</td>
-      <td>{esc(item.get('valuation', {}).get('label'))}</td>
-      <td>{esc(moat_text(item.get('moat', {})))}</td>
-      <td>{'<span style="color:#7ee0a0;">已研究·见下</span>' if has_pack(item.get('symbol'), item.get('name')) else '<span style="color:#9aa8b5;">待补个股研究</span>'}</td>
-      <td>{price_level_cell(item, ma_by_symbol, target_by_base)}</td>
-      <td>{cost_pnl_cell(str(item.get('symbol') or ''), cost_by_ticker)}</td>
-      <td><b>{esc(item.get('action'))}</b><br>{esc(item.get('one_line_reason'))}</td>
-    </tr>
-    """
+# (序3清死代码#30)已删死代码链：target_price_block / price_level_cell / holding_row —
+# 三者构成旧表格式持仓行(含旧"低吸/止损"分支)，早已被 7区决策卡 holding_decision_card + holding_price_ladder 取代，
+# 全链无任何存活调用点(holding_row 无人调、price_level_cell 仅被 holding_row 调、target_price_block 仅被 price_level_cell 调)。
+# 纯清理·不改任何存活输出；现行价位展示走 holding_price_ladder(② 买卖价·合理区/买卖价)。
 
 
 def _action_badge(action: Any) -> tuple[str, str, str]:
@@ -752,8 +672,7 @@ HOLDING_NODE_MAP = {
     # 加密
     "MSTR": "加密", "COIN": "加密", "CRCL": "加密", "BTC": "加密", "ETH": "加密",
     "BTCUSD": "加密", "ETHUSD": "加密",
-    # 防御
-    "4568": "防御·医药", "8766": "防御·保险",
+    # (序3去死名单#29)原 "4568":"防御·医药"、"8766":"防御·保险" 已删——防御归类改由 DEFENSIVE_SIGNALS 关键词/sector 现判(见 _holding_node/_is_defensive)，不锚 ticker 死映射(总则第六条)
     # 其它非AI
     "6758": "消费电子", "7974": "游戏", "7832": "消费", "7203": "汽车",
     "8001": "商社", "IBKR": "金融",
@@ -785,26 +704,22 @@ def _is_crypto(symbol: str) -> bool:
 
 
 def _holding_node(item: dict[str, Any]) -> str | None:
-    """该持仓的节点归类：优先当日审查(闸激活时)的 matched_node_classes，为空则回退静态映射。"""
+    """该持仓的节点归类：优先当日审查(闸激活时)的 matched_node_classes，为空则回退静态映射。
+    (序3去死名单)防御不再靠 ticker 死映射→靠 DEFENSIVE_SIGNALS 关键词/sector 现判；判不出防御信号的非AI非加密归"其它"。"""
     classes = item.get("matched_node_classes_effective") or item.get("matched_node_classes_raw")
     if isinstance(classes, list) and classes:
         return str(classes[0])
-    return HOLDING_NODE_MAP.get(_base_ticker(str(item.get("symbol") or "")))
+    node = HOLDING_NODE_MAP.get(_base_ticker(str(item.get("symbol") or "")))
+    if node:
+        return node
+    if _is_defensive(item):        # 结构化现判防御(保险/医药/公用/必需消费·名称或sector信号)·非死名单
+        return "防御"
+    return None                    # 判不出→"其它"(_holding_node None·上层归未归类/非AI分散仓)
 
 
-# AI主线供应链持仓集(base ticker)：本单派工明列"NVDA/MSFT/AVGO/TSM/软银 都算进AI"。
-# 要把设备/存储/软件(爱德万/SNDK/META)也折进AI主线口径→加进本集即可(范围留架构师裁·不改尺)。
-AI_SUPPLY_HOLDINGS = {"NVDA", "MSFT", "AVGO", "TSM", "9984"}
-
-
-def _is_ai_supply(item: dict[str, Any]) -> bool:
-    classes = item.get("matched_node_classes_effective")
-    if not classes:
-        classes = item.get("matched_node_classes_raw")
-    if isinstance(classes, list) and classes:
-        return bool(set(str(c) for c in classes) & AI_SUPPLY_NODE_CLASSES)
-    # 当日闸弱→matched 为空：回退到派工明列的AI主线持仓集，AI占比不再假成0%
-    return _base_ticker(str(item.get("symbol") or "")) in AI_SUPPLY_HOLDINGS
+# (序3清死代码/对账#33)已删 _is_ai_supply + AI_SUPPLY_HOLDINGS：AI双口径统一后成孤儿——
+# 集中度%(窄·钱占比·L~899)与第1关方向(宽·per-stock·L~758)现【同用 _on_ai_node 一个 membership 源】(无串源)，
+# _is_ai_supply 已无任何调用点。纯清理·不改存活输出。
 
 
 def _is_defensive(item: dict[str, Any]) -> bool:
@@ -1418,11 +1333,13 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
     _qwhy = esc(str(_qg.get("why") or ""))
     _qruler = '<a href="基本面质量关框架.html" style="color:#8fd6ff;">质量关↗</a>'
     _qcolor = {"①": "#3ec38a", "③": "#f0616d", "NA": "#9aa8b5"}.get(_qtier, "#ffd479")  # ②→黄
+    _qbucket = esc(str(_qg.get("industry_bucket") or ""))
     if _qtier == "NA":
         quality_h = f'<span style="color:#9aa8b5;">{_qlab}</span>'
     else:
+        _q2 = '<b style="color:#ffd479;">没被误杀·在盯改善</b>；' if _qtier == "②" else ''
         quality_h = (f'<span style="color:{_qcolor};font-weight:700;">{esc(_qtier)} {_qlab}</span>'
-                     f'<span style="color:#9aa8b5;font-size:12px;">（{_qwhy}；试行·不入世界观·{_qruler}）</span>')
+                     f'<span style="color:#9aa8b5;font-size:12px;">（{_q2}{_qwhy}；门槛族={_qbucket}·试行·不入世界观·{_qruler}）</span>')
     # (序3清死代码)原 gate_block 已删：7区卡片改由"③几个角度看它"直接用 hard_h/quality_h/soft_h/val_h/moat_h·此变量早已无人引用
 
     cost_html = cost_pnl_cell(symbol, cost_by_ticker)
@@ -2754,7 +2671,7 @@ def build(date: str) -> str:
                      "price": _h.get("price")} for _h in production.get("holdings", [])]
         _qa_text = json.dumps({"date": date, "note": "质量关试行对账·每日快照(质量评级 vs 后续实际表现·供PDCA收紧门槛)",
                                "summary": _q_counts, "rows": _qa_rows}, ensure_ascii=False, indent=2)
-        (_qa_dir / f"quality_ledger_{date}.json").write_text(_qa_text, encoding="utf-8")
+        (_qa_dir / f"ledger_{date}.json").write_text(_qa_text, encoding="utf-8")
     except Exception:
         pass
     # ⑤ 徽章：复用 gate-1 计数(与⑨小标题、每卡第1关同一源·治打回·§8无自相矛盾)。
@@ -2790,7 +2707,9 @@ def build(date: str) -> str:
             _earn_cands = [{"symbol": c.get("symbol"), "name": c.get("name")} for c in OPP_WATCHLIST]
             earnings_block = earnings_report.first_screen_html(
                 date, production.get("holdings", []), _earn_cands, dcf_by_symbol, _earn_price)
-        except Exception:
+        except Exception as _er_exc:             # 不静默:财报窗口渲染失败要出声(序5)
+            import sys as _sys
+            print(f"[WARN] 财报窗口 first_screen_html 失败·第一屏将缺该块: {_er_exc}", file=_sys.stderr)
             earnings_block = ""
 
     return f"""<!doctype html>

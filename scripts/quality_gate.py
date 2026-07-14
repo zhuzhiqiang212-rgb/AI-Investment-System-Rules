@@ -25,12 +25,19 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+RULE_SOURCE = "00_请先看这里/基本面质量关框架.html"   # 本关依据的尺(试行·改尺走董事长)
 sys.path.insert(0, str(ROOT / "scripts"))
 try:
     from security_classifier import classify
 except Exception:
     def classify(symbol: Any, name: Any = "") -> dict:  # type: ignore[misc]
         return {"type": "", "model": "", "model_disp": ""}
+
+# 类型 → industry_bucket(尺§四门槛表的4行业·派工单②)：分行业门槛不一刀切
+INDUSTRY_BUCKET = {
+    "成长股": "制造软件品牌", "周期股": "半导体设备", "保险": "金融", "券商": "金融",
+    "综合商社": "金融", "控股公司": "金融", "资产": "资产",
+}
 
 # 类型 → 门槛族(尺§四·分行业·不一刀切)。门槛数值=试行示例·待董事长校准。
 BENCHMARK_FAMILY = {
@@ -55,13 +62,15 @@ IND_NAMES = {"gross_margin": "毛利率", "fcf": "自由现金流", "pricing_pow
 
 
 def _load_inputs() -> dict[str, dict]:
-    p = ROOT / "data" / "valuation" / "quality_inputs.json"
-    if not p.exists():
-        return {}
-    try:
-        return (json.loads(p.read_text(encoding="utf-8")) or {}).get("holdings", {}) or {}
-    except Exception:
-        return {}
+    # 结构化财报源(派工单③)：优先 data/fundamentals/fundamentals.json；兼容旧 data/valuation/quality_inputs.json
+    for p in (ROOT / "data" / "fundamentals" / "fundamentals.json",
+              ROOT / "data" / "valuation" / "quality_inputs.json"):
+        if p.exists():
+            try:
+                return (json.loads(p.read_text(encoding="utf-8")) or {}).get("holdings", {}) or {}
+            except Exception:
+                continue
+    return {}
 
 
 def _num(v):
@@ -182,7 +191,11 @@ def grade_holdings(holdings: list[dict]) -> dict[str, dict]:
         eff = h.get("matched_node_classes_effective") or []
         is_active = bool(eff) or (h.get("hard_filter") == "符合")
         ind = (inputs.get(sym) or inputs.get(sym.split(".")[-1]) or {}).get("indicators", {})
-        out[sym] = grade_one(sym, name, ind, is_active)
+        r = grade_one(sym, name, ind, is_active)
+        r["industry_bucket"] = INDUSTRY_BUCKET.get(r.get("type", ""), "制造软件品牌")  # 分行业门槛(派工单②)
+        r["rule_source"] = RULE_SOURCE                                                  # 依据尺
+        r["is_active_node"] = is_active                                                 # 是否当日激活趋势节点(防误杀联动)
+        out[sym] = r
     return out
 
 
