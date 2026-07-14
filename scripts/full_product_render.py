@@ -1411,8 +1411,21 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
         if _val_label in ("贵", "偏贵"):  # 估值偏贵→动作统一带"可择机减"(治#7/#13·卡与研究不打架)
             val_h += '<span style="color:#ffd479;font-size:12px;">→ 偏贵·可择机减回纪律</span>'
     moat_h = plain_moat(item.get("moat", {}))
+    # 质量关(试行·尺=基本面质量关框架)：账本硬不硬·三档不杀两档·放硬性闸后。标黄=②趋势观察·不杀(防误杀)
+    _qg = item.get("quality_gate", {}) or {}
+    _qtier = str(_qg.get("tier") or "")
+    _qlab = esc(str(_qg.get("tier_label") or "待接"))
+    _qwhy = esc(str(_qg.get("why") or ""))
+    _qruler = '<a href="基本面质量关框架.html" style="color:#8fd6ff;">质量关↗</a>'
+    _qcolor = {"①": "#3ec38a", "③": "#f0616d", "NA": "#9aa8b5"}.get(_qtier, "#ffd479")  # ②→黄
+    if _qtier == "NA":
+        quality_h = f'<span style="color:#9aa8b5;">{_qlab}</span>'
+    else:
+        quality_h = (f'<span style="color:{_qcolor};font-weight:700;">{esc(_qtier)} {_qlab}</span>'
+                     f'<span style="color:#9aa8b5;font-size:12px;">（{_qwhy}；试行·不入世界观·{_qruler}）</span>')
     gate_block = (
         f'<div style="margin:2px 0;">· 方向对不对：{hard_h}</div>'
+        f'<div style="margin:2px 0;">· 账本硬不硬（质量关·试行）：{quality_h}</div>'
         f'<div style="margin:2px 0;">· 位置贵不贵：{soft_h}</div>'
         f'<div style="margin:2px 0;">· 价格值不值：{val_h}</div>'
         f'<div style="margin:2px 0;">· 生意硬不硬（护城河=靠什么长期赚钱、对手难抢）：{moat_h}</div>'
@@ -1529,6 +1542,7 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
       <!-- ③ 几个角度看它 -->
       <div class="dc-row" style="margin:7px 0;"><div class="dc-lab">③ 几个<br>角度看它</div><div class="dc-val" style="line-height:1.9;">
         <div style="margin:5px 0;">· <b style="color:#ffe4a8;">生意硬不硬</b>：{moat_h}　{fund_read}</div>
+        <div style="margin:5px 0;">· <b style="color:#ffe4a8;">账本硬不硬（质量关·试行）</b>：{quality_h}</div>
         <div style="margin:5px 0;">· <b style="color:#ffe4a8;">价位高不高（均线）</b>：{soft_h}</div>
         <div style="margin:5px 0;">· <b style="color:#ffe4a8;">贵不贵</b>：{val_h}</div>
         <div style="margin:5px 0;">· <b style="color:#ffe4a8;">要当心啥</b>：<span style="color:#bcd8ee;">{risk_read}</span></div>
@@ -2729,10 +2743,31 @@ def build(date: str) -> str:
     s_dir = find_link(daily, ['战略指向']).get('direction')
     close_loop = f"闭环：世界观{w_dir} → 总闸{f_dir} → 战略{s_dir}，一条线推出今天「{today_short}」的口径。"
 
+    # 质量关(试行)本日三档汇总 + 试行期对账记录(供PDCA:质量评级 vs 实际表现)
+    _q_counts = {"①": 0, "②": 0, "③": 0, "NA": 0, "待接": 0}
+    for _h in production.get("holdings", []):
+        _t = str((_h.get("quality_gate", {}) or {}).get("tier") or "待接")
+        _q_counts[_t] = _q_counts.get(_t, 0) + 1
+    _q_summary = (f"①优质{_q_counts['①']} · ②趋势观察不杀{_q_counts['②']} · ③硬伤淘汰{_q_counts['③']} · "
+                  f"资产NA{_q_counts['NA']}（数据待理解岗接·从宽不误杀）")
+    try:
+        _qa_dir = ROOT / "data" / "quality_gate"
+        _qa_dir.mkdir(parents=True, exist_ok=True)
+        _qa_rows = [{"symbol": _h.get("symbol"), "name": _h.get("name"),
+                     "tier": (_h.get("quality_gate", {}) or {}).get("tier"),
+                     "type": (_h.get("quality_gate", {}) or {}).get("type"),
+                     "why": (_h.get("quality_gate", {}) or {}).get("why"),
+                     "price": _h.get("price")} for _h in production.get("holdings", [])]
+        _qa_text = json.dumps({"date": date, "note": "质量关试行对账·每日快照(质量评级 vs 后续实际表现·供PDCA收紧门槛)",
+                               "summary": _q_counts, "rows": _qa_rows}, ensure_ascii=False, indent=2)
+        (_qa_dir / f"quality_ledger_{date}.json").write_text(_qa_text, encoding="utf-8")
+    except Exception:
+        pass
     # ⑤ 徽章：复用 gate-1 计数(与⑨小标题、每卡第1关同一源·治打回·§8无自相矛盾)。
     badge_text = (f"五关·第1关方向已判：{g1_ai}只在AI承接节点上 · {g1_crypto}只加密按纪律控敞口 · {g1_div}只非AI分散仓；"
                   f"第2关位置已用均线现算（MA200/60日高低）；估值第3关：按类型自动选模型精算（覆盖{sum(1 for r in dcf_by_symbol.values() if r.get('status')=='OK')}只·可信度A），其余按类型待接真源。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
-                  f"逐关=方向→位置→估值→护城河→深研，一关一关过（不是没做）")
+                  f"逐关=方向→账本硬不硬(质量关·试行)→位置→估值→护城河→深研，一关一关过（不是没做）。"
+                  f"质量关(试行·防误杀三条)本日：{_q_summary}")
 
     # A · 护城河重评提示：沿用超阈值 → 页首醒目横幅(只提示不改评级·总则第十二条)
     moat_reeval_msg = production.get("fingerprint", {}).get("moat_reeval_msg")

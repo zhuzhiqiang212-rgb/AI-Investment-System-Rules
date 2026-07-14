@@ -338,6 +338,15 @@ def build(date: str) -> dict[str, Any]:
             "action": action,
             "one_line_reason": reason,
         })
+    # 基本面质量关(试行·尺=基本面质量关框架.html)：放硬性闸之后·三档判定·防误杀三条·缺数待接不编(总则:不锚死名单)
+    try:
+        from quality_gate import grade_holdings as _grade_quality
+        _quality_map = _grade_quality(holding_results)
+        for _h in holding_results:
+            _h["quality_gate"] = _quality_map.get(str(_h.get("symbol")), {"tier": "②", "tier_label": "趋势观察·不杀", "why": "待接"})
+    except Exception as _qe:                     # 质量关消费方缺失时不破坏既有产出(试行·可降级)
+        for _h in holding_results:
+            _h.setdefault("quality_gate", {"tier": "待接", "tier_label": "质量关待接", "why": f"质量关模块不可用({_qe})"})
 
     opportunities = []
     for item in dual.get("channel_2_trade_price", {}).get("instruments", []):
