@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>派工单 · 清尾三项 · 20260714</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--soft:#9db0c2;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;--bad:#ff6b6b;}
+*{box-sizing:border-box;}body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.7;font-size:15px;}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 80px;}
+.hdr{padding:16px 20px;background:linear-gradient(135deg,#20402f,#153025);border:1px solid #2f5540;border-radius:14px;margin-bottom:12px;}
+.hdr h1{font-size:19px;margin:0 0 4px;}.hdr .sub{color:#a9d0b9;font-size:12.5px;}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:11px 0;padding:13px 16px;}
+.sec h2{font-size:15.5px;margin:0 0 7px;color:#ffe4a8;}
+.sec p,.sec li{font-size:13.3px;}b{color:#fff;}.bad{color:#ff6b6b;}.good{color:#7ee0a0;}.key{color:#5cc8ff;}
+ol,ul{margin:6px 0;padding-left:20px;}li{margin:6px 0;}
+code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#9ed8ff;}
+.rule{background:#12261c;border:2px solid #285039;border-radius:10px;padding:11px 14px;margin:9px 0;}.rule b{color:#7ee0a0;}
+.hard{background:#2a1414;border:1px solid #5a2a2a;border-radius:10px;padding:11px 14px;margin:9px 0;}.hard b{color:#ff9a9a;}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hdr">
+  <h1>派工单 · 清尾三项（去死名单 · 清死代码 · 集中度对账）</h1>
+  <div class="sub">出单：Cowork（首席架构师）｜ 执行：机器侧 Code ｜ 2026-07-14 ｜ 目标文件：scripts/full_product_render.py ｜ 只读不下单</div>
+</div>
+
+<div class="rule">
+  <b>■ 总则对照 / 边界：</b>依据总则<b>第六条（动静分清·不锚死名单）</b>与铁律<b>覆盖不堆版本、缺不编、删文件要董事长签字</b>。本单只清理/重构，<b>不改任何"尺"结论、不改分类判定口径</b>，输出数值应<b>与清理前一致</b>（纯重构，非改逻辑）。
+</div>
+
+<div class="sec">
+  <h2>① 去死名单：防御分类改结构化 sector（#29）</h2>
+  <p>现 <code>full_product_render.py</code> 里 <code>HOLDING_NODE_MAP</code> 硬编码了 <code>"4568":"防御·医药"</code>、<code>"8766":"防御·保险"</code> 等<b class="bad">按代码写死的防御名单</b>——违总则第六条"不锚死名单"。</p>
+  <p><b class="key">改</b>：防御归类改成<b>靠结构化 sector/node_class + <code>DEFENSIVE_SIGNALS</code> 关键词现判</b>（保险/医药/公用/必需消费…），<b>删掉 ticker→防御 的死映射项</b>。判不出防御信号的非AI非加密持仓归"其它"，不硬塞。<b>sector 字段从哪读、怎么补，Code 自决并写依据</b>；若持仓数据暂无结构化 sector → 标"sector待接"、暂回退关键词判，不编。</p>
+</div>
+
+<div class="sec">
+  <h2>② 清死代码：price_level_cell 旧低吸逻辑（#30）</h2>
+  <p><code>price_level_cell()</code>（约 line 379）里残留<b>旧"低吸"逻辑</b>（早期低吸价位/买点判定，现产品已不走这套）。</p>
+  <p><b class="key">清</b>：删掉不再被调用的旧低吸分支/死变量，只保留现行价位区间展示。<b>清前先 grep 确认无其它调用点</b>，删后 <code>py_compile</code> 过、渲染输出与清前一致（纯清理）。哪些算死代码由 Code 判定并列清单。</p>
+</div>
+
+<div class="sec">
+  <h2>③ AI集中度双口径源头对账 + 清探针文件（#33）</h2>
+  <p>系统里 AI 有<b>两个口径</b>：⑨集中度的"<b>AI供应链占比（45%限·窄口径）</b>"vs 第1关"<b>在不在AI承接链上（方向判定·宽口径）</b>"（代码 line 819-821 已注明是两个度量）。曾出过"52.4% vs 43%"打架。</p>
+  <p><b class="key">对账</b>：核两口径<b>各自的源头数据与定义是否清晰隔离、有没有串源/漂移</b>；确认集中度%只用窄口径源、方向判定只用宽口径源，产品里两处措辞不混。出一份<b>对账小结</b>（各口径定义/取数/当前值/是否一致）。</p>
+  <p><b class="key">清探针</b>：仓库根有 <code>_probe.txt</code>、<code>_sync_probe.txt</code>、<code>_probe_marker.txt</code> 三个探针/标记临时文件。<b class="bad">铁律：删文件要董事长签字</b> → 本单<b>不硬删</b>，改为<b>移进 <code>_历史归档</code></b>并在回报里列清单，待董事长点头再删。</p>
+</div>
+
+<div class="hard">
+  <b>回报规矩</b>：①贴改了哪些文件 + <code>py_compile</code> RC；②重跑 <code>full_product_render --date 20260714</code>，自证<b>集中度%、防御占比、价位区间三处数值与清理前一致</b>（纯重构无改数）；③grep 自证：<code>HOLDING_NODE_MAP</code> 已无 ticker→防御 死项、price_level_cell 无旧低吸残留调用；④探针三文件已移 <code>_历史归档</code>（未删，列清单）；⑤附 AI 双口径对账小结；⑥乱码 <code>EF BF BD</code>=0；⑦第一个报错停、原样贴回。<br>
+  <b>技术判断（sector 取数、哪些算死代码、对账实现）Code 自决写依据，别问董事长；只有"探针文件删不删"要董事长签字。</b>
+</div>
+</div></body></html>

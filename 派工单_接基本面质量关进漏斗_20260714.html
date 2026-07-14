@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>派工单 · 接基本面质量关进漏斗 · 20260714</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--soft:#9db0c2;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;--bad:#ff6b6b;}
+*{box-sizing:border-box;}body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.7;font-size:15px;}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 80px;}
+.hdr{padding:16px 20px;background:linear-gradient(135deg,#20402f,#153025);border:1px solid #2f5540;border-radius:14px;margin-bottom:12px;}
+.hdr h1{font-size:19px;margin:0 0 4px;}.hdr .sub{color:#a9d0b9;font-size:12.5px;}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:11px 0;padding:13px 16px;}
+.sec h2{font-size:15.5px;margin:0 0 7px;color:#ffe4a8;}
+.sec p,.sec li{font-size:13.3px;}b{color:#fff;}.bad{color:#ff6b6b;}.good{color:#7ee0a0;}.key{color:#5cc8ff;}
+ol,ul{margin:6px 0;padding-left:20px;}li{margin:6px 0;}
+code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#9ed8ff;}
+.rule{background:#12261c;border:2px solid #285039;border-radius:10px;padding:11px 14px;margin:9px 0;}.rule b{color:#7ee0a0;}
+.hard{background:#2a1414;border:1px solid #5a2a2a;border-radius:10px;padding:11px 14px;margin:9px 0;}.hard b{color:#ff9a9a;}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12.6px;}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;}th{background:#1c2c3a;color:#ffe4a8;}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hdr">
+  <h1>派工单 · 把"基本面质量关（试行）"接进漏斗</h1>
+  <div class="sub">出单：Cowork（首席架构师）｜ 执行：机器侧 Code ｜ 2026-07-14 ｜ 依据尺：00_请先看这里/《基本面质量关框架（试行）》｜ 只读不下单</div>
+</div>
+
+<div class="rule">
+  <b>■ 总则对照 / 边界：</b><br>
+  依据《基本面质量关框架（试行）》定稿。<b>动静分清</b>（总则第六条）：只锚指标定义+门槛尺+趋势判定法，<b>不锚死名单</b>，哪只票落①②③全由数据现算。<b>缺不编</b>：任何字段缺一律标"待接/待评/NA"，不猜不填。<b>不改尺结论</b>：框架内容不动；门槛具体数值属"试行初值"，你可设并写依据（见下自决声明）。<b>覆盖不堆版本、只读不下单。</b>
+</div>
+
+<div class="sec">
+  <h2>① 建质量关模块 <code>scripts/quality_gate.py</code></h2>
+  <p>读《基本面质量关框架（试行）》为 <code>RULE_SOURCE</code>。对每只标的算出<b>三档结果</b>：</p>
+  <ul>
+    <li><b class="good">① 优质·通过</b>：各项达标、无硬伤。</li>
+    <li><b class="hi">② 趋势观察·不杀</b>（防误杀通道）：某项未达门槛，<b>但趋势向上，或属当日激活的趋势节点</b> → <b class="bad">不淘汰</b>，标"质量改善中·标黄"，附"缺哪项+改善证据"。</li>
+    <li><b class="bad">③ 硬伤·淘汰</b>：账本硬伤<b>且</b>无改善趋势（长期FCF负且恶化/资不抵债/毛利持续低于门槛且下滑）。</li>
+  </ul>
+  <p><b class="key">防误杀三条必须实现</b>：(a)毛利率/FCF/订单可见度看环比/同比<b>趋势方向</b>，改善中的归②不归③；(b)与硬性闸<b>激活节点联动</b>——属激活趋势节点的<b>只降到②、绝不③</b>；(c)试行期②通道从宽。</p>
+</div>
+
+<div class="sec">
+  <h2>② 五项指标 · 分行业门槛（试行初值，你定并写依据）</h2>
+  <table>
+  <tr><th>指标</th><th>制造/软件/品牌</th><th>金融</th><th>零售/分销</th><th>半导体/设备</th></tr>
+  <tr><td>毛利率</td><td>≥45%(示例线)</td><td>豁免→净利率/ROE/坏账率</td><td>豁免→净利率/周转</td><td>按代工/设备结构</td></tr>
+  <tr><td>自由现金流</td><td>为正+现金转化率</td><td>豁免→资本充足/拨备</td><td>为正</td><td>为正(周期底可入②)</td></tr>
+  <tr><td>订价权</td><td colspan="4">全行业评级 强/中/弱</td></tr>
+  <tr><td>资产负债表</td><td colspan="4">净负债/EBITDA上限、利息覆盖下限、现金安全；金融另走杠杆/资本充足</td></tr>
+  <tr><td>订单可见度</td><td>指引/递延/续约率</td><td>NA</td><td>NA</td><td>backlog、book-to-bill</td></tr>
+  </table>
+  <p><b class="key">行业归类</b>：给每只标的打 <code>industry_bucket</code>（制造软件品牌/金融/零售分销/半导体设备），按对应门槛判。<b>具体数值(45%线、净负债倍数、覆盖倍数、book-to-bill阈值)你设试行初值+写依据注，不问董事长；框架标了"待董事长终审"，你的初值先跑起来。</b></p>
+</div>
+
+<div class="sec">
+  <h2>③ 数据源 + 缺不编</h2>
+  <p>财报字段(毛利率/FCF/负债表口径)如无真源，<b>建 <code>data/fundamentals/</code> 结构化 schema（理解岗/财报源维护），缺字段一律标"待接"</b>，绝不编数。订价权/订单可见度偏定性 → 理解岗评级字段，缺标"待评/NA"。现金流可复用现有 DCF 同源。<b>schema 字段命名、文件结构你自决并写清。</b></p>
+</div>
+
+<div class="sec">
+  <h2>④ 接进漏斗（硬性闸后）</h2>
+  <p>在 <code>production_pipeline.py</code> 里，<b>硬性闸(激活节点)之后、均线技术之前</b>插入质量关：给每只输出 <code>quality_gate</code> 字段(档位①②③ + 缺项 + 改善证据 + 依据)。③淘汰的不再进后续关；①②照常往下。<b>产品 render 里把质量档显示出来（大白话：账本硬不硬+为什么），②标黄+写"没被误杀·在盯改善"。</b></p>
+</div>
+
+<div class="sec">
+  <h2>⑤ 试行期对账记录</h2>
+  <p>建 <code>data/quality_gate/ledger_YYYYMMDD.json</code>：记每只当日质量档 + 关键指标值，供日后"质量评级 vs 实际表现"对账、逐步校准门槛。</p>
+</div>
+
+<div class="hard">
+  <b>回报规矩</b>：①贴改/建了哪些文件 + <code>py_compile</code> RC；②跑 <code>quality_gate</code> 单测 + 重跑 <code>production_pipeline --date 20260714</code>；③grep 自证：三档都能出、②防误杀通道生效(造一个"未达标但趋势向上/属激活节点"的样例落②不落③)、缺字段标"待接/待评/NA"无编数；④乱码 <code>EF BF BD</code>=0；⑤第一个报错停、原样贴回。<br>
+  <b>技术选择(门槛试行初值、industry_bucket归类、schema字段、趋势判定实现)你自己定并写依据，别问董事长。真正要董事长定的只有：门槛终值、②通道宽严、是否升格——这些标"待董事长终审"即可，先用你的初值跑起来。</b>
+</div>
+</div></body></html>
