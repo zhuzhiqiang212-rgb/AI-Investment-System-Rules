@@ -11,6 +11,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+_RENDER_DATE = ""   # build() 时置为当日·供无 date 参数的子渲染取用(财报徽章等)
 
 try:
     from judgment_worldview_render import judgment_card
@@ -23,6 +24,11 @@ try:
 except Exception:
     def classify_security(symbol: Any, name: Any = "") -> dict[str, str]:  # type: ignore[misc]
         return {"type": "", "type_reason": "", "model": "", "model_disp": "", "source": ""}
+
+try:
+    import earnings_report  # 财报窗口(日历+出财报估值自动重算+触发提示·派工单2026-07-14)
+except Exception:
+    earnings_report = None  # type: ignore[assignment]
 
 try:
     from stock_research_render import stock_research_card, stock_research_section, has_pack
@@ -1728,6 +1734,16 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
         cheap = state["cheap_by_symbol"].get(symbol)
         if state.get("cheap_hits", {}).get(symbol):
             d_items.append(color_item(f"🟢 {name} 现价已跌破加仓买入线·可分批低吸（现价{fmt_level(price)}/买入线{fmt_level(cheap)}）", "#3ec38a"))
+    # 财报提示(派工单2026-07-14)：某只出了财报→同类型模型自动重算估值→是否触发买卖/换仓；今天出财报→留意。置顶(机会窗口最该看)
+    if earnings_report is not None:
+        try:
+            for _e in earnings_report.inspection_items(
+                    date, production.get("holdings", []),
+                    [{"symbol": c.get("symbol"), "name": c.get("name")} for c in OPP_WATCHLIST],
+                    dcf_by_symbol or {}, state.get("price_by_symbol", {})):
+                d_items.insert(0, color_item(_e, "#ffd479"))
+        except Exception:
+            pass
     if not d_items:
         d_items.append("<li>今天没有持仓触发操作级关键价（跌破加仓买入线/危险价/目标价）；个别现价虽落在便宜区（低于合理区下沿），但还没跌到更低一档的加仓买入线，暂不构成动作</li>")
     weak_items = [
@@ -2084,7 +2100,16 @@ def opportunity_section(production: dict[str, Any], concentration: dict[str, Any
         # 候选一样按类型【自动选模型】(尺=右栏_估值方法学)：分类器归类→该用哪个模型；无真估值输入→待接不编
         _cls = classify_security(c.get("symbol") or c["name"], c["name"])
         _ruler = '<a href="右栏_估值方法学.html" style="color:#8fd6ff;">方法学↗</a>'
-        model_line = (f'<span style="color:#c9a86a;font-size:12px;">归类<b>{esc(_cls.get("type",""))}</b>→该用<b>{esc(_cls.get("model_disp",""))}</b>·可信度上限A；{_ruler}</span>')
+        # 财报窗口标记(派工单2026-07-14)：候选近期出财报→📅提示(出报后估值自动重算)
+        _ebadge = ""
+        if earnings_report is not None:
+            try:
+                _ebadge = earnings_report.badge_for(c.get("symbol"), c["name"], _RENDER_DATE)
+            except Exception:
+                _ebadge = ""
+        model_line = (f'归类<b>{esc(_cls.get("type",""))}</b>→该用<b>{esc(_cls.get("model_disp",""))}</b>·可信度上限A；{_ruler}'
+                      + (f'　{_ebadge}' if _ebadge else ""))
+        model_line = f'<span style="color:#c9a86a;font-size:12px;">{model_line}</span>'
         # A线候选现价(Yahoo·接不到→待接不编价)；便宜买点仍需候选真估值输入→待接
         _cp = cprices.get(c["name"], {}) or {}
         if _cp.get("status") == "OK" and _cp.get("price") is not None:
@@ -2543,6 +2568,8 @@ def sector_trend_section(daily: dict[str, Any], production: dict[str, Any] | Non
 
 
 def build(date: str) -> str:
+    global _RENDER_DATE
+    _RENDER_DATE = date          # 供 opportunity_section 等无 date 参数处取当日(财报徽章等)
     daily_path = ROOT / "data" / "evidence_chain" / f"daily_{date}.json"
     production_path = ROOT / "data" / "reports" / f"production_{date}.json"
     pdca_daily_path = ROOT / "data" / "pdca" / f"pdca_daily_{date}.json"
@@ -2726,6 +2753,17 @@ def build(date: str) -> str:
     _snap_dd = str((daily.get("rule_engine", {}) or {}).get("inputs_used", {}).get("snapshot_data_date", ""))[:10]
     market_date_text = _snap_dd if _snap_dd else "待接"
 
+    # 财报窗口·第一屏(派工单2026-07-14)：谁快出财报/谁出了财报估值怎么变/是否触发买卖·顶到最前
+    earnings_block = ""
+    if earnings_report is not None:
+        try:
+            _earn_price = {str(h.get("symbol")): h.get("price") for h in production.get("holdings", [])}
+            _earn_cands = [{"symbol": c.get("symbol"), "name": c.get("name")} for c in OPP_WATCHLIST]
+            earnings_block = earnings_report.first_screen_html(
+                date, production.get("holdings", []), _earn_cands, dcf_by_symbol, _earn_price)
+        except Exception:
+            earnings_block = ""
+
     return f"""<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -2847,6 +2885,7 @@ def build(date: str) -> str:
         </details>
       </div>
     </header>
+    {earnings_block}
     {inspection_panel(date, daily, production, ma_by_symbol, target_by_base, dcf_by_symbol)}
     {chain_logic_section(daily)}
     <section class="grid">
