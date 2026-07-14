@@ -19,6 +19,12 @@ except Exception:  # 判断包消费方缺失时不破坏既有产品
         return ""
 
 try:
+    from security_classifier import classify as classify_security  # 类型自动分类→模型(尺·供机会池候选记模型)
+except Exception:
+    def classify_security(symbol: Any, name: Any = "") -> dict[str, str]:  # type: ignore[misc]
+        return {"type": "", "type_reason": "", "model": "", "model_disp": "", "source": ""}
+
+try:
     from stock_research_render import stock_research_card, stock_research_section, has_pack
 except Exception:  # 个股研究消费方缺失时不破坏既有产品
     def has_pack(symbol: Any, name: Any) -> bool:  # type: ignore[misc]
@@ -1339,6 +1345,23 @@ def plain_decision_quality(level: Any) -> str:
     return text
 
 
+def _assump_brief(r: dict[str, Any]) -> str:
+    """精算结果→一行关键假设(供持仓卡记录·PDCA对照)。按模型摘取要点。"""
+    a = r.get("assumptions", {}) or {}
+    m = r.get("model")
+    try:
+        if m == "growth_dcf":
+            return f"增速{float(a.get('g_stage1',0))*100:.0f}%/折现{float(a.get('wacc',0))*100:.0f}%/永续{float(a.get('terminal_g',0))*100:.1f}%·{a.get('years','')}年"
+        if m == "nav":
+            d = a.get("控股折价")
+            return f"每股NAV{r.get('currency','')}{a.get('每股NAV','')}·控股折价{(f'{float(d)*100:.0f}%' if d is not None else '0%')}"
+        if m in ("mid_cycle", "normalized_pe", "pbv"):
+            return str(a.get("法") or r.get("model_disp") or "")
+    except (TypeError, ValueError):
+        pass
+    return str(r.get("model_disp") or "")
+
+
 def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str, Any]], target_by_base: dict[str, dict[str, Any]], cost_by_ticker: dict[str, dict[str, Any]], concentration: dict[str, Any] | None = None, ai_strength: str = "", sector_state: str = "", dcf_by_symbol: dict[str, dict[str, Any]] | None = None, gen_holdings: dict[str, Any] | None = None) -> str:
     """每只持仓一张决策卡·7区重排(模板卡2026-07-13)：①动作条置顶 ②价位阶梯 ③多维体检四维 ④同类对比
     ⑤决策五格(超限展开) ⑥成本盈亏 ⑦深研L3折叠。A线数据现算、B线读 gen_holdings 填文字·缺标待理解岗补深。
@@ -1366,14 +1389,19 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
         val_h = "资产·不做企业估值（比特币/以太坊是资产、没有财报，只看币价+仓位纪律，不给公司估值区间）"
     else:
         val_h = plain_valuation(_val_label)
-        # 第3关估值：有精算(可信度A·分类型:成长DCF/NAV/中周期/PB)则显示合理区/中枢+标清哪种法；无则相对估值+标"待精算"
+        # 第3关估值：按类型自动选模型(尺=右栏_估值方法学)。有精算→记「归类X→用Y模型+关键假设+可信度A」并链到尺(供PDCA)；
+        # 缺真输入→按类型标"该用Y模型·待接真源不硬编"；有相对估值实例→标"相对估值·待精算"。
         _dcf = (dcf_by_symbol or {}).get(symbol)
+        _ruler = '<a href="右栏_估值方法学.html" style="color:#8fd6ff;">方法学↗</a>'
         if _dcf and _dcf.get("status") == "OK":
             _c = esc(str(_dcf.get("currency", "$")))
             _md = esc(str(_dcf.get("method_disp") or "精算"))
-            val_h += (f'<span style="color:#7ee0a0;font-size:12px;">（<b>{_md}·可信度A</b>：合理区 {_c}{esc(str(_dcf.get("reasonable_low")))}~{_c}{esc(str(_dcf.get("reasonable_high")))}、中枢 {_c}{esc(str(_dcf.get("target")))}；输入见val_inputs）</span>')
+            _ty = esc(str(_dcf.get("type") or ""))
+            val_h += (f'<span style="color:#7ee0a0;font-size:12px;">（归类<b>{_ty}</b>→自动用<b>{_md}</b>·可信度A：合理区 {_c}{esc(str(_dcf.get("reasonable_low")))}~{_c}{esc(str(_dcf.get("reasonable_high")))}、中枢 {_c}{esc(str(_dcf.get("target")))}；关键假设 {esc(_assump_brief(_dcf))}；{_ruler}）</span>')
+        elif _dcf and _dcf.get("status") == "待接真源":  # 已归类但缺真输入→标该用哪个模型·待接不编
+            val_h += (f'<span style="color:#c9a86a;font-size:12px;">（归类<b>{esc(str(_dcf.get("type") or ""))}</b>→该用<b>{esc(str(_dcf.get("method_disp") or ""))}</b>·<b>待接真源</b>(缺真财务输入·不硬编)；{_ruler}）</span>')
         elif _val_label and "待" not in _val_label:  # 有估值实例→标"相对估值·非精算·待精算"(治#5/③)
-            val_h += '<span style="color:#8ea3b6;font-size:12px;">（相对估值·非精算·来源valuation实例·<b>精算待补</b>）</span>'
+            val_h += f'<span style="color:#8ea3b6;font-size:12px;">（相对估值·非精算·来源valuation实例·<b>精算待补</b>；{_ruler}）</span>'
         if _val_label in ("贵", "偏贵"):  # 估值偏贵→动作统一带"可择机减"(治#7/#13·卡与研究不打架)
             val_h += '<span style="color:#ffd479;font-size:12px;">→ 偏贵·可择机减回纪律</span>'
     moat_h = plain_moat(item.get("moat", {}))
@@ -1727,8 +1755,8 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
     # DCF/护城河待办从卡片实况现算(治派工单③)：资产口径(BTC/ETH·CC.*)不做企业估值/护城河、不计入待办。
     _holds = production.get("holdings", [])
     _stocks = [h for h in _holds if not str(h.get("symbol") or "").startswith("CC.")]
-    _dcf_done = len(dcf_by_symbol or {})
-    dcf_pending_count = max(0, len(_stocks) - _dcf_done)   # 待DCF的股票数=股票数−已精算数(与卡片"可信度A/待DCF"一致)
+    _dcf_done = sum(1 for r in (dcf_by_symbol or {}).values() if r.get("status") == "OK")  # 只数精算成功的·待接不算已做
+    dcf_pending_count = max(0, len(_stocks) - _dcf_done)   # 待精算股票数=股票数−已精算数(与卡片"可信度A/待接"一致)
     moat_pending_count = sum(
         1 for item in _stocks
         if (item.get("moat", {}) or {}).get("total_score") is None
@@ -2053,22 +2081,26 @@ def opportunity_section(production: dict[str, Any], concentration: dict[str, Any
     cards = ""
     for c in OPP_WATCHLIST:
         gc = gen.get(c["name"], {}) or {}
-        # A线候选现价(Yahoo·接不到→待接不编价)；便宜买点仍需候选估值源→待接
+        # 候选一样按类型【自动选模型】(尺=右栏_估值方法学)：分类器归类→该用哪个模型；无真估值输入→待接不编
+        _cls = classify_security(c.get("symbol") or c["name"], c["name"])
+        _ruler = '<a href="右栏_估值方法学.html" style="color:#8fd6ff;">方法学↗</a>'
+        model_line = (f'<span style="color:#c9a86a;font-size:12px;">归类<b>{esc(_cls.get("type",""))}</b>→该用<b>{esc(_cls.get("model_disp",""))}</b>·可信度上限A；{_ruler}</span>')
+        # A线候选现价(Yahoo·接不到→待接不编价)；便宜买点仍需候选真估值输入→待接
         _cp = cprices.get(c["name"], {}) or {}
         if _cp.get("status") == "OK" and _cp.get("price") is not None:
             price_txt = (f'现价 {esc(str(_cp.get("currency", "")))}{esc(str(_cp.get("price")))}'
                          f'<span style="color:#8ea3b6;font-size:12px;">（Yahoo·{esc(str(_cp.get("yahoo", "")))}）</span>')
-            cond2 = f'{wait_src}（现价已接{esc(str(_cp.get("currency", "")))}{esc(str(_cp.get("price")))}·但候选没有估值源、算不出"便宜买点"→待接）'
+            cond2 = f'{wait_src}（现价已接·归类{esc(_cls.get("type",""))}→该用{esc(_cls.get("model_disp",""))}·但缺真财务输入、算不出"便宜买点"→待接不编）'
         else:
             price_txt = f'{wait_src}（候选行情没接到·不编价）'
-            cond2 = f'{wait_src}（候选无行情+无估值·算不出便宜买点）'
+            cond2 = f'{wait_src}（候选无行情+缺真估值输入·算不出便宜买点）'
         cmp_txt = esc(str(gc.get("多维对比") or "").strip()) if str(gc.get("多维对比") or "").strip() else wait
         buy_txt = esc(str(gc.get("买点逻辑") or "").strip()) if str(gc.get("买点逻辑") or "").strip() else wait
         concl = esc(str(gc.get("今天结论") or "").strip()) if str(gc.get("今天结论") or "").strip() else wait
         cards += f"""
     <div class="dc-card dc-soft" style="margin:9px 0;">
       <div class="dc-top"><div class="dc-title">候选：{esc(c['name'])}（{esc(c['node'])}）</div><div class="dc-badge dc-soft">常备·盯条件</div></div>
-      <div class="dc-row" style="margin:6px 0;"><div class="dc-lab">多少钱<br>买</div><div class="dc-val" style="line-height:1.8;">{price_txt}；便宜买点：{buy_txt}</div></div>
+      <div class="dc-row" style="margin:6px 0;"><div class="dc-lab">多少钱<br>买</div><div class="dc-val" style="line-height:1.8;">{price_txt}；便宜买点：{buy_txt}<br>{model_line}</div></div>
       <div class="dc-row" style="margin:6px 0;"><div class="dc-lab">换手里<br>谁</div><div class="dc-val">{esc("、".join(n for _, n in c['swap']))}（手里同类里更该动的）</div></div>
       <div class="dc-row" style="margin:6px 0;"><div class="dc-lab">4个条件<br>到了没</div><div class="dc-val" style="line-height:1.9;">
         <div style="margin:4px 0;">① 候选比被换更能守（护城河）：{wait_src}（候选底子还没评）</div>
@@ -2580,18 +2612,21 @@ def build(date: str) -> str:
     _sector = find_link(daily, ["板块轮动"]) or {}
     ai_strength = f"{_strat.get('strength', '')}{_strat.get('direction', '')}"
     sector_state = str(_sector.get("direction", ""))
-    # 分类型精算结果(派工单2026-07-14)：valuation_engine 出的4法(成长DCF/NAV/中周期/PB)统一结果；
-    # 有则第3关+决策卡"什么价"用精算值(可信度A·标清用了哪种法)、无则退相对估值标待接。dcf_by_symbol 现=精算-by-symbol(不限DCF)。
+    # 分类型精算结果(尺=右栏_估值方法学·按类型自动选模型)：valuation_engine 出。所有结果(含待接)都登记 dcf_by_symbol
+    # 供卡片记「归类X→用Y模型+可信度」；仅 OK(精算成功)的把精算价注入 target_by_base 供买卖价/贵不贵。
     _val_path = ROOT / "data" / "valuation" / f"valuation_results_{date}.json"
     _dcf_path = ROOT / "data" / "valuation" / f"dcf_results_{date}.json"   # 向后兼容·仅新引擎结果缺时退回
     dcf_by_symbol = {}
     _val_results = (read_json(_val_path).get("results") if _val_path.exists()
                     else (read_json(_dcf_path).get("results") if _dcf_path.exists() else [])) or []
     for r in _val_results:
-        if r.get("symbol") and r.get("status") == "OK":
-            dcf_by_symbol[str(r["symbol"])] = r
+        _sym = str(r.get("symbol") or "")
+        if not _sym:
+            continue
+        dcf_by_symbol[_sym] = r          # 含 OK/待接/资产口径·供卡片记类型+模型+可信度(链到尺·PDCA)
+        if r.get("status") == "OK":
             # 精算覆盖的标的：把精算价注入 target_by_base，让决策卡"什么价"(价位阶梯)也用精算价
-            _sym = str(r["symbol"]); _cur = str(r.get("currency", "$"))
+            _cur = str(r.get("currency", "$"))
             _mdisp = str(r.get("method_disp") or "精算")
             _dtgt = {
                 "take_profit": r.get("reasonable_high"),   # 合理区上沿=减仓线
@@ -2599,7 +2634,7 @@ def build(date: str) -> str:
                 "buy_price": r.get("reasonable_low"),       # 合理区下沿=低吸线
                 "fair_low": r.get("reasonable_low"), "fair_high": r.get("reasonable_high"),
                 "valuation_status": f"{_mdisp}·精算·可信度A", "currency": _cur,
-                "confidence": "A·" + str(r.get("method") or ""),
+                "confidence": "A·" + str(r.get("model") or ""),
             }
             for _k in (_sym, _sym.split(".")[-1], r.get("name")):
                 if _k:
@@ -2669,7 +2704,7 @@ def build(date: str) -> str:
 
     # ⑤ 徽章：复用 gate-1 计数(与⑨小标题、每卡第1关同一源·治打回·§8无自相矛盾)。
     badge_text = (f"五关·第1关方向已判：{g1_ai}只在AI承接节点上 · {g1_crypto}只加密按纪律控敞口 · {g1_div}只非AI分散仓；"
-                  f"第2关位置已用均线现算（MA200/60日高低）；估值第3关：分类型精算已接（按类型选法·覆盖{len(dcf_by_symbol)}只·可信度A），其余相对估值·待接真源。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
+                  f"第2关位置已用均线现算（MA200/60日高低）；估值第3关：按类型自动选模型精算（覆盖{sum(1 for r in dcf_by_symbol.values() if r.get('status')=='OK')}只·可信度A），其余按类型待接真源。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
                   f"逐关=方向→位置→估值→护城河→深研，一关一关过（不是没做）")
 
     # A · 护城河重评提示：沿用超阈值 → 页首醒目横幅(只提示不改评级·总则第十二条)
