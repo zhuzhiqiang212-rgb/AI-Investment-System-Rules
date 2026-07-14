@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>派工单 · 质量关全量吃新数重跑 · 20260714</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;--bad:#ff6b6b;}
+*{box-sizing:border-box;}body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.7;font-size:15px;}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 80px;}
+.hdr{padding:16px 20px;background:linear-gradient(135deg,#20402f,#153025);border:1px solid #2f5540;border-radius:14px;margin-bottom:12px;}
+.hdr h1{font-size:19px;margin:0 0 4px;}.hdr .sub{color:#a9d0b9;font-size:12.5px;}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:11px 0;padding:13px 16px;}
+.sec h2{font-size:15.5px;margin:0 0 7px;color:#ffe4a8;}
+.sec p,.sec li{font-size:13.3px;}b{color:#fff;}.bad{color:#ff6b6b;}.good{color:#7ee0a0;}.key{color:#5cc8ff;}
+ol,ul{margin:6px 0;padding-left:20px;}li{margin:6px 0;}
+code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#9ed8ff;}
+.rule{background:#12261c;border:2px solid #285039;border-radius:10px;padding:11px 14px;margin:9px 0;}.rule b{color:#7ee0a0;}
+.hard{background:#2a1414;border:1px solid #5a2a2a;border-radius:10px;padding:11px 14px;margin:9px 0;}.hard b{color:#ff9a9a;}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hdr">
+  <h1>派工单 · 质量关全量吃新数、重跑升档</h1>
+  <div class="sub">出单：Cowork（首席架构师）｜ 执行：机器侧 Code ｜ 2026-07-14 ｜ 依据尺：基本面质量关框架（试行）｜ 只读不下单</div>
+</div>
+
+<div class="rule"><b>■ 背景：</b>Cowork 已把 <code>data/fundamentals/fundamentals.json</code> 全部 19 只持仓的真财报数填满（毛利/FCF/负债/ROE 带财报出处；查不到的标待接/NA·未编）。现需 Code 让质量关按这批真数重新分档。</div>
+
+<div class="sec">
+  <h2>① 先校验，再重跑</h2>
+  <p><b class="key">做</b>：先 <code>python -c "import json;json.load(open('data/fundamentals/fundamentals.json',encoding='utf-8'))"</code> 校验可解析（Cowork 多处手工编辑·防漏逗号）；通过后重跑 <code>quality_gate</code> + <code>production_pipeline --date 20260714</code> + <code>full_product_render --date 20260714</code>。</p>
+</div>
+
+<div class="sec">
+  <h2>② 自证（回报要贴）</h2>
+  <ul>
+    <li>贴 <code>ledger_20260714</code> 新的 ①/②/③/NA 分布（对比旧的 ①3/②16/NA2）。</li>
+    <li>真毛利&gt;门槛的应升①：台积电66%、英伟达75%、博通76%、爱德万64%、闪迪51%… ；IBKR(税前77%)、东京海上(ROE20.6%)按金融桶强档。</li>
+    <li>趋势恶化/杠杆的如实留②或标红、<b class="bad">不硬判③</b>：Coinbase(净亏)、Circle(净利−15%)、MSTR(杠杆·弱定价)。</li>
+    <li>产品各持仓卡"账本硬不硬"显真评级；乱码 <code>EF BF BD</code>=0。</li>
+  </ul>
+</div>
+
+<div class="sec">
+  <h2>③ 低毛利桶复核（附带·标记即可）</h2>
+  <p>索尼(~26%)、万代(营利率14%) 与丰田同属<b>结构性低毛利</b>，现挂"制造软件品牌≥45%"桶有误杀风险。fundamentals 备注已标"或需按低毛利桶复核"。<b class="key">Code 按你判断把这两只归"低毛利制造"桶或标待董事长终审</b>——门槛数值注"试行初值·待董事长终审"，不自作主张定终值。</p>
+</div>
+
+<div class="hard">
+  <b>回报规矩</b>：①json 校验结果；②改/建文件+<code>py_compile</code> RC；③ledger 新分布 + 升档自证；④乱码=0；⑤GitHub 推代码改动贴 commit；⑥首个报错停原样贴回。门槛终值、买卖、删文件才上呈董事长。
+</div>
+</div></body></html>

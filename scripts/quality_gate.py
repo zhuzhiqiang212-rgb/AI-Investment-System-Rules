@@ -134,6 +134,7 @@ def grade_one(symbol: str, name: str, indicators: dict, is_active_node: bool, in
     hard: list[str] = []           # 真硬伤(③候选)
     improving: list[str] = []      # 未达标但改善中(②)
     ok: list[str] = []
+    core_ok: list[str] = []        # 通过的【核心硬账指标】(毛利达标/FCF为正)——①必须至少有一项(治金融桶靠辅助项虚升①)
 
     # 毛利率(核心·按行业门槛；None=该行业豁免不卡)
     gm_th = th.get("gross_margin_min")
@@ -142,7 +143,7 @@ def grade_one(symbol: str, name: str, indicators: dict, is_active_node: bool, in
         if gm is None:
             missing_core.append("毛利率")
         elif gm >= gm_th:
-            ok.append(f"毛利率{gm:.0%}≥门槛{gm_th:.0%}")
+            ok.append(f"毛利率{gm:.0%}≥门槛{gm_th:.0%}"); core_ok.append("毛利率")
         elif _improving(gm_tr):
             improving.append("毛利率(未达门槛但改善中)")
         elif _deteriorating(gm_tr):
@@ -156,7 +157,7 @@ def grade_one(symbol: str, name: str, indicators: dict, is_active_node: bool, in
         if fpos is None:
             missing_core.append("自由现金流")
         elif fpos:
-            ok.append("自由现金流为正")
+            ok.append("自由现金流为正"); core_ok.append("自由现金流")
         elif _improving(ftr):
             improving.append("FCF(为负但改善/有转正路径)")
         else:
@@ -199,8 +200,9 @@ def grade_one(symbol: str, name: str, indicators: dict, is_active_node: bool, in
     if missing_core:
         flags.append("试行从宽:缺核心真数据·标待接·按②观察不杀")
 
-    # ① 优质：核心硬账无缺、无硬伤、无未达标·且有实测达标项(定性 aux 缺不阻止·仅标待评)
-    if not missing_core and not hard and not improving and ok:
+    # ① 优质：须有【核心硬账指标】达标(毛利达标或FCF为正)·且无缺核心/无硬伤/无未达标。
+    # 定性 aux 缺不阻止；但核心全豁免(金融/控股·毛利FCF都不适用)→无核心可证→不虚升①·留②观察(账本待接金融口径ROE/资本充足)。
+    if core_ok and not missing_core and not hard and not improving:
         why = "核心达标无硬伤：" + "、".join(ok)
         if missing_aux:
             why += "（辅助项待补：" + "、".join(missing_aux) + "，不影响优质判定）"
@@ -213,8 +215,10 @@ def grade_one(symbol: str, name: str, indicators: dict, is_active_node: bool, in
         why_bits.append("；".join(improving))
     if missing_core:
         why_bits.append("缺核心(待接)：" + "、".join(missing_core))
+    if not core_ok and not missing_core:   # 核心全豁免(金融/控股)·无硬账核心可证优质→观察
+        why_bits.append("本行业毛利/FCF豁免·暂无核心硬账指标可证优质(账本待接金融口径:净利率/ROE/资本充足)")
     if missing_aux:
-        why_bits.append("缺辅助(待评/待接)：" + "、".join(missing_aux))
+        why_bits.append("辅助(待评/待接)：" + "、".join(missing_aux))
     if is_active_node:
         why_bits.append("属当日激活趋势节点")
     return {"tier": "②", "tier_label": "趋势观察·不杀", "industry_bucket": bucket, "type": typ,
