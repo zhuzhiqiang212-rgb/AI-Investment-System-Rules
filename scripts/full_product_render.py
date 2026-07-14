@@ -342,10 +342,11 @@ def target_price_block(symbol: str, price: Any, target_by_base: dict[str, dict[s
     take_profit = target.get("take_profit")
     currency = target.get("currency")
     symbol_currency = "¥" if currency == "JPY" else "$" if currency == "USD" else currency_for_symbol(symbol)
-    # 目标价口径标记按 target 真实来源(DCF覆盖→可信度A·DCF；否则情景版·可信度B·非DCF)，不写死(治§2.3)
-    _is_dcf = "DCF" in str(target.get("valuation_status") or "")
-    _mark = "可信度A·DCF精算" if _is_dcf else "情景版·可信度B·非DCF"
-    _mark_color = "#7ee0a0" if _is_dcf else "#ffa657"
+    # 目标价口径标记按 target 真实来源(精算覆盖→可信度A·标清哪种法；否则情景版·可信度B)，不写死
+    _vs = str(target.get("valuation_status") or "")
+    _is_val = "精算" in _vs
+    _mark = f"可信度A·{_vs}" if _is_val else "情景版·可信度B·非精算"
+    _mark_color = "#7ee0a0" if _is_val else "#ffa657"
     target_line = (
         f'<div>目标价(减仓线)：{esc(symbol_currency)}{esc(fmt_level(take_profit))}'
         f'　<span style="color:{_mark_color};font-size:12px;">〔{_mark}〕</span></div>'
@@ -646,11 +647,11 @@ def holding_price_ladder(item: dict[str, Any], ma_by_symbol: dict[str, dict[str,
     stop = sl_num          # 危险=止损价
     low_buy = fair_low_num  # 便宜买点=合理区下沿
     top = tp_num           # 想卖=止盈价
-    # 价位口径标记(§2.3)：DCF覆盖→可信度A·DCF精算；否则相对估值·待DCF。让"什么价"标清来源。
+    # 价位口径标记：精算覆盖→可信度A·标清哪种法；否则相对估值·待精算。让"什么价"标清来源。
     _vstat = str(target.get("valuation_status") or "相对估值")
-    _is_dcf = "DCF" in _vstat
-    _kou = "价位来自DCF精算·可信度A" if _is_dcf else "价位来自相对估值·非精算·待DCF"
-    _kou_color = "#7ee0a0" if _is_dcf else "#8ea3b6"
+    _is_val = "精算" in _vstat
+    _kou = f"价位来自{_vstat}" if _is_val else "价位来自相对估值·非精算·待精算"
+    _kou_color = "#7ee0a0" if _is_val else "#8ea3b6"
     badge = (f'<span class="dc-zone dc-zone-{zone_tone}">现价落在：{esc(zone or "见阶梯")}</span>'
              f' <span style="color:{_kou_color};font-size:11px;">〔{_kou}〕</span>')
 
@@ -1365,13 +1366,14 @@ def holding_decision_card(item: dict[str, Any], ma_by_symbol: dict[str, dict[str
         val_h = "资产·不做企业估值（比特币/以太坊是资产、没有财报，只看币价+仓位纪律，不给公司估值区间）"
     else:
         val_h = plain_valuation(_val_label)
-        # 第3关估值：有DCF精算(可信度A)则优先显示合理区/目标价；无则相对估值+标"待DCF"(派工单§2.3)
+        # 第3关估值：有精算(可信度A·分类型:成长DCF/NAV/中周期/PB)则显示合理区/中枢+标清哪种法；无则相对估值+标"待精算"
         _dcf = (dcf_by_symbol or {}).get(symbol)
         if _dcf and _dcf.get("status") == "OK":
             _c = esc(str(_dcf.get("currency", "$")))
-            val_h += (f'<span style="color:#7ee0a0;font-size:12px;">（<b>DCF精算·可信度A</b>：合理区 {_c}{esc(str(_dcf.get("reasonable_low")))}~{_c}{esc(str(_dcf.get("reasonable_high")))}、目标价 {_c}{esc(str(_dcf.get("target")))}；假设见dcf_results）</span>')
-        elif _val_label and "待" not in _val_label:  # 有估值实例→标"相对估值·非精算·待DCF"(治#5/③)
-            val_h += '<span style="color:#8ea3b6;font-size:12px;">（相对估值·非精算·来源valuation实例·<b>DCF待补</b>）</span>'
+            _md = esc(str(_dcf.get("method_disp") or "精算"))
+            val_h += (f'<span style="color:#7ee0a0;font-size:12px;">（<b>{_md}·可信度A</b>：合理区 {_c}{esc(str(_dcf.get("reasonable_low")))}~{_c}{esc(str(_dcf.get("reasonable_high")))}、中枢 {_c}{esc(str(_dcf.get("target")))}；输入见val_inputs）</span>')
+        elif _val_label and "待" not in _val_label:  # 有估值实例→标"相对估值·非精算·待精算"(治#5/③)
+            val_h += '<span style="color:#8ea3b6;font-size:12px;">（相对估值·非精算·来源valuation实例·<b>精算待补</b>）</span>'
         if _val_label in ("贵", "偏贵"):  # 估值偏贵→动作统一带"可择机减"(治#7/#13·卡与研究不打架)
             val_h += '<span style="color:#ffd479;font-size:12px;">→ 偏贵·可择机减回纪律</span>'
     moat_h = plain_moat(item.get("moat", {}))
@@ -1765,7 +1767,7 @@ def inspection_panel(date: str, daily: dict[str, Any], production: dict[str, Any
         # 均线口径对齐(派工单⑥)：全拉到就说"已接"、别说"还没拉到：无"与卡里"均线读数"打架
         ("均价线：已接（MA200/60日·持仓卡「价位高不高」在用）" if not ma_pending
          else f"均价线还没拉到：{('、'.join(ma_pending))}"),
-        f"DCF精算还没做（DCF=按公司未来能赚的钱倒推它值多少）：{dcf_pending_count}只（已做{_dcf_done}只·见卡片「可信度A·DCF」；其余暂用相对估值·标待DCF；BTC/ETH资产口径不做估值·不计）",
+        f"分类型精算还没铺满（按公司类型选法：成长股DCF/控股NAV/周期股中周期/保险PB）：{dcf_pending_count}只待接（已做{_dcf_done}只·见卡片「可信度A·标清哪种法」；其余暂用相对估值·标待接真源；BTC/ETH资产口径不做企业估值·不计）",
         macro_status_line,
         f"护城河（靠什么长期赚钱）还没评：{moat_pending_count}只（BTC/ETH资产口径·护城河不适用·不计）",
         f"还知道有两处没做：板块自动更新（分类规则还没定）、迷你趋势图（{_mini_trend_status()}）",
@@ -2578,25 +2580,30 @@ def build(date: str) -> str:
     _sector = find_link(daily, ["板块轮动"]) or {}
     ai_strength = f"{_strat.get('strength', '')}{_strat.get('direction', '')}"
     sector_state = str(_sector.get("direction", ""))
-    # DCF 精算结果(派工单§2.3)：有则第3关+决策卡"什么价"用精算值(可信度A)、无则相对估值标待DCF
-    _dcf_path = ROOT / "data" / "valuation" / f"dcf_results_{date}.json"
+    # 分类型精算结果(派工单2026-07-14)：valuation_engine 出的4法(成长DCF/NAV/中周期/PB)统一结果；
+    # 有则第3关+决策卡"什么价"用精算值(可信度A·标清用了哪种法)、无则退相对估值标待接。dcf_by_symbol 现=精算-by-symbol(不限DCF)。
+    _val_path = ROOT / "data" / "valuation" / f"valuation_results_{date}.json"
+    _dcf_path = ROOT / "data" / "valuation" / f"dcf_results_{date}.json"   # 向后兼容·仅新引擎结果缺时退回
     dcf_by_symbol = {}
-    if _dcf_path.exists():
-        for r in (read_json(_dcf_path).get("results") or []):
-            if r.get("symbol") and r.get("status") == "OK":
-                dcf_by_symbol[str(r["symbol"])] = r
-                # DCF 覆盖的标的：把精算价注入 target_by_base，让决策卡"什么价"(价位阶梯)也用DCF(§2.3)
-                _sym = str(r["symbol"]); _cur = str(r.get("currency", "$"))
-                _dtgt = {
-                    "take_profit": r.get("reasonable_high"),   # 合理区上沿=减仓线
-                    "stop_loss": None,
-                    "buy_price": r.get("reasonable_low"),       # 合理区下沿=低吸线
-                    "fair_low": r.get("reasonable_low"), "fair_high": r.get("reasonable_high"),
-                    "valuation_status": "DCF精算·可信度A", "currency": _cur, "confidence": "A·DCF",
-                }
-                for _k in (_sym, _sym.split(".")[-1], r.get("name")):
-                    if _k:
-                        target_by_base[str(_k)] = _dtgt
+    _val_results = (read_json(_val_path).get("results") if _val_path.exists()
+                    else (read_json(_dcf_path).get("results") if _dcf_path.exists() else [])) or []
+    for r in _val_results:
+        if r.get("symbol") and r.get("status") == "OK":
+            dcf_by_symbol[str(r["symbol"])] = r
+            # 精算覆盖的标的：把精算价注入 target_by_base，让决策卡"什么价"(价位阶梯)也用精算价
+            _sym = str(r["symbol"]); _cur = str(r.get("currency", "$"))
+            _mdisp = str(r.get("method_disp") or "精算")
+            _dtgt = {
+                "take_profit": r.get("reasonable_high"),   # 合理区上沿=减仓线
+                "stop_loss": None,
+                "buy_price": r.get("reasonable_low"),       # 合理区下沿=低吸线
+                "fair_low": r.get("reasonable_low"), "fair_high": r.get("reasonable_high"),
+                "valuation_status": f"{_mdisp}·精算·可信度A", "currency": _cur,
+                "confidence": "A·" + str(r.get("method") or ""),
+            }
+            for _k in (_sym, _sym.split(".")[-1], r.get("name")):
+                if _k:
+                    target_by_base[str(_k)] = _dtgt
     # 持仓卡 B线文字输入位(模板卡2026-07-13§3)：按 symbol 供动作句/基本面/风险/对比·缺标待理解岗补深
     _gh_path = ROOT / "data" / "evidence_chain" / f"gen_holdings_{date}.json"
     _gen_holdings = (read_json(_gh_path).get("holdings") if _gh_path.exists() else {}) or {}
@@ -2662,7 +2669,7 @@ def build(date: str) -> str:
 
     # ⑤ 徽章：复用 gate-1 计数(与⑨小标题、每卡第1关同一源·治打回·§8无自相矛盾)。
     badge_text = (f"五关·第1关方向已判：{g1_ai}只在AI承接节点上 · {g1_crypto}只加密按纪律控敞口 · {g1_div}只非AI分散仓；"
-                  f"第2关位置已用均线现算（MA200/60日高低）；估值第3关：DCF已接（覆盖{len(dcf_by_symbol)}只·可信度A），其余相对估值·待DCF。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
+                  f"第2关位置已用均线现算（MA200/60日高低）；估值第3关：分类型精算已接（按类型选法·覆盖{len(dcf_by_symbol)}只·可信度A），其余相对估值·待接真源。※第1关=在不在AI承接链上（AI敞口占比·45%限见⑨集中度，另一口径）；"
                   f"逐关=方向→位置→估值→护城河→深研，一关一关过（不是没做）")
 
     # A · 护城河重评提示：沿用超阈值 → 页首醒目横幅(只提示不改评级·总则第十二条)

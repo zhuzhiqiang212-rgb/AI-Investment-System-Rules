@@ -193,6 +193,7 @@ def main() -> int:
         ("6b 复盘", "pdca_review.py", None),
         ("7 生产线(三关+护城河沿用)", "production_pipeline.py", None),
         ("7b DCF精算(覆盖能算的成长股·可信度A)", "dcf_valuation.py", None),
+        ("7b2 分类型估值引擎(成长DCF/控股NAV/周期中周期/保险PB·读val_inputs)", "valuation_engine.py", None),
         ("7c 机会层候选行情(Yahoo·只读)", "candidate_price_fetch.py", None),
         ("7d 板块细分个股涨跌(Yahoo·只读)", "stock_change_fetch.py", None),
         ("7e 中国支线稀土新闻(RSS·只读)", "china_news_fetch.py", None),
