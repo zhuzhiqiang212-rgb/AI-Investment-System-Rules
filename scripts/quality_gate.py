@@ -39,24 +39,30 @@ INDUSTRY_BUCKET = {
     "综合商社": "金融", "控股公司": "金融", "资产": "资产",
 }
 
-# 类型 → 门槛族(尺§四·分行业·不一刀切)。门槛数值=试行示例·待董事长校准。
-BENCHMARK_FAMILY = {
-    "成长股": "制造软件品牌", "周期股": "半导体设备工业", "保险": "金融",
-    "券商": "金融", "综合商社": "控股金融", "控股公司": "控股金融", "资产": "资产",
-}
-# 各门槛族·五项口径(试行·待校准)。None=该族豁免/NA·不卡此项。
-FAMILY_THRESHOLDS = {
+# 门槛按 industry_bucket 分行业·不一刀切(尺§四)。门槛数值=【试行初值·待董事长终审】。None=该桶豁免/NA·不卡此项。
+# industry_bucket 每只可由 data/fundamentals 显式覆盖(如丰田汽车→低毛利制造)，缺则由类型 INDUSTRY_BUCKET 默认推。
+BUCKET_THRESHOLDS = {
     "制造软件品牌": {"gross_margin_min": 0.45, "fcf_positive": True, "backlog_applies": True,
-                     "note": "毛利率≥45%(示例线·待校准)、FCF为正+现金转化、订单看指引/递延/续约"},
-    "半导体设备工业": {"gross_margin_min": None, "fcf_positive": True, "backlog_applies": True,
-                       "note": "毛利率按代工/设备结构(台积50-59%正常·不卡45%)、FCF为正(周期底部可入②)、订单看backlog/book-to-bill"},
+                     "note": "毛利率≥45%(试行初值·待终审)、FCF为正、订单看指引/递延/续约"},
+    "半导体设备": {"gross_margin_min": None, "fcf_positive": True, "backlog_applies": True,
+                   "note": "毛利率按代工/设备结构(台积50-66%正常·不卡45%)、FCF为正(周期底部可入②)、订单看backlog/book-to-bill"},
+    "低毛利制造": {"gross_margin_min": 0.12, "fcf_positive": True, "backlog_applies": False,
+                   "note": "低毛利制造(汽车/量产硬件/分销)·毛利率≥12%【试行初值·待终审】·不用45%线·重看trend+FCF+资产负债表"},
+    "零售分销": {"gross_margin_min": None, "fcf_positive": True, "backlog_applies": False,
+                 "note": "零售分销天生低毛利·毛利率豁免→看净利率/周转、FCF为正"},
     "金融": {"gross_margin_min": None, "fcf_positive": None, "backlog_applies": False,
-             "note": "毛利率/FCF豁免→看净利率/ROE/坏账率、资本充足/拨备、杠杆口径；订单NA"},
-    "控股金融": {"gross_margin_min": None, "fcf_positive": None, "backlog_applies": False,
-                 "note": "控股/商社豁免毛利/FCF→看资产质量/NAV/杠杆；订单NA"},
+             "note": "金融/控股/商社豁免毛利率/FCF→看净利率/ROE/坏账率、资本充足/拨备、杠杆/NAV；订单NA"},
     "资产": {"gross_margin_min": None, "fcf_positive": None, "backlog_applies": False,
              "note": "无财报资产·质量关NA(只按仓位纪律+币价)"},
 }
+
+
+def bucket_for(typ: str, override: Any = None) -> str:
+    """定 industry_bucket：显式覆盖(fundamentals) 优先；否则按类型默认推。"""
+    b = str(override or "").strip()
+    if b in BUCKET_THRESHOLDS:
+        return b
+    return INDUSTRY_BUCKET.get(typ, "制造软件品牌")
 IND_NAMES = {"gross_margin": "毛利率", "fcf": "自由现金流", "pricing_power": "订价权",
              "balance_sheet": "资产负债表", "order_visibility": "订单可见度"}
 
@@ -89,93 +95,130 @@ def _deteriorating(trend: Any) -> bool:
     return any(k in str(trend or "") for k in ("恶化", "下滑", "走弱", "下降", "转差", "down", "deterior"))
 
 
-def grade_one(symbol: str, name: str, indicators: dict, is_active_node: bool) -> dict:
-    """给一只判三档。缺数从宽(②/待接)、激活节点封顶②、改善趋势不③——防误杀三条内建。"""
+def _fcf_positive(raw: dict):
+    """FCF 是否为正：数值→>0；字符串→含'正'不含'负'为True、含'负'为False；否则 None(待接)。
+    (Cowork 常把 FCF 填成'US$96.7B(正·…)'这类描述串·不硬编数)。"""
+    val = raw.get("value")
+    n = _num(val)
+    if n is not None:
+        return n > 0
+    s = str(val or "")
+    if not s:
+        return None
+    if "负" in s:
+        return False
+    if "正" in s:
+        return True
+    return None
+
+
+def grade_one(symbol: str, name: str, indicators: dict, is_active_node: bool, industry_bucket: Any = None) -> dict:
+    """给一只判三档。核心硬账指标(毛利率/FCF·按行业门槛)驱动①；定性项(订价权/订单)缺不阻止①、只标待评。
+    防误杀三条内建：缺数从宽(②)、激活节点封顶②、改善趋势不③。industry_bucket 可由 fundamentals 覆盖。"""
     cls = classify(symbol, name)
     typ = cls.get("type", "")
-    fam = BENCHMARK_FAMILY.get(typ, "制造软件品牌")
-    th = FAMILY_THRESHOLDS.get(fam, {})
+    bucket = bucket_for(typ, industry_bucket)
+    th = BUCKET_THRESHOLDS.get(bucket, {})
     indicators = indicators or {}
 
-    # 资产口径：质量关NA
-    if typ == "资产" or fam == "资产":
-        return {"tier": "NA", "tier_label": "资产口径·质量关NA", "family": fam, "type": typ,
+    if typ == "资产" or bucket == "资产":
+        return {"tier": "NA", "tier_label": "资产口径·质量关NA", "industry_bucket": bucket, "type": typ,
                 "missing": [], "why": "无财报资产·质量关不适用(只按仓位纪律)", "flags": []}
 
-    missing: list[str] = []
-    hard_hits: list[str] = []       # 硬伤(真数据·达到③条件)
-    improving_below: list[str] = []  # 未达标但改善中(→②)
-    ok_hits: list[str] = []
+    def _raw(vk):
+        v = indicators.get(vk)
+        return v if isinstance(v, dict) else {"value": v}
 
-    def _check(key, val_key, threshold, cmp_desc):
-        """通用检查：缺→missing; 达标→ok; 未达标看趋势→硬伤 or 改善中。"""
-        raw = indicators.get(val_key, {}) if isinstance(indicators.get(val_key), dict) else {"value": indicators.get(val_key)}
-        val = _num(raw.get("value"))
-        trend = raw.get("trend")
-        disp = IND_NAMES[key]
-        if threshold is None:      # 该族豁免此项
-            return
-        if val is None:
-            missing.append(disp)
-            return
-        if key == "gross_margin":
-            passed = val >= threshold
-        elif key == "fcf":
-            passed = val > 0
-        else:
-            passed = True
-        if passed:
-            ok_hits.append(disp)
-        elif _improving(trend):
-            improving_below.append(f"{disp}(未达标但改善中)")
-        elif _deteriorating(trend):
-            hard_hits.append(f"{disp}(低于门槛且下滑)")
-        else:
-            improving_below.append(f"{disp}(未达标·趋势未知·试行从宽按观察)")
+    missing_core: list[str] = []   # 缺核心硬账指标(毛利/FCF·按行业适用)→②
+    missing_aux: list[str] = []    # 缺定性/辅助(订价权/资产负债表/订单)→只标待评·不阻止①
+    hard: list[str] = []           # 真硬伤(③候选)
+    improving: list[str] = []      # 未达标但改善中(②)
+    ok: list[str] = []
 
-    _check("gross_margin", "gross_margin", th.get("gross_margin_min"), "≥门槛")
-    _check("fcf", "fcf", th.get("fcf_positive"), "为正")
-    # 订价权/资产负债表/订单可见度：有明确硬伤标记才计③依据，否则缺→待评/待接
-    for key, vk in (("pricing_power", "pricing_power"), ("balance_sheet", "balance_sheet"), ("order_visibility", "order_visibility")):
-        raw = indicators.get(vk, {}) if isinstance(indicators.get(vk), dict) else {"value": indicators.get(vk)}
-        val = raw.get("value")
-        if val in (None, ""):
-            if key == "order_visibility" and not th.get("backlog_applies", True):
-                continue                       # 该族订单NA·不计缺
-            missing.append(IND_NAMES[key] + ("·待评" if key == "pricing_power" else "·待接"))
-        elif _deteriorating(raw.get("trend")) and str(val).strip() in ("弱", "差", "恶化"):
-            hard_hits.append(f"{IND_NAMES[key]}(明确走弱)")
+    # 毛利率(核心·按行业门槛；None=该行业豁免不卡)
+    gm_th = th.get("gross_margin_min")
+    if gm_th is not None:
+        gm = _num(_raw("gross_margin").get("value")); gm_tr = _raw("gross_margin").get("trend")
+        if gm is None:
+            missing_core.append("毛利率")
+        elif gm >= gm_th:
+            ok.append(f"毛利率{gm:.0%}≥门槛{gm_th:.0%}")
+        elif _improving(gm_tr):
+            improving.append("毛利率(未达门槛但改善中)")
+        elif _deteriorating(gm_tr):
+            hard.append("毛利率(持续低于门槛且下滑)")
         else:
-            ok_hits.append(IND_NAMES[key])
+            improving.append("毛利率(未达门槛·趋势未知·试行从宽按观察)")
+
+    # 自由现金流(核心·按行业；None=豁免)
+    if th.get("fcf_positive"):
+        fr = _raw("fcf"); fpos = _fcf_positive(fr); ftr = fr.get("trend")
+        if fpos is None:
+            missing_core.append("自由现金流")
+        elif fpos:
+            ok.append("自由现金流为正")
+        elif _improving(ftr):
+            improving.append("FCF(为负但改善/有转正路径)")
+        else:
+            hard.append("FCF(长期为负且无改善)")
+
+    # 资产负债表(辅助·仅明确恶化才算硬伤·否则缺=待接不阻止①)
+    bs = _raw("balance_sheet"); bsv = bs.get("value")
+    if bsv in (None, ""):
+        missing_aux.append("资产负债表·待接")
+    elif _deteriorating(bs.get("trend")) and str(bsv).strip() in ("弱", "差", "恶化", "资不抵债"):
+        hard.append("资产负债表(明确恶化/资不抵债)")
+    else:
+        ok.append("资产负债表")
+
+    # 订价权(辅助·定性·缺=待评不阻止①)
+    pp = _raw("pricing_power").get("value")
+    if pp in (None, ""):
+        missing_aux.append("订价权·待评")
+    else:
+        ok.append(f"订价权{pp}")
+
+    # 订单可见度(辅助·部分行业NA·缺=待接不阻止①)
+    if th.get("backlog_applies", True):
+        ov = _raw("order_visibility").get("value")
+        if ov in (None, ""):
+            missing_aux.append("订单可见度·待接")
+        else:
+            ok.append("订单可见度")
 
     flags: list[str] = []
-    # ③ 硬伤·淘汰：真数据硬伤 且 无改善 且 非激活节点 且 非缺数从宽
-    if hard_hits and not is_active_node and not improving_below:
-        return {"tier": "③", "tier_label": "硬伤·淘汰", "family": fam, "type": typ,
-                "missing": missing, "why": "、".join(hard_hits) + "·账本明确硬伤且无改善趋势",
+    # ③ 硬伤·淘汰：真硬伤 且 无改善 且 非激活节点(防误杀三条)
+    if hard and not is_active_node and not improving:
+        return {"tier": "③", "tier_label": "硬伤·淘汰", "industry_bucket": bucket, "type": typ,
+                "missing": missing_core + missing_aux, "why": "、".join(hard) + "·账本明确硬伤且无改善趋势",
                 "flags": ["硬筛淘汰"]}
-    # 防误杀：激活节点→封顶② / 改善中→② / 缺数→②(试行从宽)
-    if is_active_node and hard_hits:
+    if is_active_node and hard:
         flags.append("防误杀②:属当日激活趋势节点·只降到②不淘汰")
-    if improving_below:
+    if improving:
         flags.append("防误杀②:未达标但趋势改善·不杀")
-    if missing:
-        flags.append("试行从宽:缺真数据·标待接·按②观察不杀")
+    if missing_core:
+        flags.append("试行从宽:缺核心真数据·标待接·按②观察不杀")
 
-    # ① 优质：无缺、无硬伤、无未达标·且至少有实测达标项
-    if not missing and not hard_hits and not improving_below and ok_hits:
-        return {"tier": "①", "tier_label": "优质·通过", "family": fam, "type": typ,
-                "missing": [], "why": "各项达标无硬伤：" + "、".join(ok_hits), "flags": []}
+    # ① 优质：核心硬账无缺、无硬伤、无未达标·且有实测达标项(定性 aux 缺不阻止·仅标待评)
+    if not missing_core and not hard and not improving and ok:
+        why = "核心达标无硬伤：" + "、".join(ok)
+        if missing_aux:
+            why += "（辅助项待补：" + "、".join(missing_aux) + "，不影响优质判定）"
+        return {"tier": "①", "tier_label": "优质·通过", "industry_bucket": bucket, "type": typ,
+                "missing": missing_aux, "why": why, "flags": []}
+
     # 其余 → ② 趋势观察·不杀
     why_bits = []
-    if improving_below:
-        why_bits.append("；".join(improving_below))
-    if missing:
-        why_bits.append("缺(待接/待评)：" + "、".join(missing))
+    if improving:
+        why_bits.append("；".join(improving))
+    if missing_core:
+        why_bits.append("缺核心(待接)：" + "、".join(missing_core))
+    if missing_aux:
+        why_bits.append("缺辅助(待评/待接)：" + "、".join(missing_aux))
     if is_active_node:
         why_bits.append("属当日激活趋势节点")
-    return {"tier": "②", "tier_label": "趋势观察·不杀", "family": fam, "type": typ,
-            "missing": missing, "why": "；".join(why_bits) or "试行期数据待接·按观察不杀", "flags": flags}
+    return {"tier": "②", "tier_label": "趋势观察·不杀", "industry_bucket": bucket, "type": typ,
+            "missing": missing_core + missing_aux, "why": "；".join(why_bits) or "试行期数据待接·按观察不杀", "flags": flags}
 
 
 def grade_holdings(holdings: list[dict]) -> dict[str, dict]:
@@ -190,9 +233,9 @@ def grade_holdings(holdings: list[dict]) -> dict[str, dict]:
         # 与硬性闸联动：effective 匹配到激活节点 或 hard_filter==符合 → 当日激活趋势节点
         eff = h.get("matched_node_classes_effective") or []
         is_active = bool(eff) or (h.get("hard_filter") == "符合")
-        ind = (inputs.get(sym) or inputs.get(sym.split(".")[-1]) or {}).get("indicators", {})
-        r = grade_one(sym, name, ind, is_active)
-        r["industry_bucket"] = INDUSTRY_BUCKET.get(r.get("type", ""), "制造软件品牌")  # 分行业门槛(派工单②)
+        rec = inputs.get(sym) or inputs.get(sym.split(".")[-1]) or {}
+        ind = rec.get("indicators", {})
+        r = grade_one(sym, name, ind, is_active, rec.get("industry_bucket"))  # fundamentals 可覆盖 industry_bucket
         r["rule_source"] = RULE_SOURCE                                                  # 依据尺
         r["is_active_node"] = is_active                                                 # 是否当日激活趋势节点(防误杀联动)
         out[sym] = r

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>派工单 · 质量关吃新数+低毛利桶校准 · 20260714</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;--bad:#ff6b6b;}
+*{box-sizing:border-box;}body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.7;font-size:15px;}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 80px;}
+.hdr{padding:16px 20px;background:linear-gradient(135deg,#20402f,#153025);border:1px solid #2f5540;border-radius:14px;margin-bottom:12px;}
+.hdr h1{font-size:19px;margin:0 0 4px;}.hdr .sub{color:#a9d0b9;font-size:12.5px;}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:11px 0;padding:13px 16px;}
+.sec h2{font-size:15.5px;margin:0 0 7px;color:#ffe4a8;}
+.sec p,.sec li{font-size:13.3px;}b{color:#fff;}.bad{color:#ff6b6b;}.good{color:#7ee0a0;}.key{color:#5cc8ff;}
+ol,ul{margin:6px 0;padding-left:20px;}li{margin:6px 0;}
+code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#9ed8ff;}
+.rule{background:#12261c;border:2px solid #285039;border-radius:10px;padding:11px 14px;margin:9px 0;}.rule b{color:#7ee0a0;}
+.hard{background:#2a1414;border:1px solid #5a2a2a;border-radius:10px;padding:11px 14px;margin:9px 0;}.hard b{color:#ff9a9a;}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12.6px;}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;}th{background:#1c2c3a;color:#ffe4a8;}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hdr">
+  <h1>派工单 · 质量关吃新数 + 低毛利桶校准 + 探针归档</h1>
+  <div class="sub">出单：Cowork（首席架构师）｜ 执行：机器侧 Code ｜ 2026-07-14 ｜ 依据尺：基本面质量关框架（试行）｜ 只读不下单</div>
+</div>
+
+<div class="rule"><b>■ 总则对照：</b>缺不编、动静分清（门槛=尺·不锚死名单）、覆盖不堆版本、删文件要董事长签字。门槛数值属试行初值，全标"待董事长终审"。技术实现你自决写依据。</div>
+
+<div class="sec">
+  <h2>序A · 质量关吃新数、重跑上屏</h2>
+  <p>Cowork 已把 3 只真财报数填进 <code>data/fundamentals/fundamentals.json</code>：台积电(毛利66.2%·净现金·改善)、英伟达(74.9%·$96.7B FCF)、微软(68%·$47B FCF·毛利因AI投入略降)。</p>
+  <p><b class="key">做</b>：重跑 <code>quality_gate</code> + <code>production_pipeline --date 20260714</code> + <code>full_product_render --date 20260714</code>。自证：ledger_20260714 从 19②→ <b>①=3（台积电/英伟达/微软升优质）、②=16、NA=2</b>；产品这 3 只"账本硬不硬"显真评级；乱码=0。</p>
+</div>
+
+<div class="sec">
+  <h2>序B · 低毛利制造桶校准（防误杀·尺级·试行初值）</h2>
+  <p><b class="bad">问题</b>：<code>industry_bucket</code> 现只有"制造软件品牌(≥45%)"，会误杀结构性低毛利的制造业——丰田汽车毛利约18%，真填进去会被判"硬伤③淘汰"，属误杀（且丰田现还被错标"半导体设备"）。</p>
+  <p><b class="key">做</b>：新增桶 <b>"低毛利制造"</b>（汽车/量产硬件/分销）：毛利门槛试行初值 <b>≥0.12（待董事长终审）</b>，重点看 trend + FCF + 资产负债表，不用45%线。改 <code>quality_gate.py</code> 门槛表 + <code>fundamentals.json</code>：丰田 JP.7203 → industry_bucket 改 <b>"低毛利制造"</b>。综合商社伊藤忠 JP.8001 留"金融"桶（毛利豁免·看ROE/净利率），MSTR 留"金融"桶（毛利豁免）。全部门槛数值注"试行初值·待董事长终审"。</p>
+</div>
+
+<div class="sec">
+  <h2>序C · 探针文件归档</h2>
+  <p>把 <code>00_请先看这里/_write_probe_20260709.txt</code>（污染真相源文件夹）<b>移进 <code>_历史归档</code></b>——移非删（架构师已决·移动不需签字）。temp/ 下的探针文件无害、留着不动。回报列移动清单。</p>
+</div>
+
+<div class="sec">
+  <h2>序D · 推 GitHub 兜底</h2>
+  <p>序A/B 的尺与代码改动（quality_gate.py / fundamentals.json 门槛尺部分 / 基本面质量关框架若有校准）+ 本派工单，git add/commit/push 主仓，回报 commit hash。数据/日输出归 G 盘。</p>
+</div>
+
+<div class="hard">
+  <b>回报规矩</b>：①贴改/建文件+<code>py_compile</code> RC；②重跑自证 ledger ①=3/②=16/NA=2、丰田落"低毛利制造"未被③误杀；③grep 自证；④乱码 <code>EF BF BD</code>=0；⑤探针移动清单；⑥commit hash；⑦第一个报错停原样贴回。门槛终值、买卖、删文件才上呈董事长。
+</div>
+</div></body></html>

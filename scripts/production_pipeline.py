@@ -318,9 +318,9 @@ def build(date: str) -> dict[str, Any]:
         if _qg_mod is None:
             return {"tier": "待接", "tier_label": "质量关待接", "why": f"质量关模块不可用({_qg_err})"}
         is_active = bool(effective_matched) or pipeline_verdict == "符合"   # 与硬性闸激活节点联动(防误杀之二)
-        ind = (_qg_inputs.get(str(symbol)) or _qg_inputs.get(str(symbol).split(".")[-1]) or {}).get("indicators", {})
-        r = _qg_mod.grade_one(symbol, name, ind, is_active)
-        r["industry_bucket"] = _qg_mod.INDUSTRY_BUCKET.get(r.get("type", ""), "制造软件品牌")
+        rec = _qg_inputs.get(str(symbol)) or _qg_inputs.get(str(symbol).split(".")[-1]) or {}
+        ind = rec.get("indicators", {})
+        r = _qg_mod.grade_one(symbol, name, ind, is_active, rec.get("industry_bucket"))  # fundamentals 可覆盖 bucket
         r["rule_source"] = _qg_mod.RULE_SOURCE
         r["is_active_node"] = is_active
         return r
