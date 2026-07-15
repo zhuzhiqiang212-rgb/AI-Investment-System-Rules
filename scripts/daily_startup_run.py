@@ -135,6 +135,20 @@ def main() -> int:
         print("需人工完成第⑧步: PDCA记分卡未通过")
         return code
 
+    # ⑧b 完整产品·深度版（按《完整产品_深度标准_v1》）——数字来自 production、深度分析来自分析岗 deep_{date}.json。
+    # 优先深度版 v3（需分析岗当日写 deep_{date}.json）；无 deep 则退回机器浅版 v2 并提示需分析岗补深。非致命，不打断开机流程。
+    prod_json = ROOT / "data" / "reports" / f"production_{today}.json"
+    deep_json = ROOT / "data" / "analysis" / f"deep_{today}.json"
+    if not prod_json.exists():
+        print(f"提示：production_{today}.json 未生成，完整产品跳过")
+    elif deep_json.exists():
+        v3_code = run_step("⑧b完整产品·机器版v3(输出_机器版·不覆盖分析岗_深度版)", ["python", str(ROOT / "scripts" / "product_render_v3.py"), "--date", today])
+        if v3_code != 0:
+            print("提示：深度版v3 生成异常（不影响其余流程，请人工查看 product_render_v3.py）")
+    else:
+        run_step("⑧b完整产品·机器浅版v2(兜底)", ["python", str(ROOT / "scripts" / "product_render_v2.py"), "--date", today])
+        print(f"提示：缺 data/analysis/deep_{today}.json → 今日出机器浅版兜底；深度版需分析岗按《完整产品_深度标准_v1》写 deep_{today}.json 后重跑 product_render_v3.py。")
+
     print("自动开机流程完成，等待第⑨步董事长签字")
     return 0
 
