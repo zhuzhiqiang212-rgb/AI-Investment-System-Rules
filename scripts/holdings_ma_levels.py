@@ -159,8 +159,12 @@ def build_item(ctx: Any, symbol: str, name: str | None) -> dict[str, Any]:
         }
 
     closes, kline_count, kline_reason = get_kline_closes(ctx, symbol)
+    ma20 = compute_average(closes, 20)     # 派工单20260715:20日均线(短期)
     ma50 = compute_average(closes, 50)
     ma200 = compute_average(closes, 200)
+    # 低吸价=回踩50日均线位、止损价=跌破200日年线位(工单口径·缺K线则None不编)
+    low_buy = ma50
+    stop_loss = ma200
 
     status_parts: list[str] = []
     reason_parts: list[str] = []
@@ -185,8 +189,11 @@ def build_item(ctx: Any, symbol: str, name: str | None) -> dict[str, Any]:
         "price_field": price_field,
         "price_status": price_status,
         "price_reason": price_reason,
+        "ma20": ma20,
         "ma50": ma50,
         "ma200": ma200,
+        "low_buy_price": low_buy,       # 低吸价=MA50位(回踩50日)·缺则None不编
+        "stop_loss_price": stop_loss,   # 止损价=MA200位(跌破年线)·缺则None不编
         "kline_count": kline_count,
         "status": status,
         "reason": None if not reason_parts else "；".join(reason_parts),
