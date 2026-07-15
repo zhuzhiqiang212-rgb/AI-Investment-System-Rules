@@ -217,6 +217,22 @@ def part6_rulers() -> str:
     return '<h2>第六部分 · 右栏底子（6把尺 · 判断依据）</h2>' + "".join(folds)
 
 
+# ── 第七部分·PDCA复盘记分卡（pdca_daily rings·现渲） ──
+def part7_pdca(date: str) -> str:
+    pd = rj(ROOT / "data" / "pdca" / f"pdca_daily_{date}.json")
+    rings = pd.get("rings") or []
+    dq = pd.get("decision_quality", {}) or {}
+    head = ('<h2>第七部分 · PDCA 复盘记分卡系统（今天的判断，明天验证 · 系统的魂）</h2>'
+            f'<div class="card">今天下手的底气：<b>{esc(dq.get("level", "待接"))}</b>——{esc(dq.get("reason", ""))}'
+            '<div class="meta" style="color:#8ea3b6;font-size:12px">判对给尺加把握、判错改尺——证伪落到实处的闭环。</div></div>')
+    rows = []
+    for r in rings:
+        rows.append(f'<div class="card"><div class="hd"><b>{esc(r.get("ring_name"))}</b>'
+                    f'（{esc(r.get("node"))}）<span class="conf">判断：{esc(r.get("judgment"))}</span></div>'
+                    f'<div class="you" style="font-weight:400;font-size:12.5px;color:#bcd8ee">依据：{esc((r.get("evidence") or "待接")[:220])}</div></div>')
+    return head + ("".join(rows) if rows else '<div class="card">PDCA rings 待接（pdca_daily 无 rings·不编）</div>')
+
+
 def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     dyn = load_dynamic(date)
     holds = dyn["prod"].get("holdings", [])
@@ -244,8 +260,12 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     if only:   # 打通模式:只出持仓卡
         return head + title + part2 + "</body></html>", stats
     daily = dyn["daily"]
-    full = (title + part1_layers(daily) + part1_macro_table(daily) + part2
-            + part3_concentration(date, dyn) + part4_5(daily, dyn) + part6_rulers())
+    der = daily.get("derived", {}) or {}
+    oneline = esc(str(der.get("today_direction_short") or "今天：守核心、不追高、控AI集中"))
+    banner = (f'<div class="card" style="background:#1c2740;border-color:#3a5a8a">'
+              f'<span class="k">今天一句话</span><b style="font-size:15px">{oneline}</b></div>')
+    full = (title + banner + part1_layers(daily) + part1_macro_table(daily) + part2
+            + part3_concentration(date, dyn) + part4_5(daily, dyn) + part6_rulers() + part7_pdca(date))
     stats["ruler_embed"] = full.count('class="ruler-embed"')
     stats["deep_blocks"] = full.count('class="deep"')
     return head + full + "</body></html>", stats
