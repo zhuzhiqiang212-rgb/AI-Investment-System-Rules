@@ -13,8 +13,10 @@
 """
 from __future__ import annotations
 import argparse, glob, html, json, re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+JST = timezone(timedelta(hours=9))
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -245,7 +247,9 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
         cards.append(card); stats["n"] += 1
         if ps == "OK": stats["pack_ok"] += 1
         else: stats["pack_wait"].append(h["symbol"])
-    gen = datetime.now(timezone.utc).isoformat()[:19]
+    gen_jst = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
+    scan_ts = str(dyn["prod"].get("generated_at") or "待接")[:19]   # production 扫描时间戳(本次实时扫描)
+    md_note = str((dyn["daily"].get("rule_engine", {}) or {}).get("inputs_used", {}).get("snapshot_data_date", ""))[:19]
     head = ('<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
             '<title>完整产品·机器版(实时自动生成)</title><style>'
@@ -255,7 +259,12 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
             '.k{color:#5cc8ff;font-weight:700;margin-right:6px}.deep{margin:6px 0;font-size:14px}.dossier{margin:6px 0;font-size:13px;color:#d9e7ef}.you{margin-top:6px;font-weight:700}'
             '</style></head><body>')
     title = (f'<h1>每日投资决策台 · 完整产品（机器版·实时自动生成）</h1>'
-             f'<p style="color:#9aa8b5">数据 {esc(date)} 实时 ｜ 生成 {esc(gen)} UTC ｜ 深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编</p>')
+             f'<div style="background:#0e1621;border:1px solid #3a5a8a;border-radius:8px;padding:8px 12px;margin:6px 0;color:#ffd479;font-weight:700">'
+             f'📅 data_date=<b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>'
+             f' ｜ 本次实时扫描(production)：<b>{esc(scan_ts)}</b>'
+             f' ｜ 本页生成：<b>{esc(gen_jst)}</b>'
+             + (f' ｜ 行情快照日：{esc(md_note)}' if md_note else '') + '</div>'
+             f'<p style="color:#9aa8b5">深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编</p>')
     part2 = f'<h2>第二部分 · 你的持仓，今天怎么办（{stats["n"]}只）</h2>' + "".join(cards)
     if only:   # 打通模式:只出持仓卡
         return head + title + part2 + "</body></html>", stats
