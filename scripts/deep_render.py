@@ -134,6 +134,89 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     return (f'<div class="card">{hd}{deep}{dossier}'
             f'<div class="you"><span class="k">今天对你</span>{esc(reason)}</div></div>'), pack_status
 
+# ── 第一部分·五层大环境（daily links·今日事件现渲） ──
+def part1_layers(daily: dict) -> str:
+    links = daily.get("links") or []
+    rows = []
+    for l in links:
+        node = l.get("node", ""); strg = l.get("strength", ""); dr = l.get("direction", "")
+        plain = l.get("plain") or l.get("today_plain") or ""
+        rows.append(f'<div class="card"><div class="hd"><b>{esc(node)}</b> '
+                    f'<span class="conf">力度 {esc(strg)} · 方向 {esc(dr)}</span></div>'
+                    f'<div class="you">{esc(plain) if plain else "今日事件待接（daily 无该层大白话·不编）"}</div></div>')
+    if not rows:
+        rows.append('<div class="card">五层数据待接（daily_{date}.json 无 links·不编）</div>')
+    return '<h2>第一部分 · 大环境今天怎么了（五层）</h2>' + "".join(rows)
+
+# ── 第一部分附·宏观判定表（尺模板+当日读数） ──
+def part1_macro_table(daily: dict) -> str:
+    der = daily.get("derived", {}) or {}
+    td = esc(str(der.get("today_direction", "待接")))
+    return ('<h2>第一部分附 · 宏观指标"强/中/弱/证伪"判定标准表（尺）</h2>'
+            '<div class="card"><table border="1" cellpadding="5" style="border-collapse:collapse;font-size:13px">'
+            '<tr><th>档</th><th>含义（尺）</th></tr>'
+            '<tr><td>强</td><td>方向明确成立、证据充分</td></tr>'
+            '<tr><td>中</td><td>方向成立但力度一般/证据部分</td></tr>'
+            '<tr><td>弱</td><td>方向存疑/证据转软</td></tr>'
+            '<tr><td>证伪</td><td>反向证据出现、判断被推翻</td></tr></table>'
+            f'<div class="you" style="margin-top:6px">当日读数：{td}</div></div>')
+
+# ── 第三部分·集中度%（复用 full_product_render.portfolio_concentration 现算） ──
+def part3_concentration(date: str, dyn: dict) -> str:
+    try:
+        import full_product_render as fpr
+        cost = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
+        conc = fpr.portfolio_concentration(dyn["prod"].get("holdings", []),
+                                           (cost.get("summary", {}) or {}).get("known_cash_usd"), {})
+        rows = []
+        for k, v in (conc.get("categories", {}) or {}).items():
+            pct = v.get("pct"); lim = v.get("limit"); over = v.get("over"); short = v.get("short")
+            flag = "⚠超上限" if over else ("⚠低于下限" if short else "在限内")
+            rows.append(f'<div>· <b>{esc(k)}</b>：{pct:.1f}%（限 {lim}%）· {flag}</div>')
+        return '<h2>第三部分 · 仓位集中度（哪一类押太多了）</h2><div class="card">' + "".join(rows) + '</div>'
+    except Exception as e:
+        return f'<h2>第三部分 · 仓位集中度</h2><div class="card">集中度现算失败·待接（{esc(e)}）</div>'
+
+# ── 第四/五部分 ──
+def part4_5(daily: dict, dyn: dict) -> str:
+    der = daily.get("derived", {}) or {}
+    scope = esc(str(der.get("opportunity_scope", "待接")))
+    close = esc(str(der.get("today_direction_short") or der.get("today_direction", "待接")))
+    return ('<h2>第四部分 · 机会池：该不该换、换谁</h2>'
+            f'<div class="card">机会口径（现算）：{scope}<div class="meta" style="color:#8ea3b6;font-size:12px">候选详情见机会层引擎·此处给口径</div></div>'
+            '<h2>第五部分 · 整条逻辑怎么闭环</h2>'
+            f'<div class="card">{close}</div>')
+
+# ── 第六部分·6把尺 embed（读右栏_*.html body·浅色皮折叠·7块含②补） ──
+def _ruler_body(fname: str) -> str:
+    p = ROOT / "00_请先看这里" / fname
+    if not p.exists():
+        return f'<span style="color:#c9a86a">待接·缺 {esc(fname)}</span>'
+    raw = p.read_text(encoding="utf-8")
+    m = re.search(r'<body[^>]*>(.*?)</body>', raw, flags=re.S)
+    inner = m.group(1) if m else raw
+    inner = re.sub(r'<script[^>]*>.*?</script>', '', inner, flags=re.S)
+    return inner
+
+def part6_rulers() -> str:
+    RULERS = [
+        ("右栏① 世界观 · 完整底子", "右栏_完整世界观描述.html", True),
+        ("右栏② 国家战略地图 · 完整底子", "右栏_完整国家战略地图.html", False),
+        ("右栏②补 · 安全线／能源线（战略地图·同源）", "右栏_完整国家战略地图.html", False),
+        ("右栏③ 资金流动完整机制", "右栏_资金流动完整机制.html", False),
+        ("右栏④ 板块地图", "右栏_板块地图.html", False),
+        ("右栏⑤ 过滤标准／筛选规则", "右栏_过滤标准筛选规则.html", False),
+        ("右栏⑥ 持仓完整档案", "右栏_持仓完整档案.html", False),
+    ]
+    folds = []
+    for title, fname, opened in RULERS:
+        body = _ruler_body(fname)
+        folds.append(f'<details class="ruler-embed"{" open" if opened else ""}>'
+                     f'<summary>{esc(title)}</summary>'
+                     f'<div style="background:#f6f2e8;color:#2a2a2a;padding:10px;border-radius:6px">{body}</div></details>')
+    return '<h2>第六部分 · 右栏底子（6把尺 · 判断依据）</h2>' + "".join(folds)
+
+
 def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     dyn = load_dynamic(date)
     holds = dyn["prod"].get("holdings", [])
@@ -157,8 +240,15 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
             '</style></head><body>')
     title = (f'<h1>每日投资决策台 · 完整产品（机器版·实时自动生成）</h1>'
              f'<p style="color:#9aa8b5">数据 {esc(date)} 实时 ｜ 生成 {esc(gen)} UTC ｜ 深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编</p>')
-    body = f'<h2>第二部分 · 你的持仓，今天怎么办（{stats["n"]}只）</h2>' + "".join(cards)
-    return head + title + body + "</body></html>", stats
+    part2 = f'<h2>第二部分 · 你的持仓，今天怎么办（{stats["n"]}只）</h2>' + "".join(cards)
+    if only:   # 打通模式:只出持仓卡
+        return head + title + part2 + "</body></html>", stats
+    daily = dyn["daily"]
+    full = (title + part1_layers(daily) + part1_macro_table(daily) + part2
+            + part3_concentration(date, dyn) + part4_5(daily, dyn) + part6_rulers())
+    stats["ruler_embed"] = full.count('class="ruler-embed"')
+    stats["deep_blocks"] = full.count('class="deep"')
+    return head + full + "</body></html>", stats
 
 def main() -> int:
     import sys
