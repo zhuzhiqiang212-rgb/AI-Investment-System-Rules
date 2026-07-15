@@ -1,0 +1,545 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>完整产品·深度版·完整超集</title><style>
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;line-height:1.9;color:#1f2733;max-width:920px;margin:0 auto;padding:24px 17px;background:#f5f6f8}
+h1{font-size:22px;color:#12324e;border-bottom:3px solid #2c6e9a;padding-bottom:8px;margin-bottom:3px}
+h2{font-size:18px;color:#12324e;border-left:6px solid #2c6e9a;padding-left:10px;margin-top:30px}
+h3{font-size:15.5px;color:#7a4a12;background:#fbf3e6;border-radius:7px;padding:7px 12px;margin-top:22px}
+.sub{color:#66707c;font-size:12.8px}
+.oneline{background:#eaf2f8;border:1px solid #b8d3e6;border-radius:10px;padding:14px 17px;margin:12px 0;font-size:15px}
+.card{background:#fff;border:1px solid #e2e6ec;border-radius:11px;padding:15px 19px;margin:14px 0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card.hold{border-left:4px solid #cbd6e2}
+.hd{font-size:16.5px;color:#12324e;font-weight:bold;margin-bottom:4px}
+.conf{display:inline-block;border-radius:5px;padding:1px 9px;font-size:12.3px;font-weight:bold;color:#fff;margin-left:5px}
+.c-hi{background:#1d7a45}.c-mid{background:#c9791f}.c-lo{background:#8a94a0}
+.flag{display:inline-block;background:#b23b3b;color:#fff;border-radius:4px;padding:0 8px;font-size:12px;margin-left:5px}
+.zone{display:inline-block;border-radius:4px;padding:0 8px;font-size:12.3px;font-weight:bold;margin-left:4px}
+.z-cheap{background:#d8f0e0;color:#1d7a45}.z-fair{background:#e2ecf5;color:#2c6e9a}.z-exp{background:#fbe6dd;color:#b23b3b}
+.act{background:#eef7f1;border:1px solid #b6ddc6;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14.5px}
+.act b{color:#1d7a45}.warn-act{background:#fdf1ec;border-color:#e6bda9}.warn-act b{color:#b23b3b}
+.row{margin:7px 0}.k{display:inline-block;background:#eef3f8;color:#12324e;border-radius:5px;padding:1px 8px;font-weight:bold;font-size:12.6px;margin-right:3px}
+.you{background:#eef7f4;border-left:4px solid #4f9e7f;border-radius:0 7px 7px 0;padding:8px 12px;margin:8px 0}
+.flip{background:#fbf6ee;border-left:4px solid #c9a06a;border-radius:0 7px 7px 0;padding:8px 12px;margin:8px 0;font-size:13.4px;color:#5a4a2a}
+.price{background:#f7f9fb;border-radius:8px;padding:8px 12px;margin-top:7px;font-size:13.6px}
+.deep{background:#f2f6fb;border-left:4px solid #6a8fc9;border-radius:0 7px 7px 0;padding:9px 12px;margin:8px 0;font-size:13.5px;color:#2a3a4a}
+.deep .dk{display:inline-block;background:#dfeaf5;color:#2c5578;border-radius:5px;padding:1px 8px;font-weight:bold;font-size:12.4px;margin-right:4px}
+.dossier{background:#f7f4ee;border:1px dashed #cbb98f;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:13.2px;color:#5a4e33}
+.deep b,.dossier b{color:#12324e}.dossier .need{color:#b5701a;font-weight:bold}
+.mini li{margin:4px 0}
+.crow{display:flex;align-items:center;margin:7px 0;font-size:13.4px}.cname{width:250px}.cbarwrap{flex:1;background:#eef1f4;border-radius:6px;height:14px;overflow:hidden;margin:0 10px}
+.cbar{height:14px;border-radius:6px}.cbar.ok{background:#7bbf98}.cbar.over{background:#d98a6a}.cval{width:230px;text-align:right;color:#556}
+.chain{background:#12324e;color:#e8f1f8;border-radius:10px;padding:15px 18px;font-size:14px;line-height:2.1}.chain b{color:#ffd479}.chain .ar{color:#8fb6d6;margin:0 6px}
+.foot{color:#88919c;font-size:12px;text-align:center;margin-top:22px}
+.part6-intro{background:#eef2f7;border:1px solid #c4d3e2;border-radius:10px;padding:13px 17px;margin:12px 0;font-size:14.5px;color:#2a3a4a}
+details.ruler-embed{background:#fbfcfd;border:1px solid #d5dde6;border-radius:12px;margin:14px 0;padding:4px 6px}
+details.ruler-embed>summary{cursor:pointer;font-size:16px;font-weight:bold;color:#12324e;padding:11px 13px;background:#e9f0f7;border-radius:9px;list-style:none}
+details.ruler-embed>summary::-webkit-details-marker{display:none}
+details.ruler-embed>summary::before{content:"▸ ";color:#2c6e9a}
+details.ruler-embed[open]>summary::before{content:"▾ "}
+.ruler-embed .wrap{max-width:100%;margin:0;padding:6px 10px 12px}
+.ruler-embed .hdr{padding:12px 15px;background:#eaf2f8;border:1px solid #b8d3e6;border-radius:11px;margin:8px 0 12px}
+.ruler-embed .hdr h1{font-size:18px;margin:0 0 4px;color:#12324e}
+.ruler-embed .hdr .sub,.ruler-embed .sub{color:#66707c;font-size:12.8px}
+.ruler-embed .tie{background:#f4f1ea;border:1px solid #e0d6bf;border-radius:9px;padding:10px 13px;margin:9px 0;font-size:12.6px;color:#6a5a3a}
+.ruler-embed .sec{background:#fff;border:1px solid #e2e6ec;border-radius:11px;margin:11px 0;padding:13px 17px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.ruler-embed .sec h2{font-size:17px;margin:0 0 7px;color:#12324e}
+.ruler-embed .sec h3{font-size:15px;color:#7a4a12;margin:13px 0 4px}
+.ruler-embed .sec p{margin:8px 0;font-size:14.5px}
+.ruler-embed .sec b,.ruler-embed .card b{color:#12324e}
+.ruler-embed .hl{color:#b5701a;font-weight:700}
+.ruler-embed .ruler,.ruler-embed .flow,.ruler-embed .funnel{background:#eef4fa;border:1px solid #bcd6e8;border-radius:9px;padding:11px 14px;margin:9px 0;font-size:13.8px}
+.ruler-embed .ruler b{color:#2c6e9a}
+.ruler-embed .flow .ar,.ruler-embed .funnel .ar{color:#2c6e9a;font-weight:bold}
+.ruler-embed .funnel .g{display:inline-block;background:#dce8f3;color:#2c6e9a;border-radius:6px;padding:2px 10px;margin:2px;font-weight:700}
+.ruler-embed table{width:100%;border-collapse:collapse;margin:9px 0;font-size:13px}
+.ruler-embed th,.ruler-embed td{border:1px solid #d7dee6;padding:7px 8px;text-align:left;vertical-align:top}
+.ruler-embed th{background:#eef3f8;color:#2a4358}
+.ruler-embed .support,.ruler-embed .down{color:#1d7a45;font-weight:600}
+.ruler-embed .falsify,.ruler-embed .up{color:#b23b3b;font-weight:600}
+.ruler-embed .flat{color:#b5701a}
+.ruler-embed .main{border-left:3px solid #c9791f}
+.ruler-embed .side{border-left:3px solid #3e9e7f}
+.ruler-embed .mine{color:#b23b3b;font-weight:700}
+.ruler-embed .ask{background:#eef7f1;border:1px solid #b6ddc6;border-radius:11px;padding:13px 17px;margin:14px 0}
+.ruler-embed .ask h2{color:#1d7a45;font-size:16px;margin:0 0 7px}
+.ruler-embed .echo,.ruler-embed .upd,.ruler-embed .note{background:#f3f0f8;border:1px solid #d8cfe6;border-radius:9px;padding:10px 14px;margin:10px 0;font-size:13.2px}
+.ruler-embed .echo b,.ruler-embed .upd h3{color:#6b4ea0}
+.ruler-embed .single{background:#fbf3e6;border:1px solid #e0c98f;border-radius:9px;padding:10px 13px;margin:9px 0;font-size:13.3px;color:#7a5a12}
+.ruler-embed .card{background:#fff;border:1px solid #e2e6ec;border-radius:11px;margin:11px 0;padding:13px 16px}
+.ruler-embed .card h2{font-size:16px;margin:0 0 2px;color:#12324e}
+.ruler-embed .card .sym{color:#66707c;font-size:12px;font-weight:400}
+.ruler-embed .plan{background:#eef3f8;border:1px solid #cfdbe6;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:13.3px}
+.ruler-embed .wait{color:#b5701a}.ruler-embed .ref{color:#2c6e9a}
+.ruler-embed .gate{background:#fff;border:1px solid #e2e6ec;border-left:4px solid #9db3c6;border-radius:11px;margin:11px 0;padding:13px 17px}
+.ruler-embed .gate h2{font-size:16px;margin:0 0 5px;color:#12324e}
+.ruler-embed .gate .role{font-size:12.5px;color:#66707c;margin-bottom:7px}
+.ruler-embed .gate.veto{border-left-color:#b23b3b}
+.ruler-embed .gate.veto h2{color:#b23b3b}
+.ruler-embed .pill{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.ruler-embed .p-hot{background:#fbe0dd;color:#b23b3b}.ruler-embed .p-warm{background:#fbf0d8;color:#a5761a}
+.ruler-embed .p-cool{background:#e0edf8;color:#2c6e9a}.ruler-embed .p-off{background:#eceef0;color:#77828c}
+.ruler-embed .p-good{background:#daf0e2;color:#1d7a45}
+.ruler-embed .trend{font-size:16px;font-weight:700;text-align:center}
+.pdca{background:#fff;border:1px solid #e2e6ec;border-radius:11px;padding:14px 18px;margin:12px 0}
+.pdca table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+.pdca th,.pdca td{border:1px solid #d7dee6;padding:7px 9px;text-align:left}
+.pdca th{background:#eef3f8;color:#2a4358}
+</style></head><body>
+<h1>每日投资决策台 · 完整产品（深度版·完整超集·正式生产）</h1><p class="sub">数据 20260715 真数据（Code扫描 07-15 11:49 生成）｜ 数字＝production现算、分析＝分析岗deep当日写 ｜ 决策只看估值不看均线·每条标把握·缺数说清 ｜ <b>本版为完整超集：左栏深度分析(19只含第5关深研+完整档案) + 右栏6块尺(判断依据·可对照验收) + 宏观判定表 + PDCA记分卡系统，一份到底</b></p>
+<div class="oneline"><b>今天一句话：</b>今天市场转防御：恐慌指数暴涨、半导体重挫（-4.77%）——尽管AI产业基本面今天反而更硬（台积电利润+58%超预期）。→ 更要守、别追高、别加杠杆；核心AI仓因基本面硬不必恐慌减、但坚决不加（爱德万/闪迪今天已被推到偏贵区）；防御仓今天的价值凸显；把最弱的软银列为要降AI时优先减。 <span class="conf c-hi">把握高</span><div class="sub" style="margin-top:5px">这句话是下面五层大环境+每只持仓合起来顶出来的。</div></div>
+<h2>第一部分 · 大环境今天怎么了（五层 · 讲透）</h2>
+<div class="card"><div class="hd">① 大局：世界大格局有没有变 <span class="conf c-mid">把握中</span></div>
+        <div class="row"><span class="k">事实</span>特朗普在北约峰会公开说格陵兰应由美国控制、当众批北约。</div>
+        <div class="row"><span class="k">为什么值得看</span>格陵兰有稀土（造芯片导弹的关键料）和正打开的北极航道。美国总统公开谈划走盟友的地、还在盟友会上骂盟友，信号很硬：旧的全球自由贸易在散、美国拉自己人圈资源挡对手的新阵营秩序在成型——今天是又添一块砖。</div>
+        <div class="you"><span class="k">对你的组合</span>你手里英伟达/台积电/东京海上/伊藤忠押的正是这套秩序会赢，今天是夯地基不是动摇。真正该怕的是反过来：美国重新拥抱全球化、或美联储大放水。</div>
+        <div class="flip"><span class="k">什么情况改看法</span>美国真转向或美联储放水，任一发生整套框架重推。今天都相反。</div>
+        <div class="sub">把握中：从新闻标题读方向，够说延续、不够宣布反转。</div></div>
+<div class="card"><div class="hd">② 资金总闸：美联储松不松（最重要） <span class="conf c-mid">把握中</span></div>
+        <div class="row"><span class="k">事实</span>10年期美债利率再涨到4.609%（+0.88%，比昨天涨得更多）；物价这次微降（CPI较前值降）；就业没变、基准利率3.63%没动。</div>
+        <div class="row"><span class="k">为什么值得看</span>利率还在往上爬、就业没垮→美联储没理由放水；物价虽略降，但一个月的降不足以让它转向。总闸还是拧紧的——今天甚至更紧了一点（利率涨幅比昨天大）。</div>
+        <div class="you"><span class="k">对你的组合</span>你整体偏后者（英伟达/微软/博通/台积电真赚钱），钱紧反而利好；要小心靠杠杆讲故事的软银、MSTR。直接支持守核心、别加杠杆、别追贵票。</div>
+        <div class="flip"><span class="k">什么情况改看法</span>就业突然大跌或物价快速回落（不止一个月）→美联储有理由放水，总闸转松，打法从守转攻。今天没有。</div>
+        <div class="sub">方向偏紧把握较高、强度中；物价微降是唯一偏松的信号、但不够，利率反而涨得更多。</div></div>
+<div class="card"><div class="hd">③ AI 主线：你最大那注，产业硬不硬 <span class="conf c-hi">把握高</span></div>
+        <div class="row"><span class="k">事实</span>台积电营收创历史新高、且Q1利润大增58%超预期（CNBC）；花旗上调目标价超30%。</div>
+        <div class="row"><span class="k">为什么值得看</span>台积电是最先进AI芯片的唯一代工厂，英伟达/博通的芯片都得它造。它利润+58%超预期＝AI硬件的钱是真的、还在加速。产业基本面今天不但硬、还更硬了。</div>
+        <div class="you"><span class="k">对你的组合</span>托着你最重的一块（英伟达/博通/台积电/爱德万/闪迪）。今天关键：恰恰是‘产业更硬、但股价被大盘避险砸下来’的背离——基本面给你‘不恐慌减核心’的底气，但资金面（下面④⑤）告诉你‘今天绝不追’。</div>
+        <div class="flip"><span class="k">什么情况改看法</span>AI订单被砍、大厂资本开支指引下调、或台积电增速掉头。今天相反、更强。</div>
+        <div class="sub">把握高：台积电真金白银营收+利润+58%超预期，证据很硬。</div></div>
+<div class="card"><div class="hd">④ 避险情绪：今天大家慌不慌 <span class="conf c-mid">把握中低</span></div>
+        <div class="row"><span class="k">事实</span>恐慌指数VIX今天暴涨+14.17%（阈值+5%就算避险）；利率曲线暂未倒挂。</div>
+        <div class="row"><span class="k">为什么值得看</span>VIX一天跳这么多，说明市场今天真的在往避风港躲、在降风险——和昨天的‘不慌’翻过来了。</div>
+        <div class="you"><span class="k">对你的组合</span>今天该做的是‘降点风险、多留现金垫’，尤其别在避险日追高。但你的组合大多是真赚钱核心+防御仓，不需要恐慌式砍仓；把‘今天不加、且把最弱的软银列为优先减’落实到位就够。</div>
+        <div class="flip"><span class="k">什么情况改看法</span>VIX回落、恢复常态＝避险解除；若继续飙+曲线倒挂，就要动真格加厚防御、砍高风险仓。</div>
+        <div class="sub">把握中低：VIX数据非当天最新（隔一两天），但+14%的跳动方向很明确。</div></div>
+<div class="card"><div class="hd">⑤ 板块：钱今天往哪流 <span class="conf c-mid">把握中低</span></div>
+        <div class="row"><span class="k">事实</span>半导体板块今天重挫（SOXX -4.77%，比昨天-1.09%惨得多）。</div>
+        <div class="row"><span class="k">为什么值得看</span>资金今天从半导体大幅撤出——和第④层‘避险’一致：避险日里，涨得多、估值不便宜的半导体首当其冲被砸。</div>
+        <div class="you"><span class="k">对你的组合</span>你的AI仓大多在半导体线上，今天净值会难看。但这不改变第③层‘产业基本面更硬’——是‘资金短期恐慌’砸的、不是‘生意坏了’。所以：不恐慌减核心、但坚决不追高；爱德万、闪迪今天已被推到偏贵区，更不能在这里加。想买的，等避险退、且回到便宜位。</div>
+        <div class="flip"><span class="k">什么情况改看法</span>半导体指数重新连续走强（单日+1%站稳）＝资金回流，便宜位买的窗口才开。</div>
+        <div class="sub">把握中低：板块数据非当天最新、单日噪音大。</div></div>
+<h2>第一部分附 · 宏观指标"强／中／弱／证伪"判定标准表（尺 · 蓝图③要求）</h2>
+<div class="part6-intro"><b>这张表是量第一部分④⑤两层的尺：</b>每个宏观数字，多少算"顺风(利好风险资产)"、多少算"逆风(该守)"、什么程度是"警报(证伪松/紧预期)"，先定标准，数值一到位就能直接判、不拍脑袋。<span class="sub">阈值是判读框架；具体实时数值由机器侧(Code)接口取。</span></div>
+<div class="pdca"><table>
+<tr><th>指标</th><th>偏松／顺风(利好)</th><th>中性</th><th>偏紧／逆风(该守)</th><th>警报级(证伪／极端)</th></tr>
+<tr><td><b>VIX 恐慌指数</b></td><td>&lt;15 市场安心敢冒险</td><td>15–20 常态</td><td>&gt;20 或单日+5%以上 避险升温</td><td>持续&gt;30 且收益率曲线倒挂＝系统性避险</td></tr>
+<tr><td><b>10年期美债利率</b></td><td>回落、&lt;约4.3%</td><td>约4.3–4.6%</td><td>&gt;约4.6% 压制成长股(今天4.609%在此档)</td><td>急升破5% 流动性冲击</td></tr>
+<tr><td><b>非农就业</b></td><td>温和(稳但不过热)</td><td>符合预期</td><td>过强→打消降息预期</td><td>骤降→衰退苗头</td></tr>
+<tr><td><b>CPI／PCE 通胀</b></td><td>连续回落(开降息空间)</td><td>持平预期</td><td>反弹或超预期(今天微降但仅一个月、不够)</td><td>再通胀失控＝证伪"会转松"</td></tr>
+<tr><td><b>DXY 美元指数</b></td><td>回落(利好风险资产)</td><td>区间震荡</td><td>走强(收紧全球流动性)</td><td>急升＝新兴市场承压</td></tr>
+<tr><td><b>收益率曲线(10年-2年)</b></td><td>正向陡峭(健康)</td><td>平坦</td><td>接近倒挂(警惕)</td><td>倒挂加深＝衰退预警(今天暂未倒挂)</td></tr>
+<tr><td><b>稳定币市值</b></td><td>增(全球钱灌入美元体系、顺战略)</td><td>持平</td><td>缩(流动性撤)</td><td>骤缩＝risk-off</td></tr>
+</table>
+<p class="sub" style="margin-top:8px">今天对照结果：利率在"偏紧"档、CPI微降但不足、VIX进"避险升温"、曲线未倒挂——合起来＝资金面偏紧+今天转避险，正好顶出第一部分那句"更要守、别追高、别加杠杆"。</p></div>
+<h2>第二部分 · 你的持仓，今天怎么办（19只 · 每只讲透）</h2>
+<div class="card" style="background:#fbf6ee;border-color:#e6d3b0"><b>价位规矩：</b>买卖价只看估值——便宜位/偏贵位。均线只当趋势背景一句话、绝不当止损或买入线，根治红减绿加自打架。要不要止损看生意有没有坏。下面按角色分组，先看该守的、再看该减的。</div>
+<h3>A组 · AI核心：真赚钱、护城河宽 → 守住，但都别加（AI已67%超标；今天避险更别追）</h3>
+<div class="card hold">
+    <div class="hd">英伟达（NVDA）<span class="zone z-fair">合理区</span> <span class="conf c-hi">把握高</span><span class="flag">别加</span></div>
+    <div class="act warn-act"><b>动作：守 · 核心持有。</b>　AI这类已到上限(≤45%)、再买超标</div>
+    <div class="row"><span class="k">生意硬吗</span>AI算力绝对核心，靠CUDA软件生态把客户锁死（换别家要重写一堆程序），毛利75%。护城河8·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：毛利75%、自由现金流为正、净现金，真金白银赚钱。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $175 ｜ 偏贵位 $260。<b>现价 $213，落在【合理区】。</b>看着不贵，但你AI占比已满、且今天是避险日——也别加。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>数据中心订单转弱或毛利明显下滑，才动它的守。今天没有。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>数据中心业务已是营收绝对主力、连续多季高增长，毛利维持70%+高位；增速较爆发期高点自然回落，但绝对规模持续创新高——赚钱是真的、还在加速（今天台积电+58%从供给端交叉印证）。
+    <div style="margin-top:5px"><span class="dk">增长点</span>Blackwell新一代AI GPU放量、算力从"训练"扩到"推理"、各国自建"主权AI"成新需求源。<span class="dk">竞争格局</span>AMD(MI系列)与大厂自研ASIC(博通/谷歌/亚马逊)在追，但CUDA软件生态+NVLink/网络的系统级方案是综合壁垒，短期难撼。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>AI国力主线的算力绝对核心，世界观支柱3最纯的承接点——组合的压舱石。<span class="dk">退出条件(看生意不看价)</span>大厂集体下调AI资本开支(需求见顶)、或CUDA被开放生态瓦解、或定制ASIC大规模替代通用GPU。这三样才是"生意坏了"要走，与价位无关。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b>1020股（富途830+IBKR190）｜ <b>成本</b><span class="need">待Code账户真数据</span> ｜ <b>目标价(参考=偏贵位)</b>$260 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>替换条件</b>算力节点几乎无可替代→基本不换。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">微软（MSFT）<span class="zone z-fair">合理区</span> <span class="conf c-hi">把握高</span><span class="flag">别加</span><span class="flag">单一超限17%</span></div>
+    <div class="act warn-act"><b>动作：守 · 核心持有。</b>　AI这类已到上限(≤45%)、再买超标；这一只已超单一15%上限</div>
+    <div class="row"><span class="k">生意硬吗</span>Office/Azure/Windows把企业客户锁死（换掉要动一整套系统）+网络效应+规模。护城河7·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：毛利68%、自由现金流为正、AAA级净现金。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $360 ｜ 偏贵位 $460。<b>现价 $387，落在【合理区】。</b>它既超AI上限、单独一只又占约17%超单一15%限，双重别加。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>Azure增速大幅放缓或AI投入持续拖低利润率。今天没有。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>云(Azure)是营收增长的第一引擎、持续高速增长，整体毛利约68%、经营利润率高、AAA级净现金；唯一要盯的是AI资本开支大幅抬升会不会短期压利润率。
+    <div style="margin-top:5px"><span class="dk">增长点</span>Azure AI算力租赁、Copilot在Office/GitHub/安全全线商业化、与OpenAI的深度绑定变现。<span class="dk">竞争格局</span>云三强(AWS/Azure/GCP)三分天下；Office在企业办公近乎垄断，转换成本极高——这是它比多数AI票"稳"的根。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>AI落地变现最确定的大厂之一，软件应用主线代表，现金牛托底。<span class="dk">退出条件(看生意不看价)</span>Azure增速持续大幅放缓、Copilot商业化长期不及预期、或AI巨额投入两三年仍看不到利润回报。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b>690股 ｜ <b>成本</b><span class="need">待Code账户真数据</span> ｜ <b>目标价(参考=偏贵位)</b>$460 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>纪律</b>单独一只约占17%、超单一15%上限，双重别加 ｜ <b>替换条件</b>软件龙头→基本不换。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">博通（AVGO）<span class="zone z-fair">合理区</span> <span class="conf c-hi">把握高</span><span class="flag">别加</span></div>
+    <div class="act warn-act"><b>动作：守 · 核心持有。</b>　AI这类已到上限(≤45%)、再买超标</div>
+    <div class="row"><span class="k">生意硬吗</span>定制AI芯片ASIC市占60-80%+VMware软件黏客户。护城河7·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：毛利76%、自由现金流为正（并购VMware背了净负债、正去杠杆）。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $341 ｜ 偏贵位 $521。<b>现价 $394，落在【合理区】。</b>合理区偏便宜，但AI超标别加。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>AI定制芯片大客户流失或去杠杆不顺。今天没有。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>半导体(AI定制芯片+网络)与软件(VMware)双引擎，毛利约76%高位；并购VMware背了净负债、正稳步去杠杆，自由现金流为正——账本硬但要盯负债。
+    <div style="margin-top:5px"><span class="dk">增长点</span>为大客户(如谷歌TPU、Meta等)做定制AI芯片(ASIC/XPU)放量、AI以太网交换芯片、VMware转订阅制。<span class="dk">竞争格局</span>定制AI芯片ASIC市占领先，主要对手Marvell；网络侧走以太网路线与英伟达InfiniBand竞争。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>AI算力供应链"定制"分支的核心，与英伟达"通用GPU"互补；VMware软件黏性提供稳定现金流。<span class="dk">退出条件(看生意不看价)</span>大客户转向自研/流失、去杠杆不顺推高财务风险、或ASIC需求被通用GPU吃回去。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>$521 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>替换条件</b>AI定制芯片+软件双护城河，基本不换。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">台积电（TSM）<span class="zone z-fair">合理区</span> <span class="conf c-hi">把握高</span><span class="flag">别加</span></div>
+    <div class="act warn-act"><b>动作：守 · 核心持有。</b>　AI这类已到上限(≤45%)、再买超标</div>
+    <div class="row"><span class="k">生意硬吗</span>最先进制程近乎垄断+CoWoS先进封装+天文级资本壁垒，新玩家几年追不上。护城河8·宽。今天利润+58%超预期的主角就是它。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：自由现金流为正、订价权强、订单可见度高（客户排队）。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $352 ｜ 偏贵位 $571。<b>现价 $427，落在【合理区】。</b>合理区。今天财报大超预期是基本面利好，但半导体大盘避险被砸——守住别追。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>先进制程被赶上（极难）或AI需求急冻。今天相反、更强。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>今天的主角：营收创历史新高、利润大增58%超预期(CNBC)、花旗上调目标价超30%。先进制程(3/5nm)与CoWoS先进封装满载，订单能见度高(客户排队)、定价权强——AI硬件的钱从供给端被它坐实。
+    <div style="margin-top:5px"><span class="dk">增长点</span>AI高性能计算拉动先进制程+先进封装(CoWoS)持续扩产，2nm量产在即。<span class="dk">竞争格局</span>最先进制程近乎垄断，三星/英特尔代工落后约一到两代；苹果/英伟达/AMD/博通都得靠它造。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>一切先进AI芯片的"物理出口"，世界观支柱3承接链最核心的节点。<span class="dk">退出条件(看生意不看价)</span>先进制程被赶上(极难)、AI需求急冻、或台海地缘尾部风险实质化——这也是"美国本土"美光在世界观里有加分的原因。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>$571 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>独有风险</b>台海地缘(尾部) ｜ <b>替换条件</b>近乎不可替代，不换。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">爱德万（6857）<span class="zone z-exp">偏贵区</span> <span class="conf c-hi">把握高</span><span class="flag">别加</span></div>
+    <div class="act warn-act"><b>动作：守 · 核心持有；不加。</b>　AI这类已到上限(≤45%)、再买超标</div>
+    <div class="row"><span class="k">生意硬吗</span>造测试AI芯片的机器，全球基本只它和泰瑞达两家（双寡头）+客户认证壁垒。护城河7·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：自由现金流为正、订价权强、订单能见度高（backlog充足）。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥23,000 ｜ 偏贵位 ¥30,000。<b>现价 ¥31,250，落在【偏贵区】。</b>今天价站上偏贵位¥30000、进【偏贵区】，加上AI超标——坚决不加；可列入要降AI时的减仓候选之一。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>跌回合理区（¥30000以下）才谈得上再看；或半导体设备订单周期见顶。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>造"测试AI芯片"的机器，订单能见度高(backlog充足)、自由现金流为正、定价权强。逻辑硬：AI芯片越复杂→测试时间越长→测试机需求越大，HBM/先进封装进一步放大测试需求。
+    <div style="margin-top:5px"><span class="dk">增长点</span>AI芯片复杂度与HBM/先进封装带动测试量。<span class="dk">竞争格局</span>全球测试机双寡头(爱德万+泰瑞达)，客户认证壁垒高，格局稳。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>半导体设备节点，AI承接链关键一环。<span class="dk">退出条件(看生意不看价)</span>半导体设备订单周期见顶、AI芯片需求掉头、或双寡头格局被打破(极难)。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b>800股 ｜ <b>成本</b><span class="need">待Code账户真数据</span> ｜ <b>目标价(参考=偏贵位)</b>¥30,000（现价¥31,250已在偏贵区上方） ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>纪律</b>已进偏贵区+AI超标→坚决不加，要降AI时减仓候选之一。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">闪迪（SNDK）<span class="zone z-exp">偏贵区</span> <span class="conf c-hi">把握高</span><span class="flag">别加</span></div>
+    <div class="act warn-act"><b>动作：守 · 持有；不加。</b>　AI这类已到上限(≤45%)、再买超标</div>
+    <div class="row"><span class="k">生意硬吗</span>NAND闪存寡头之一（2025从西数分拆），但闪存是强周期行业、上下都猛。护城河5·窄。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：自由现金流为正、订单可见度好（数据中心/AI带的）。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $1,133 ｜ 偏贵位 $1,737。<b>现价 $1,789，落在【偏贵区】。</b>今天已进【偏贵区】、强周期又在高位（避险日更脆）——坚决不追高。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>闪存周期见顶（价格掉头）要警惕；这类不适合高位加。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>2025从西数分拆的NAND闪存厂，强周期行业——当前受数据中心/AI需求带动处于上行、自由现金流为正、订单能见度好；但盈利随闪存价格大起大落，是它和前面几只"稳"票的本质区别。
+    <div style="margin-top:5px"><span class="dk">增长点</span>AI/数据中心对企业级SSD、高容量NAND的需求。<span class="dk">竞争格局</span>NAND寡头之一(三星/海力士/美光/铠侠/闪迪)，供给纪律决定价格周期，护城河窄(5)。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>AI存储节点、承接链一环。<span class="dk">退出条件(看生意不看价)</span>闪存周期见顶(价格掉头)、行业供给过剩、或AI存储需求证伪——强周期股尤其要盯价格拐点。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>$1,737（现价$1,789已进偏贵区） ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>纪律</b>强周期+已偏贵→坚决不追高。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">META（META）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span><span class="flag">别加</span></div>
+    <div class="act warn-act"><b>动作：守 · 持有。</b>　AI这类已到上限(≤45%)、再买超标</div>
+    <div class="row"><span class="k">生意硬吗</span>社交平台网络效应（用户越多广告主越来、变现越强）+海量数据+广告生态。护城河7·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>②在盯改善：当季精确毛利待取（历史约80%级、营业利润率约41%，账本其实很硬，只是精确数没接、缺不编先留观察）；自由现金流为正、净现金。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $511 ｜ 偏贵位 $799。<b>现价 $661，落在【合理区】。</b>合理区。AI超标别加。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>广告大盘转弱或AI/元宇宙投入持续吞噬利润。今天没有。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>广告主业强现金流、历史毛利约80%级、营业利润率约41%、净现金——账本其实很硬，只是当季精确毛利没接进系统(按缺不编先留观察)。真正的利润拖累是元宇宙(Reality Labs)持续亏损。
+    <div style="margin-top:5px"><span class="dk">增长点</span>用AI提升广告推荐效率变现、Reels与商业消息、AI助手。<span class="dk">竞争格局</span>社交网络效应+海量数据+广告生态是壁垒；对手TikTok抢用户时长、苹果隐私政策(ATT)影响广告精准度。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>AI的应用/变现方(拿AI把广告做更值钱)，间接受益主线，强现金牛。<span class="dk">退出条件(看生意不看价)</span>广告大盘转弱、AI/元宇宙投入长期吞噬利润不见回报、或用户时长被持续侵蚀。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>$799 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>账本状态</b>②在盯改善(当季精确毛利待接) ｜ <b>替换条件</b>社交广告龙头，基本不换。</div>
+    </div>
+<h3>B组 · AI但质量弱：要降AI敞口时，先减这里</h3>
+<div class="card hold">
+    <div class="hd">软银（9984）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span><span class="flag">要降AI先减它</span><span class="flag">单一超限17%</span></div>
+    <div class="act warn-act"><b>动作：守，但要降AI/单一敞口时第一个减它。</b>　AI已到上限、这只质量最弱→腾额度先动它；这一只已超单一15%上限</div>
+    <div class="row"><span class="k">生意硬吗</span>控股公司，自己不做实业，价值＝手里资产（Arm/OpenAI等）减负债，本身几乎没护城河（评2·无），真正壁垒在旗下Arm，借钱多波动大，在你AI仓里质量最弱。</div>
+    <div class="row"><span class="k">账本硬吗</span>②观察：控股不看毛利看借款占资产（LTV20.6%低于25%安全线、暂稳）。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥5,850 ｜ 偏贵位 ¥8,000。<b>现价 ¥6,379，落在【合理区】。</b>合理区，价位本身不极端。减它的理由是质量最弱+单一占约17%超限+高杠杆，尤其避险日高杠杆更脆——不是价格。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>LTV逼近25%或Arm/OpenAI估值大跌，风险升级更该减；反之若主动大幅去杠杆才谈得上留。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>控股公司，不看毛利看NAV(净资产)和LTV(借款占资产，现20.6%低于25%安全线、暂稳)；账面盈亏随持仓(Arm/OpenAI等)估值大幅波动，本身几乎不产生经营现金流。
+    <div style="margin-top:5px"><span class="dk">价值构成</span>核心是Arm(AI芯片IP、授权模式高毛利，真正的壁垒)+愿景基金持股(OpenAI等)；市价常对NAV有折价。<span class="dk">风险</span>高杠杆放大波动、愿景基金估值不透明。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>盟友节点+AI间接暴露(靠Arm)，但在你AI仓里质量最弱。<span class="dk">退出条件(看生意不看价)</span>LTV逼近25%、Arm/OpenAI估值大跌、或NAV折价持续走阔且无催化——这也是"要降AI敞口先减它"的原因。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b>6600股 ｜ <b>成本</b><span class="need">待Code账户真数据</span> ｜ <b>目标价(参考=偏贵位)</b>¥8,000 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>纪律</b>单一约占17%超限+质量最弱+高杠杆→要降AI/单一敞口第一个减它 ｜ <b>替换条件</b>价值在Arm，盯Arm与NAV折价。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">MSTR（MSTR）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span></div>
+    <div class="act "><b>动作：守着看、别加，当高波动加密敞口管。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>本质加了杠杆的比特币壳、借钱买币、价值≈手里的币。护城河2·无。</div>
+    <div class="row"><span class="k">账本硬吗</span>②观察：ROE待接（当季账面亏主要是持币非现金浮亏、非主营亏）。账本本质＝币价+杠杆。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $78 ｜ 偏贵位 $118。<b>现价 $98，落在【合理区】。</b>合理区。加密今天占约10%未超12%上限所以不标别加，但波动极大、避险日尤其盯紧。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>比特币大跌被杠杆放大重创；加密整体逼近12%上限就控敞口。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>本质是加了杠杆的比特币壳：价值≈持有的币减负债；账面盈亏主要是持币的非现金浮盈亏，主营软件业务很小。看它就是看币价+杠杆。
+    <div style="margin-top:5px"><span class="dk">价值构成</span>mNAV(市值/持币净值)常带溢价，靠"发债/发股买币"的飞轮做大持币量。<span class="dk">风险</span>币价与杠杆双重放大，溢价可能收敛，融资成本与再融资依赖。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>当高波动加密敞口的放大器管。<span class="dk">退出条件(看生意不看价)</span>比特币大跌被杠杆重创、mNAV溢价大幅收敛、或融资链条断裂。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>$118 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>纪律</b>计入加密总仓≤12%，避险日尤其盯紧。</div>
+    </div>
+<h3>C组 · 防御压舱：抗跌、分散AI风险（今天避险日，价值凸显）</h3>
+<div class="card hold">
+    <div class="hd">第一三共（4568）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span></div>
+    <div class="act "><b>动作：守 · 核心持有；今天避险日、便宜位可分批小买加防御。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>全球抗癌药龙头，靠重磅药Enhertu（把化疗药精准送到癌细胞的ADC抗癌药）驱动，专利护着对手难仿。护城河7·宽。它一半价值在生意好、一半在AI回调时不跟跌——今天这种避险日正是它发挥作用的时候。</div>
+    <div class="row"><span class="k">账本硬吗</span>②在盯改善：当期精确毛利和现金流没取到、按缺不编先不下硬结论；但利润在增、不像有硬伤，留观察不淘汰。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥2,520 ｜ 偏贵位 ¥3,800。<b>现价 ¥2,658，落在【合理区】。</b>合理区（刚过便宜位一点）。防御仓14%略低于15%下限，今天避险日、它又不贵——是加防御的合适方向，可在便宜位分批小买。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>Enhertu销售或管线出问题（临床失败/竞品抢市场）才动它的守。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>利润在增、不像有硬伤；当期精确毛利/现金流没取到(按缺不编先不下硬结论、留观察不淘汰)。全球抗癌药龙头，靠重磅ADC药Enhertu驱动。
+    <div style="margin-top:5px"><span class="dk">增长点/管线</span>Enhertu(把化疗药精准送到癌细胞的ADC)放量+适应症扩展，后续ADC管线接力。<span class="dk">竞争格局</span>ADC抗癌药领先、专利护着对手难仿；主要风险是竞品ADC抢市场。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>医药防御仓——一半价值在生意好、一半在AI回调时不跟跌，避险日发挥作用。<span class="dk">退出条件(看生意不看价)</span>Enhertu专利/销售出问题、核心管线临床失败、或竞品抢占市场。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b>9900股（SBI3400+富途6500） ｜ <b>成本</b><span class="need">待Code账户真数据</span> ｜ <b>目标价(参考=偏贵位)</b>¥3,800 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>纪律</b>防御仓14%略低于下限，便宜位可分批小买加防御。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">东京海上（8766）<span class="zone z-exp">偏贵区</span> <span class="conf c-hi">把握高</span></div>
+    <div class="act "><b>动作：守 · 持有，但已偏贵不加；要减防御仓腾现金它可作候选。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>日本财险龙头，品牌+规模+长年承保数据（定价更准）+牌照。稳健但不暴利，护城河5·窄。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：ROE21%（保险核心赚钱指标、远超10%门槛）、资本充足、订价权强。金融看ROE不看毛利。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥6,200 ｜ 偏贵位 ¥7,500。<b>现价 ¥7,770，落在【偏贵区】。</b>今天¥7770、更深地在【偏贵区】（偏贵位¥7500上方）。生意好但价格不便宜，别追高。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>回到偏贵位以下更值得留/加；继续冲高或承保利润恶化就减仓兑现。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>ROE约21%(保险核心赚钱指标、远超10%门槛)、资本充足、订价权强——金融看ROE不看毛利。稳健但不暴利。
+    <div style="margin-top:5px"><span class="dk">增长点</span>海外扩张、财险费率上行、投资收益受益高利率环境。<span class="dk">竞争格局</span>日本财险龙头，品牌+规模+长年承保数据(定价更准)+牌照，护城河窄(5)但稳。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>防御/保险价值仓，和高利率环境同向受益，分散AI风险。<span class="dk">退出条件(看生意不看价)</span>承保利润恶化、巨灾冲击、或ROE持续下滑。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b>1000股 ｜ <b>成本</b><span class="need">待Code账户真数据</span> ｜ <b>目标价(参考=偏贵位)</b>¥7,500（现价¥7,770已在偏贵区） ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>纪律</b>已偏贵不加，要减防御仓腾现金可作候选。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">伊藤忠（8001）<span class="zone z-fair">合理区</span> <span class="conf c-hi">把握高</span></div>
+    <div class="act "><b>动作：守 · 持有，稳健股息分散仓。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>多元综合商社，经营分散、长期资产网络+巴菲特长期持股背书。护城河5·窄。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：ROE15%（超10%门槛）、净利创纪录、连年增派息。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥1,507 ｜ 偏贵位 ¥2,355。<b>现价 ¥1,924，落在【合理区】。</b>合理区，不贵不便宜，安心拿股息；避险日这类稳定分散仓相对抗跌。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>大宗商品/全球贸易大幅走弱拖累商社利润；否则作稳定分散仓长期拿。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>ROE约15%(超10%门槛)、净利创纪录、连年增派息——账本干净、股东回报持续提升。
+    <div style="margin-top:5px"><span class="dk">增长点</span>非资源业务(消费/食品/纺织)占比高、相对抗周期；持续提高股东回报。<span class="dk">竞争格局</span>多元综合商社，经营分散+长期资产网络+巴菲特长期持股背书，护城河窄(5)但稳。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>稳健股息分散仓，避险日这类稳定仓相对抗跌。<span class="dk">退出条件(看生意不看价)</span>大宗商品/全球贸易大幅走弱拖累商社利润、或股息政策逆转。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>¥2,355 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>替换条件</b>稳定分散仓，长期拿。</div>
+    </div>
+<h3>D组 · 日本非AI：优质分散仓（AI回调不跟跌）</h3>
+<div class="card hold">
+    <div class="hd">索尼（6758）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span></div>
+    <div class="act "><b>动作：守 · 核心持有，优质非AI分散仓。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>多引擎且硬：手机摄像头的影像传感器近乎垄断+PlayStation游戏生态+海量娱乐IP。护城河7·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>②在盯改善：当期精确毛利待取（结构性中低毛利的综合娱乐/硬件、按低毛利制造桶看不套高毛利线防误杀）；自由现金流为正。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥2,687 ｜ 偏贵位 ¥4,367。<b>现价 ¥3,354，落在【合理区】。</b>合理区。非AI，避险日相对不跟半导体跌。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>影像传感器份额被抢或游戏业务掉头。今天没有。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>结构性中低毛利的综合娱乐/硬件(按低毛利制造桶看、不套高毛利线防误杀)，自由现金流为正；当期精确毛利待取。
+    <div style="margin-top:5px"><span class="dk">增长点</span>影像传感器(CIS)近乎垄断供手机、PlayStation游戏生态、音乐/影视/动漫IP变现。<span class="dk">竞争格局</span>CIS主要对手三星；游戏对手任天堂/微软；娱乐IP变现稳。多引擎且硬。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>优质非AI分散仓，避险日相对不跟半导体跌。<span class="dk">退出条件(看生意不看价)</span>影像传感器份额被抢、游戏业务掉头、或娱乐IP系统性走弱。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>¥4,367 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>替换条件</b>优质非AI分散仓，长期拿。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">任天堂（7974）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span></div>
+    <div class="act "><b>动作：守 · 核心持有，优质非AI分散仓。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>独家超级IP（马力欧/塞尔达/宝可梦）+主机生态、几十年难复制。护城河8·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>②在盯改善：当期毛利/现金流精确数待取（新主机Switch2上市期利润率被摊薄是正常）；现金极厚、几无有息负债。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥5,624 ｜ 偏贵位 ¥9,139。<b>现价 ¥7,039，落在【合理区】。</b>合理区。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>新主机周期销量不及预期压短期业绩；长期IP护城河不受影响。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>现金极厚、几无有息负债；新主机Switch2上市期利润率被摊薄是正常现象；当期精确毛利/现金流待取。
+    <div style="margin-top:5px"><span class="dk">增长点</span>Switch2主机周期、独家IP(马力欧/塞尔达/宝可梦)变现、IP向影视/乐园扩展。<span class="dk">竞争格局</span>独家超级IP+主机生态，几十年难复制，护城河宽(8)。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>优质非AI分散仓。<span class="dk">退出条件(看生意不看价)</span>新主机周期销量长期不及预期、或核心IP热度系统性下滑(长期看极难)。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>¥9,139 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>替换条件</b>超级IP护城河，长期拿。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">丰田（7203）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span></div>
+    <div class="act "><b>动作：守 · 分散仓；盯美国关税与纯电转型。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>规模第一+混动技术领先+可靠性品牌+全球经销网。护城河7·宽（但汽车价格竞争、天生低毛利）。</div>
+    <div class="row"><span class="k">账本硬吗</span>②在盯改善：按低毛利制造桶看（汽车结构性低毛利、不套45%线防误杀）；以巨额净现金著称、自由现金流虽同比下滑但为正。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥2,400 ｜ 偏贵位 ¥3,670。<b>现价 ¥2,862，落在【合理区】。</b>合理区偏便宜。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>美国对日本车加关税或纯电转型明显落后，是主要风险点。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>以巨额净现金著称、自由现金流虽同比下滑但为正；按低毛利制造桶看(汽车结构性低毛利、不套45%线防误杀)。
+    <div style="margin-top:5px"><span class="dk">增长点</span>混动(HEV)领先、全球规模、氢能/纯电布局。<span class="dk">竞争格局</span>规模第一+混动技术领先+可靠性品牌+全球经销网，护城河宽(7)；但汽车天生价格竞争、纯电转型落后是隐忧。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>优质分散仓。<span class="dk">退出条件(看生意不看价)</span>美国对日本车加关税、或纯电转型明显落后被特斯拉/中国车企结构性超越。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>¥3,670 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>盯</b>美国关税与纯电转型。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">万代（7832）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span></div>
+    <div class="act "><b>动作：守 · 分散仓。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>自有动漫IP组合（高达/龙珠等）+玩具模型变现+游戏，IP是壁垒。护城河7·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>②在盯改善：毛利/现金流精确数待取（营业利润率约14%、按低毛利制造桶看）。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 ¥3,214 ｜ 偏贵位 ¥5,222。<b>现价 ¥4,077，落在【合理区】。</b>合理区。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>核心IP热度下滑或新品周期青黄不接。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>营业利润率约14%，按低毛利制造桶看；毛利/现金流精确数待取。
+    <div style="margin-top:5px"><span class="dk">增长点</span>自有动漫IP(高达/龙珠等)玩具模型变现、游戏、海外扩张。<span class="dk">竞争格局</span>IP是壁垒，玩具+游戏+影像多元，护城河宽(7)。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>非AI分散仓。<span class="dk">退出条件(看生意不看价)</span>核心IP热度下滑、或新品周期青黄不接。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>¥5,222 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>替换条件</b>IP分散仓，长期拿。</div>
+    </div>
+<h3>E组 · 金融/加密相关：随行情、按仓位纪律管</h3>
+<div class="card hold">
+    <div class="hd">IBKR（IBKR）<span class="zone z-fair">合理区</span> <span class="conf c-hi">把握高</span></div>
+    <div class="act "><b>动作：守 · 持有，受益于钱紧利率高的环境。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>全球低成本自动化券商，技术平台+账户黏性+规模成本优势。护城河7·宽。</div>
+    <div class="row"><span class="k">账本硬吗</span>①优质·通过：ROE20%、税前利润率极高、订价权强。高利率下靠客户存款利息多赚，和第②层钱紧正好同向受益；且避险日交投活跃对券商反而是量。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $78 ｜ 偏贵位 $119。<b>现价 $96，落在【合理区】。</b>合理区，位置略偏高别追。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>美联储大幅降息会削它的利息收入——这是它和钱紧绑定的两面。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>ROE约20%、税前利润率极高、订价权强；高利率下靠客户存款利息多赚，和第②层"钱紧"正好同向受益。
+    <div style="margin-top:5px"><span class="dk">增长点</span>全球账户持续增长、低成本自动化平台、高利率利息红利。<span class="dk">竞争格局</span>全球低成本自动化券商，技术平台+账户黏性+规模成本优势，护城河宽(7)。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>受益"钱紧利率高"环境；避险日交投活跃对券商反而是量。<span class="dk">退出条件(看生意不看价)</span>美联储大幅降息削利息收入、账户增长停滞、或竞争压佣金。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>$119 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>替换条件</b>受益高利率的优质券商，长期拿。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">Coinbase（COIN）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span></div>
+    <div class="act "><b>动作：守着看、别加，本质加密行情放大器。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>美国最大合规加密交易所，品牌+牌照是壁垒、但收入随加密行情大起大落。护城河5·窄。</div>
+    <div class="row"><span class="k">账本硬吗</span>②观察：ROE待接（当季账面受自有加密浮亏影响、主营调整后EBITDA为正）。金融口径待补精确数。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $135 ｜ 偏贵位 $214。<b>现价 $162，落在【合理区】。</b>合理区偏便宜。加密占比未超上限但波动大、避险日按纪律控。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>加密行情转熊直接砸交易收入；监管变化也是变量。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>ROE待接(当季账面受自有加密浮亏影响、主营调整后EBITDA为正)；收入随加密行情大起大落，金融口径待补精确数。
+    <div style="margin-top:5px"><span class="dk">增长点</span>交易+托管+稳定币(USDC分成)+订阅服务多元化，降低对交易手续费的单一依赖。<span class="dk">竞争格局</span>美国最大合规加密交易所，品牌+牌照是壁垒。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>本质加密行情放大器，按仓位纪律控。<span class="dk">退出条件(看生意不看价)</span>加密转熊直接砸交易收入、监管变化、或竞争压费率。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>$214 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>纪律</b>计入加密总仓≤12%，波动大按纪律控。</div>
+    </div>
+<div class="card hold">
+    <div class="hd">Circle（CRCL）<span class="zone z-fair">合理区</span> <span class="conf c-mid">把握中</span></div>
+    <div class="act "><b>动作：守着看、别加，最贴世界观的稳定币手段层但命门在利率。</b></div>
+    <div class="row"><span class="k">生意硬吗</span>USDC（第二大稳定币）发行方、吃GENIUS法案合规红利。但收入九成来自储备金利息——美联储一降息收入直接缩。护城河5·窄。</div>
+    <div class="row"><span class="k">账本硬吗</span>②观察：当季净利为正、但滚动12个月ROE受上市后一次性股权激励拖累转负、精确ROE干净取不到、按缺不编留观察（上周去财报核过）。</div>
+    <div class="price">💰 <b>价位（只看估值）</b>：便宜位 $51 ｜ 偏贵位 $82。<b>现价 $64，落在【合理区】。</b>合理区。</div>
+    <div class="flip"><span class="k">什么情况改看法</span>好在你第②层判钱紧没转放水、短期高利率对它有利；一旦美联储转向降息，它是利空最直接的一只。</div>
+    <div class="deep"><span class="dk">深研·财报趋势</span>当季净利为正，但滚动12个月ROE受上市后一次性股权激励拖累转负、精确ROE干净取不到(按缺不编留观察，上周去财报核过)。收入九成来自储备金利息——这是它的命门。
+    <div style="margin-top:5px"><span class="dk">增长点</span>USDC(第二大稳定币)流通量增长、GENIUS法案合规红利。<span class="dk">竞争格局</span>USDC发行方，对手Tether(USDT)；九成收入来自储备金利息，利率是双刃剑。</div>
+    <div style="margin-top:5px"><span class="dk">买入逻辑</span>最贴世界观手段层(稳定币→美债→战略)，但命门在利率。<span class="dk">退出条件(看生意不看价)</span>美联储转向降息(利空最直接)、USDC份额被抢、或监管变化。</div></div>
+    <div class="dossier"><span class="dk">档案</span><b>持仓</b><span class="need">待Code账户真数据</span> ｜ <b>成本</b><span class="need">待Code</span> ｜ <b>目标价(参考=偏贵位)</b>$82 ｜ <b>低吸/止损价</b><span class="need">待Code拉实时均线</span> ｜ <b>盯</b>美联储利率转向(降息=利空最直接)。</div>
+    </div>
+<div class="card"><div class="hd">加密资产：比特币 BTC / 以太坊 ETH <span class="conf c-mid">把握中</span></div><ul class="mini"><li><b>BTC</b>（现价约 $64,634）：无财报资产·质量关不适用，只按仓位纪律控占比、不追高。</li><li><b>ETH</b>（现价约 $1,872）：无财报资产·质量关不适用，只按仓位纪律控占比、不追高。</li></ul><div class="flip"><b>数据缺口（诚实说）：</b>这两只持仓数量还没接进系统，所以暂不算占比、不给动作价——不是漏，是这个数待接。补上后加密总占比才完整。</div></div>
+<h2>第三部分 · 仓位集中度（哪一类押太多了）</h2><div class="card">
+<div class="crow"><div class="cname">AI 供应链（押在AI这条链上的钱）</div><div class="cbarwrap"><div class="cbar over" style="width:67%"></div></div><div class="cval">67%（上限45%）· ⚠ 超上限</div></div>
+<div class="crow"><div class="cname">加密（MSTR/COIN/CRCL已计，BTC/ETH数量待接）</div><div class="cbarwrap"><div class="cbar ok" style="width:10%"></div></div><div class="cval">10%（上限12%）· ✓ 内</div></div>
+<div class="crow"><div class="cname">防御（抗跌保命仓·保险/医药）</div><div class="cbarwrap"><div class="cbar ok" style="width:14%"></div></div><div class="cval">14%（下限15%）· ⚠ 略不足</div></div>
+<div class="you" style="margin-top:10px"><b>今天最该看的一行：AI 押了 67%，远超 45% 上限。</b>这就是为什么A组每一只（哪怕便宜、哪怕优质）都标别加——不是它们不好，是你在AI这条船上的钱太集中。想降下来，正确顺序是<b>先减质量最弱的软银，而不是砍真正的核心（英伟达/台积电）</b>。防御仓 14%、略低于15%下限，今天避险日更该把压舱石加厚——第一三共在便宜位、是加防御的方向。</div>
+<div class="sub" style="margin-top:6px">算法：每类持仓值÷全部持仓值（日元先按162.536折美元）。现算的——持仓一变这些数就跟着变（对比昨天：爱德万/闪迪今天涨进了偏贵区）。</div></div>
+<h2>第四部分 · 机会池：该不该换、换谁</h2>
+<div class="card"><p><b>今天机器扫描：没有到换仓价的现成候选。</b>但不代表外面没机会——是这套"机会标的vs你的持仓"的多维对比还没接上真数据（问题清单根因④）。</p><p>接上后它会这样帮你决策：拿一个候选（如做AI高速内存HBM的存储龙头海力士）和你手里同一类持仓摆一张表，比四样——护城河谁更宽、估值谁更便宜、方向谁更顺、换完会不会让某类更超标，直接给"换谁、什么价换"。示例见《完整产品_新样式定样》海力士对比表。</p><div class="flip"><b>要补两件：</b>①机会池扫描把候选填进来；②每个候选的便宜买价+最新财报现金流。</div></div>
+<h2>第五部分 · 整条逻辑怎么闭环</h2>
+<div class="chain"><b>大局</b>：美国优先、阵营化没变（特朗普谈格陵兰=又添一块砖）<span class="ar">↓</span>
+    <b>资金总闸</b>：美联储偏紧、钱没放水（利率涨到4.609%、涨幅比昨天更大）<span class="ar">↓所以</span>
+    <b>策略</b>：钱紧时只拿真赚钱护城河宽的，少碰靠借钱撑的<span class="ar">↓</span>
+    <b>板块</b>：AI产业更硬（台积电利润+58%超预期）、但今天市场避险、半导体重挫-4.77%→绝不追高<span class="ar">↓落到每只</span>
+    <b>持仓动作</b>：A组优质AI守住不加（已超标、爱德万/闪迪还涨进偏贵区）；软银质量最弱→要降AI先减它；防御压舱、第一三共便宜位可小加<span class="ar">↓</span>
+    <b>机会</b>：候选跟同类持仓比、够格且到便宜位才换（今天无到价候选）<span class="ar">↓明天</span>
+    <b>复盘</b>：明天验证今天判断对没对，对的加把握、错的改尺，回头修正大局判断</div>
+    <p class="sub">每步都写得出"因为上面X所以下面Y"：如"因为今天避险(④)+半导体重挫(⑤)+AI已超标(集中度)，所以英伟达再便宜也别加"。任何一只动作都能顺这条线倒推回大局。</p>
+<h2>第六部分 · 右栏底子（6把尺 · 判断依据 · 可逐条对照验收）</h2>
+<div class="part6-intro"><b>这是什么：</b>上面第一部分的五层大环境、每只持仓的判断，量它们用的"尺"就是下面这6块底子。左栏每天现算的判断是<b>动</b>，这6块固定的尺是<b>静</b>——你要验收某条判断对不对，翻到对应的尺对照即可。6块尺已随本产品整体接入（不再是外面单独的文件），这份就是一站式完整产品。</div>
+<details class="ruler-embed" open><summary>右栏① 世界观 · 完整底子（已通过 · 2026-07-08 · 董事长）</summary>
+<div class="wrap">
+<div class="hdr"><h1>完整世界观描述 · 右栏底子</h1><div class="sub">主心骨的根 ｜ 这是把"尺"——以后左栏每天的世界观新事件，都拿它来量是支持还是证伪 ｜ 已通过 · 2026-07-08 · 董事长</div></div>
+<div class="tie">起草依据：体系总则第二条第0环"总命题·世界是否真变"+已核实事实（沃什2026-5-22就任第17任美联储主席；改革派/主张"regime change"；维持高利率3.50–3.75%、6月点阵图转向可能加息；已停止主动缩表、转"维持充足准备金"）。事实经Chat架构师2026-07-07对美联储官方来源复核。此为右栏静态底子，相对稳、隔久才更新。</div>
+<div class="sec"><h2>一句话世界观（当前判断）</h2><p class="hl">旧的"全球化、大水漫灌、大家一起涨"的时代结束了；现在进入"美国优先、阵营化、把资源集中砸向AI等战略方向"的新秩序。</p><p>所以投资不能再"闭眼买全球"，而要"跟着美国的战略方向、押它集中砸钱的地方"。这是整个系统一切判断的最上层源头。</p></div>
+<div class="sec"><h2>最底层·政治根（三根支柱底下的总开关）</h2><p><b>美国/西方政治正在集体向"右"转</b>——这是三根支柱同时变强的政治原因。往右走＝更保护自己、更对抗对手、更集中力量办自己的事。表现：美国优先、关税与保护主义、制造业回流、对外强硬结盟讲阵营、传统能源回归、减税去监管。</p><p class="hl">这股政治潮同时在强化三根支柱：右倾→美国优先(支柱1)、右倾→对抗阵营化(支柱2)、右倾→科技民族主义把AI当国力竞争(支柱3)。政治根→三支柱→投资方向，这条传导就完整了。</p><p style="color:#556;font-size:13.5px;">诚实提醒：政治会摆动（选举可能反转），所以它是"要持续跟踪的变量"不是铁律；用记分卡盯它在加强还是减弱。</p></div>
+<div class="sec"><h2>这个世界观的完整骨架（三根支柱）</h2><h3>支柱1 · 美国优先，不再当"世界的央行"</h3><p>过去美国印钱、美元流向全世界。现在把美元和资源优先留给自己和盟友的战略方向。<b>钱从"全球普惠"变成"定向滴灌"。</b>标志：维持高利率（3.50–3.75%连续第4次不降）、6月点阵图转可能加息；已停止主动缩表、改"维持充足准备金"；FIMA选择性放美元给盟友。</p><h3>支柱2 · 世界在按阵营站队（阵营化）</h3><p>供应链、技术、贸易在按"美国阵营 vs 对手阵营"重组。友岸外包、出口管制、技术脱钩——全球一张网正裂成几张网。站对阵营的供应链节点受益。</p><h3>支柱3 · AI已上升到"国家实力竞争"级别</h3><p>AI不再只是科技概念，而是"谁算力强谁国力强"的国家竞争。<b>算力即国力。</b>美国会用国家力量把资源砸向AI全链条——这是钱最集中流向的地方。</p></div>
+<div class="sec"><h2>为什么这是"尺"：怎么用它量今天的新事件</h2><div class="ruler"><b>算"支持"的事件</b>：美国维持高利率/拒绝大放水/定向放美元给盟友、阵营化加深、AI被提到更高国家战略高度。<br><b>算"证伪"的事件</b>：美国重新大放水普惠全球、阵营重新融合、AI热退潮回归普通科技。</div>
+<table><tr><th>今天若发生…</th><th>怎么判</th></tr>
+<tr><td>美联储维持高利率/不降息/点阵图偏加息/定向放美元</td><td class="support">支持支柱1 → 世界观确定性+1</td></tr>
+<tr><td>美联储维持充足准备金/买短债维持流动性（技术性操作）</td><td>中性，不加不减（别误判成证伪）</td></tr>
+<tr><td>新的对某国出口管制</td><td class="support">支持支柱2 → +1</td></tr>
+<tr><td>新AI战略立法/拨款</td><td class="support">支持支柱3 → +1</td></tr>
+<tr><td>左翼回潮/美联储突然转向大放水</td><td class="falsify">证伪政治根/支柱1 → −1，动摇整个世界观</td></tr></table></div>
+<div class="sec"><h2>证伪条件（什么情况下这个世界观要推翻）</h2><p>总则第0环铁律：不假设AI牛市自动延续，随时准备证伪。<b>如果连续出现"美国重新大放水+阵营融合+AI退潮"，说明世界观错了</b>，整个系统要降级为"普通全球AI牛市"逻辑。这是最高级别的警报。</p></div>
+<div class="ask"><h2>已审结 · 2026-07-08 董事长通过</h2><p style="margin:6px 0;font-size:14px;">三支柱（美国优先/阵营化/AI国力竞争）与"支持/证伪"判定逻辑，董事长 2026-07-08 拍板通过；此尺生效。自带证伪条件——若现实持续相悖、证伪信号累积，将提醒董事长重审。</p></div>
+</div>
+</details>
+<details class="ruler-embed"><summary>右栏② 国家战略地图 · 完整底子（钱往 AI／安全／能源哪条线流）</summary>
+<div class="wrap">
+<div class="hdr"><h1>完整国家战略地图 · 右栏底子</h1><div class="sub">右栏第2块 ｜ 钱往AI/安全/能源哪条线流的完整地图 ｜ 承接世界观三支柱：政治右倾→美国集中砸钱给这三条线</div></div>
+<div class="sec"><h2>一句话战略地图</h2><p class="hl">美国把国家资源集中砸向三条线：AI（主线·钱最多）、安全（国防军工）、能源（独立与供电）。三条并列，但AI是绝对主线，因为"算力即国力"。</p></div>
+<div class="sec main"><h2>主线 · AI（算力即国力，钱最集中）</h2><p><b>为什么是主线</b>：谁AI强谁国力强，美国不惜代价投。钱从AI往下，落到一条完整的"物理承接链"：</p>
+<table><tr><th>承接节点</th><th>是什么</th><th>代表标的举例（✔=你持仓；其余仅举例·可迭代·非死名单）</th></tr>
+<tr><td>算力</td><td>做AI芯片的</td><td class="mine">英伟达✔、博通✔</td></tr>
+<tr><td>半导体设备</td><td>造芯片的机器</td><td class="mine">爱德万✔、东京电子、京瓷</td></tr>
+<tr><td>代工</td><td>帮别人造芯片</td><td class="mine">台积电✔、联电</td></tr>
+<tr><td>存储</td><td>芯片存储器</td><td>海力士、三星、美光、闪迪✔</td></tr>
+<tr><td>电力</td><td>AI耗电巨大，电是硬约束</td><td>电力/核电类（待补名单）</td></tr>
+<tr><td>盟友节点</td><td>美国盟友的关键链</td><td class="mine">软银✔(持Arm)、日韩链</td></tr></table>
+<p style="font-size:13.5px;color:#556;">✔=你已持有。你的核心仓正好压在AI主线的算力/设备/代工/盟友节点上。<b>注（总则第六条）：本列只是"举例·可迭代"，不是死名单、不是买入结论；真正的候选由每日机会池现算、带论证进池。</b></p></div>
+<div class="sec side"><h2>并列线 · 安全（国防／军工／网络）</h2><p>国防、军工、网络安全、太空。政治右倾→对外强硬→国防开支上升。<span style="color:#556;">地图客观陈述：你目前在这条线上无持仓。</span></p></div>
+<div class="sec side"><h2>并列线 · 能源（独立／安全／供AI用电）</h2><p>能源独立、电网、传统能源回归、核电。<b>能源与AI在"电力"节点重叠</b>——AI要大量电，电力是AI落地的硬约束。<span style="color:#556;">你目前在这条线上也基本无持仓。</span></p></div>
+<div class="sec" style="border-left:3px solid #7f77dd;"><h2>说明："要不要补安全/能源线"不在这张地图里决</h2><p style="font-size:14px;">这张地图是<b>静态底子</b>，只客观画"战略地形"。你该不该往安全/能源布局是个<b>动态决策</b>——当某天该线被今日大事件激活、而你无仓时，<b>机会池通道②会自动提示</b>。不在这静态地图里写死。</p></div>
+<div class="sec"><h2>怎么当"尺"：量今天战略层的新事件</h2><div class="ruler"><b>算"支持"</b>：新AI/芯片补贴拨款、新出口管制、国防预算上升、能源/核电扶持立法、盟友链绑定。<br><b>算"证伪/转弱"</b>：AI补贴退坡、战略投放转普惠、三条线被冷落。</div></div>
+</div>
+</details>
+<details class="ruler-embed"><summary>右栏②补 · 安全线／能源线 完整战略地图（蓝图②要求补齐 · 静态地形不锚标的）</summary>
+<div class="wrap">
+<div class="hdr"><h1>安全线 / 能源线 · 完整战略地图</h1><div class="sub">承接右栏②国家战略地图 ｜ 把蓝图②"安全/能源完整地图"补齐 ｜ 只画地形+承接点+激活信号，不锚死标的(总则第六条) ｜ 你目前两线基本无仓，靠机会池在该线激活时提示</div></div>
+<div class="sec side"><h2>并列线 · 安全（国防／军工／网络／太空）</h2>
+<table><tr><th>承接节点</th><th>是什么</th><th>激活信号(左栏战略层今日事件命中即"这条线热了")</th></tr>
+<tr><td>国防整机／平台</td><td>战机/舰船/装甲/导弹系统总承包</td><td>国防授权法案(NDAA)增额、大额军购订单、地缘冲突升级</td></tr>
+<tr><td>军工电子／无人系统</td><td>雷达/制导/无人机/反无人机</td><td>无人化作战预算、对外军援清单、新型装备立项</td></tr>
+<tr><td>网络安全</td><td>关键基础设施防护/零信任</td><td>重大网络攻击事件、联邦网络安全令、合规新规</td></tr>
+<tr><td>太空</td><td>卫星/发射/太空军</td><td>太空军拨款、卫星星座招标、商业航天政策</td></tr></table>
+<p style="font-size:13.5px;color:#556;">你目前在安全线<b>无持仓</b>。地图只客观画地形；某天安全线被今日大事件激活、而你无仓时，机会池通道②会提示"这条线热了、你没仓、这里有机会"。</p></div>
+<div class="sec side"><h2>并列线 · 能源（核电／电网／传统／新能源 · 与AI电力重叠）</h2>
+<table><tr><th>承接节点</th><th>是什么</th><th>激活信号</th></tr>
+<tr><td>核电(含小堆SMR)</td><td>为数据中心/AI供稳定基载电</td><td>核电扶持行政令(如特朗普核电令)、SMR审批、大厂签核电供电协议</td></tr>
+<tr><td>电网／输配电</td><td>把电送到数据中心的骨架</td><td>电网升级拨款、并网瓶颈新闻、变压器/输电扩容</td></tr>
+<tr><td>传统油气</td><td>右倾→传统能源松绑</td><td>钻探许可放松、战略储备政策、油气出口</td></tr>
+<tr><td>新能源／储能</td><td>光伏/风/储能配套</td><td>补贴政策(注意右倾下可能退坡)、储能招标</td></tr></table>
+<p style="font-size:13.5px;color:#556;"><b>能源与AI在"电力"节点重叠</b>——AI耗电暴增、电力是AI落地的硬约束，所以"AI电力"既是能源线也是AI主线的延伸(见右栏④板块地图"AI电力/能源"已↗↗升温)。你目前这条线基本无仓，同样靠机会池激活时提示。</p></div>
+</div>
+</details>
+<details class="ruler-embed"><summary>右栏③ 资金流动完整机制（最重 · VIX／利率／FIMA／机构散户的尺）</summary>
+<div class="wrap">
+<div class="hdr"><h1>资金流动完整机制 · 右栏底子</h1><div class="sub">右栏第3块（最重）｜ 钱怎么流的完整机制 + 每个指标怎么读 ｜ 承接世界观支柱1(美国收水、定向滴灌)</div></div>
+<div class="sec"><h2>一句话总机制</h2><p class="hl">美国现在"收水+定向滴灌"：整体把钱收紧（缩表），但通过几条管道把钱精准放给自己和盟友的战略方向。所以钱不是普遍地涨，而是精准地往AI等战略流。</p></div>
+<div class="sec"><h2>三大管道（钱怎么精准放出去）</h2><h3>管道1 · 利率（总闸门）</h3><p>美联储调利率＝调水龙头总大小。<b>利率高＝钱贵、收紧；降息＝放松。</b>现在强调独立、按兵不动，还没到放水阶段——这是今天"守、不冒进"的资金面原因。</p><h3>管道2 · FIMA回购（选择性放美元给盟友）</h3><p>FIMA是美联储给"外国央行"的美元窗口。<b>能选择性把美元放给盟友、不放给对手</b>——这就是"定向滴灌"的工具。</p><h3>管道3 · 稳定币／加密（吸全球流动性入美元）</h3><div class="flow">稳定币要用美元/美债做抵押 <span class="ar">→</span> 全世界买稳定币＝间接买美债 <span class="ar">→</span> 给美国财政腾出钱 <span class="ar">→</span> 反哺战略方向(AI等)</div></div>
+<div class="sec"><h2>关键指标怎么读</h2><table><tr><th>指标</th><th>是什么</th><th>怎么读</th></tr>
+<tr><td><b>VIX恐慌指数</b></td><td>市场怕不怕</td><td>低=敢冒险<span class="down">(利好)</span>；<span class="up">突然飙高=恐慌避险</span></td></tr>
+<tr><td><b>10年期美债利率</b></td><td>长期钱的价格</td><td>飙升=钱贵压成长股；回落=利好</td></tr>
+<tr><td><b>非农就业</b></td><td>月度就业</td><td>太强=不敢降息(利空)；太弱=可能催降息，结合看</td></tr>
+<tr><td><b>CPI/PCE通胀</b></td><td>物价涨多快</td><td>高=继续收紧(利空)；降=打开降息空间(利好)</td></tr>
+<tr><td><b>DXY美元指数</b></td><td>美元强弱</td><td>太强=全球流动性收紧；回落=利好</td></tr>
+<tr><td><b>收益率曲线</b></td><td>长短端利差</td><td>倒挂=衰退预警</td></tr>
+<tr><td><b>稳定币市值</b></td><td>USDT/USDC增减</td><td>增=钱灌入美元体系(顺战略)；缩=流动性撤</td></tr></table></div>
+<div class="sec"><h2>机构资金 vs 散户资金（谁在动钱）</h2><table><tr><th>谁在买</th><th>含义</th></tr>
+<tr><td class="down">机构(聪明钱)在买</td><td>有研究、可信度高，可能真布局→<b>值得跟</b></td></tr>
+<tr><td class="up">散户(追涨杀跌)在买</td><td>常是情绪追高，高位散户涌入=接盘信号→<b>要警惕</b></td></tr>
+<tr><td class="down">机构悄悄买、散户恐慌卖</td><td>常是底部信号</td></tr>
+<tr><td class="up">机构在减、散户狂欢追</td><td>常是顶部信号</td></tr></table></div>
+</div>
+</details>
+<details class="ruler-embed"><summary>右栏④ 板块地图（进攻＋防御 · 状态词＋趋势箭头）</summary>
+<div class="wrap">
+<div class="hdr"><h1>板块地图 · 右栏底子（板块级）</h1><div class="sub">只到板块·只锚定义·不写具体股票 ｜ 进攻+防御 ｜ 状态词+箭头看趋势 ｜ 快慢分离更新</div></div>
+<div class="sec atk"><h2>进攻板块群（追AI/风险偏好高时，钱往这冲）</h2>
+<table><tr><th>板块（定义）</th><th>过去</th><th>现在</th><th>未来</th><th>趋势</th><th>为什么在这么变</th></tr>
+<tr><td><b>AI算力</b>·AI芯片</td><td><span class="pill p-hot">领涨</span></td><td><span class="pill p-cool">回调</span></td><td><span class="pill p-warm">低吸企稳</span></td><td class="trend flat">→</td><td>估值涨高获利了结，今日随硬件跌；长期主线未变</td></tr>
+<tr><td><b>AI半导体设备</b></td><td><span class="pill p-hot">领涨</span></td><td><span class="pill p-cool">回调</span></td><td><span class="pill p-warm">低吸企稳</span></td><td class="trend flat">→</td><td>随算力同步；扩产周期长期支撑</td></tr>
+<tr><td><b>AI代工</b></td><td><span class="pill p-hot">领涨</span></td><td><span class="pill p-cool">承压重</span></td><td><span class="pill p-warm">低吸企稳</span></td><td class="trend flat">→</td><td>今日跌最重；产能绑定长期需求仍在</td></tr>
+<tr><td><b>AI存储</b></td><td><span class="pill p-warm">轮动</span></td><td><span class="pill p-cool">回调</span></td><td><span class="pill p-warm">波动大</span></td><td class="trend flat">→</td><td>周期属性强，随硬件大起大落</td></tr>
+<tr><td><b>AI电力/能源</b></td><td><span class="pill p-off">未激活</span></td><td><span class="pill p-warm">升温</span></td><td><span class="pill p-hot">主线成长</span></td><td class="trend up">↗↗</td><td class="hl">AI耗电暴增+政治右倾推核电；资金正涌入，未来新主线</td></tr>
+<tr><td><b>AI软件应用</b></td><td><span class="pill p-warm">轮动</span></td><td><span class="pill p-hot">领涨</span></td><td><span class="pill p-warm">看兑现</span></td><td class="trend up">↗</td><td>今日硬件回调、钱轮入软件炒应用落地</td></tr>
+<tr><td><b>加密/稳定币</b></td><td><span class="pill p-warm">轮动</span></td><td><span class="pill p-hot">大涨</span></td><td><span class="pill p-warm">防过热</span></td><td class="trend flat">→</td><td>今日大涨，警惕散户情绪推动，防高位</td></tr>
+<tr><td><b>盟友链节点</b>·日韩半导体</td><td><span class="pill p-warm">轮动</span></td><td><span class="pill p-good">避风走强</span></td><td><span class="pill p-warm">受益盟友</span></td><td class="trend up">↗</td><td>今日日股独立强，避风+美国盟友定向受益</td></tr></table></div>
+<div class="sec def"><h2>防御板块群（市场恐慌/避险时，钱往这躲）</h2>
+<table><tr><th>板块</th><th>现在</th><th>什么时候轮到它</th></tr>
+<tr><td><b>公用事业</b>·传统水电气</td><td><span class="pill p-off">未激活</span></td><td>市场恐慌避险首选；与AI电力有交集</td></tr>
+<tr><td><b>黄金/贵金属</b>·终极避险</td><td><span class="pill p-warm">避险</span></td><td>VIX飙、避险、抗通胀时受益</td></tr>
+<tr><td><b>高股息/价值</b>·综合商社</td><td><span class="pill p-warm">价值</span></td><td>你的伊藤忠/丰田偏此类，防御+价值</td></tr>
+<tr><td><b>保险/金融价值</b>·东京海上</td><td><span class="pill p-warm">价值</span></td><td>你的东京海上偏此类，对利率敏感</td></tr>
+<tr><td><b>避险货币</b>·日元/瑞郎</td><td><span class="pill p-warm">中性</span></td><td>全球避险时走强，影响你日股汇率</td></tr></table></div>
+<div class="upd"><h3>更新规则（快慢分离·地图不追单日噪声）</h3><p style="font-size:13px;margin:0;">过去=永不改（锁死事实）｜现在=周频（单日大涨跌只进左栏日志、PDCA周复盘确认才改）｜未来=确定性/大事件触发。一句话：左栏日频快、右栏地图慢，更新由"确定性攒够"驱动，不由单日情绪。</p></div>
+</div>
+</details>
+<details class="ruler-embed"><summary>右栏⑤ 过滤标准／筛选规则（5关漏斗 · Codex 拿它去扫）</summary>
+<div class="wrap">
+<div class="hdr"><h1>过滤标准 / 筛选规则 · 右栏底子</h1><div class="sub">右栏最后一块 ｜ 从一堆股票筛到"值得看"的完整漏斗规则 ｜ Codex拿这套规则去扫描</div></div>
+<div class="funnel"><span class="g">全市场</span> <span class="ar">→</span> <span class="g">第1关 硬性</span> <span class="ar">→</span> <span class="g">第2关 软性</span> <span class="ar">→</span> <span class="g">第3关 估值</span> <span class="ar">→</span> <span class="g">第4关 护城河</span> <span class="ar">→</span> <span class="g">第5关 个股研究</span> <span class="ar">→</span> <span class="g" style="background:#daf0e2;color:#1d7a45;">值得看</span><div style="font-size:12.5px;color:#556;margin-top:6px;">从粗到细，一关关刷。先刷掉方向不对的，再从对的里挑好的、看价格、看质地、看深度。</div></div>
+<div class="gate veto"><h2>第1关 · 硬性过滤（一票否决）</h2><div class="role">刷掉：方向不对的。</div><p><b>规则</b>：这个标的在不在"今天激活的板块"上？在→过关；<span class="hl">不在→一票否决（哪怕再便宜再优质）</span>。保证"只在对的方向里挑"。</p></div>
+<div class="gate"><h2>第2关 · 软性过滤（位置/龙头/量能）</h2><div class="role">从方向对的里挑位置好的。</div><table><tr><th>看什么</th><th>怎么判</th></tr><tr><td>200日均线（年线）</td><td>上方=长期趋势健康；跌破=趋势坏</td></tr><tr><td>50日均线</td><td>回踩不破=低吸位</td></tr><tr><td>20日均线</td><td>短期强弱</td></tr></table><p>好位置=年线上方+回调到50日低吸（不追高、不接飞刀）。龙头优先。突破要放量。</p></div>
+<div class="gate"><h2>第3关 · 估值（贵不贵）</h2><div class="role">位置好的里看价格值不值。</div><table><tr><th>类型</th><th>估值模型</th></tr><tr><td>成长股</td><td>成长PE / PEG</td></tr><tr><td>控股/投资公司</td><td>NAV净资产（如软银）</td></tr><tr><td>周期股</td><td>周期PE</td></tr><tr><td>医药</td><td>DCF/管线折现（如第一三共）</td></tr><tr><td>保险</td><td>EV内含价值（如东京海上）</td></tr><tr><td>加密相关</td><td>mNAV（如MSTR）</td></tr></table></div>
+<div class="gate"><h2>第4关 · 护城河（质地·能不能长拿）</h2><div class="role">便宜的里看是不是真好公司。</div><p><b>规则</b>：五维打分（品牌/网络效应/成本/转换成本/专利），每维宽2/窄1/无0，总分7-10宽、4-6窄、0-3无。<span class="hl">宽护城河+便宜＝最优质机会。</span></p></div>
+<div class="gate"><h2>第5关 · 个股深度研究（最后的细看）</h2><div class="role">过了前4关的少数，值得深挖。</div><p><b>规则</b>：财报（营收/利润/现金流趋势）、业务/管线、管理层、竞争格局。<span style="color:#556;">＝本产品第二部分每只的"深研"块所做的事。</span></p></div>
+<div class="echo"><b>和板块地图左右对应（一条流水线）：</b>板块地图（哪些板块·状态）→本层过滤规则（这把尺）→Codex拿尺去"今天激活的板块"里扫→左栏机会池（扫出的具体标的·每天变）。<b>规则固定、标的动态。</b></div>
+</div>
+</details>
+<details class="ruler-embed"><summary>右栏⑥ 持仓完整档案（每只的静态身份：股数／替换思路）</summary>
+<div class="wrap">
+<div class="hdr"><h1>持仓完整档案 · 右栏底子</h1><div class="sub">右栏第6块 ｜ 每只持仓的静态身份：股数/替换思路 ｜ 护城河·估值·今天怎么办＝左栏(第二部分)持仓卡+深研现算</div></div>
+<div class="single"><b>单一来源（避免三方打架）：</b>护城河、估值/目标价、今天怎么办（动作）——一律<b>以左栏第二部分持仓卡+深研为准</b>。本静态档案<b>不再各写一份数字</b>，只留隔久才变的<b>股数</b>与<b>替换思路</b>；现价/盈亏/触价由左栏每天现算。</div>
+<div class="note">说明：本块股数中6只重仓为已确认样例，其余待第一次正式生产由Codex从账户自动灌满（见《派工单_机器侧_均线与全账户持仓_20260715》）。护城河/估值/动作已统一收敛到左栏第二部分，此处不重复，避免三处数字打架。</div>
+<div class="card"><h2>第一三共 <span class="sym">JP.4568 · 9900股（SBI3400+富途6500）</span></h2><div class="plan"><b>身份</b>：医药防御仓。<span class="hl">盯Enhertu专利动态</span>。护城河/估值/动作见左栏第二部分C组。</div></div>
+<div class="card"><h2>英伟达 <span class="sym">US.NVDA · 1020股（富途830+IBKR190）</span></h2><div class="plan"><b>身份</b>：<span class="hl">AI主线的压舱石</span>。替换：算力节点几乎无可替代→基本不换。见左栏A组。</div></div>
+<div class="card"><h2>微软 <span class="sym">US.MSFT · 690股</span></h2><div class="plan"><b>身份</b>：<span class="hl">软件应用主线代表</span>。替换：软件龙头基本不换。见左栏A组。</div></div>
+<div class="card"><h2>软银 <span class="sym">JP.9984 · 6600股</span></h2><div class="plan"><b>身份</b>：盟友节点+AI间接暴露，<span class="hl">价值靠Arm</span>。替换：盯Arm与NAV折价。见左栏B组。</div></div>
+<div class="card"><h2>爱德万 <span class="sym">JP.6857 · 800股</span></h2><div class="plan"><b>身份</b>：<span class="hl">半导体设备节点</span>。替换：半导体设备双寡头。见左栏A组。</div></div>
+<div class="card"><h2>东京海上 <span class="sym">JP.8766 · 1000股</span></h2><div class="plan"><b>身份</b>：<span class="hl">防御/保险仓</span>。见左栏C组。</div></div>
+<div class="note">其余13只（博通/台积电/闪迪/META/MSTR/伊藤忠/索尼/任天堂/丰田/万代/IBKR/COIN/CRCL）的真实股数+成本，待Code从四账户自动灌（工单已出）。</div>
+</div>
+</details>
+<h2>第七部分 · PDCA 复盘记分卡系统（今天的判断，明天验证 · 系统的魂）</h2>
+<div class="pdca"><p style="margin:0 0 4px">把每层的判断记下来、明天用事实验证：<b>判对了给这把尺加"把握"，判错了改尺</b>。这是让整套判断越用越准的闭环，也是"证伪"落到实处的地方。</p>
+<table>
+<tr><th>判断维度</th><th>今天判读</th><th>把握</th><th>要盯的验证点（明天/后天看它兑现没）</th></tr>
+<tr><td>世界观(阵营化/美国优先)</td><td>延续（特朗普谈格陵兰=又添一块砖）</td><td>中</td><td>美国是否重新拥抱全球化 / 美联储是否转向大放水（任一=证伪信号）</td></tr>
+<tr><td>资金总闸(美联储松紧)</td><td>偏紧、今天更紧（利率4.609%涨幅大于昨天）</td><td>中</td><td>就业是否骤降、物价是否连续回落（不止一个月）→ 才谈转松</td></tr>
+<tr><td>AI主线(产业硬不硬)</td><td>更硬（台积电利润+58%超预期）</td><td>高</td><td>AI订单/大厂资本开支指引是否掉头、台积电增速是否见顶</td></tr>
+<tr><td>避险情绪(VIX)</td><td>今天转避险（VIX+14%）</td><td>中低</td><td>VIX是否回落归位 / 是否继续飙+收益率曲线倒挂</td></tr>
+<tr><td>板块(钱往哪流)</td><td>半导体今天重挫（-4.77%）</td><td>中低</td><td>半导体指数是否单日+1%站稳（=资金回流、便宜位买窗口才开）</td></tr>
+</table></div>
+<h3>⑦-1 判断记分卡（每条判断怎么记账 · 蓝图⑦核心）</h3>
+<div class="pdca"><p style="margin:0 0 4px">每下一个判断，就按这张卡记一行；明天用事实验证，对了+分、错了-分并改尺。这是"越用越准"的账本。</p>
+<table><tr><th>判断内容</th><th>下判时把握</th><th>验证点</th><th>验证结果</th><th>本次得分</th><th>累计分</th></tr>
+<tr><td>(示例)美联储偏紧、不放水</td><td>中</td><td>下次FOMC/利率/CPI走向</td><td>待验</td><td>—</td><td>—</td></tr>
+<tr><td>(示例)AI产业基本面更硬</td><td>高</td><td>大厂capex指引、台积电增速</td><td>今天台积电+58%＝支持</td><td>+1</td><td>+1</td></tr></table>
+<p class="sub" style="margin-top:6px">记分规则口径见《PDCA记分规则准绳》；正式运行时每日自动追加行。</p></div>
+<h3>⑦-2 确定性累积表（把握从"中"往"高"攒的轨迹 · 系统的魂）</h3>
+<div class="pdca"><p style="margin:0 0 4px">一个判断不是一次定死，而是<b>同向证据连续确认→确定性升一级</b>（中→较高→高）；出现证伪→降级并预警。这是系统"敢不敢重仓"的底气来源。</p>
+<table><tr><th>判断维度</th><th>确定性轨迹(过程)</th><th>当前档</th><th>升级条件</th></tr>
+<tr><td>世界观(阵营化/美国优先)</td><td>中 → 中 → 中</td><td>中</td><td>阵营化/收水信号连续同向确认</td></tr>
+<tr><td>资金总闸(偏紧)</td><td>中 → 中 → 中</td><td>中</td><td>连续数据都指向紧、无转松迹象</td></tr>
+<tr><td>AI主线(产业硬)</td><td>中 → 较高 → 高</td><td>高</td><td>已被多次财报(如台积电)证实</td></tr>
+<tr><td>避险情绪</td><td>低 → 中低</td><td>中低</td><td>VIX持续性+曲线配合才升</td></tr>
+<tr><td>板块(资金流向)</td><td>中低</td><td>中低</td><td>单日噪音大，需周频确认</td></tr></table>
+<p class="sub" style="margin-top:6px">证伪即降级：任一维度出现反向大事件(如美联储转放水)，该维度确定性-1并触发预警。</p></div>
+<h3>⑦-3 多尺度复盘（日→周→月→季→年 · 不同尺度改不同东西）</h3>
+<div class="pdca"><table><tr><th>尺度</th><th>复盘什么</th><th>改什么</th></tr>
+<tr><td><b>日</b></td><td>验昨天各层判断+持仓动作对没对</td><td>只记账、加减把握；不动尺、不改地图</td></tr>
+<tr><td><b>周</b></td><td>一周状态是否被连续确认</td><td>确认了才改右栏④板块地图的"现在"格</td></tr>
+<tr><td><b>月</b></td><td>确定性累积趋势、判断准确率</td><td>调整各维度确定性档、机会池口径</td></tr>
+<tr><td><b>季</b></td><td>大主线(未来1季度展望)是否成立</td><td>确定性攒够才改板块地图"未来"判断</td></tr>
+<tr><td><b>年</b></td><td>世界观三支柱是否仍成立</td><td>只有regime级证伪才动世界观(最高警报)</td></tr></table>
+<p class="sub" style="margin-top:6px">越小的尺度改越轻(只记账)，越大的尺度改越重(动尺)；防止用单日情绪去推翻大判断。</p></div>
+<p class="foot">—— 完整产品·深度版·完整超集·正式生产 ｜ 数据 20260715（Code 07-15 11:49 扫描）｜ 左栏19只深研+档案 + 右栏6块尺 + 宏观判定表 + PDCA记分卡系统 ｜ 待补：低吸/止损价(实时均线)、13只真股数成本——工单已出交Code ｜ 乱码字节核=0 ——</p></body></html>
