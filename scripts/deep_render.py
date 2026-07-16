@@ -79,7 +79,44 @@ def load_dynamic(date: str) -> dict:
     daily = rj(ROOT / "data" / "evidence_chain" / f"daily_{date}.json")
     ma = {x["symbol"]: x for x in (rj(ROOT / "data" / "holdings" / f"ma_levels_{date}.json").get("holdings") or [])}
     ht = {h["symbol"]: h for h in (rj(ROOT / "data" / "accounts" / f"holdings_true_{date}.json").get("holdings") or [])}
-    return {"prod": prod, "daily": daily, "ma": ma, "ht": ht}
+    # 估值单一源(valuation_results·分类型精算·R1 final.valuation 只从这里取)
+    valr = {r["symbol"]: r for r in (rj(ROOT / "data" / "valuation" / f"valuation_results_{date}.json").get("results") or []) if r.get("symbol")}
+    return {"prod": prod, "daily": daily, "ma": ma, "ht": ht, "valr": valr}
+
+
+# ── R1 决策对象唯一化：每标的一个 final(quality/valuation/action/confidence/reason/invalidation) ──
+# 标题·正文·摘要·闭环·PDCA 一律只引用 final；判断包只供定性深研素材，其估值/动作结论一概不渲染(治B3内部冲突)。
+def _clean_placeholder(s: str) -> str:
+    # 去判断包里未解析的现算占位符(B3②)，避免把"(见左栏仓位集中度摘要现算)"印进正文
+    return re.sub(r'[（(]\s*见左栏[^）)]*[现算摘要][^）)]*[）)]', '（AI敞口见第三部分集中度现算）', s or "")
+
+def build_final(sym: str, name: str, dyn: dict) -> dict:
+    prod_h = next((h for h in dyn["prod"].get("holdings", []) if h.get("symbol") == sym), {})
+    qg = prod_h.get("quality_gate", {}) or {}
+    v = dyn.get("valr", {}).get(sym, {})
+    c = cur(sym)
+    # 估值(单一源=valuation_results)：OK→区间+中枢+法+可信度；待接→标待接；退回production label仅作辅助词
+    if v.get("status") == "OK":
+        valuation_text = (f'{esc(v.get("model_disp","精算"))}·合理区 {c}{fnum(v.get("reasonable_low"))}~{c}{fnum(v.get("reasonable_high"))}'
+                          f'·中枢 {c}{fnum(v.get("target"))}（可信度A）')
+        valuation_short = f'合理区 {c}{fnum(v.get("reasonable_low"))}~{c}{fnum(v.get("reasonable_high"))}·中枢{c}{fnum(v.get("target"))}'
+        valuation_grade = "A·精算"
+    else:
+        _reason = esc(v.get("reason") or "待接真源")
+        valuation_text = f'{esc(v.get("model_disp","按类型"))}·待接（{_reason}）'
+        valuation_short = "待接真源"
+        valuation_grade = "待接"
+    return {
+        "symbol": sym, "name": name,
+        "quality": f'{esc(qg.get("tier",""))}{esc(qg.get("tier_label","待接"))}',
+        "quality_why": _clean_placeholder(esc(qg.get("why", ""))),
+        "valuation": valuation_text, "valuation_short": valuation_short, "valuation_grade": valuation_grade,
+        "valuation_model": esc(v.get("model_disp", "")), "valuation_type": esc(v.get("type", "")),
+        "action": esc(prod_h.get("action", "待接")),
+        "confidence": esc(qg.get("tier", "") + "档" if qg.get("tier") else "待接"),
+        "reason": _clean_placeholder(esc(prod_h.get("one_line_reason", ""))),
+        "price": prod_h.get("price"),
+    }
 
 def cur(sym: str) -> str: return "¥" if sym.startswith("JP.") else "$"
 def fnum(v):
@@ -87,38 +124,31 @@ def fnum(v):
         f = float(v); return f"{f:,.0f}" if abs(f) >= 100 else f"{f:,.2f}"
     except (TypeError, ValueError): return None
 
-# ── 单只持仓卡（深研+动态+档案） ──
+# ── 单只持仓卡（R1:决策全引 final·深研只留定性素材） ──
 def render_card(sym: str, name: str, dyn: dict) -> str:
-    prod_h = next((h for h in dyn["prod"].get("holdings", []) if h.get("symbol") == sym), {})
-    price = prod_h.get("price"); qg = prod_h.get("quality_gate", {}) or {}
-    action = prod_h.get("action", "待接"); reason = prod_h.get("one_line_reason", "")
-    val = (prod_h.get("valuation", {}) or {}).get("label", "待接")
-    ma = dyn["ma"].get(sym, {}); ht = dyn["ht"].get(sym, {})
-    c = cur(sym)
-    # 深研（判断包·真源）
+    f = build_final(sym, name, dyn)                 # ← 唯一决策对象
+    ma = dyn["ma"].get(sym, {}); ht = dyn["ht"].get(sym, {}); c = cur(sym)
+    price = f["price"]
+    # 深研（判断包·只取定性素材:生意/护城河/财报真数据/退出条件·不渲染其估值/动作结论·治B3）
     pack = find_pack(sym, name)
     if pack:
         ex = extract_pack(pack)
-        deep = (f'<div class="deep"><span class="k">深研·财报趋势</span>{esc(ex["真数据"] or ex["一句话结论"] or "判断包未含真数据段")}'
-                f'<div style="margin-top:5px"><span class="k">生意/增长点</span>{esc(ex["生意"])}'
-                f'<span class="k">护城河/竞争格局</span>{esc(ex["护城河"])}</div>'
-                f'<div style="margin-top:5px"><span class="k">一句话结论</span>{esc(ex["一句话结论"])}'
-                f'<span class="k">买入逻辑(对估值)</span>{esc(ex["对估值"] or "判断包未含对估值段")}'
-                f'<span class="k">退出条件/风险</span>{esc(ex["风险"])}</div>'
-                f'<div class="meta" style="color:#8fd6ff;font-size:12px;margin-top:4px">深研源：{esc(pack.name)}（判断包·真源抽取）</div></div>')
+        biz = _clean_placeholder(esc(ex["生意"])); moat = _clean_placeholder(esc(ex["护城河"]))
+        data = _clean_placeholder(esc(ex["真数据"] or "判断包未含真数据段"))
+        exit_c = _clean_placeholder(esc(ex["风险"] or "判断包未含退出条件/风险段"))
+        deep = (f'<div class="deep"><span class="k">深研·财报趋势</span>{data}'
+                f'<div style="margin-top:5px"><span class="k">生意/增长点</span>{biz}'
+                f'<span class="k">护城河/竞争格局</span>{moat}</div>'
+                f'<div style="margin-top:5px"><span class="k">退出条件(看生意不看价·非价位)</span>{exit_c}</div>'
+                f'<div class="meta" style="color:#8fd6ff;font-size:12px;margin-top:4px">深研=判断包定性素材（估值/动作以本卡决策条为准·单一源）｜源：{esc(pack.name)}</div></div>')
         pack_status = "OK"
     else:
         deep = '<div class="deep"><span class="k">深研·财报趋势</span><span style="color:#c9a86a">待建判断包（个股判断包_*.html 缺该只·不编）</span></div>'
         pack_status = "待建判断包"
     # 档案（股数/成本/均线趋势参考·缺不编）
-    qty = ht.get("total_quantity"); cost = ht.get("avg_cost_price")
-    accs = ht.get("accounts") or []
+    qty = ht.get("total_quantity"); cost = ht.get("avg_cost_price"); accs = ht.get("accounts") or []
     if qty:
-        parts = []
-        for a in accs:
-            q = a.get("quantity")
-            if q:
-                parts.append(f"{a.get('account','')}{q:g}")
+        parts = [f"{a.get('account','')}{a.get('quantity'):g}" for a in accs if a.get("quantity")]
         qty_s = f"{qty:g}股" + (f"（{'＋'.join(parts)}）" if parts else "")
     else:
         qty_s = "待接·无真股数"
@@ -128,13 +158,15 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
             if ma200 is not None else "待接·均线不足（不编）")
     dossier = (f'<div class="dossier"><span class="k">档案</span><b>持仓</b>{esc(qty_s)} ｜ <b>成本</b>{esc(cost_s)} '
                f'｜ <b>现价</b>{esc(c)}{esc(fnum(price)) if price is not None else "待接"} ｜ <b>均线</b>{esc(ma_s)}</div>')
-    # 质量关+动作
-    qt = qg.get("tier", ""); qlab = qg.get("tier_label", "")
+    # 标题 + 决策条（全部引 final·单一源）
     hd = (f'<div class="hd"><b>{esc(name)}</b> <span class="sym">{esc(sym)}</span> '
-          f'<span class="conf">动作：{esc(action)}</span> '
-          f'<span class="q">账本：{esc(qt)}{esc(qlab)}</span> <span class="v">贵不贵：{esc(val)}</span></div>')
-    return (f'<div class="card">{hd}{deep}{dossier}'
-            f'<div class="you"><span class="k">今天对你</span>{esc(reason)}</div></div>'), pack_status
+          f'<span class="conf">动作：{f["action"]}</span> '
+          f'<span class="q">账本：{f["quality"]}</span> <span class="v">估值：{f["valuation_short"]}（{f["valuation_grade"]}）</span></div>')
+    final_row = (f'<div class="dossier" style="background:#12203a;border-radius:6px;padding:6px 8px">'
+                 f'<span class="k">决策(单一源)</span>'
+                 f'<b>动作</b>{f["action"]} ｜ <b>估值</b>{f["valuation"]} ｜ <b>账本</b>{f["quality"]} ｜ <b>把握</b>{f["confidence"]}</div>')
+    return (f'<div class="card">{hd}{final_row}{deep}{dossier}'
+            f'<div class="you"><span class="k">今天对你(单一源)</span>{f["reason"]}</div></div>'), pack_status
 
 # ── 第一部分·五层大环境（daily links·今日事件现渲） ──
 def part1_layers(daily: dict) -> str:
