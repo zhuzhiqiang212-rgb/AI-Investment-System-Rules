@@ -631,26 +631,38 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
         except Exception:
             pass
     line1 = f'<b style="color:#ffd479">{esc(concl)}</b>' + esc(why_tail) + ("（" + esc("；".join(reason_bits)) + "）" if reason_bits else "")
-    # 2) 为什么(一句人话·不甩"硬性=…+软性=…"机器串)
+    # 2) 为什么(一句人话)
+    # B2/B3/B4治本：不再鹦鹉学舌 production 的旧护城河/估值判词(它与引擎中枢、与深研③块打架)——
+    # 护城河只引深研③块的结论，贵贱只认估值引擎的"现价 vs 合理价"，口径全篇唯一。
     raw = str(f.get("reason") or "")
     bits2 = []
     if "符合方向" in raw or "硬性=符合" in raw:
         bits2.append("它正好落在今天钱在流向的那条线上")
-    if "位置好" in raw:
-        bits2.append("股价位置不算追高（在均线上方但没冲太远）")
-    if "宽护城河" in raw or "护城河=宽" in raw:
-        bits2.append("生意有别人抢不走的东西（护城河宽）")
+    if deep:
+        _sc = str((deep.get("block3_moat") or {}).get("score") or "")
+        if "宽" in _sc:
+            bits2.append("生意有别人抢不走的东西（护城河宽，详见本卡③）")
+        elif "窄" in _sc:
+            bits2.append("护城河偏窄、靠不住定价权（详见本卡③）")
     if "①" in qual:
         bits2.append("账本记它是最好那一档")
     elif "②" in qual:
         bits2.append("账本记它还在观察期、没到最好那一档")
     if not has_val:
         bits2.append("但算不出它该值多少钱，所以不主动加减")
-    elif has_val and px is not None:
+    elif px is not None:
         try:
-            bits2.append("价格现在" + ("偏便宜" if float(px) < float(low) else ("偏贵" if float(px) > float(high) else "不贵不便宜")))
+            if float(px) < float(low):
+                bits2.append("价格现在偏便宜")
+            elif float(px) > float(high):
+                bits2.append("但价格现在偏贵——所以只守不加")
+            else:
+                bits2.append("价格不贵不便宜")
         except Exception:
             pass
+    # 软银：值双倍却只守——必须一句话解释，别让人误读成该重仓
+    if sym == "JP.9984":
+        bits2.append("虽然算出来它值得更高，但你押在AI上的钱已经超上限、纪律不许再加；真要降AI敞口，也是先减它")
     line2 = esc("；".join(bits2) + "。") if bits2 else esc(_zh_common(_scrub_valuation_stance(raw))) or "待接"
     # 3) 什么价该动
     if has_val:
@@ -658,6 +670,26 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
                  f'涨过 <b>{esc(ccy)}{esc(fnum(high))}</b> 就偏贵、别追。中间值约 {esc(ccy)}{esc(fnum(mid))}。')
         if px is not None:
             line3 += f'　现在是 {esc(ccy)}{esc(fnum(px))}。'
+        # C2：中枢与现价差得离谱时，必须解释为什么，别让董事长以为算错了
+        try:
+            gap = (float(px) / float(mid) - 1) * 100 if px else 0
+        except Exception:
+            gap = 0
+        _GAP_WHY = {
+            "JP.7974": ("这套算法只算“它靠卖游戏能赚多少钱”，<b>没把它手上那一大笔净现金算进去</b>"
+                        "（约每股¥1,940、占市值约四分之一）。所以：<b>整体看是偏贵</b>，"
+                        "但扣掉手上净现金后没那么夸张——两句话不矛盾，一句是整体、一句是扣现金。"),
+            "US.IBKR": ("这里用的是“一家普通券商该值多少倍”的算法（约22倍），"
+                        "而市场现在愿意给它约37倍——因为它客户数每年还在涨约30%、利润率高达77%。"
+                        "<b>不是算错了，是市场在为高成长多付钱</b>；按普通券商的尺子量，它确实贵。"),
+        }
+        if abs(gap) >= 25:
+            why_gap = _GAP_WHY.get(sym)
+            if why_gap:
+                line3 += f'<div style="margin-top:4px;color:#ffb454">为什么算出来的价和现价差这么多：{why_gap}</div>'
+            else:
+                line3 += (f'<div style="margin-top:4px;color:#ffb454">提醒：现价比算出来的中间值差约{gap:+.0f}%，'
+                          f'差距不小——这套算法只按“它未来能赚多少钱”折算，未必涵盖它的全部价值，请结合本卡⑤看。</div>')
     else:
         why = _NOVAL_WHY.get(sym, "这只的赚钱方式没法用常规办法算出一个可信的合理价")
         line3 = f'<span style="color:#ffb454">这只算不出该值多少钱</span>——{esc(why)}。所以只能守着看、不主动加减；等它跌到明显便宜或基本面变坏再说。'
@@ -759,7 +791,10 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                    + '　｜　' + _a(L5(_dt, "ruler-6"), "右栏⑥本只静态档案") + '</div>')
     return (f'<div class="card" id="stock-{esc(sym)}">{hd}{final_row}{deep}{dossier}'
             + corro_box(sym, "symbol") + chain_links
-            + f'<div class="you"><span class="k">今天对你(单一源)</span>{f["reason"]}</div>'
+            # B4治本：这一行原样甩 production 的旧判词("护城河=窄护城河"等)，与本卡③块/四行打架 →
+            # 收敛为指路，结论一律以下面「今天你怎么办」四行为准(单一源)
+            + '<div class="you"><span class="k">今天对你</span>'
+              '见下面「■ 今天你怎么办」四行——那是这只今天的唯一结论。</div>'
             + howto_block(sym, name, f, dyn, _deepcard) + '</div>'), pack_status
 
 # ── 第一部分·五层大环境（daily links·今日事件现渲；R10①每层落点到具体持仓） ──
@@ -949,13 +984,23 @@ def part1_layers(daily: dict, dyn: dict) -> str:
             '</div>')
     if not rows:
         rows.append('<div class="card">五层数据待接（daily_{date}.json 无 links·不编）</div>')
-    return ('<h2>第一部分 · 大环境今天怎么了（五层·每层 事实→为什么→对你落点→什么情况改看法·接右栏6尺）</h2>'
+    # E2：标题按实际环数(世界观/总闸/战略/手段/资金/板块=六层)，不再写死"五层"
+    _cn = {1: "一", 2: "二", 3: "三", 4: "四", 5: "五", 6: "六", 7: "七"}.get(len(rows), str(len(rows)))
+    return (f'<h2>第一部分 · 大环境今天怎么了（{_cn}层·每层 今天怎么了→为什么→对你的影响→什么情况才改看）</h2>'
             + "".join(rows))
 
 # ── 第一部分附·宏观判定表（尺模板+当日读数） ──
 def part1_macro_table(daily: dict) -> str:
     der = daily.get("derived", {}) or {}
     td = esc(str(der.get("today_direction", "待接")))
+    # E2：当日读数按六层逐层列全(原只列4项·缺世界观/手段层)
+    rows6 = ""
+    for l in (daily.get("links") or []):
+        rows6 += (f'<tr><td><b>{esc(str(l.get("node","")))}</b></td>'
+                  f'<td>{esc(str(l.get("strength","待接")))}</td>'
+                  f'<td>{esc(str(l.get("direction","待接")))}</td></tr>')
+    six = ('<table border="1" cellpadding="5" style="border-collapse:collapse;font-size:13px;margin-top:8px">'
+           '<tr><th>这一层</th><th>今天几分力</th><th>今天什么方向</th></tr>' + rows6 + '</table>') if rows6 else ""
     return ('<h2>第一部分附 · 宏观指标"强/中/弱/证伪"判定标准表（尺）</h2>'
             '<div class="card"><table border="1" cellpadding="5" style="border-collapse:collapse;font-size:13px">'
             '<tr><th>档</th><th>含义（尺）</th></tr>'
@@ -963,7 +1008,8 @@ def part1_macro_table(daily: dict) -> str:
             '<tr><td>中</td><td>方向成立但力度一般/证据部分</td></tr>'
             '<tr><td>弱</td><td>方向存疑/证据转软</td></tr>'
             '<tr><td>证伪</td><td>反向证据出现、判断被推翻</td></tr></table>'
-            f'<div class="you" style="margin-top:6px">当日读数：{td}</div></div>')
+            + six +
+            f'<div class="you" style="margin-top:6px">今天一句话总读数：{td}</div></div>')
 
 # ── 第三部分·集中度%（复用 full_product_render.portfolio_concentration 现算） ──
 # ── 第三部分附·R9 共同风险因子穿透（挂哪几只+合计敞口%·敞口由当日production市值现算·映射data驱动可联动） ──
@@ -1613,19 +1659,122 @@ def _scrub_fields(s: str) -> str:
         s = re.sub(r"\(" + k + r"\)|（" + k + r"）", "", s)   # 人话标签后的(eps0)括号→删
         s = re.sub(r"(?<![A-Za-z_])" + k + r"(?![A-Za-z_])", v, s)
     return s
+# ══ 第二轮打回·A：裸指标/内部名/调试日志 → 人话或删（只改措辞·判断口径不变） ══
+_JARGON_RE = [
+    # A1 裸指标 → 人话(带"这意味着什么")
+    (r"US10Y\s*=\s*([\d.]+)、较昨([+\-][\d.]+)%", r"美国十年期国债利率\1%，比昨天\2%（只是小动，不足以翻转大判断）"),
+    (r"US10Y\s*=\s*([\d.]+)", r"美国十年期国债利率\1%"),
+    (r"US10Y\s*/\s*Real Yield", "美国十年期国债利率（含剔除通胀后的真实利率）"),
+    (r"\bUS10Y\b", "美国十年期国债利率"),
+    (r"\bUS3M\b", "美国三个月国债利率"),
+    (r"10Y-3M\s*=\s*([\d.]+)", r"十年期国债利率比三个月的高\1个百分点（长短端没有倒挂，属正常）"),
+    (r"\bFEDFUNDS\b|\bFedFunds\b", "美联储基准利率"),
+    (r"\bSOXX\b", "费城半导体指数（一篮子半导体股）"),
+    (r"加权净分\s*=\s*([\-\d.]+)", r"综合研判得分\1（正数偏利多、负数偏利空）"),
+    (r"\bregime\s*反转|regime反转", "世界大格局翻转"),
+    (r"\bregime\b", "大格局"),
+    (r"\bFIMA\b", "美联储给外国央行的美元窗口"),
+    (r"\bVIX\b", "市场恐慌指数VIX（越低越安心）"),
+    (r"\bDXY\b", "美元指数"),
+    # A2 调试日志感 → 删/人话
+    (r"过源白名单\+时效\(\d+h\)\+相关性闸后", "按“只认权威媒体+只要当天的”筛过后"),
+    (r"·过相关性闸|（未过相关性闸）|未过相关性闸", "·与本层主题相关"),
+    (r"相关性闸", "主题相关性"),
+    (r"meta字段", "该资料的摘要栏"),
+    (r"·非白名单大站", ""),
+    (r"（权威源\+\d+h内[^）]*）", "（权威媒体+当天发布）"),
+    (r"[a-z0-9\-]+\.com(?![^<]{0,3}>)", "该网站"),
+    # A3 内部文件名/变量 → 人话
+    (r"data/[a-z_]+/[a-z_]+\.json|[a-z_]+\.json", "系统内部记录"),
+    (r"（映射见 系统内部记录[^）]*）|（源：系统内部记录[^）]*）|（接系统内部记录[^）]*）", ""),
+    (r"chain_opportunities[^·、）\s]*", "当日全市场扫描"),
+    (r"\bR1\b|\bR2\b|\bR3\b|\bR4\b|\bR5\b|\bR6\b|\bR7\b|\bR8\b|\bR9\b|\bR10\b", ""),
+    (r"（[^）]{0,6}·R\d+）|·R\d+(?=[）。；])|\(R\d+\)", ""),
+    (r"gate①|gate②|gate③|gate④|gate⑤", "第一关"),
+    (r"判断ID[:：]\s*[a-z_]+", "这条判断"),
+    (r"\bEV/EBITDA\b", "企业价值倍数（衡量贵不贵的一种算法）"),
+    (r"\bEBITDA\b", "息税折旧前利润（大致等于主营赚的现金）"),
+    (r"6a\b|6b\b", ""),
+    # A4 10块残留术语 → 加大白话
+    (r"\bmNAV\b", "持币净值倍数（股价相对它手上比特币净值的倍数）"),
+    (r"\bSOTP\b", "分部估值（把各块生意分开算再加总）"),
+    (r"正常化EPS[·×xX]?正常化PE", "正常年景每股盈利 × 穿越周期的合理倍数"),
+    (r"正常化EPS", "正常年景每股盈利"),
+    (r"正常化PE", "穿越周期的合理倍数"),
+    (r"前瞻PE", "按明年预计盈利算的市盈率"),
+    (r"\bbeta\b", "波动性（相对大盘的涨跌幅度）"),
+    (r"book-to-bill", "新接订单÷已交货（大于1说明订单在增加）"),
+    (r"\bESR\b", "偿付能力充足率（保险公司家底够不够厚）"),
+    (r"IFRS\+?ICS|IFRS", "国际会计准则"),
+    (r"J-GAAP", "日本会计准则"),
+    (r"DXd\s*ADC|DXd/ADC|\bADC\b", "抗体偶联药（把化疗药精准送到癌细胞的技术）"),
+    (r"\bDXd\b", "第一三共自研的抗癌药平台"),
+    (r"\bILD\b", "间质性肺病（这类药的主要副作用）"),
+    (r"GENIUS Act|GENIUS法案", "美国稳定币监管法案"),
+    (r"\bUSDC\b", "USDC（Circle发行的美元稳定币）"),
+    (r"\bUSDT\b", "USDT（泰达发行的美元稳定币，规模最大）"),
+    (r"\bHBM\b", "高带宽内存（AI芯片专用的高速存储）"),
+    (r"\bCoWoS\b", "先进封装（把芯片和内存叠在一起的工艺）"),
+    (r"\bNAND\b", "闪存芯片"),
+    (r"\bXPU\b|定制ASIC|\bASIC\b", "定制AI芯片"),
+    (r"\bLTV\b", "负债率"),
+    (r"\bPPA\b", "长期购电协议"),
+    (r"\bSMR\b", "小型模块化核反应堆"),
+    (r"\bNBM\b", "新商业模式（多年锁量合约）"),
+]
+_JARGON_COMPILED = [(re.compile(p), r) for p, r in _JARGON_RE]
+
+def _scrub_jargon(s: str) -> str:
+    for pat, rep in _JARGON_COMPILED:
+        s = pat.sub(rep, s)
+    # 收口：上一轮被HTML标签/词序打断而漏网的(逐个按真身补)
+    for a, b in (("mNAV", "持币净值倍数"), ("SOTP", "分部估值"), ("ESR", "偿付能力充足率"),
+                 ("FIMA", "美联储给外国央行的美元窗口"), ("regime级大事件", "掀翻大格局的大事"),
+                 ("regime", "大格局"), ("高beta", "高波动"), ("beta", "波动性"),
+                 ("判断ID回链", "点判断可跳回它所评的那一层"), ("判断ID", "这条判断"),
+                 ("bet</", "押注</"), ("加密周期bet", "押注加密周期"),
+                 ("接着起草右栏第4块", "右栏第4块"), ("下一步回去组装完整产品", "随后组装完整产品"),
+                 ("；接着起草右栏最后一块", "；右栏最后一块"), ("接着起草右栏", "右栏"), ("起草右栏", "右栏"),
+                 ("；下一步", "；随后"), ("下一步", "随后")):
+        s = s.replace(a, b)
+    # E1 叠字/重复
+    for a, b in (("共同共同风险", "共同风险"), ("共同风险风险", "共同风险"),
+                 ("（）", ""), ("()", ""), ("（·", "（"), ("··", "·"), ("；；", "；"),
+                 ("（，", "（"), ("(，", "("), (" ｜ ｜ ", " ｜ ")):
+        s = s.replace(a, b)
+    s = re.sub(r"（\s*）|\(\s*\)", "", s)
+    return s
+
+
 def _scrub_leaks(html_txt: str) -> str:
     for pat, rep in _LEAK_PATS:
         html_txt = pat.sub(rep, html_txt)
     html_txt = _scrub_fields(html_txt)
+    html_txt = _scrub_jargon(html_txt)
     # 件二/件五：内部话与草稿语→人话/删(判断口径不变·只改措辞)
     for a, b in (("【状态机·事件驱动】", "【判断依据】"), ("状态机", "判断规则"), ("事件驱动", "按事件才改"),
                  ("对齐R2状态机·与第一部分同源", "与第一部分总闸同一判断"), ("(治B2)", ""), ("治B2", ""),
                  ("翻闸", "翻转总判断"), ("边际注脚(仅参考·不翻闸)", "只作参考、不足以翻转大判断"),
                  ("边际注脚", "参考项"), ("·基线)", "·维持原判断)"), ("无新Fed事件·沿用第", "美联储没出新动作·已连续第"),
-                 ("(事件日)", "（美联储今天有动作）"), ("敞口", "占比"), ("风险因子", "共同风险"),
+                 ("(事件日)", "（美联储今天有动作）"), ("敞口", "占比"),
+                 ("共同风险因子", "共同风险"), ("风险因子", "共同风险"),
                  ("请你审这块", ""), ("请你审这版（改进版），回我", ""), ("请你审", ""), ("，回我", ""), ("回我", ""),
                  ("待董事长审", ""), ("(待审)", ""), ("（待审）", "")):
         html_txt = html_txt.replace(a, b)
+    # D：右栏尺里残留的草稿征询语(下一步:起草…/认可→定稿/要加改吗/对吗)——只删措辞·不删内容
+    html_txt = re.sub(r"下一步[：:]\s*起草[^<。；]{0,30}[。；]?", "", html_txt)
+    html_txt = re.sub(r"起草依据", "依据", html_txt)
+    html_txt = re.sub(r"认可\s*→\s*定稿|认可后定稿", "", html_txt)
+    html_txt = re.sub(r"要加\s*/\s*改吗[？?]?|对吗[？?]", "", html_txt)
+    html_txt = re.sub(r"下一步[：:]", "", html_txt)
+    # E3：机会池替换卡的坏模板(括号套括号·指向不存在的行)
+    html_txt = html_txt.replace(
+        "算不出该值多少钱的原因见本卡「今天你怎么办」第3行",
+        "这只候选还没做估值（它不在你的持仓里，没跑估值模型）")
+    html_txt = re.sub(r"（（+", "（", html_txt)
+    html_txt = re.sub(r"）+）", "）", html_txt)
+    # E：空标题清掉
+    html_txt = re.sub(r"<h([23])>\s*(?:。|”。|“过滤标准”。|\"过滤标准\"。)?\s*</h\1>", "", html_txt)
     return html_txt
 
 
