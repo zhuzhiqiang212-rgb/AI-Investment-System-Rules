@@ -278,15 +278,52 @@ def part3_concentration(date: str, dyn: dict) -> str:
     except Exception as e:
         return f'<h2>第三部分 · 仓位集中度</h2><div class="card">集中度现算失败·待接（{esc(e)}）</div>'
 
-# ── 第四/五部分 ──
-def part4_5(daily: dict, dyn: dict) -> str:
+# ── 第四部分·机会池 6a(R6：候选现算+每候选带'节点+当日证据'·证据驱动) ──
+def _active_nodes(daily: dict) -> list[str]:
+    td = str((daily.get("derived", {}) or {}).get("today_direction", ""))
+    m = re.search(r'激活承接节点[：:]\s*([^\n。]+)', td)
+    return [x.strip() for x in re.split(r'[、,，]', m.group(1)) if x.strip()] if m else []
+
+def _node_key(node: str) -> str:
+    for k in ("算力", "半导体设备", "代工", "存储", "盟友链", "盟友"):
+        if k in node or (k == "半导体设备" and "设备" in node):
+            return k
+    return node
+
+def part4_opportunity(daily: dict, dyn: dict) -> str:
     der = daily.get("derived", {}) or {}
+    active = _active_nodes(daily)
+    try:
+        import full_product_render as fpr
+        wl = list(fpr.OPP_WATCHLIST)
+    except Exception:
+        wl = []
+    rows = []; in_pool = 0
+    for c in wl:
+        name = c.get("name", ""); node = c.get("node", ""); nk = _node_key(node)
+        is_active = nk in active
+        if is_active:
+            in_pool += 1
+            evid = f'其节点「{nk}」今日在激活承接节点内（引②战略/⑥板块·当日证据）→ 进池候选（只换不加·AI已超配）'
+            badge = "进池·今日激活"
+        else:
+            evid = f'其节点「{nk}」今日未在激活承接节点内 → 暂不进池（当日证据不足·不编）'
+            badge = "暂不进池"
+        rows.append(f'<div class="card"><div class="hd"><b>候选 {esc(name)}</b> '
+                    f'<span class="conf">节点：{esc(node)}</span> <span class="q">{esc(badge)}</span></div>'
+                    f'<div class="you" style="font-weight:400">当日证据：{esc(evid)}</div></div>')
+    if not rows:
+        rows.append('<div class="card">候选watchlist待接（OPP_WATCHLIST 缺）</div>')
     scope = esc(str(der.get("opportunity_scope", "待接")))
+    head = (f'<h2>第四部分 · 机会池：该不该换、换谁（现算候选 {in_pool}/{len(wl)} 进池·证据驱动·6a）</h2>'
+            f'<div class="card">当日激活承接节点(证据源)：{esc("、".join(active) or "待接")}｜机会口径：{scope}'
+            '<div class="meta" style="color:#8ea3b6;font-size:12px">候选是否进池由「节点是否在当日激活承接节点」现算·改当日证据→候选集变（6b替换引擎=P2）</div></div>')
+    return head + "".join(rows)
+
+def part5_closeloop(daily: dict) -> str:
+    der = daily.get("derived", {}) or {}
     close = esc(str(der.get("today_direction_short") or der.get("today_direction", "待接")))
-    return ('<h2>第四部分 · 机会池：该不该换、换谁</h2>'
-            f'<div class="card">机会口径（现算）：{scope}<div class="meta" style="color:#8ea3b6;font-size:12px">候选详情见机会层引擎·此处给口径</div></div>'
-            '<h2>第五部分 · 整条逻辑怎么闭环</h2>'
-            f'<div class="card">{close}</div>')
+    return '<h2>第五部分 · 整条逻辑怎么闭环</h2>' + f'<div class="card">{close}</div>'
 
 # ── 第六部分·6把尺 embed（读右栏_*.html body·浅色皮折叠·7块含②补） ──
 def _ruler_body(fname: str) -> str:
@@ -407,7 +444,8 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     banner = (f'<div class="card" style="background:#1c2740;border-color:#3a5a8a">'
               f'<span class="k">今天一句话</span><b style="font-size:15px">{oneline}</b></div>')
     full = (title + banner + part1_layers(daily) + part1_macro_table(daily) + part2
-            + part3_concentration(date, dyn) + part4_5(daily, dyn) + part6_rulers() + part7_pdca(date))
+            + part3_concentration(date, dyn) + part4_opportunity(daily, dyn) + part5_closeloop(daily)
+            + part6_rulers() + part7_pdca(date))
     stats["ruler_embed"] = full.count('class="ruler-embed"')
     stats["deep_blocks"] = full.count('class="deep"')
     return head + full + "</body></html>", stats
