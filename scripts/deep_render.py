@@ -281,6 +281,19 @@ def _val_sensitivity(sym: str):
                     rows.append((lbl, f"{cur_sym}{v:,.0f}", f"{(v-base_nav)/base_nav*100:+.0f}%"))
                 return {"model": "nav", "base": base_nav, "rows": rows,
                         "inputs": {"assets_total": tot, "net_debt": nd, "shares": sh, "discount": disc}}
+        # 保险PB/内含价值法(如东京海上):变每股净资产±10%、目标PB±0.2
+        bv, tpb = _f2(vi.get("bvps")), _f2(vi.get("target_pb"))
+        if bv is not None and tpb is not None:
+            base = bv * tpb
+            rows = []
+            for lbl, b2, p2 in [(f"净资产更厚：每股净资产 +10%", bv * 1.1, tpb),
+                                (f"净资产变薄：每股净资产 -10%", bv * 0.9, tpb),
+                                (f"给估值更高：目标PB {tpb:g}→{tpb+0.2:g}倍", bv, tpb + 0.2),
+                                (f"给估值更低：目标PB {tpb:g}→{max(0.1,tpb-0.2):g}倍", bv, max(0.1, tpb - 0.2))]:
+                v = b2 * p2
+                rows.append((lbl, f"{cur_sym}{v:,.0f}", f"{(v-base)/base*100:+.0f}%"))
+            return {"model": "pbv", "base": base, "rows": rows,
+                    "inputs": {"bvps": bv, "target_pb": tpb}}
         # 周期股中周期盈利法
         ne, pe = vi.get("normal_eps"), vi.get("pe_mid")
         if ne is not None and pe is not None:
@@ -357,6 +370,8 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
             inval = (f'<div class="plain">本次引擎真输入(中周期盈利法)：正常化EPS <b>{ccy}{ip["normal_eps"]:g}</b>·中周期PE <b>{ip["pe_mid"]:g}倍</b></div>')
         elif m == "nav":
             inval = (f'<div class="plain">本次引擎真输入(NAV净资产法)：持有资产合计 <b>{ip["assets_total"]:,.0f}</b>·净负债 <b>{ip["net_debt"]:,.0f}</b>·股本 <b>{ip["shares"]:g}</b>·控股折价 <b>{ip["discount"]:.0%}</b>（单位见判断包·如十亿円/十亿股）</div>')
+        elif m == "pbv":
+            inval = (f'<div class="plain">本次引擎真输入(保险PB法)：每股净资产 <b>{ccy}{ip["bvps"]:g}</b>·目标PB <b>{ip["target_pb"]:g}倍</b></div>')
         else:
             inval = ''
         srows = "".join(f'<tr><td>{esc(lbl)}</td><td><b>{esc(mm)}</b></td><td>{esc(dd)}</td></tr>' for lbl, mm, dd in sens["rows"])
@@ -399,6 +414,7 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
 
 def render_card(sym: str, name: str, dyn: dict) -> str:
     f = build_final(sym, name, dyn)                 # ← 唯一决策对象
+    _orig_action = f["action"]                       # 存原始动作(深度卡覆盖退出条件时恢复·不误降初判)
     ma = dyn["ma"].get(sym, {}); ht = dyn["ht"].get(sym, {}); c = cur(sym)
     price = f["price"]
     # 深研（判断包·只取定性素材:生意/护城河/财报真数据/退出条件·不渲染其估值/动作结论·治B3）
@@ -432,6 +448,7 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     # 成品级深度10块(对齐认可样卡)：有 deep_cards/{sym}.json 则升级为10块+大白话；无则保持4段(其余18只回退·待铺满)
     _deepcard = _load_deep_card(sym)
     if _deepcard:
+        f["action"] = _orig_action   # 深度卡⑧风险量化+⑨"什么才算生意坏了要走"已含退出条件→不降"初判·待补全"
         deep = render_deep_blocks(sym, name, dyn, _deepcard, f)
         pack_status = "深度10块"
     # 档案（股数/成本/均线趋势参考·缺不编）

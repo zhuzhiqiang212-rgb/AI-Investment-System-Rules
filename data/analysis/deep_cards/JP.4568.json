@@ -1,0 +1,88 @@
+{
+  "symbol": "JP.4568",
+  "name": "第一三共",
+  "as_of": "2026-07-16",
+  "source_note": "②多年财报接第一三共官方FY2025业绩(2026-05-11)+stockanalysis交叉核(每数带as_of+来源·官方PDF为金源·建议终审前逐项复核)；⑤估值由估值引擎(growth_dcf·eps0=¥165规范化)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据第一三共IR与权威公开信息补至基准深度。财年截止3月31日、按日历期末标注。JPY·億円/兆円。Enhertu用第一三共自报口径(与全球终端销售口径不同·已注)。",
+  "block1_business": {
+    "intro": "第一三共已从'日本本土老药企'转型成'全球肿瘤ADC(抗体偶联药物)龙头'——靠自研DXd平台造出best-in-class抗癌药。核心引擎(截至2026-03)：",
+    "streams": [
+      {"block": "Enhertu(HER2 ADC·旗舰)", "what": "乳腺癌等HER2抗癌药·与阿斯利康共同开发/商业化(日本外分利润)", "size": "第一三共自报营收¥6,984億(+26.3%)·约占总收入1/3;美¥3,863億(+28%)/欧¥1,748億/ASCA¥997億(+42%)"},
+      {"block": "Datroway(TROP2 ADC·第二支柱)", "what": "datopotamab deruxtecan(Dato-DXd)", "size": "首个完整年¥476億·FY2026指引¥1,114億(+133.9%)"},
+      {"block": "其它肿瘤+3ADC平台", "what": "HER3-DXd等·早期管线期权", "size": "肿瘤领域营收超¥9,000億(截至2026-03)"},
+      {"block": "传统/区域", "what": "日本本土(Lixiana抗凝/疫苗/成熟药)、美洲专科", "size": "成熟低增·被肿瘤盖过"}
+    ],
+    "future_growth": "①Enhertu向1线HER2+乳腺(DESTINY-Breast09支撑)+HER2-low/ultralow+新瘤种扩;②Datroway快速放量;③DXd平台多支ADC(HER3等);④第6期中期计划(FY2026-2030)目标FY2030营收¥3兆。"
+  },
+  "block2_financials": {
+    "plain": "接第一三共官方FY2025业绩+stockanalysis(IFRS)。带待接的是本轮无单一权威源的项(FCF/FY2027净利指引)。日本大盘药企营收兆円级、量级已核。Enhertu为第一三共自报口径(全球终端销售约¥8,195億为另一口径·非第一三共收入)。",
+    "margin_label": "净利率",
+    "metric_label": "Enhertu营收(自报)",
+    "rows": [
+      {"fy": "截至2023-03", "revenue": "¥1.28兆(12,785億)", "yoy": "+22.4%", "gross_margin": "8.5%(净利率)", "net_income": "¥1,092億", "fcf": "待接", "metric": "EPS¥56.91·营业利润¥1,019億", "as_of": "官方业绩", "source": "第一三共IR+stockanalysis"},
+      {"fy": "截至2024-03", "revenue": "¥1.60兆(16,017億)", "yoy": "+25.3%", "gross_margin": "12.5%", "net_income": "¥2,007億", "fcf": "待接", "metric": "EPS¥104.62·营业利润¥2,115億", "as_of": "FY2024业绩(2025-04-25)", "source": "第一三共IR+stockanalysis"},
+      {"fy": "截至2025-03", "revenue": "¥1.89兆(18,863億)", "yoy": "+17.8%", "gross_margin": "15.7%", "net_income": "¥2,958億", "fcf": "待接", "metric": "Enhertu约¥5,526億·EPS¥155.87", "as_of": "官方业绩", "source": "第一三共IR+stockanalysis"},
+      {"fy": "截至2026-03", "revenue": "¥2.12兆(21,230億)", "yoy": "+12.6%", "gross_margin": "12.2%", "net_income": "¥2,599億(含Q4一次性¥1,332億计提)", "fcf": "待接", "metric": "Enhertu¥6,984億(+26.3%)·核心营业利润¥3,600億(+15.1%)·EPS¥140.37·研发约21%", "as_of": "FY2025业绩(2026-05-11)", "source": "第一三共官方FY2025业绩+Investing.com转"}
+    ],
+    "readout": "四年营收 ¥1.28兆→¥2.12兆(连年+12~25%)、肿瘤ADC驱动、Enhertu占约1/3。诚实标注:截至2026-03报告净利/营业利润同比降系Q4一次性约¥1,332億计提(主要¥757億CMO补偿·非经营)、核心营业利润仍+15.1%到¥3,600億;各年FCF无单一权威源→待接(AZ合作首付/里程碑扰动现金流)。FY2027指引:营收¥2.28兆(+7.4%)、核心营业利润+27.5%≈¥4,590億、Enhertu¥8,613億、股息¥100(升自¥78)。"
+  },
+  "block3_moat": {
+    "rows": [
+      {"dim": "技术领先", "width": "宽·最强", "why": "自研DXd ADC平台(拓扑异构酶I载荷/可裂解连接子/高DAR/旁观者效应)——Enhertu重新定义HER2-low乳腺癌、真best-in-class;多靶点(HER2/TROP2/HER3)多发子弹"},
+      {"dim": "管线/专利", "width": "宽", "why": "深厚ADC管线+成分/方法专利;DESTINY/TROPION试验不断扩适应症、延长有效独占"},
+      {"dim": "规模", "width": "中→宽", "why": "¥2.1兆营收+阿斯利康联盟给全球商业触达与研发/商业成本分摊;非巨头级但ADC主导"},
+      {"dim": "换掉它的代价", "width": "窄", "why": "肿瘤医生按疗效/指南用药、非锁定;但一旦Enhertu成某适应症标准治疗(核心HER2新患者>50%份额)、替换难"},
+      {"dim": "牌子", "width": "窄", "why": "在肿瘤科医生中口碑强、无消费品牌(肿瘤领域不相关)"}
+    ],
+    "score": "护城河 宽且变宽·锚在DXd/ADC技术平台。主要变量是Enhertu单药集中(占1/3收入)+管线临床/安全性(ILD/肺炎监测)+专利悬崖(十年末)。"
+  },
+  "block4_rivals": {
+    "rows": [
+      {"rival": "阿斯利康", "how": "伙伴又对手(共有Enhertu经济)", "threat": "中", "why_safe": "Enhertu利益一致、但有议价杠杆;自身也有ADC野心"},
+      {"rival": "吉利德(Trodelvy·TROP2 ADC)", "how": "直接对标Datroway(TNBC/乳腺)", "threat": "中高", "why_safe": "TROP2空间直接竞争"},
+      {"rival": "默沙东(ADC大投入+Keytruda组合)", "how": "TROP2 sac-TMT等", "threat": "长期高", "why_safe": "长期最大威胁"},
+      {"rival": "辉瑞(收Seagen·ADC先驱)/罗氏(HER2老药被Enhertu替代·也合作)", "how": "ADC组合", "threat": "中", "why_safe": "对手在旗舰适应症的可比疗效/安全数据落后数年"}
+    ],
+    "oneliner": "DXd载荷/连接子化学+多年临床领先+广泛DESTINY/TROPION数据+阿斯利康商业肌肉守住ADC领先;真正的长期变量是默沙东等大厂追赶+Enhertu单药集中。"
+  },
+  "block5_valuation": {
+    "method_plain": "第一三共系成长药企、用两段式EPS-DCF(管线/Enhertu放量折现)。",
+    "inputs": [
+      {"input": "明年每股赚多少(eps0)", "plain": "规范化EPS(约¥165·剔一次性计提后、高于报告¥140.37)"},
+      {"input": "头几年增速(g_stage1)", "plain": "取约8%·Enhertu/Datroway放量向¥3兆FY2030目标、计入专利/竞争保守"},
+      {"input": "快增长持续几年(years)", "plain": "ADC放量期"},
+      {"input": "之后的慢增速(terminal_g)", "plain": "成熟后回归约2.5%"},
+      {"input": "打折率(wacc)", "plain": "大盘药企低beta·取约9%"}
+    ],
+    "note": "合理区/中枢取自估值引擎(与决策条同一源·R1)；下方敏感性由 two_stage_dcf 变一项现算。真实市场参照:现价约¥2,758(2026-07-16)、TTM PE约19.6倍、前瞻股息率约3.6%(¥100)、分析师共识强买目标¥4,352(激进·视为卖方乐观)。"
+  },
+  "block6_scenarios": {
+    "rows": [
+      {"case": "好", "cls": "bull", "assume": "Enhertu夺1线HER2+乳腺+扩HER2-low/新瘤种、Datroway快放量、管线ADC兑现、向¥3兆目标", "value": "支撑/超¥4,000+分析师目标(增速8%→更高见敏感性)", "prob": "约25~30%"},
+      {"case": "中", "cls": "base", "assume": "Enhertu近期+20%+后减速、Datroway成稳态老二、一次性计提滚出后利润率回升", "value": "合理区¥2,959~¥3,616(中枢¥3,287)·EPS增约8~12%", "prob": "约50%"},
+      {"case": "坏", "cls": "bear", "assume": "Enhertu集中被TROP2/HER2新进入者侵蚀、ILD安全信号/试验失败、专利/生物类似药后期压力、日元走强削海外", "value": "杀估值向低teens PE·下探¥2,800或以下", "prob": "约20~25%"}
+    ],
+    "readout": "现价约¥2,758对DCF中枢¥3,287→有折让、但账本②趋势观察(非①·把握中)、Enhertu单药集中+临床事件风险。所以'等'(观察·不急加、不追高)。"
+  },
+  "block7_catalysts": [
+    "下次财报:Q1(截至2026-06)约2026年8月初",
+    "监管:Enhertu 1线HER2+乳腺FDA批(2026已得)+HER2+实体瘤欧盟批(2026-06);Datroway转移性TNBC FDA批(该适应症首个ADC)",
+    "试验读出:DESTINY-Breast09(1线HER2+·PFS风险降44%·ASCO2025/NEJM)驱动1线采用;更多DESTINY/TROPION分析(ASCO2026 25+摘要·2026-05-28)",
+    "战略:第6期中期计划(¥3兆@FY2030)执行里程碑"
+  ],
+  "block8_risks": {
+    "rows": [
+      {"risk": "单药集中(Enhertu)", "weight": "Enhertu约占1/3收入且主导利润", "signal": "季度Enhertu新患者份额(核心HER2>50%)、ILD/肺炎率、任何销售miss/安全信号"},
+      {"risk": "专利悬崖(十年末)", "weight": "Enhertu成分专利+Lixiana独占随时间侵蚀", "signal": "生物类似药/仿制申报、IP诉讼"},
+      {"risk": "管线/试验失败", "weight": "DXd平台是整个论点", "signal": "DESTINY/TROPION三期miss或FDA CRL、新适应症ILD安全"},
+      {"risk": "日元汇率", "weight": "海外(美/欧)是肿瘤收入大头、日元走强削报表收入/EPS", "signal": "USD/JPY日元走强"},
+      {"risk": "定价/政策", "weight": "美国药价压力(IRA后期)、欧日降价", "signal": "报销决定/IRA名单"}
+    ]
+  },
+  "block9_decision_chain": "第一三共=全球肿瘤ADC龙头、DXd平台宽护城河 → 但账本目前=②趋势观察·不杀(非①·把握中)、Enhertu单药占1/3集中+临床事件风险 → 现价约¥2,758对DCF中枢¥3,287有折让、前瞻股息率约3.6% → 所以今天动作='等'(观察·不急加、不追高)。什么才算'该走'(只看生意)：①Enhertu核心适应症份额被结构性侵蚀 ②出现ILD等重大安全信号/关键三期试验失败 ③专利悬崖临近而管线接不上。",
+  "block10_portfolio": {
+    "common_risks": "医药临床/监管事件风险、日元汇率、专利悬崖;注:与AI/科技/半导体驱动无关",
+    "weight": "组合里的'非AI防御成长'锚(具体%见第三部分集中度现算)",
+    "correlation": "肿瘤需求由疾病发病/审批/人口驱动、与AI资本开支周期结构性不相关→AI/半导体回调时第一三共基本面不跟跌;但它是成长药企·非低beta公用事业、带二元临床/监管事件风险(试验读出/安全信号)——分散AI/宏观周期风险、但叠加特有生物医药事件风险、按此控仓",
+    "swap": "作分散AI风险的非周期成长医药而持有;账本②·若临床/份额恶化则重估、非因AI换出"
+  }
+}
