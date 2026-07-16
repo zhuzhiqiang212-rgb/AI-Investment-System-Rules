@@ -1,6 +1,6 @@
 {
   "as_of": "20260716",
-  "generated_at": "2026-07-16T09:52:55.250099+00:00",
+  "generated_at": "2026-07-16T15:11:27.689086+00:00",
   "source": "data/pdca/scorecards.json（pdca_scorecard 产物·不另起炉灶）",
   "certainty_ladder": [
     "证伪",
@@ -14,188 +14,18 @@
       "ring_id": "worldview",
       "ring_name": "世界观",
       "current_certainty": "证伪",
-      "cumulative_score": -1,
-      "trend": [
-        {
-          "date": "20260709",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260711",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260712",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260713",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260714",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260715",
-          "score": -1,
-          "cum": -1
-        },
-        {
-          "date": "20260716",
-          "score": 0,
-          "cum": -1
-        }
-      ],
-      "trend_arrow": "↓",
-      "days_tracked": 8
-    },
-    {
-      "ring_id": "fed_gate",
-      "ring_name": "总闸",
-      "current_certainty": "高",
-      "cumulative_score": 0,
-      "trend": [
-        {
-          "date": "20260709",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260711",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260712",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260713",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260714",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260715",
-          "score": -1,
-          "cum": -1
-        },
-        {
-          "date": "20260716",
-          "score": 1,
-          "cum": 0
-        }
-      ],
-      "trend_arrow": "→",
-      "days_tracked": 8
-    },
-    {
-      "ring_id": "strategy",
-      "ring_name": "战略",
-      "current_certainty": "高",
-      "cumulative_score": 4,
-      "trend": [
-        {
-          "date": "20260709",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260711",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260712",
-          "score": 1,
-          "cum": 1
-        },
-        {
-          "date": "20260713",
-          "score": 0,
-          "cum": 1
-        },
-        {
-          "date": "20260714",
-          "score": 1,
-          "cum": 2
-        },
-        {
-          "date": "20260715",
-          "score": 1,
-          "cum": 3
-        },
-        {
-          "date": "20260716",
-          "score": 1,
-          "cum": 4
-        }
-      ],
-      "trend_arrow": "↑",
-      "days_tracked": 8
-    },
-    {
-      "ring_id": "capital_flow",
-      "ring_name": "资金轮动",
-      "current_certainty": "强",
-      "cumulative_score": 0,
-      "trend": [
-        {
-          "date": "20260709",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260711",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260712",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260713",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260714",
-          "score": 0,
-          "cum": 0
-        },
-        {
-          "date": "20260715",
-          "score": 1,
-          "cum": 1
-        },
-        {
-          "date": "20260716",
-          "score": -1,
-          "cum": 0
-        }
-      ],
-      "trend_arrow": "→",
-      "days_tracked": 8
-    },
-    {
-      "ring_id": "sector_rotation",
-      "ring_name": "板块轮动",
-      "current_certainty": "证伪",
       "cumulative_score": -2,
       "trend": [
+        {
+          "date": "20260702",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260703",
+          "score": 0,
+          "cum": 0
+        },
         {
           "date": "20260709",
           "score": 0,
@@ -233,7 +63,227 @@
         }
       ],
       "trend_arrow": "↓",
-      "days_tracked": 8
+      "days_tracked": 9
+    },
+    {
+      "ring_id": "fed_gate",
+      "ring_name": "总闸",
+      "current_certainty": "高",
+      "cumulative_score": 0,
+      "trend": [
+        {
+          "date": "20260702",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260703",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260709",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260711",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260712",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260713",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260714",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260715",
+          "score": -1,
+          "cum": -1
+        },
+        {
+          "date": "20260716",
+          "score": 1,
+          "cum": 0
+        }
+      ],
+      "trend_arrow": "→",
+      "days_tracked": 9
+    },
+    {
+      "ring_id": "strategy",
+      "ring_name": "战略",
+      "current_certainty": "高",
+      "cumulative_score": 4,
+      "trend": [
+        {
+          "date": "20260702",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260703",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260709",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260711",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260712",
+          "score": 1,
+          "cum": 1
+        },
+        {
+          "date": "20260713",
+          "score": 0,
+          "cum": 1
+        },
+        {
+          "date": "20260714",
+          "score": 1,
+          "cum": 2
+        },
+        {
+          "date": "20260715",
+          "score": 1,
+          "cum": 3
+        },
+        {
+          "date": "20260716",
+          "score": 1,
+          "cum": 4
+        }
+      ],
+      "trend_arrow": "↑",
+      "days_tracked": 9
+    },
+    {
+      "ring_id": "capital_flow",
+      "ring_name": "资金轮动",
+      "current_certainty": "强",
+      "cumulative_score": 0,
+      "trend": [
+        {
+          "date": "20260702",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260703",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260709",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260711",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260712",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260713",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260714",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260715",
+          "score": 1,
+          "cum": 1
+        },
+        {
+          "date": "20260716",
+          "score": -1,
+          "cum": 0
+        }
+      ],
+      "trend_arrow": "→",
+      "days_tracked": 9
+    },
+    {
+      "ring_id": "sector_rotation",
+      "ring_name": "板块轮动",
+      "current_certainty": "证伪",
+      "cumulative_score": -2,
+      "trend": [
+        {
+          "date": "20260702",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260703",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260709",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260711",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260712",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260713",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260714",
+          "score": 0,
+          "cum": 0
+        },
+        {
+          "date": "20260715",
+          "score": -1,
+          "cum": -1
+        },
+        {
+          "date": "20260716",
+          "score": -1,
+          "cum": -2
+        }
+      ],
+      "trend_arrow": "↓",
+      "days_tracked": 9
     }
   ],
   "note": "确定性从'中'往'高'攒：判对+1、无变0、证伪-1，滚动累积。缺更长历史的走势→随日累积。"

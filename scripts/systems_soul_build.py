@@ -52,7 +52,7 @@ def build_pillar_score(date: str) -> dict:
             s = int((rec.get("scores", {}) or {}).get(rid, 0) or 0)
             cum += s
             trend.append({"date": rec.get("date"), "score": s, "cum": cum})
-        recent = trend[-7:]
+        recent = trend   # C3：全册天数统一——不再只取近7天(否则"这7天里"与顶部"8天"打架)
         # 走势箭头（近3日累积方向）
         arrow = "→"
         if len(trend) >= 2:

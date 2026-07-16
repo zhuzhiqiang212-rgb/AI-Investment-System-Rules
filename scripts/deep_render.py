@@ -763,7 +763,10 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
         qty_s = f"{qty:g}股" + (f"（{'＋'.join(parts)}）" if parts else "")
     else:
         qty_s = "待接·无真股数"
-    cost_s = f"{c}{fnum(cost)}（四账户均价·{ht.get('cost_grade','')}级）" if cost is not None else "待接·四账户无成本记录（不编）"
+    # 件六①：成本锚真填不了→人话交代原因(四账户持仓截图只有股数、没有买入价)
+    cost_s = (f"{c}{fnum(cost)}（四账户均价·{ht.get('cost_grade','')}级）" if cost is not None
+              else "算不出——你四个账户的持仓记录里<b>只有股数、没有买入价</b>，所以没法算你这只赚了还是亏了。"
+                   "要填上它，需要你把各账户的买入均价给我一次（之后就能天天自动算盈亏）。")
     ma20, ma50, ma200 = ma.get("ma20"), ma.get("ma50"), ma.get("ma200")
     ma_s = (f"20日{c}{fnum(ma20)}/50日{c}{fnum(ma50)}/200日{c}{fnum(ma200)}（均线位·仅趋势参考·不作买卖线）"
             if ma200 is not None else "待接·均线不足（不编）")
@@ -1292,8 +1295,25 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
     n_total = len(all_rows); n_g1 = sum(1 for r in all_rows if r["g1"])
     n_g2 = sum(1 for r in all_rows if r["g1"] and "过·站上" in r["g2"])
     # 池一:值得看候选池
+    # 件六②去重：把"护城河待接/估值待接/节点X今日激活/AI簇已超配只换不加"这类逐字重复的话
+    # 归纳成一句总述，只对【有实质区别的】(过了均线关·有真价数据)逐只展开。
+    distinct = [r for r in worth if "过·站上" in r["g2"]]
+    same = [r for r in worth if "过·站上" not in r["g2"]]
     wrows = ""
-    for r in worth:
+    if same:
+        by_node = {}
+        for r in same:
+            by_node.setdefault(r["node"], []).append(r["name"])
+        lines = "；".join(f'<b>{esc(k)}</b>：{esc("、".join(v))}' for k, v in by_node.items())
+        wrows += ('<div class="card"><div class="hd"><b>其余 %d 只候选（情况完全相同·合并成一条说）</b></div>'
+                  '<div style="font-size:13px">%s</div>'
+                  '<div class="plain">这%d只今天的情况<b>一模一样</b>，所以不逐张重复：'
+                  '它们的节点今天是热的（过了第一关），但<b>今天的全市场扫描没扫到它们的价格/均线</b>，'
+                  '所以第二关往后没法判；而且它们都还没做过估值和护城河研究（不在你持仓里）。'
+                  '结论也一样：<b>今天都不动</b>——AI这块你已经超配，只换不加。'
+                  '真要动，先等它们进到下面这几只“有真实价格数据”的行列里再说。</div></div>'
+                  % (len(same), lines, len(same)))
+    for r in distinct:
         cmp_tbl = ('<table class="dt" style="margin:4px 0"><tr style="color:#8ea3b6"><th>维度</th><th>候选</th></tr>'
                    f'<tr><td>护城河</td><td>{esc(r["g4"] if "g4" in r else "待接·候选未入判断包")}</td></tr>'
                    f'<tr><td>估值</td><td>待接·候选估值未接</td></tr>'
@@ -1304,7 +1324,7 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
                   f'<div class="you" style="font-weight:400;font-size:12.5px">当日证据：节点「{esc(r["node"])}」在今日激活承接节点内{esc(r["price_txt"])}｜{esc(r["g2"])}｜来源：{esc(r["source"])}</div>'
                   + cmp_tbl + '</div>')
     if not wrows:
-        wrows = '<div class="card">今日无候选过硬性关（激活节点内候选均待接均线数据·不编）</div>'
+        wrows = '<div class="card">今天没有候选过第一关（激活节点里的候选都还没有价格/均线数据·不编）</div>'
     # 池二:用户挑战池(结构·待董事长指定)
     pool2 = ('<div class="blk">池② 用户挑战池（董事长想挑战/加看的标的·跑同样五关给结论）</div>'
              '<div class="card"><span class="need">待董事长指定</span>——结构已留：董事长点名任一标的，即按同一五关漏斗(①硬性②软性③估值④护城河⑤个股)现算给"过到第几关/卡在哪关+结论"。（缺指定→不编）</div>')
@@ -1358,6 +1378,27 @@ def part6_rulers() -> str:
 
 
 # ── 第七部分·PDCA接真记分(R7：昨判今验+累计+预测字段·底气与总闸final同源) ──
+def track_days(date: str) -> tuple[int, str]:
+    """C3：全册唯一的"追踪了几天"。以记分卡历史的起算日为准现算，避免 8/9/7/6 各处打架。"""
+    dates = set()
+    try:
+        for r in (rj(ROOT / "data" / "pdca" / "scorecards.json").get("history") or []):
+            if r.get("date"):
+                dates.add(str(r["date"]))
+    except Exception:
+        pass
+    try:
+        # 两个记录源日期不完全一致(记分卡历史曾漏记 07-03)→取并集为真实追踪日，全册统一
+        for t in (rj(ROOT / "data" / "pdca" / f"pdca_review_{date}.json").get("certainty_trajectories") or []):
+            for s in (t.get("daily_score_series") or []):
+                if s.get("date"):
+                    dates.add(str(s["date"]))
+    except Exception:
+        pass
+    ds = sorted(dates)
+    return (len(ds), ds[0]) if ds else (0, "?")
+
+
 def part7_pdca(date: str, daily: dict | None = None) -> str:
     pd = rj(ROOT / "data" / "pdca" / f"pdca_daily_{date}.json")
     rv = rj(ROOT / "data" / "pdca" / f"pdca_review_{date}.json")
@@ -1369,12 +1410,10 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
         fed = next((l for l in (daily.get("links") or []) if "总闸" in str(l.get("node"))), {})
         fed_dir, fed_str = fed.get("direction", "待接"), fed.get("strength", "待接")
     # 件四④：样本太少→加人话兜底，不裸露 0/9 吓人
-    try:
-        _days = len((rj(ROOT / "data" / "pdca" / "scorecards.json").get("history") or []))
-    except Exception:
-        _days = 0
+    _days, _start = track_days(date)
     _caveat = (f'<div class="card" style="background:#12261f;border-color:#4f9e7f">'
-               f'<b style="color:#7ee0a0">先看这句：</b>这套记分系统<b>才起步 {_days} 天</b>，样本太少，'
+               f'<b style="color:#7ee0a0">先看这句：</b>这套记分系统<b>从 {esc(_start[:4])}-{esc(_start[4:6])}-{esc(_start[6:])} 起、'
+               f'到今天一共只追踪了 {_days} 天</b>，样本太少，'
                f'下面的“判对率”数字<b>现在别当真</b>——攒够几个月历史再看才有意义。'
                f'现在它的用处是：把每天的判断记下来、以后能回头查，而不是拿来评价系统准不准。</div>') if _days < 30 else ""
     head = ('<h2>第七部分 · 复盘记分卡（昨天judged的、今天验；系统的魂）</h2>'
@@ -1385,10 +1424,15 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
     for r in rings:
         rid = r.get("ring_id")
         tj = traj.get(rid, {})
+        # C3：判对率分母统一为全册同一"追踪天数"(按日期去重·治 8/9/7 打架)
         series = tj.get("daily_score_series") or []
+        _seen_d = {}
+        for s in series:
+            _seen_d[str(s.get("date"))] = s
+        series = [_seen_d[k] for k in sorted(_seen_d)]
         pos = sum(1 for s in series if (s.get("daily_score") or 0) > 0)
         tot = len(series)
-        acc = f"{pos}/{tot}（{round(pos/tot*100):d}%）" if tot else "首日·待累计"
+        acc = (f"{pos}/{tot} 天判对（{round(pos/tot*100):d}%）" if tot else "首日·待累计")
         # B3③：总闸环今判/置信对齐 R2 状态机 final(与第一部分/底气同源·不再用pdca旧US10Y噪声判)
         _judg, _cert = r.get("judgment"), r.get("current_certainty", "待接")
         if "总闸" in str(r.get("ring_name")) and fed_dir != "待接":
@@ -1426,8 +1470,8 @@ def _spark(trend: list) -> str:
         trend_txt = "在往下掉"
     else:
         trend_txt = "原地踏步"
-    return (f'这{len(trend)}天里：判对 {up} 天、判错 {down} 天、没变化 {flat} 天；'
-            f'累计分从 {first} 变成 {last}，{trend_txt}。')
+    return (f'有记录的这 {len(trend)} 天里：判对 {up} 天、判错 {down} 天、没变化 {flat} 天；'
+            f'累计分从 {first} 变成 {last}，{trend_txt}')
 
 def part7_souls(date: str, daily: dict | None = None) -> str:
     out = ['<h3 style="margin-top:16px">第七部分·魂 —— 系统之魂三件（总则第十四条：确定性累积表 + 多尺度复盘 + 影子组合反事实记分）</h3>']
@@ -1735,6 +1779,11 @@ def _scrub_jargon(s: str) -> str:
                  ("bet</", "押注</"), ("加密周期bet", "押注加密周期"),
                  ("接着起草右栏第4块", "右栏第4块"), ("下一步回去组装完整产品", "随后组装完整产品"),
                  ("；接着起草右栏最后一块", "；右栏最后一块"), ("接着起草右栏", "右栏"), ("起草右栏", "右栏"),
+                 # B1：任天堂全卡"贵/便宜"口径统一(不许再单独出现"比表面便宜/更便宜")
+                 ("·除现金经营业务更便宜", "·整体偏贵、扣掉每股约¥1,940净现金后没那么夸张"),
+                 ("除现金经营业务更便宜", "整体偏贵、扣净现金后没那么夸张"),
+                 ("除现金外的经营业务比表面PE更便宜", "整体偏贵、扣净现金后没那么夸张"),
+                 ("比表面PE更便宜", "整体偏贵、扣净现金后没那么夸张"), ("比表面便宜", "整体偏贵、扣净现金后没那么夸张"),
                  ("；下一步", "；随后"), ("下一步", "随后")):
         s = s.replace(a, b)
     # E1 叠字/重复
