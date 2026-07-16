@@ -1,0 +1,104 @@
+{
+  "_说明": "佐证层映射（总则第九条三）。系统证据链判断为主；湖水/老雷/TXT研报只作【印证(同向)/挑战(反向)】，每条标来源与料的as_of，严禁料反客为主盖过系统判断。料未覆盖者标'佐证料待接·从接入起用'，不编不凑。",
+  "_铁律": "佐证只印证或挑战，绝不改写左栏系统判断（动作/估值/账本一律以决策条单一源R1为准）。",
+  "sources": [
+    {"id": "冲突对照表", "file": "Knowledge_Base/cards/湖水观点_老雷财经_系统判断_冲突对照表.md",
+     "as_of": "2026-05-29", "type": "湖水观点×老雷财经×系统判断 三方对照表",
+     "meta": "母方向=偏防守；流动性变化=中性/分化；行业主线=日本AI链/AI硬件/AI软件/加密与稳定币；AI主线=软件,GPU",
+     "staleness": "料距当日(2026-07-16)约7周·非当日料·仅作方向性印证/挑战·不作当日证据"},
+    {"id": "主题观点簇", "file": "Knowledge_Base/cards/老雷财经_主题观点簇.md",
+     "as_of": "2026-06-04", "type": "老雷财经PPT解析·40个主题观点簇(带影响资产/验证条件/执行建议)",
+     "staleness": "料距当日约6周·非当日料"}
+  ],
+  "by_layer": {
+    "总命题·世界是否真变": {
+      "topic": "AI超级周期是否仍成立",
+      "hushui": "主线仍在扩散", "laolei": "长期主线不改，但要过ROI验证",
+      "system_in_material": "母方向不变", "verdict": "印证", "consistency": "基本一致",
+      "conflict": "进攻节奏不同", "closer": "系统「主线不变+降速」更贴近当前",
+      "watch": "AI收入增速 vs Capex增速、FCF变化", "action_hint": "核心仓保留，新增仓位分批",
+      "source": "冲突对照表(as_of 2026-05-29)"
+    },
+    "总闸·美联储是否美国优先": {
+      "topic": "美股科技龙头风险(利率维度)",
+      "hushui": "主线仍可做", "laolei": "利率反杀会压估值",
+      "system_in_material": "核心不动，追高降速", "verdict": "印证", "consistency": "一致",
+      "conflict": "无", "closer": "系统执行层更可落地",
+      "watch": "US10Y / Real Yield", "action_hint": "核心仓不误杀",
+      "source": "冲突对照表(as_of 2026-05-29)"
+    },
+    "战略指向·AI/安全/能源": {
+      "topic": "AI超级周期是否仍成立",
+      "hushui": "主线仍在扩散", "laolei": "长期主线不改，但要过ROI验证",
+      "system_in_material": "母方向不变", "verdict": "印证", "consistency": "基本一致",
+      "conflict": "进攻节奏不同(湖水更进攻)", "closer": "系统「主线不变+降速」更贴近当前",
+      "watch": "AI收入增速 vs Capex增速、FCF变化", "action_hint": "核心仓保留，新增仓位分批",
+      "source": "冲突对照表(as_of 2026-05-29)"
+    },
+    "手段层·FIMA/稳定币/加密": {
+      "topic": "加密与稳定币(料仅列为行业主线·无独立对照行)",
+      "hushui": "料未给独立结论", "laolei": "料未给独立结论",
+      "system_in_material": "—", "verdict": "佐证料待接", "consistency": "—",
+      "conflict": "—", "closer": "—", "watch": "—",
+      "action_hint": "该环佐证料待接·从接入起用(料只把'加密与稳定币'列为行业主线之一·无同向/反向结论)",
+      "source": "冲突对照表(as_of 2026-05-29)·未覆盖该环"
+    },
+    "资金轮动": {
+      "topic": "流动性方向",
+      "hushui": "料未给独立结论", "laolei": "料标'流动性变化=中性/分化'、母方向=偏防守",
+      "system_in_material": "—", "verdict": "印证", "consistency": "方向性一致(均偏中性/防守)",
+      "conflict": "—", "closer": "系统当日'不避险/中性'与料'中性/分化'同向",
+      "watch": "VIX、收益率曲线", "action_hint": "偏防守口径",
+      "source": "冲突对照表·meta字段(as_of 2026-05-29)"
+    },
+    "板块轮动": {
+      "topic": "AI软件是否开始接力",
+      "hushui": "有接力迹象", "laolei": "硬件到软件轮动需验证盈利",
+      "system_in_material": "软件可作为进攻优先方向之一", "verdict": "挑战", "consistency": "部分一致",
+      "conflict": "接力强度判断不同(湖水更看好接力)", "closer": "系统「接力但要验证」更稳",
+      "watch": "云AI付费转化、利润率", "action_hint": "核心软件仓可持有",
+      "source": "冲突对照表(as_of 2026-05-29)"
+    },
+    "机会池": {
+      "topic": "日本半导体链风险",
+      "hushui": "扩散延续", "laolei": "日元/BOJ放大波动，需保护线",
+      "system_in_material": "扩散在、拥挤也在", "verdict": "挑战", "consistency": "部分一致",
+      "conflict": "进攻与风控权重不同", "closer": "系统中性偏防守更接近",
+      "watch": "JPY、BOJ口径、8035/6857趋势", "action_hint": "9984/6857/8035 不追高",
+      "source": "冲突对照表(as_of 2026-05-29)"
+    }
+  },
+  "by_symbol": {
+    "JP.9984": {"topic": "日本半导体链风险", "hushui": "扩散延续", "laolei": "日元/BOJ放大波动，需保护线",
+      "verdict": "挑战", "consistency": "部分一致", "closer": "系统中性偏防守更接近",
+      "note": "料点名 9984 不追高；与系统当日'守·不追高'同向(印证不追高)、但料更强调日元/BOJ保护线",
+      "watch": "JPY、BOJ口径", "source": "冲突对照表(as_of 2026-05-29)"},
+    "JP.6857": {"topic": "日本半导体链风险", "hushui": "扩散延续", "laolei": "日元/BOJ放大波动，需保护线",
+      "verdict": "挑战", "consistency": "部分一致", "closer": "系统中性偏防守更接近",
+      "note": "料点名 6857 不追高；与系统'守·不追高'同向",
+      "watch": "JPY、BOJ口径、6857趋势", "source": "冲突对照表(as_of 2026-05-29)"},
+    "US.NVDA": {"topic": "美股科技龙头风险", "hushui": "主线仍可做", "laolei": "利率反杀会压估值",
+      "verdict": "印证", "consistency": "一致", "closer": "系统执行层更可落地",
+      "note": "料'核心不动、追高降速'与系统'守·不加'同向；老雷提醒利率是估值杀手(与本卡⑧风险'高利率久期'同向)",
+      "watch": "US10Y / Real Yield", "source": "冲突对照表(as_of 2026-05-29)"},
+    "US.MSFT": {"topic": "美股科技龙头风险 + AI软件接力", "hushui": "主线仍可做 / 有接力迹象",
+      "laolei": "利率反杀会压估值 / 硬件到软件轮动需验证盈利",
+      "verdict": "印证", "consistency": "一致(龙头风险)·部分一致(软件接力)", "closer": "系统「接力但要验证」更稳",
+      "note": "料'核心软件仓可持有'与系统'等(优质但不急加)'方向不冲突；湖水更看好软件接力、系统要求验证盈利",
+      "watch": "云AI付费转化、利润率、US10Y", "source": "冲突对照表(as_of 2026-05-29)"},
+    "US.AVGO": {"topic": "美股科技龙头风险", "hushui": "主线仍可做", "laolei": "利率反杀会压估值",
+      "verdict": "印证", "consistency": "一致", "closer": "系统执行层更可落地",
+      "note": "料'核心不动、追高降速'与系统'守·不追高'同向", "watch": "US10Y / Real Yield",
+      "source": "冲突对照表(as_of 2026-05-29)"},
+    "US.TSM": {"topic": "美股科技龙头风险", "hushui": "主线仍可做", "laolei": "利率反杀会压估值",
+      "verdict": "印证", "consistency": "一致", "closer": "系统执行层更可落地",
+      "note": "料'核心不动、追高降速'与系统'守·不追高'同向", "watch": "US10Y / Real Yield",
+      "source": "冲突对照表(as_of 2026-05-29)"},
+    "US.META": {"topic": "美股科技龙头风险 + AI软件接力", "hushui": "主线仍可做 / 有接力迹象",
+      "laolei": "利率反杀会压估值 / 硬件到软件轮动需验证盈利",
+      "verdict": "印证", "consistency": "一致(龙头风险)·部分一致(软件接力)", "closer": "系统「接力但要验证」更稳",
+      "note": "料'核心软件仓可持有'与系统'等'不冲突", "watch": "云AI付费转化、US10Y",
+      "source": "冲突对照表(as_of 2026-05-29)"}
+  },
+  "uncovered_note": "佐证料待接·从接入起用（现有料[冲突对照表 as_of 2026-05-29 / 主题观点簇 as_of 2026-06-04]未覆盖该标的·不编不凑）"
+}

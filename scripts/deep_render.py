@@ -106,6 +106,121 @@ def extract_pack(path: Path) -> dict[str, str]:
     }
 
 # ── 动态数据 ──
+# ── 件一：逐股价格"数据真实时点"标签（不许一个 data_date 盖全部市场） ──
+_MKT_NAME = {"US": "美股", "JP": "日股", "HK": "港股", "CN": "A股", "CC": "加密"}
+_STATE_TXT = {"PRE_MARKET_BEGIN": "盘前", "PRE_MARKET_END": "盘前", "MORNING": "盘中", "AFTERNOON": "盘中",
+              "CLOSED": "收盘", "AFTER_HOURS_BEGIN": "盘后", "AFTER_HOURS_END": "盘后",
+              "NIGHT_OPEN": "夜盘", "REST": "午休", "OVERNIGHT": "夜盘"}
+_FIELD_TXT = {"last_price": "收盘", "pre_price": "盘前", "after_price": "盘后", "overnight_price": "夜盘"}
+
+def price_stamp(sym: str, date: str) -> str:
+    """返回该只现价的真实时点标签，如「美股·07-15盘前」「日股·07-16收盘」。缺→标待接不编。"""
+    mkt = _MKT_NAME.get(str(sym).split(".")[0], str(sym).split(".")[0])
+    dd = st = fld = None
+    try:
+        for h in (rj(ROOT / "data" / "accounts" / f"holdings_true_{date}.json").get("holdings") or []):
+            if h.get("symbol") == sym:
+                dd = h.get("price_data_date"); st = h.get("price_market_state"); break
+    except Exception:
+        pass
+    try:
+        for x in (rj(ROOT / "data" / "holdings" / f"holdings_review_{date}.json").get("reviews") or []):
+            if x.get("symbol") == sym:
+                fld = x.get("used_field")
+                dd = dd or x.get("data_date")
+                break
+    except Exception:
+        pass
+    if not dd:
+        return f"{mkt}·价时点待接（未取到行情数据日·不编）"
+    tag = _STATE_TXT.get(str(st), "") or _FIELD_TXT.get(str(fld), "") or "最近可得"
+    d = str(dd)
+    dshort = f"{d[5:7]}-{d[8:10]}" if len(d) >= 10 and "-" in d else d
+    same = (d.replace("-", "") == date)
+    note = "" if same else "·非当日"
+    return f"{mkt}·{dshort}{tag}{note}"
+
+# ── 件二：佐证层（总则第九条三·系统证据链为主·湖水/老雷/TXT研报只作印证或挑战·严禁反客为主） ──
+_CORRO_CACHE = {}
+def _corro() -> dict:
+    if "d" not in _CORRO_CACHE:
+        try:
+            _CORRO_CACHE["d"] = rj(ROOT / "data" / "analysis" / "corroboration.json")
+        except Exception:
+            _CORRO_CACHE["d"] = {}
+    return _CORRO_CACHE["d"]
+
+_VERDICT_COLOR = {"印证": "#7ee0a0", "挑战": "#ffb454", "佐证料待接": "#c9a86a"}
+
+def corro_box(key: str, kind: str = "layer") -> str:
+    """给一条系统判断挂佐证栏。kind=layer→by_layer(模糊匹配节点名)；kind=symbol→by_symbol。
+    有料→印证/挑战+来源；无料→佐证料待接·从接入起用（不编不凑）。佐证绝不盖过系统判断。"""
+    c = _corro()
+    if not c:
+        return ('<div class="meta" style="color:#c9a86a;font-size:11.5px;margin-top:3px">'
+                '佐证（第九条三）：<b>佐证料待接</b>（corroboration.json 缺·不编）</div>')
+    e = None
+    if kind == "symbol":
+        e = (c.get("by_symbol") or {}).get(key)
+    else:
+        for k, v in (c.get("by_layer") or {}).items():
+            if k in str(key) or str(key) in k or any(w and w in str(key) for w in k.split("·")):
+                e = v
+                break
+    if not e:
+        return ('<div class="meta" style="color:#c9a86a;font-size:11.5px;margin-top:3px">'
+                f'佐证（第九条三·只作印证/挑战·不盖系统判断）：<b>佐证料待接·从接入起用</b>'
+                f'（{esc(str(c.get("uncovered_note", "现有料未覆盖·不编不凑")))}）</div>')
+    vd = str(e.get("verdict", "佐证料待接"))
+    col = _VERDICT_COLOR.get(vd, "#c9a86a")
+    bits = []
+    if e.get("hushui"):
+        bits.append(f'<b>湖水</b>：{esc(str(e["hushui"]))}')
+    if e.get("laolei"):
+        bits.append(f'<b>老雷</b>：{esc(str(e["laolei"]))}')
+    tail = []
+    if e.get("consistency"):
+        tail.append(f'一致度：{esc(str(e["consistency"]))}')
+    if e.get("closer"):
+        tail.append(f'谁更接近：{esc(str(e["closer"]))}')
+    if e.get("watch"):
+        tail.append(f'观察指标：{esc(str(e["watch"]))}')
+    if e.get("note"):
+        tail.append(esc(str(e["note"])))
+    return ('<div class="meta" style="font-size:11.5px;margin-top:3px;color:#9db0c2;border-left:3px solid ' + col + ';padding-left:7px">'
+            f'佐证（第九条三·只作印证/挑战·<b>不盖系统判断</b>）：<b style="color:{col}">{esc(vd)}</b>'
+            + ('｜' + '　'.join(bits) if bits else '')
+            + ('<br>' + '｜'.join(tail) if tail else '')
+            + f'<br><span style="color:#8ea3b6">来源：{esc(str(e.get("source", "待接")))}（料非当日·仅方向性参考；当日结论以左栏系统证据链为准）</span></div>')
+
+def _price_asof_note(date: str) -> str:
+    """头部总说明：按市场汇总各自价格真实时点（不许一个 data_date 盖全部市场）。"""
+    try:
+        hts = rj(ROOT / "data" / "accounts" / f"holdings_true_{date}.json").get("holdings") or []
+    except Exception:
+        return ('<div style="font-size:12px;color:#ffb454;font-weight:400">价格时点说明：待接（holdings_true 缺·不编）</div>')
+    agg = {}
+    for h in hts:
+        sym = str(h.get("symbol") or "")
+        mkt = _MKT_NAME.get(sym.split(".")[0], sym.split(".")[0])
+        dd = str(h.get("price_data_date") or "")
+        st = _STATE_TXT.get(str(h.get("price_market_state")), str(h.get("price_market_state") or ""))
+        if not dd:
+            continue
+        agg.setdefault((mkt, dd, st), 0)
+        agg[(mkt, dd, st)] += 1
+    if not agg:
+        return '<div style="font-size:12px;color:#ffb454;font-weight:400">价格时点说明：待接（无行情数据日·不编）</div>'
+    parts = []
+    for (mkt, dd, st), n in sorted(agg.items()):
+        same = (dd.replace("-", "") == date)
+        parts.append(f'<b>{esc(mkt)}</b> {esc(dd)}{esc(st)}（{n}只{"·当日" if same else "·非当日"}）')
+    return ('<div style="font-size:12px;color:#ffb454;font-weight:400;margin-top:4px">'
+            '⚠ 各市场价格真实时点（<b>data_date 只是本产品的生产日、不代表每只价都是当日</b>）：'
+            + "；".join(parts)
+            + '。<b>美股为最近美股交易日的盘前/收盘价</b>——JST 晚间美股尚未开盘（22:30 开），次日实时价以当日 OpenD 扫描为准；'
+            '日股/港股/A股同理按各自市场时点标注。每只现价旁均有［市场·日期时点］标签，缺则标待接不编。</div>')
+
 def load_dynamic(date: str) -> dict:
     prod = rj(ROOT / "data" / "reports" / f"production_{date}.json")
     daily = rj(ROOT / "data" / "evidence_chain" / f"daily_{date}.json")
@@ -113,7 +228,7 @@ def load_dynamic(date: str) -> dict:
     ht = {h["symbol"]: h for h in (rj(ROOT / "data" / "accounts" / f"holdings_true_{date}.json").get("holdings") or [])}
     # 估值单一源(valuation_results·分类型精算·R1 final.valuation 只从这里取)
     valr = {r["symbol"]: r for r in (rj(ROOT / "data" / "valuation" / f"valuation_results_{date}.json").get("results") or []) if r.get("symbol")}
-    return {"prod": prod, "daily": daily, "ma": ma, "ht": ht, "valr": valr}
+    return {"prod": prod, "daily": daily, "ma": ma, "ht": ht, "valr": valr, "date": date}
 
 
 # ── R1 决策对象唯一化：每标的一个 final(quality/valuation/action/confidence/reason/invalidation) ──
@@ -478,7 +593,9 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     ma_s = (f"20日{c}{fnum(ma20)}/50日{c}{fnum(ma50)}/200日{c}{fnum(ma200)}（均线位·仅趋势参考·不作买卖线）"
             if ma200 is not None else "待接·均线不足（不编）")
     dossier = (f'<div class="dossier"><span class="k">档案</span><b>持仓</b>{esc(qty_s)} ｜ <b>成本</b>{esc(cost_s)} '
-               f'｜ <b>现价</b>{esc(c)}{esc(fnum(price)) if price is not None else "待接"} ｜ <b>均线</b>{esc(ma_s)}</div>')
+               f'｜ <b>现价</b>{esc(c)}{esc(fnum(price)) if price is not None else "待接"}'
+               f'<span style="color:#ffb454;font-size:11.5px;margin-left:4px">［{esc(price_stamp(sym, dyn.get("date","")))}］</span>'
+               f' ｜ <b>均线</b>{esc(ma_s)}</div>')
     # 标题 + 决策条（全部引 final·单一源）
     hd = (f'<div class="hd"><b>{esc(name)}</b> <span class="sym">{esc(sym)}</span> '
           f'<span class="conf">动作：{f["action"]}</span> '
@@ -489,7 +606,8 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                  f'<b>动作</b>{f["action"]} ｜ <b>估值</b>{f["valuation"]} ｜ <b>账本</b>{f["quality"]} '
                  f'｜ <b>把握</b><span style="color:#ffd479;font-weight:700">{esc(conf_grade)}</span>（{f["confidence"]}）</div>')
     return (f'<div class="card">{hd}{final_row}{deep}{dossier}'
-            f'<div class="you"><span class="k">今天对你(单一源)</span>{f["reason"]}</div></div>'), pack_status
+            + corro_box(sym, "symbol")
+            + f'<div class="you"><span class="k">今天对你(单一源)</span>{f["reason"]}</div></div>'), pack_status
 
 # ── 第一部分·五层大环境（daily links·今日事件现渲；R10①每层落点到具体持仓） ──
 # R10①：层→风险因子(复用R9映射)→落点持仓(哪几只受影响·敞口现算·非泛泛)
@@ -663,7 +781,8 @@ def part1_layers(daily: dict, dyn: dict) -> str:
             f'<div style="font-size:13px;margin-top:3px"><span class="k">② 为什么(这么判的依据)</span>{why}</div>'
             + _layer_impact(node, dyn).replace("对你·落点持仓", "③ 对你·落点持仓")
             + f'<div style="font-size:13px;margin-top:3px"><span class="k">④ 什么情况改看法(证伪)</span>{esc(flip)}</div>'
-            f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:3px">大白话：{esc(plain) if plain else "待接"}｜对应尺：{esc(ruler)}</div>'
+            + corro_box(node, "layer")
+            + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:3px">大白话：{esc(plain) if plain else "待接"}｜对应尺：{esc(ruler)}</div>'
             '</div>')
     if not rows:
         rows.append('<div class="card">五层数据待接（daily_{date}.json 无 links·不编）</div>')
@@ -981,7 +1100,8 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
             f'<div class="card">当日激活承接节点：<b>{esc("、".join(active) or "待接")}</b>｜候选宇宙 {n_total} 只(按节点·candidate_universe.json可迭代)｜'
             f'过①硬性关(节点激活) <b>{n_g1}</b> 只｜过②软性关(站上均线) <b>{n_g2}</b> 只。'
             f'<div class="meta" style="color:#8ea3b6;font-size:12px">五关=①硬性(节点激活)②软性(均线)③估值④护城河⑤个股；过关进"值得看候选池"。改当日激活节点→候选集变(守第六条动态)。gate②均线复用当日 chain_opportunities 真扫描·③④⑤缺真源标待接不编。｜机会口径：{scope}</div></div>')
-    return (head + f'<div class="blk">池① 值得看候选池（过①硬性关 {n_g1} 只·带节点+当日证据+多维对比）</div>'
+    return (head + corro_box("机会池", "layer")
+            + f'<div class="blk">池① 值得看候选池（过①硬性关 {n_g1} 只·带节点+当日证据+多维对比）</div>'
             + wrows + pool2 + pool3)
 
 def part5_closeloop(daily: dict) -> str:
@@ -1222,7 +1342,8 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
              f' ｜ 📅 data_date=<b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>'
              f' ｜ 本次实时扫描(production)：<b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）'
              + (f' ｜ 行情快照日：{esc(md_note)}' if md_note else '')
-             + '<div style="font-size:12px;color:#9aa8b5;font-weight:400">run_id 锚定 production_' + esc(date) + '.json（generated_at 同源·可回溯）；同一扫描重渲字节一致（R3运行唯一性）</div></div>'
+             + '<div style="font-size:12px;color:#9aa8b5;font-weight:400">run_id 锚定 production_' + esc(date) + '.json（generated_at 同源·可回溯）；同一扫描重渲字节一致（R3运行唯一性）</div>'
+             + _price_asof_note(date) + '</div>'
              f'<p style="color:#9aa8b5">深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编</p>')
     part2 = f'<h2>第二部分 · 你的持仓，今天怎么办（{stats["n"]}只）</h2>' + "".join(cards)
     if only:   # 打通模式:只出持仓卡
