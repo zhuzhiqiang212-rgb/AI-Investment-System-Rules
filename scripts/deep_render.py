@@ -355,20 +355,44 @@ def part6_rulers() -> str:
     return '<h2>第六部分 · 右栏底子（6把尺 · 判断依据）</h2>' + "".join(folds)
 
 
-# ── 第七部分·PDCA复盘记分卡（pdca_daily rings·现渲） ──
-def part7_pdca(date: str) -> str:
+# ── 第七部分·PDCA接真记分(R7：昨判今验+累计+预测字段·底气与总闸final同源) ──
+def part7_pdca(date: str, daily: dict | None = None) -> str:
     pd = rj(ROOT / "data" / "pdca" / f"pdca_daily_{date}.json")
+    rv = rj(ROOT / "data" / "pdca" / f"pdca_review_{date}.json")
     rings = pd.get("rings") or []
-    dq = pd.get("decision_quality", {}) or {}
-    head = ('<h2>第七部分 · PDCA 复盘记分卡系统（今天的判断，明天验证 · 系统的魂）</h2>'
-            f'<div class="card">今天下手的底气：<b>{esc(dq.get("level", "待接"))}</b>——{esc(dq.get("reason", ""))}'
-            '<div class="meta" style="color:#8ea3b6;font-size:12px">判对给尺加把握、判错改尺——证伪落到实处的闭环。</div></div>')
+    traj = {t.get("ring_id"): t for t in (rv.get("certainty_trajectories") or [])}
+    # R7 底气与总闸 final 同源(治B3③)：读第一部分总闸(R2状态机)而非旧 decision_quality
+    fed_dir = fed_str = "待接"
+    if daily:
+        fed = next((l for l in (daily.get("links") or []) if "总闸" in str(l.get("node"))), {})
+        fed_dir, fed_str = fed.get("direction", "待接"), fed.get("strength", "待接")
+    head = ('<h2>第七部分 · PDCA 复盘记分卡系统（昨判今验 · 累计打分 · 系统的魂）</h2>'
+            f'<div class="card">今天下手的底气(与总闸 final 同源)：<b>{esc(fed_str)}·{esc(fed_dir)}</b>'
+            '<div class="meta" style="color:#8ea3b6;font-size:12px">判对给尺加把握、判错改尺——每环带 预测/置信/验证指标/成败标准/自动记分；累计分见各环。</div></div>')
     rows = []
     for r in rings:
-        rows.append(f'<div class="card"><div class="hd"><b>{esc(r.get("ring_name"))}</b>'
-                    f'（{esc(r.get("node"))}）<span class="conf">判断：{esc(r.get("judgment"))}</span></div>'
-                    f'<div class="you" style="font-weight:400;font-size:12.5px;color:#bcd8ee">依据：{esc((r.get("evidence") or "待接")[:220])}</div></div>')
-    return head + ("".join(rows) if rows else '<div class="card">PDCA rings 待接（pdca_daily 无 rings·不编）</div>')
+        rid = r.get("ring_id")
+        tj = traj.get(rid, {})
+        series = tj.get("daily_score_series") or []
+        pos = sum(1 for s in series if (s.get("daily_score") or 0) > 0)
+        tot = len(series)
+        acc = f"{pos}/{tot}（{round(pos/tot*100):d}%）" if tot else "首日·待累计"
+        # B3③：总闸环今判/置信对齐 R2 状态机 final(与第一部分/底气同源·不再用pdca旧US10Y噪声判)
+        _judg, _cert = r.get("judgment"), r.get("current_certainty", "待接")
+        if "总闸" in str(r.get("ring_name")) and fed_dir != "待接":
+            _judg, _cert = f"{fed_dir}（对齐R2状态机·与第一部分同源）", fed_str
+        rows.append(
+            f'<div class="card"><div class="hd"><b>{esc(r.get("ring_name"))}</b>（{esc(r.get("node"))}）'
+            f'<span class="conf">今判：{esc(_judg)}</span> <span class="q">置信：{esc(_cert)}</span></div>'
+            f'<div class="you" style="font-weight:400;font-size:12.5px;color:#bcd8ee">'
+            f'· 昨判(预测)：{esc(str(r.get("previous_strength",""))+str(r.get("previous_direction","") or "首日无昨判"))}'
+            f'　· 今日验证/自动记分：{esc(str(r.get("daily_score","0")))}分（{esc(r.get("score_reason","待接"))}）'
+            f'　· 累计分：{esc(str(r.get("cumulative_score","0")))}'
+            f'　· 判对率(自 {esc((series[0].get("date") if series else "?"))})：{esc(acc)}'
+            f'　· 成败标准：确定性{esc(r.get("certainty_before","?"))}→{esc(r.get("current_certainty","?"))}（{esc(r.get("certainty_event","维持"))}）</div></div>')
+    if not rows:
+        rows.append('<div class="card">PDCA rings 待接（pdca_daily 无 rings·不编）</div>')
+    return head + "".join(rows)
 
 
 class StaleSnapshotError(Exception):
@@ -445,7 +469,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
               f'<span class="k">今天一句话</span><b style="font-size:15px">{oneline}</b></div>')
     full = (title + banner + part1_layers(daily) + part1_macro_table(daily) + part2
             + part3_concentration(date, dyn) + part4_opportunity(daily, dyn) + part5_closeloop(daily)
-            + part6_rulers() + part7_pdca(date))
+            + part6_rulers() + part7_pdca(date, daily))
     stats["ruler_embed"] = full.count('class="ruler-embed"')
     stats["deep_blocks"] = full.count('class="deep"')
     return head + full + "</body></html>", stats
