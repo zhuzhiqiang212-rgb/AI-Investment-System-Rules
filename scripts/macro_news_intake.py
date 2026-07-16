@@ -369,6 +369,22 @@ def _fetch_qualified(ring: str) -> dict[str, Any]:
     return q
 
 
+def smart_trim(s: str, limit: int = 44) -> str:
+    """第四轮：标题只在词/句边界截断+加…，绝不从中间硬切。日期/来源一律不截。"""
+    s = (s or "").strip()
+    # 去掉 Google News 惯例的" - 来源"尾巴(来源另有字段·不重复)
+    s = re.sub(r"\s+-\s+[^\-]{1,20}$", "", s).strip()
+    if len(s) <= limit:
+        return s
+    cut = s[:limit]
+    # 优先在中文句读/英文词边界断开
+    for sep in ("！", "？", "。", "；", "，", "、", "!", "?", ";", ",", " "):
+        p = cut.rfind(sep)
+        if p >= limit * 0.5:
+            return cut[:p].rstrip(" ，、;,") + "…"
+    return cut.rstrip() + "…"
+
+
 def _write_ring(node: dict, ring: str, jd: dict, q: dict) -> None:
     """把研判写回环：evidence 讲清「几条抓到/几条合格/为什么剔除/逐条研判」，非关键词计数。"""
     st = q["stats"]
@@ -381,10 +397,12 @@ def _write_ring(node: dict, ring: str, jd: dict, q: dict) -> None:
         node["background"] = [f"源白名单=路透/彭博/CNBC/WSJ/FT/官方+财新/华尔街见闻/第一财经/证券时报；时效≤{MAX_AGE_HOURS}h；已剔除大学页/智库博客/内容农场"]
     else:
         per = jd["per_item"]
+        # 标题只在词/句边界截+…；来源与日期【完整不截】
         node["evidence"] = (f"【新闻研判】{ring}：抓{st['fetched']}条→合格{st['qualified']}条(权威源+{MAX_AGE_HOURS}h内+过相关性闸)，"
                             f"逐条方向研判加权净分={jd['net']} → 判「{jd['state']}·{jd['strength']}」(非关键词计数)。"
-                            + "样本：" + "；".join(f"{p['title'][:34]}（{p['source']}·{p['pub_date']}·{p['why']}）" for p in per[:3]))
-        node["today_events"] = [f"{p['source']}·{p['pub_date']}：{p['title']}" for p in per[:3]]
+                            + "样本：" + "；".join(f"{smart_trim(p['title'])}（{p['source']}·{p['pub_date']}·{p['why']}）"
+                                                for p in per[:3]))
+        node["today_events"] = [f"{p['source']}·{p['pub_date']}：{smart_trim(p['title'], 60)}" for p in per[:3]]
         node["news_items"] = [{"title": p["title"], "source": p["source"], "url": p["url"],
                                "pub_date": p["pub_date"], "lang": p["lang"],
                                "judge": p["why"], "signal": p["signal"]} for p in per[:5]]

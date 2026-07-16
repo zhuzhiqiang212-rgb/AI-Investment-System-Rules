@@ -968,7 +968,20 @@ def part1_layers(daily: dict, dyn: dict) -> str:
         plain = l.get("plain") or l.get("today_plain") or ""
         evidence = str(l.get("evidence") or "")
         events = l.get("today_events") or []
-        fact = esc(str(dr)) + ((" ｜ " + esc(str(events[0]))) if events else "")
+        # 第四轮：今天怎么了 = 方向 + 逐条真新闻(完整标题/来源/日期·每条带可点原文链接)
+        news = l.get("news_items") or []
+        if news:
+            nl = []
+            for n in news:   # 全篇新闻都要有链接→不再只渲前3条
+                u = str(n.get("url") or "")
+                link = (f'　<a href="{u}" target="_blank" style="color:#8fd6ff">阅读原文→</a>'
+                        if u.startswith("http") else '　<span style="color:#8ea3b6">（无直链）</span>')
+                nl.append(f'<div style="margin-top:3px">· <b>{esc(str(n.get("title","")))}</b>'
+                          f'<br><span style="color:#8ea3b6;font-size:11.5px">来源：{esc(str(n.get("source","")))}'
+                          f'　发布：{esc(str(n.get("pub_date","")))}</span>{link}</div>')
+            fact = esc(str(dr)) + "".join(nl)
+        else:
+            fact = esc(str(dr)) + ((" ｜ " + esc(str(events[0]))) if events else "")
         why = esc(evidence) if evidence else "为什么这么判：待接（daily 无 evidence·不编）"
         flip = _match(node, _LAYER_FLIP, "出现与当前方向相反的持续证据")
         ruler = _match(node, _LAYER_RULER, "第六部分·右栏底子")
@@ -1727,7 +1740,8 @@ _JARGON_RE = [
     (r"meta字段", "该资料的摘要栏"),
     (r"·非白名单大站", ""),
     (r"（权威源\+\d+h内[^）]*）", "（权威媒体+当天发布）"),
-    (r"[a-z0-9\-]+\.com(?![^<]{0,3}>)", "该网站"),
+    # 只清"调试日志里裸露的域名"，不动 href/URL 里的(否则原文链接被打坏)
+    (r"(?<![/\.\w\"'=])[a-z0-9\-]{2,}\.com(?![/\w])", "该网站"),
     # A3 内部文件名/变量 → 人话
     (r"data/[a-z_]+/[a-z_]+\.json|[a-z_]+\.json", "系统内部记录"),
     (r"（映射见 系统内部记录[^）]*）|（源：系统内部记录[^）]*）|（接系统内部记录[^）]*）", ""),
