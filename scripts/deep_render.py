@@ -193,6 +193,47 @@ def corro_box(key: str, kind: str = "layer") -> str:
             + ('<br>' + '｜'.join(tail) if tail else '')
             + f'<br><span style="color:#8ea3b6">来源：{esc(str(e.get("source", "待接")))}（料非当日·仅方向性参考；当日结论以左栏系统证据链为准）</span></div>')
 
+# ══ 分册架构(董事局工单)：5册·同源页眉·跨册相对路径锚·闭环图。纯移搬·一字不删 ══
+def VOL(date: str, n: int) -> str:
+    return {1: f"完整产品_{date}_1总览闭环.html", 2: f"完整产品_{date}_2持仓深研.html",
+            3: f"完整产品_{date}_3机会池.html", 4: f"完整产品_{date}_4记分卡.html",
+            5: f"完整产品_{date}_5右栏6尺.html"}[n]
+
+# ②持仓深研册按逻辑拆子册(每册<300KB·绝不删内容·按组合角色分组)
+VOL2_SUBS = [("2a", "AI主线仓", ["US.NVDA", "US.MSFT", "US.AVGO", "US.TSM", "JP.6857", "JP.9984", "US.META", "US.SNDK"]),
+             ("2b", "防御分散仓", ["JP.4568", "JP.8766", "JP.6758", "JP.7203", "JP.8001", "JP.7832", "JP.7974"]),
+             ("2c", "加密簇与金融仓", ["US.MSTR", "US.COIN", "US.CRCL", "US.IBKR"])]
+
+def VOL2(date: str, sub: str) -> str:
+    return f"完整产品_{date}_{sub}持仓深研_{dict((s, n) for s, n, _ in VOL2_SUBS)[sub]}.html"
+
+def _sub_of(sym: str) -> str:
+    for s, _n, syms in VOL2_SUBS:
+        if sym in syms:
+            return s
+    return "2a"
+
+_LAYER_SLUG = {"总命题": "world", "总闸": "fedgate", "战略": "strategy",
+               "手段": "means", "资金轮动": "capital", "板块": "sector"}
+def layer_slug(node: str) -> str:
+    for k, v in _LAYER_SLUG.items():
+        if k in str(node):
+            return v
+    return "layer"
+
+def L1(date: str, anchor: str = "") -> str:
+    return VOL(date, 1) + (("#" + anchor) if anchor else "")
+def L2(date: str, anchor: str = "") -> str:
+    """持仓深研链：按 symbol 定位到它所在的子册(2a/2b/2c)，锚点不跨册断。"""
+    if anchor.startswith("stock-"):
+        return VOL2(date, _sub_of(anchor[6:])) + "#" + anchor
+    return VOL2(date, "2a") + (("#" + anchor) if anchor else "")
+def L5(date: str, anchor: str = "") -> str:
+    return VOL(date, 5) + (("#" + anchor) if anchor else "")
+
+def _a(href: str, text: str, color: str = "#8fd6ff") -> str:
+    return f'<a href="{href}" style="color:{color};text-decoration:underline dotted">{text}</a>'
+
 def _price_asof_note(date: str) -> str:
     """头部总说明：按市场汇总各自价格真实时点（不许一个 data_date 盖全部市场）。"""
     try:
@@ -605,8 +646,17 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                  f'<span class="k">决策(单一源)</span>'
                  f'<b>动作</b>{f["action"]} ｜ <b>估值</b>{f["valuation"]} ｜ <b>账本</b>{f["quality"]} '
                  f'｜ <b>把握</b><span style="color:#ffd479;font-weight:700">{esc(conf_grade)}</span>（{f["confidence"]}）</div>')
-    return (f'<div class="card">{hd}{final_row}{deep}{dossier}'
-            + corro_box(sym, "symbol")
+    _dt = dyn.get("date", "")
+    # 硬链2：持仓卡"决策链"↔上游对应层(总览册各层锚)
+    chain_links = ('<div class="meta" style="font-size:11.5px;margin-top:3px;color:#8ea3b6">'
+                   '决策链回溯上游：' + '　'.join(
+                       _a(L1(_dt, "layer-" + s), t) for s, t in
+                       (("world", "①世界观"), ("strategy", "②国家战略"), ("capital", "③资金流动"),
+                        ("sector", "④板块轮动"))) +
+                   '　｜　' + _a(VOL(_dt, 3), "⑤机会池册") + '　' + _a(VOL(_dt, 4), "⑦记分卡册")
+                   + '　｜　' + _a(L5(_dt, "ruler-6"), "右栏⑥本只静态档案") + '</div>')
+    return (f'<div class="card" id="stock-{esc(sym)}">{hd}{final_row}{deep}{dossier}'
+            + corro_box(sym, "symbol") + chain_links
             + f'<div class="you"><span class="k">今天对你(单一源)</span>{f["reason"]}</div></div>'), pack_status
 
 # ── 第一部分·五层大环境（daily links·今日事件现渲；R10①每层落点到具体持仓） ──
@@ -641,11 +691,17 @@ def _layer_impact(node: str, dyn: dict) -> str:
         cbt = {}
     mv, total = _mv_usd_by_symbol(holds, cbt)
     members = [s for s in by_sym if fac in by_sym[s] and s in name_by]
-    names = "、".join(esc(name_by[s]) for s in members) or "—"
+    # 硬链2：落点持仓 → 持仓深研册该只锚点(跨文件相对路径+#anchor)
+    # 防断链：加密(CC.*)无个股深研卡→只显名不链，不制造死锚
+    _dt = dyn.get("date", "")
+    names = "、".join(
+        (esc(name_by[s]) + '<span style="color:#8ea3b6;font-size:11px">(资产口径·无个股卡)</span>')
+        if str(s).startswith("CC.") else _a(L2(_dt, "stock-" + s), esc(name_by[s]))
+        for s in members) or "—"
     expo = (sum(mv.get(s, 0.0) for s in members) / total * 100.0) if total > 0 else 0.0
     return ('<div class="you" style="margin-top:5px;font-weight:400;color:#9ed8ff">'
             f'<b style="color:#5cc8ff">对你·落点持仓（哪几只受影响）</b>：{names}'
-            f'<span style="color:#8ea3b6">（同属风险因子「{esc(fac)}」·合计敞口 {expo:.1f}%·见第三部分附）</span></div>')
+            f'<span style="color:#8ea3b6">（同属风险因子「{esc(fac)}」·合计敞口 {expo:.1f}%·点名字跳持仓深研册）</span></div>')
 
 # 深宏观:每层接右栏6尺 + "什么情况改看法"(证伪条件·定义级·非编造)
 _LAYER_RULER = [(("总命题", "世界"), "第六部分·右栏① 世界观"),
@@ -774,15 +830,18 @@ def part1_layers(daily: dict, dyn: dict) -> str:
         why = esc(evidence) if evidence else "为什么这么判：待接（daily 无 evidence·不编）"
         flip = _match(node, _LAYER_FLIP, "出现与当前方向相反的持续证据")
         ruler = _match(node, _LAYER_RULER, "第六部分·右栏底子")
+        _dt = dyn.get("date", "")
+        _rnum = {"world": 1, "strategy": 2, "means": 3, "capital": 3, "sector": 4, "fedgate": 3}.get(layer_slug(node), 1)
         rows.append(
-            f'<div class="card"><div class="hd"><b>{esc(node)}</b> '
+            f'<div class="card" id="layer-{layer_slug(node)}"><div class="hd"><b>{esc(node)}</b> '
             f'<span class="conf">力度 {esc(strg)} · 方向 {esc(dr)}</span></div>'
             f'<div style="font-size:13px"><span class="k">① 事实(今天怎么了)</span>{fact}</div>'
             f'<div style="font-size:13px;margin-top:3px"><span class="k">② 为什么(这么判的依据)</span>{why}</div>'
             + _layer_impact(node, dyn).replace("对你·落点持仓", "③ 对你·落点持仓")
             + f'<div style="font-size:13px;margin-top:3px"><span class="k">④ 什么情况改看法(证伪)</span>{esc(flip)}</div>'
             + corro_box(node, "layer")
-            + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:3px">大白话：{esc(plain) if plain else "待接"}｜对应尺：{esc(ruler)}</div>'
+            + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:3px">大白话：{esc(plain) if plain else "待接"}'
+            f'｜对应尺：{_a(L5(_dt, "ruler-" + str(_rnum)), esc(ruler))}（点跳右栏6尺册）</div>'
             '</div>')
     if not rows:
         rows.append('<div class="card">五层数据待接（daily_{date}.json 无 links·不编）</div>')
@@ -1131,9 +1190,10 @@ def part6_rulers() -> str:
         ("右栏⑥ 持仓完整档案", "右栏_持仓完整档案.html", False),
     ]
     folds = []
-    for title, fname, opened in RULERS:
+    for i, (title, fname, opened) in enumerate(RULERS, start=1):
         body = _ruler_body(fname)
-        folds.append(f'<details class="ruler-embed"{" open" if opened else ""}>'
+        # 硬链2：左栏各层"对应尺"→本册 #ruler-{i}
+        folds.append(f'<details class="ruler-embed" id="ruler-{i}"{" open" if opened else ""}>'
                      f'<summary>{esc(title)}</summary>'
                      f'<div style="background:#f6f2e8;color:#2a2a2a;padding:10px;border-radius:6px">{body}</div></details>')
     return '<h2>第六部分 · 右栏底子（6把尺 · 判断依据）</h2>' + "".join(folds)
@@ -1165,9 +1225,12 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
         _judg, _cert = r.get("judgment"), r.get("current_certainty", "待接")
         if "总闸" in str(r.get("ring_name")) and fed_dir != "待接":
             _judg, _cert = f"{fed_dir}（对齐R2状态机·与第一部分同源）", fed_str
+        # 硬链2：记分卡每条 ↔ 它所评的那个判断(判断ID=layer slug·跳总览册该层锚)
+        _jid = layer_slug(str(r.get("node") or r.get("ring_name")))
         rows.append(
-            f'<div class="card"><div class="hd"><b>{esc(r.get("ring_name"))}</b>（{esc(r.get("node"))}）'
-            f'<span class="conf">今判：{esc(_judg)}</span> <span class="q">置信：{esc(_cert)}</span></div>'
+            f'<div class="card" id="judge-{esc(_jid)}"><div class="hd"><b>{esc(r.get("ring_name"))}</b>（{esc(r.get("node"))}）'
+            f'<span class="conf">今判：{esc(_judg)}</span> <span class="q">置信：{esc(_cert)}</span>'
+            f' <span style="font-size:11.5px">{_a(L1(date, "layer-" + _jid), "↩它所评的判断(判断ID:" + esc(_jid) + ")")}</span></div>'
             f'<div class="you" style="font-weight:400;font-size:12.5px;color:#bcd8ee">'
             f'· 昨判(预测)：{esc(str(r.get("previous_strength",""))+str(r.get("previous_direction","") or "首日无昨判"))}'
             f'　· 今日验证/自动记分：{esc(str(r.get("daily_score","0")))}分（{esc(r.get("score_reason","待接"))}）'
@@ -1305,10 +1368,10 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     stocks = [h for h in holds if not str(h.get("symbol","")).startswith("CC.")]
     if only:
         stocks = [h for h in stocks if h.get("symbol") in only]
-    cards = []; stats = {"n": 0, "pack_ok": 0, "pack_wait": [], "exit_todo": []}
+    cards = []; card_by = {}; stats = {"n": 0, "pack_ok": 0, "pack_wait": [], "exit_todo": [], "_order": stocks}
     for h in stocks:
         card, ps = render_card(h["symbol"], h.get("name", h["symbol"]), dyn)
-        cards.append(card); stats["n"] += 1
+        cards.append(card); card_by[h["symbol"]] = card; stats["n"] += 1
         if ps in ("OK", "深度10块"): stats["pack_ok"] += 1
         elif ps == "退出条件待补": stats["pack_ok"] += 1; stats["exit_todo"].append(h["symbol"])   # 有包·仅退出条件缺
         else: stats["pack_wait"].append(h["symbol"])                                              # 无判断包
@@ -1353,13 +1416,125 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     oneline = esc(str(der.get("today_direction_short") or "今天：守核心、不追高、控AI集中"))
     banner = (f'<div class="card" style="background:#1c2740;border-color:#3a5a8a">'
               f'<span class="k">今天一句话</span><b style="font-size:15px">{oneline}</b></div>')
-    full = (title + banner + part0_diff(date, dyn) + part1_layers(daily, dyn) + part1_macro_table(daily) + part2
-            + part3_concentration(date, dyn) + part4_opportunity(daily, dyn) + part4b_swap_engine(daily, dyn)
-            + part4_funnel(date, daily, dyn) + part5_closeloop(daily)
-            + part6_rulers() + part7_pdca(date, daily))
-    stats["ruler_embed"] = full.count('class="ruler-embed"')
-    stats["deep_blocks"] = full.count('class="deep"')
-    return head + full + "</body></html>", stats
+    # ══ 分册：同一份同源数据 → 5册(纯移搬·一字不删) ══
+    v1_nav = _vol_nav(date, 1) ; v2_nav = _vol_nav(date, 2)
+    v3_nav = _vol_nav(date, 3) ; v4_nav = _vol_nav(date, 4) ; v5_nav = _vol_nav(date, 5)
+    p_diff = part0_diff(date, dyn)
+    p_layers = part1_layers(daily, dyn)
+    p_macro = part1_macro_table(daily)
+    p_conc = part3_concentration(date, dyn)
+    p_6a = part4_opportunity(daily, dyn)
+    p_6b = part4b_swap_engine(daily, dyn)
+    p_funnel = part4_funnel(date, daily, dyn)
+    p_close = part5_closeloop(daily)
+    p_rulers = part6_rulers()
+    p_pdca = part7_pdca(date, daily)
+
+    vol1 = (head + title + v1_nav + banner + p_diff + _loop_map(date) + _summary_tables(date, dyn, stats)
+            + p_layers + p_macro + p_conc + p_close + "</body></html>")
+    vol3 = (head + title + v3_nav + p_6a + p_6b + p_funnel + "</body></html>")
+    vol4 = (head + title + v4_nav + p_pdca + "</body></html>")
+    vol5 = (head + title + v5_nav + p_rulers + "</body></html>")
+    stats["ruler_embed"] = vol5.count('class="ruler-embed"')
+    volumes = {VOL(date, 1): vol1, VOL(date, 3): vol3, VOL(date, 4): vol4, VOL(date, 5): vol5}
+    # ②持仓深研：按角色拆3子册(不删内容·每册<300KB)；card_by 保序原样搬
+    deep_total = 0
+    for sub, subname, syms in VOL2_SUBS:
+        picked = [card_by[s] for s in [h.get("symbol") for h in stats["_order"]] if s in syms and s in card_by]
+        body = (f'<h2>第二部分 · 你的持仓，今天怎么办（{subname}·{len(picked)}只／全19只）</h2>'
+                + _sub_nav(date, sub) + "".join(picked))
+        volumes[VOL2(date, sub)] = head + title + _vol_nav(date, 2) + body + "</body></html>"
+        deep_total += len(picked)
+    stats["deep_blocks"] = deep_total
+    stats["volumes"] = volumes
+    return vol1, stats
+
+
+def _sub_nav(date: str, cur: str) -> str:
+    bits = []
+    for s, n, syms in VOL2_SUBS:
+        lbl = f"{n}({len(syms)}只)"
+        bits.append(f'<b style="color:#ffd479">{esc(lbl)}·本子册</b>' if s == cur else _a(VOL2(date, s), esc(lbl)))
+    return ('<div class="card" style="background:#101c2c;padding:7px 12px"><span class="k">持仓深研子册</span>'
+            + '　｜　'.join(bits)
+            + '<div class="meta" style="color:#8ea3b6;font-size:11.5px">19只×10块按组合角色分3子册(每册<300KB·内容一字未删)；'
+            '各册同一 run_id/data_date/快照戳；上游"落点持仓"按只直链到所属子册锚点。</div></div>')
+
+
+def _vol_nav(date: str, cur: int) -> str:
+    """五册互跳导航条(每册同源页眉下方·防散架)。"""
+    names = {1: "① 总览/闭环", 3: "③ 机会池", 4: "④ 记分卡/复盘", 5: "⑤ 右栏6尺"}
+    bits = []
+    for n in (1, 2, 3, 4, 5):
+        if n == 2:
+            # ②已拆3子册：导航直给子册入口
+            sub = " / ".join(_a(VOL2(date, s), esc(f"②{s[-1]} {nm}")) for s, nm, _ in VOL2_SUBS)
+            bits.append(("<b style='color:#ffd479'>② 持仓深研·本册</b>（" + sub + "）") if cur == 2
+                        else ("② 持仓深研（" + sub + "）"))
+        elif n == cur:
+            bits.append(f'<b style="color:#ffd479">{esc(names[n])}·本册</b>')
+        else:
+            bits.append(_a(VOL(date, n), esc(names[n])))
+    return ('<div class="card" style="background:#101c2c;border-color:#2b4054;padding:8px 12px">'
+            '<span class="k">分册导航</span>' + '　｜　'.join(bits)
+            + '<div class="meta" style="color:#8ea3b6;font-size:11.5px">五册同一 run_id / data_date / 快照戳·一次数据同源生成；'
+            '跨册锚点相对路径可跳（落点持仓→持仓卡；持仓决策链→上游层；对应尺→6尺册；记分条→所评判断）。</div></div>')
+
+
+def _loop_map(date: str) -> str:
+    """硬链3：七层逻辑闭环图(每节点点进对应册/锚点)。"""
+    nodes = [("①世界观", L1(date, "layer-world")), ("②国家战略", L1(date, "layer-strategy")),
+             ("③资金流动", L1(date, "layer-capital")), ("④板块轮动", L1(date, "layer-sector")),
+             ("⑤机会池", VOL(date, 3)), ("⑥持仓", VOL2(date, "2a")), ("⑦复盘记分卡", VOL(date, 4))]
+    chain = ' <span style="color:#ffd479">→</span> '.join(
+        f'<a href="{h}" style="display:inline-block;background:#12203a;border:1px solid #3a5a8a;'
+        f'border-radius:8px;padding:6px 10px;color:#8fd6ff;text-decoration:none;margin:3px 0">{esc(t)}</a>'
+        for t, h in nodes)
+    return ('<h2>七层逻辑闭环图（点节点进对应册/锚点）</h2><div class="card">'
+            + chain +
+            '<div class="meta" style="color:#8ea3b6;font-size:12px;margin-top:6px">'
+            '证据链自上而下：世界观定大势 → 国家战略定钱往哪条线 → 资金流动定松紧 → 板块轮动定哪个群热 → '
+            '机会池按五关筛候选 → 持仓按单一源决策 → 复盘记分卡回评每层判断（判断ID回链）。'
+            '<b>闭环</b>：⑦记分卡的判对/判错 → 明日回改①-④的确定性档位（见④册魂①支柱累积表）。</div></div>')
+
+
+def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
+    """总览册摘要表：持仓/机会/记分 每行链进对应深册锚点。"""
+    rows = []
+    for h in dyn["prod"].get("holdings", []):
+        s = str(h.get("symbol"))
+        if s.startswith("CC."):
+            continue
+        f = build_final(s, h.get("name", s), dyn)
+        rows.append(f'<tr><td>{_a(L2(date, "stock-" + s), esc(str(h.get("name"))))}</td>'
+                    f'<td style="color:#8ea3b6">{esc(s)}</td>'
+                    f'<td>{f["action"]}</td><td>{f["quality"]}</td><td>{f["valuation_short"]}</td>'
+                    f'<td>{esc(_conf_grade(f))}</td></tr>')
+    hold_tbl = ('<table class="dt"><tr><th>持仓</th><th>代码</th><th>动作</th><th>账本</th><th>估值</th><th>把握</th></tr>'
+                + "".join(rows) + '</table>')
+    try:
+        uni = rj(ROOT / "data" / "valuation" / "candidate_universe.json").get("nodes", {}) or {}
+        n_uni = sum(len(v or []) for v in uni.values())
+    except Exception:
+        n_uni = 0
+    try:
+        pd_ = rj(ROOT / "data" / "pdca" / "pending_decisions.json")
+        n_pend = int(pd_.get("pending_count") or 0)
+    except Exception:
+        n_pend = 0
+    try:
+        ps = rj(ROOT / "data" / "pdca" / "pillar_score.json")
+        pil = "、".join(f'{p["ring_name"]}{p["current_certainty"]}({p["cumulative_score"]:+d}{p["trend_arrow"]})'
+                       for p in ps.get("pillars", []))
+    except Exception:
+        pil = "待接"
+    return ('<h2>摘要表（每行点进对应深册）</h2>'
+            f'<div class="blk">持仓摘要（{stats["n"]}只·点名字进 {esc(VOL(date,2))} 该只10块深卡）</div>'
+            f'<div class="card">{hold_tbl}</div>'
+            f'<div class="blk">机会摘要</div><div class="card">候选宇宙 <b>{n_uni}</b> 只 → 五关漏斗现算 → 三池；'
+            f'详见 {_a(VOL(date, 3), "③机会池册")}。今日待拍板 <b style="color:#ffd479">{n_pend}</b> 件（见本册差分优先页·拍板收件箱）。</div>'
+            f'<div class="blk">记分摘要</div><div class="card">支柱确定性累积：{esc(pil)}；'
+            f'三件魂详见 {_a(VOL(date, 4), "④记分卡/复盘册")}。</div>')
 
 def main() -> int:
     import sys
@@ -1375,10 +1550,21 @@ def main() -> int:
     except StaleSnapshotError as e:
         print(f"[拒绝生成·R3] {e}", file=sys.stderr)
         return 4
-    out = a.out or str(ROOT / "00_请先看这里" / f"完整产品_{a.date}_机器版.html")
-    Path(out).write_text(htmltxt, encoding="utf-8")
-    b = Path(out).read_bytes()
-    print(f"wrote {out} · bytes={len(b)} · 乱码EFBFBD={b.count(b'\xef\xbf\xbd')}")
+    vols = stats.get("volumes") or {}
+    if vols and not only:
+        total = 0
+        for fname, txt in vols.items():
+            p = ROOT / "00_请先看这里" / fname
+            p.write_text(txt, encoding="utf-8")
+            b = p.read_bytes()
+            total += len(b)
+            print(f"wrote {fname} · bytes={len(b)} · 乱码EFBFBD={b.count(b'\xef\xbf\xbd')}")
+        print(f"五册合计 bytes={total}")
+    else:
+        out = a.out or str(ROOT / "00_请先看这里" / f"完整产品_{a.date}_机器版.html")
+        Path(out).write_text(htmltxt, encoding="utf-8")
+        b = Path(out).read_bytes()
+        print(f"wrote {out} · bytes={len(b)} · 乱码EFBFBD={b.count(b'\xef\xbf\xbd')}")
     print(f"卡片 {stats['n']} 只 · 判断包命中 {stats['pack_ok']} · 深度10块 {stats.get('deep10', [])} · 无判断包 {stats['pack_wait']} · 退出条件待补(动作降初判) {stats['exit_todo']}")
     return 0
 
