@@ -267,8 +267,33 @@ def part7_pdca(date: str) -> str:
     return head + ("".join(rows) if rows else '<div class="card">PDCA rings 待接（pdca_daily 无 rings·不编）</div>')
 
 
+class StaleSnapshotError(Exception):
+    """R3：本次 production 快照早于上次已生成的快照→拒绝生成(治'新生成用旧快照'B1)。"""
+
+
+def _snapshot_guard(date: str, dyn: dict, only) -> None:
+    """R3 单调性闸：后运行须用不早于前次的快照，否则拒绝。only(打通)模式跳过。"""
+    if only:
+        return
+    cur_ts = str(dyn["prod"].get("generated_at") or "")
+    if not cur_ts:
+        return
+    rec_p = ROOT / "data" / "evidence_chain" / "last_run_snapshot.json"
+    prev = rj(rec_p) if rec_p.exists() else {}
+    prev_ts = str(prev.get("scan_ts") or "")
+    if prev_ts and cur_ts < prev_ts:
+        raise StaleSnapshotError(f"本次 production 快照 {cur_ts} 早于上次 {prev_ts}（run_id={prev.get('run_id')}）→ 拒绝生成，防旧快照顶充。")
+    try:
+        rec_p.write_text(json.dumps({"date": date, "scan_ts": cur_ts,
+                                     "run_id": "R-" + cur_ts.replace("-", "").replace("T", "-").replace(":", "")[:15]},
+                                    ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+
 def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     dyn = load_dynamic(date)
+    _snapshot_guard(date, dyn, only)   # R3 快照单调性闸
     holds = dyn["prod"].get("holdings", [])
     stocks = [h for h in holds if not str(h.get("symbol","")).startswith("CC.")]
     if only:
@@ -279,8 +304,15 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
         cards.append(card); stats["n"] += 1
         if ps == "OK": stats["pack_ok"] += 1
         else: stats["pack_wait"].append(h["symbol"])
-    gen_jst = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
-    scan_ts = str(dyn["prod"].get("generated_at") or "待接")[:19]   # production 扫描时间戳(本次实时扫描)
+    # R3 运行唯一性：run_id + 扫描快照时间戳(锚定 production·稳定→同快照重跑字节一致)
+    scan_raw = str(dyn["prod"].get("generated_at") or "")
+    scan_ts = scan_raw[:19]   # production 扫描时间戳(本次实时扫描·UTC)
+    try:
+        _dt = datetime.fromisoformat(scan_raw.replace("Z", "+00:00"))
+        scan_jst = _dt.astimezone(JST).strftime("%Y-%m-%d %H:%M:%S JST")
+        run_id = "R-" + _dt.astimezone(JST).strftime("%Y%m%d-%H%M%S")
+    except Exception:
+        scan_jst = "待接"; run_id = "R-" + date + "-nots"
     md_note = str((dyn["daily"].get("rule_engine", {}) or {}).get("inputs_used", {}).get("snapshot_data_date", ""))[:19]
     head = ('<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -292,10 +324,11 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
             '</style></head><body>')
     title = (f'<h1>每日投资决策台 · 完整产品（机器版·实时自动生成）</h1>'
              f'<div style="background:#0e1621;border:1px solid #3a5a8a;border-radius:8px;padding:8px 12px;margin:6px 0;color:#ffd479;font-weight:700">'
-             f'📅 data_date=<b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>'
-             f' ｜ 本次实时扫描(production)：<b>{esc(scan_ts)}</b>'
-             f' ｜ 本页生成：<b>{esc(gen_jst)}</b>'
-             + (f' ｜ 行情快照日：{esc(md_note)}' if md_note else '') + '</div>'
+             f'🆔 run_id=<b>{esc(run_id)}</b>'
+             f' ｜ 📅 data_date=<b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>'
+             f' ｜ 本次实时扫描(production)：<b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）'
+             + (f' ｜ 行情快照日：{esc(md_note)}' if md_note else '')
+             + '<div style="font-size:12px;color:#9aa8b5;font-weight:400">run_id 锚定 production_' + esc(date) + '.json（generated_at 同源·可回溯）；同一扫描重渲字节一致（R3运行唯一性）</div></div>'
              f'<p style="color:#9aa8b5">深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编</p>')
     part2 = f'<h2>第二部分 · 你的持仓，今天怎么办（{stats["n"]}只）</h2>' + "".join(cards)
     if only:   # 打通模式:只出持仓卡
@@ -320,7 +353,11 @@ def main() -> int:
     ap.add_argument("--out", default="")
     a = ap.parse_args()
     only = [s.strip() for s in a.only.split(",") if s.strip()] or None
-    htmltxt, stats = build(a.date, only)
+    try:
+        htmltxt, stats = build(a.date, only)
+    except StaleSnapshotError as e:
+        print(f"[拒绝生成·R3] {e}", file=sys.stderr)
+        return 4
     out = a.out or str(ROOT / "00_请先看这里" / f"完整产品_{a.date}_机器版.html")
     Path(out).write_text(htmltxt, encoding="utf-8")
     b = Path(out).read_bytes()
