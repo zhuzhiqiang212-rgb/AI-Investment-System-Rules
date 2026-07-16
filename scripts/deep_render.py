@@ -874,7 +874,102 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
             f'　· 成败标准：确定性{esc(r.get("certainty_before","?"))}→{esc(r.get("current_certainty","?"))}（{esc(r.get("certainty_event","维持"))}）</div></div>')
     if not rows:
         rows.append('<div class="card">PDCA rings 待接（pdca_daily 无 rings·不编）</div>')
-    return head + "".join(rows)
+    return head + "".join(rows) + part7_souls(date, daily)
+
+
+# ── 第七部分·系统三件魂（总则第十四条：确定性累积表+多尺度复盘+影子组合反事实） ──
+def _spark(trend: list) -> str:
+    """迷你走势：把每日累积分画成 ▁▃▅▇ 高低块（缺则空）。"""
+    if not trend:
+        return "（待接·从今日起累积）"
+    cums = [t.get("cum", 0) for t in trend]
+    lo, hi = min(cums), max(cums)
+    blocks = "▁▂▃▄▅▆▇█"
+    def b(v):
+        if hi == lo:
+            return "▄"
+        return blocks[min(7, max(0, round((v - lo) / (hi - lo) * 7)))]
+    spark = "".join(b(c) for c in cums)
+    seq = "→".join(f'{("+" if t["score"]>0 else "")}{t["score"]}' for t in trend)
+    return f'{spark}　（{seq}）'
+
+def part7_souls(date: str, daily: dict | None = None) -> str:
+    out = ['<h3 style="margin-top:16px">第七部分·魂 —— 系统之魂三件（总则第十四条：确定性累积表 + 多尺度复盘 + 影子组合反事实记分）</h3>']
+    # 魂① 支柱确定性累积表
+    try:
+        ps = rj(ROOT / "data" / "pdca" / "pillar_score.json")
+        ladder = "＜".join(ps.get("certainty_ladder", ["证伪", "弱", "中", "高"]))
+        prows = ""
+        for pl in ps.get("pillars", []):
+            prows += (f'<tr><td><b>{esc(pl.get("ring_name"))}</b></td>'
+                      f'<td style="color:#ffd479">{esc(pl.get("current_certainty"))}</td>'
+                      f'<td style="text-align:right">{esc(str(pl.get("cumulative_score")))}</td>'
+                      f'<td>{esc(pl.get("trend_arrow"))}</td>'
+                      f'<td style="font-family:monospace;font-size:12px">{esc(_spark(pl.get("trend", [])))}</td>'
+                      f'<td style="color:#8ea3b6">{esc(str(pl.get("days_tracked")))}日</td></tr>')
+        out.append('<div class="blk">魂① 支柱确定性累积表（三支柱从"中"往"高"攒）</div>'
+                   f'<div class="plain">确定性阶梯：{esc(ladder)}；每环每日按尺(支持+1/无变0/证伪-1)滚动累积——判对攒把握、判错减分。源：pillar_score.json(接scorecards·不另起炉灶)。</div>'
+                   '<table class="dt"><tr><th>支柱环</th><th>当前档</th><th>累计分</th><th>走势</th><th>近N日轨迹(累积/每日)</th><th>追踪</th></tr>' + prows + '</table>')
+    except Exception as e:
+        out.append(f'<div class="card">魂①支柱确定性累积表·待接（pillar_score.json 缺：{esc(e)}）</div>')
+    # 魂② 多尺度复盘 日/周/月/季/年
+    try:
+        sc = rj(ROOT / "data" / "pdca" / "scorecards.json")
+        hist = sorted(sc.get("history", []) or [], key=lambda r: str(r.get("date", "")))
+        rids = ["worldview", "fed_gate", "strategy", "capital_flow", "sector_rotation"]
+        rname = {"worldview": "世界观", "fed_gate": "总闸", "strategy": "战略", "capital_flow": "资金", "sector_rotation": "板块"}
+        def agg(recs):
+            net = {r: sum(int((rec.get("scores", {}) or {}).get(r, 0) or 0) for rec in recs) for r in rids}
+            tot = sum(1 for rec in recs for r in rids)
+            pos = sum(1 for rec in recs for r in rids if int((rec.get("scores", {}) or {}).get(r, 0) or 0) > 0)
+            return net, (f"{pos}/{tot}（{round(pos/tot*100)}%）" if tot else "待接")
+        last = hist[-1] if hist else {}
+        dq = (last.get("decision_quality", {}) or {})
+        n_days = len(hist)
+        # 日
+        dnet, dhit = agg(hist[-1:])
+        out.append('<div class="blk">魂② 多尺度复盘（日→周→月→季→年）</div>')
+        out.append('<div class="card"><b>日</b>（验昨天各环+持仓动作）：今日各环记分 '
+                   + "、".join(f'{rname[r]}{("+" if dnet[r]>0 else "")}{dnet[r]}' for r in rids)
+                   + f'；决策质量：<b>{esc(dq.get("level","待接"))}</b>（{esc(dq.get("reason","待接"))}）。'
+                   '<div class="plain">复盘什么：昨判今验各环；该改什么：按今日证伪环调当日口径（见第一部分五层④证伪条件）。</div></div>')
+        # 周（近5日）
+        wnet, whit = agg(hist[-5:])
+        out.append(f'<div class="card"><b>周</b>（确认了才改板块地图"现在"格）：近{min(5,n_days)}日各环净分 '
+                   + "、".join(f'{rname[r]}{("+" if wnet[r]>0 else "")}{wnet[r]}' for r in rids)
+                   + f'；判对率 {esc(whit)}。'
+                   '<div class="plain">复盘什么：一周内各环是否被反复确认；该改什么：某环连续确认→才动"板块地图·现在"格(不因单日噪声改)。</div></div>')
+        # 月（现有历史≈半月·partial）
+        mnet, mhit = agg(hist)
+        out.append(f'<div class="card"><b>月</b>（确定性趋势+判对率）：自 {esc(hist[0].get("date") if hist else "?")} 累计各环净分 '
+                   + "、".join(f'{rname[r]}{("+" if mnet[r]>0 else "")}{mnet[r]}' for r in rids)
+                   + f'；累计判对率 {esc(mhit)}。'
+                   + (f'<div class="plain">复盘什么：确定性趋势与判对率；该改什么：判对率高的环升档、低的环重估尺。当前仅 {n_days} 日(<1月)·满月口径随日累积。</div>' ))
+        # 季 / 年（历史不足→待接）
+        out.append('<div class="card"><b>季</b>（改"未来"判断）：<span class="need">待接·从今日起累积</span>（现有约2周历史·不足一季·满季后据季度确定性趋势改未来判断·不编）。'
+                   '<div class="plain">复盘什么：季度级方向是否成立；该改什么：改"未来"判断与战略地图。</div></div>')
+        out.append('<div class="card"><b>年</b>（世界观三支柱重审）：<span class="need">待接·从今日起累积</span>（不足一年·满年后重审世界观三支柱·不编）。'
+                   '<div class="plain">复盘什么：世界观三支柱是否需重写；该改什么：年度重审右栏①世界观尺。</div></div>')
+    except Exception as e:
+        out.append(f'<div class="card">魂②多尺度复盘·待接（scorecards.json 缺：{esc(e)}）</div>')
+    # 魂③ 影子组合反事实记分
+    try:
+        sn = rj(ROOT / "data" / "pdca" / "shadow_nav.json")
+        ser = sn.get("series", []) or []
+        srows = ""
+        for s in ser[-10:]:
+            srows += (f'<tr><td>{esc(s.get("date"))}</td>'
+                      f'<td style="text-align:right">{esc(str(s.get("system_nav")))}</td>'
+                      f'<td style="text-align:right">{esc(str(s.get("actual_nav")))}</td>'
+                      f'<td style="text-align:right;color:{"#7ee0a0" if (s.get("diff") or 0)>=0 else "#ff9a9a"}">{esc(str(s.get("diff")))}</td></tr>')
+        last = ser[-1] if ser else {}
+        out.append('<div class="blk">魂③ 影子组合反事实记分（系统建议执行 vs 实际不动 → 差值=系统真含金量）</div>'
+                   f'<div class="plain">{esc(sn.get("method",""))}。基准日 {esc(sn.get("baseline_date","?"))}·净值单位=%相对基准100。源：shadow_nav.json(逐日追加)。</div>'
+                   '<table class="dt"><tr><th>日期</th><th>系统建议组合净值%</th><th>实际不动净值%</th><th>差值(系统−实际)</th></tr>' + srows + '</table>'
+                   + (f'<div class="plain">当前差值 <b>{esc(str(last.get("diff")))}</b>%。{esc(last.get("note",""))}——差值为正说明"按系统守/减/加建议执行"跑赢"持仓不动"、即系统建议的真含金量；今日为基准日、从今日起逐日累积。</div>'))
+    except Exception as e:
+        out.append(f'<div class="card">魂③影子组合·待接（shadow_nav.json 缺：{esc(e)}）</div>')
+    return "".join(out)
 
 
 class StaleSnapshotError(Exception):
