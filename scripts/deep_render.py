@@ -218,6 +218,125 @@ def _conf_grade(f: dict) -> str:
     if "②" in q or "②" in c: return "中把握"
     return "把握待接"
 
+# ══════════ 成品级深度10块渲染(对齐董事长认可样卡)：定性块来自判断包/认可样卡·②财报Code接真源·⑤估值引擎+敏感性 ══════════
+DEEP_DIR = ROOT / "data" / "analysis" / "deep_cards"
+
+def _load_deep_card(sym: str):
+    p = DEEP_DIR / f"{sym}.json"
+    if not p.exists():
+        return None
+    try:
+        return rj(p)
+    except Exception:
+        return None
+
+def _nd(s) -> str:
+    """待接标橙(不编)。内容为已核准/已接真源的可信HTML片段·原样渲染。"""
+    return str(s).replace("待接", '<span class="need">待接</span>')
+
+def _val_sensitivity(sym: str):
+    """成长股DCF敏感性：变增长±10pp、折现±2pp·其余不变→中枢怎么变(复用two_stage_dcf现算)。非成长股返回None。"""
+    try:
+        vi = rj(ROOT / "data" / "valuation" / "val_inputs.json").get("holdings", {}).get(sym, {})
+        from dcf_valuation import two_stage_dcf
+        e, g, y = vi.get("eps0"), vi.get("g_stage1"), vi.get("years")
+        tg, w = vi.get("terminal_g"), vi.get("wacc")
+        if None in (e, g, y, tg, w):
+            return None
+        y = int(y); base = two_stage_dcf(e, g, y, tg, w)
+        rows = []
+        for lbl, gg, ww in [(f"AI更猛：增速 {g:.0%}→{g+0.10:.0%}", g + 0.10, w),
+                            (f"AI降温：增速 {g:.0%}→{g-0.10:.0%}", g - 0.10, w),
+                            (f"利率再涨：折现 {w:.0%}→{w+0.02:.0%}", g, w + 0.02),
+                            (f"利率回落：折现 {w:.0%}→{w-0.02:.0%}", g, w - 0.02)]:
+            v = two_stage_dcf(e, gg, y, tg, ww)
+            rows.append((lbl, f"${v:.0f}", f"{(v-base)/base*100:+.0f}%"))
+        return {"base": base, "rows": rows,
+                "inputs": {"eps0": e, "g": g, "years": y, "tg": tg, "wacc": w}}
+    except Exception:
+        return None
+
+def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> str:
+    out = []
+    esc_note = esc(str(deep.get("source_note", "")))
+    out.append(f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin:4px 0">深度素材来源：{esc_note}</div>')
+    # ① 生意引擎
+    b = deep.get("block1_business", {})
+    rows = "".join(f'<tr><td><b>{_nd(r.get("block",""))}</b></td><td>{_nd(r.get("what",""))}</td><td>{_nd(r.get("size",""))}</td></tr>' for r in b.get("streams", []))
+    out.append('<div class="blk">① 它靠什么赚钱、往哪长（生意的根）</div>'
+               f'<p style="font-size:13px">{_nd(b.get("intro",""))}</p>'
+               '<table class="dt"><tr><th>赚钱的块</th><th>是什么（人话）</th><th>多大/趋势</th></tr>' + rows + '</table>'
+               f'<div class="plain"><b>未来新钱从哪来</b>：{_nd(b.get("future_growth",""))}</div>')
+    # ② 多年财报表(Code接真源·带as_of/来源)
+    fin = deep.get("block2_financials", {})
+    frows = "".join('<tr><td><b>{fy}</b></td><td>{rev}</td><td>{yoy}</td><td>{gm}</td><td>{ni}</td><td>{fcf}</td><td>{dc}</td><td style="color:#8ea3b6;font-size:11px">{aso}<br>{src}</td></tr>'.format(
+        fy=_nd(r.get("fy","")), rev=_nd(r.get("revenue","")), yoy=_nd(r.get("yoy","")), gm=_nd(r.get("gross_margin","")),
+        ni=_nd(r.get("net_income","")), fcf=_nd(r.get("fcf","")), dc=_nd(r.get("dc_share","")),
+        aso=esc(r.get("as_of","")), src=esc(r.get("source",""))) for r in (fin.get("rows") or []))
+    out.append('<div class="blk">② 这几年赚钱的账（营收·利润·现金一路怎么走）</div>'
+               f'<div class="plain">{_nd(fin.get("plain",""))}</div>'
+               '<table class="dt"><tr><th>财年(截止)</th><th>营收</th><th>比去年</th><th>毛利率</th><th>净利</th><th>自由现金流</th><th>数据中心占比</th><th>as_of/来源</th></tr>' + frows + '</table>'
+               f'<div class="plain"><b>这张表说明</b>：{_nd(fin.get("readout",""))}</div>')
+    # ③ 护城河五维逐维
+    mo = deep.get("block3_moat", {})
+    mrows = "".join(f'<tr><td>{_nd(r.get("dim",""))}</td><td><b>{_nd(r.get("width",""))}</b></td><td>{_nd(r.get("why",""))}</td></tr>' for r in mo.get("rows", []))
+    out.append('<div class="blk">③ 护城河：为什么对手抢不走（五个方面逐个看）</div>'
+               '<table class="dt"><tr><th>护城河的一面</th><th>宽/窄</th><th>为什么（人话）</th></tr>' + mrows + '</table>'
+               f'<p style="font-size:13px"><span class="k">综合</span>{_nd(mo.get("score",""))}</p>')
+    # ④ 对手逐个
+    rv = deep.get("block4_rivals", {})
+    rrows = "".join(f'<tr><td>{_nd(r.get("rival",""))}</td><td>{_nd(r.get("how",""))}</td><td><b>{_nd(r.get("threat",""))}</b></td><td>{_nd(r.get("why_safe",""))}</td></tr>' for r in rv.get("rows", []))
+    out.append('<div class="blk">④ 对手都有谁、能抢走多少</div>'
+               '<table class="dt"><tr><th>对手</th><th>怎么打</th><th>威胁</th><th>为什么暂时抢不动</th></tr>' + rrows + '</table>'
+               f'<p style="font-size:13px"><span class="k">一句话</span>{_nd(rv.get("oneliner",""))}</p>')
+    # ⑤ 估值模型+敏感性(引擎单一源+现算)
+    v5 = deep.get("block5_valuation", {})
+    valr = dyn.get("valr", {}).get(sym, {})
+    low, high, mid = valr.get("reasonable_low"), valr.get("reasonable_high"), valr.get("target")
+    ccy = valr.get("currency", cur(sym))
+    sens = _val_sensitivity(sym)
+    inrows = "".join(f'<tr><td>{_nd(i.get("input",""))}</td><td>{_nd(i.get("plain",""))}</td></tr>' for i in v5.get("inputs", []))
+    if sens:
+        ip = sens["inputs"]
+        inval = (f'<div class="plain">本次引擎真输入：明年EPS <b>{ccy}{ip["eps0"]}</b>·头几年增速 <b>{ip["g"]:.0%}</b>·快增 <b>{ip["years"]}年</b>·永续 <b>{ip["tg"]:.0%}</b>·折现 <b>{ip["wacc"]:.0%}</b></div>')
+        srows = "".join(f'<tr><td>{esc(lbl)}</td><td><b>{esc(m)}</b></td><td>{esc(d)}</td></tr>' for lbl, m, d in sens["rows"])
+        senstbl = ('<div class="plain"><b>如果输入变了会怎样（敏感性·现算）</b>——因为没人能算准，得知道算错了偏多少：</div>'
+                   '<table class="dt"><tr><th>如果…</th><th>合理价中枢变成</th><th>较基准</th></tr>' + srows + '</table>')
+    else:
+        inval = ''; senstbl = '<div class="plain"><span class="need">敏感性待接</span>（该只非成长DCF或缺真输入·不编）</div>'
+    rng = (f'合理区 <b>{esc(ccy)}{esc(fnum(low))} ~ {esc(ccy)}{esc(fnum(high))}</b>，中枢 <b>{esc(ccy)}{esc(fnum(mid))}</b>'
+           if low is not None and mid is not None else '<span class="need">合理区/中枢待接</span>（估值引擎缺真输入·不硬编）')
+    out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
+               f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
+               '<table class="dt"><tr><th>要填的输入</th><th>大白话</th></tr>' + inrows + '</table>' + inval
+               + f'<p style="font-size:13px"><span class="k">算出来</span>{rng}（与决策条同一源·R1）。{_nd(v5.get("note",""))}</p>'
+               + senstbl)
+    # ⑥ 牛/基/熊三情景
+    sc = deep.get("block6_scenarios", {})
+    scrows = "".join(f'<tr><td class="{r.get("cls","base")}">{_nd(r.get("case",""))}</td><td>{_nd(r.get("assume",""))}</td><td>{_nd(r.get("value",""))}</td><td>{_nd(r.get("prob",""))}</td></tr>' for r in sc.get("rows", []))
+    out.append('<div class="blk">⑥ 好、中、坏三种情况分别值多少</div>'
+               '<table class="dt"><tr><th>情况</th><th>假设(人话)</th><th>值多少</th><th>大概几成可能</th></tr>' + scrows + '</table>'
+               f'<p style="font-size:13px"><span class="k">这告诉你</span>{_nd(sc.get("readout",""))}</p>')
+    # ⑦ 催化剂日历
+    cats = "".join(f'<li>{_nd(x)}</li>' for x in deep.get("block7_catalysts", []))
+    out.append('<div class="blk">⑦ 往后要盯的关键时间点（催化剂日历）</div><ul style="font-size:13px">' + cats + '</ul>')
+    # ⑧ 风险量化
+    rk = deep.get("block8_risks", {})
+    krows = "".join(f'<tr><td>{_nd(r.get("risk",""))}</td><td>{_nd(r.get("weight",""))}</td><td>{_nd(r.get("signal",""))}</td></tr>' for r in rk.get("rows", []))
+    out.append('<div class="blk">⑧ 风险——不光列出来，还称一称多重</div>'
+               '<table class="dt"><tr><th>风险</th><th>有多重(人话)</th><th>出现的信号</th></tr>' + krows + '</table>')
+    # ⑨ 决策链
+    out.append('<div class="blk">⑨ 从大局怎么一步步推到决策（决策链）</div>'
+               f'<p style="font-size:13px">{_nd(deep.get("block9_decision_chain",""))}</p>')
+    # ⑩ 组合视角
+    pf = deep.get("block10_portfolio", {})
+    out.append('<div class="blk">⑩ 它在你整盘里是什么角色（组合视角）</div>'
+               f'<p style="font-size:13px"><span class="k">扛哪些共同风险</span>{_nd(pf.get("common_risks",""))}<br>'
+               f'<span class="k">占多重</span>{_nd(pf.get("weight",""))}<br>'
+               f'<span class="k">和别的持仓什么关系</span>{_nd(pf.get("correlation",""))}<br>'
+               f'<span class="k">换不换</span>{_nd(pf.get("swap",""))}</p>')
+    return '<div class="deep">' + "".join(out) + '</div>'
+
 def render_card(sym: str, name: str, dyn: dict) -> str:
     f = build_final(sym, name, dyn)                 # ← 唯一决策对象
     ma = dyn["ma"].get(sym, {}); ht = dyn["ht"].get(sym, {}); c = cur(sym)
@@ -250,6 +369,11 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     else:
         deep = '<div class="deep"><span class="k">深研·财报趋势</span><span style="color:#c9a86a">待建判断包（个股判断包_*.html 缺该只·不编）</span></div>'
         pack_status = "待建判断包"
+    # 成品级深度10块(对齐认可样卡)：有 deep_cards/{sym}.json 则升级为10块+大白话；无则保持4段(其余18只回退·待铺满)
+    _deepcard = _load_deep_card(sym)
+    if _deepcard:
+        deep = render_deep_blocks(sym, name, dyn, _deepcard, f)
+        pack_status = "深度10块"
     # 档案（股数/成本/均线趋势参考·缺不编）
     qty = ht.get("total_quantity"); cost = ht.get("avg_cost_price"); accs = ht.get("accounts") or []
     if qty:
@@ -313,19 +437,50 @@ def _layer_impact(node: str, dyn: dict) -> str:
             f'<b style="color:#5cc8ff">对你·落点持仓（哪几只受影响）</b>：{names}'
             f'<span style="color:#8ea3b6">（同属风险因子「{esc(fac)}」·合计敞口 {expo:.1f}%·见第三部分附）</span></div>')
 
+# 深宏观:每层接右栏6尺 + "什么情况改看法"(证伪条件·定义级·非编造)
+_LAYER_RULER = [(("总命题", "世界"), "第六部分·右栏① 世界观"),
+                (("总闸", "美联储"), "第六部分·右栏③ 资金流动完整机制"),
+                (("战略", "AI"), "第六部分·右栏② 国家战略地图"),
+                (("手段", "FIMA", "稳定币", "加密"), "第六部分·右栏③ 资金流动完整机制"),
+                (("资金轮动",), "第六部分·右栏③ 资金流动完整机制"),
+                (("板块", "半导体"), "第六部分·右栏④ 板块地图")]
+_LAYER_FLIP = [(("总命题", "世界"), "出现 regime 级反转信号(秩序/联盟根本重构)，而非零星地缘噪声"),
+               (("总闸", "美联储"), "美联储出现新的加息/降息事件(FEDFUNDS 变动)——按状态机才翻闸，单日利率波动不算"),
+               (("战略", "AI"), "AI 产业面多空关键词转为空占优，或大厂集体下修 AI 资本开支"),
+               (("手段", "FIMA", "稳定币", "加密"), "稳定币/加密政策与流动性工具明显收紧、FIMA 类支持退潮"),
+               (("资金轮动",), "VIX 持续飙升且资金明显撤离风险资产(不再'不避险')"),
+               (("板块", "半导体"), "半导体板块资金持续净流出、SOXX 破位下行")]
+def _match(node, table, default):
+    for kws, val in table:
+        if any(k in node for k in kws):
+            return val
+    return default
+
 def part1_layers(daily: dict, dyn: dict) -> str:
     links = daily.get("links") or []
     rows = []
     for l in links:
         node = l.get("node", ""); strg = l.get("strength", ""); dr = l.get("direction", "")
         plain = l.get("plain") or l.get("today_plain") or ""
-        rows.append(f'<div class="card"><div class="hd"><b>{esc(node)}</b> '
-                    f'<span class="conf">力度 {esc(strg)} · 方向 {esc(dr)}</span></div>'
-                    f'<div class="you">{esc(plain) if plain else "今日事件待接（daily 无该层大白话·不编）"}</div>'
-                    + _layer_impact(node, dyn) + '</div>')
+        evidence = str(l.get("evidence") or "")
+        events = l.get("today_events") or []
+        fact = esc(str(dr)) + ((" ｜ " + esc(str(events[0]))) if events else "")
+        why = esc(evidence) if evidence else "为什么这么判：待接（daily 无 evidence·不编）"
+        flip = _match(node, _LAYER_FLIP, "出现与当前方向相反的持续证据")
+        ruler = _match(node, _LAYER_RULER, "第六部分·右栏底子")
+        rows.append(
+            f'<div class="card"><div class="hd"><b>{esc(node)}</b> '
+            f'<span class="conf">力度 {esc(strg)} · 方向 {esc(dr)}</span></div>'
+            f'<div style="font-size:13px"><span class="k">① 事实(今天怎么了)</span>{fact}</div>'
+            f'<div style="font-size:13px;margin-top:3px"><span class="k">② 为什么(这么判的依据)</span>{why}</div>'
+            + _layer_impact(node, dyn).replace("对你·落点持仓", "③ 对你·落点持仓")
+            + f'<div style="font-size:13px;margin-top:3px"><span class="k">④ 什么情况改看法(证伪)</span>{esc(flip)}</div>'
+            f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:3px">大白话：{esc(plain) if plain else "待接"}｜对应尺：{esc(ruler)}</div>'
+            '</div>')
     if not rows:
         rows.append('<div class="card">五层数据待接（daily_{date}.json 无 links·不编）</div>')
-    return '<h2>第一部分 · 大环境今天怎么了（五层·每层落点到受影响持仓）</h2>' + "".join(rows)
+    return ('<h2>第一部分 · 大环境今天怎么了（五层·每层 事实→为什么→对你落点→什么情况改看法·接右栏6尺）</h2>'
+            + "".join(rows))
 
 # ── 第一部分附·宏观判定表（尺模板+当日读数） ──
 def part1_macro_table(daily: dict) -> str:
@@ -665,9 +820,10 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     for h in stocks:
         card, ps = render_card(h["symbol"], h.get("name", h["symbol"]), dyn)
         cards.append(card); stats["n"] += 1
-        if ps == "OK": stats["pack_ok"] += 1
+        if ps in ("OK", "深度10块"): stats["pack_ok"] += 1
         elif ps == "退出条件待补": stats["pack_ok"] += 1; stats["exit_todo"].append(h["symbol"])   # 有包·仅退出条件缺
         else: stats["pack_wait"].append(h["symbol"])                                              # 无判断包
+        if ps == "深度10块": stats.setdefault("deep10", []).append(h["symbol"])
     # R3 运行唯一性：run_id + 扫描快照时间戳(锚定 production·稳定→同快照重跑字节一致)
     scan_raw = str(dyn["prod"].get("generated_at") or "")
     scan_ts = scan_raw[:19]   # production 扫描时间戳(本次实时扫描·UTC)
@@ -685,6 +841,11 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
             '.card{background:#151f2b;border:1px solid #2b4054;border-radius:10px;padding:12px 14px;margin:10px 0}'
             '.hd{font-size:16px;margin-bottom:8px}.sym{color:#8ea3b6;font-size:12px}.conf{color:#ffd479}.q{color:#7ee0a0;font-size:13px}.v{color:#9ed8ff;font-size:13px}'
             '.k{color:#5cc8ff;font-weight:700;margin-right:6px}.deep{margin:6px 0;font-size:14px}.dossier{margin:6px 0;font-size:13px;color:#d9e7ef}.you{margin-top:6px;font-weight:700}'
+            # 深度10块·大白话样式(对齐董事长认可的成品样卡)
+            '.blk{font-size:14.5px;color:#ffe4a8;font-weight:700;margin:12px 0 4px;border-left:4px solid #2c6e9a;padding-left:8px}'
+            '.plain{background:#12261f;border-left:4px solid #4f9e7f;border-radius:0 7px 7px 0;padding:6px 11px;margin:6px 0;font-size:13px;color:#bfe6d3}'
+            '.need{color:#ffb454;font-weight:700}.bull{color:#7ee0a0;font-weight:700}.bear{color:#ff9a9a;font-weight:700}.base{color:#7cc4ff;font-weight:700}'
+            '.dt{width:100%;border-collapse:collapse;margin:7px 0;font-size:12.5px}.dt th,.dt td{border:1px solid #2a3d4f;padding:6px 8px;text-align:left;vertical-align:top}.dt th{background:#13202d;color:#bcd0e2}'
             '</style></head><body>')
     title = (f'<h1>每日投资决策台 · 完整产品（机器版·实时自动生成）</h1>'
              f'<div style="background:#0e1621;border:1px solid #3a5a8a;border-radius:8px;padding:8px 12px;margin:6px 0;color:#ffd479;font-weight:700">'
@@ -727,7 +888,7 @@ def main() -> int:
     Path(out).write_text(htmltxt, encoding="utf-8")
     b = Path(out).read_bytes()
     print(f"wrote {out} · bytes={len(b)} · 乱码EFBFBD={b.count(b'\xef\xbf\xbd')}")
-    print(f"卡片 {stats['n']} 只 · 判断包命中 {stats['pack_ok']} · 无判断包 {stats['pack_wait']} · 退出条件待补(动作降初判) {stats['exit_todo']}")
+    print(f"卡片 {stats['n']} 只 · 判断包命中 {stats['pack_ok']} · 深度10块 {stats.get('deep10', [])} · 无判断包 {stats['pack_wait']} · 退出条件待补(动作降初判) {stats['exit_todo']}")
     return 0
 
 if __name__ == "__main__":
