@@ -1,6 +1,6 @@
 {
   "as_of": "20260716",
-  "generated_at": "2026-07-16T07:11:28.531530+00:00",
+  "generated_at": "2026-07-16T09:14:29.329496+00:00",
   "source": "data/pdca/scorecards.json（pdca_scorecard 产物·不另起炉灶）",
   "certainty_ladder": [
     "证伪",
@@ -58,7 +58,7 @@
     {
       "ring_id": "fed_gate",
       "ring_name": "总闸",
-      "current_certainty": "中",
+      "current_certainty": "高",
       "cumulative_score": 0,
       "trend": [
         {
@@ -104,7 +104,7 @@
       "ring_id": "strategy",
       "ring_name": "战略",
       "current_certainty": "高",
-      "cumulative_score": 3,
+      "cumulative_score": 4,
       "trend": [
         {
           "date": "20260709",
@@ -138,8 +138,8 @@
         },
         {
           "date": "20260716",
-          "score": 0,
-          "cum": 3
+          "score": 1,
+          "cum": 4
         }
       ],
       "trend_arrow": "↑",
@@ -149,7 +149,7 @@
       "ring_id": "capital_flow",
       "ring_name": "资金轮动",
       "current_certainty": "强",
-      "cumulative_score": 2,
+      "cumulative_score": 0,
       "trend": [
         {
           "date": "20260709",
@@ -183,11 +183,11 @@
         },
         {
           "date": "20260716",
-          "score": 1,
-          "cum": 2
+          "score": -1,
+          "cum": 0
         }
       ],
-      "trend_arrow": "↑",
+      "trend_arrow": "→",
       "days_tracked": 8
     },
     {

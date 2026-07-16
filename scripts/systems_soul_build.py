@@ -156,6 +156,16 @@ def build_shadow_nav(date: str) -> dict:
                 "series": series, "last_snapshot": snap,
                 "note": "缺历史→待接·从今日起累积；次日起用上一快照现价算日收益、复利成净值。"}
 
+    # 基准日同日重跑：保持基准语义(0/0/0)、只刷快照(不把同日当"次日"算收益)
+    if date == prev.get("baseline_date"):
+        prev["series"] = [r for r in prev["series"] if r.get("date") != date]
+        prev["series"].append({"date": date, "system_nav": 0.0, "actual_nav": 0.0, "diff": 0.0,
+                               "system_ret": None, "actual_ret": None,
+                               "note": "基准日·从今日起累积（第一天基准=0·缺历史不编）"})
+        prev["as_of"] = date
+        prev["generated_at"] = datetime.now(timezone.utc).isoformat()
+        prev["last_snapshot"] = snap
+        return prev
     # 次日+：用上一快照现价算各只日收益，按各自权重加权成组合日收益
     psnap = prev.get("last_snapshot", {})
     pprice = psnap.get("price", {})
