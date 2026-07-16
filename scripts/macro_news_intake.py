@@ -24,6 +24,7 @@ import re
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -31,26 +32,67 @@ ROOT = Path(__file__).resolve().parents[1]
 UA = {"User-Agent": "Mozilla/5.0 (compatible; macro_news_intake/1.0)"}
 TIMEOUT = 12
 
-# ── 写死·可审计的新闻关键词规则表（力度打分）────────────────────────────────
-STRAT_BULL = ["record", "beat", "beats", "raise", "raised", "robust", "strong", "surge",
-              "surges", "upgrade", "boom", "rally", "all-time", "tops", "jump", "soar",
-              "demand remains", "上修", "强劲", "创纪录", "超预期"]
-STRAT_BEAR = ["miss", "misses", "cut", "cuts", "slowdown", "sell-off", "selloff", "downgrade",
-              "plunge", "plunges", "glut", "oversupply", "warn", "warns", "weak",
-              "趋稳", "下修", "疲软", "抛售", "不及预期"]
-MEANS_POS = ["approval", "approved", "greenlight", "green light", "bank", "charter", "launch",
-             "adopt", "adoption", "license", "expand", "integrat", "partnership", "issue",
-             "获批", "落地", "扩张"]
-MEANS_NEG = ["ban", "banned", "dilute", "crackdown", "restrict", "delay", "reject", "sue",
-             "lawsuit", "fraud", "禁", "打击", "收紧", "推迟"]
-WORLD_REGIME = ["war", "invasion", "sanction", "tariff", "alliance", "decoupl", "nuclear",
-                "coup", "embargo", "regime", "战争", "制裁", "关税", "脱钩"]
+# ══ 新闻层整改(董事局工单 2026-07-16)：源白名单 + 时效 + 中文源 + 加权研判 ══
+# ① 源白名单：只取权威财经/官方。名单外一律剔除(大学活动页/内容农场/智库博客/零售App博客)
+SOURCE_WHITELIST = {
+    # 国际权威
+    "reuters": "路透", "路透": "路透", "路透社": "路透",
+    "bloomberg": "彭博", "彭博": "彭博", "彭博社": "彭博",
+    "cnbc": "CNBC",
+    "wall street journal": "WSJ", "wsj": "WSJ", "华尔街日报": "WSJ",
+    "financial times": "FT", "ft中文网": "FT", "金融时报": "FT",
+    # 官方
+    "federal reserve": "美联储官方", "美联储": "美联储官方", "sec": "SEC官方",
+    "u.s. department of the treasury": "美财政部官方", "white house": "白宫官方",
+    "nvidia": "公司官方", "官方": "官方",
+    # 中文财经
+    "caixin": "财新", "财新": "财新", "财新网": "财新",
+    "华尔街见闻": "华尔街见闻", "wallstreetcn": "华尔街见闻",
+    "第一财经": "第一财经", "yicai": "第一财经",
+    "证券时报": "证券时报", "stcn": "证券时报",
+}
+# 明确剔除模式(大学/智库/博客/内容农场/零售App)
+SOURCE_BLOCK_PAT = re.compile(
+    r"(university|college|\.edu|speaker series|think ?change|\bodi\b|institute|智库|"
+    r"eciks|pluang|blog|博客|medium\.com|substack|wiki|forum|reddit|论坛)", re.I)
 
-# 每环一条新闻查询（先一源一环跑通；可逐环加）
+# ② 时效：只取最近 N 小时内发布的新闻(旧闻不许挂"今天怎么了")
+MAX_AGE_HOURS = 36
+
+# ③ 中文源优先：用中文查询+zh-CN feed → 标题原生中文(结构性解决"全英文没翻")
 QUERIES = {
+    "strategy": "英伟达 台积电 AI 芯片 财报 需求 指引",
+    "means": "稳定币 加密 监管 银行",
+    "world": "美国 关税 制裁 地缘 联盟",
+}
+QUERIES_EN_FALLBACK = {
     "strategy": "AI semiconductor earnings guidance Nvidia TSMC demand",
     "means": "stablecoin regulation crypto bank",
     "world": "US tariff sanctions geopolitics alliance",
+}
+
+# ④ 加权研判信号表(带否定词处理·非机械计数；每条命中须过相关性闸)
+STRAT_BULL = ["创纪录", "超预期", "上修", "强劲", "大涨", "订单激增", "产能吃紧", "上调指引",
+              "record", "beat", "raise", "robust", "strong", "surge", "upgrade", "boom"]
+STRAT_BEAR = ["不及预期", "下修", "疲软", "抛售", "砍单", "过剩", "降价", "下调指引", "减产",
+              "miss", "cut", "slowdown", "selloff", "downgrade", "glut", "oversupply", "warn", "weak"]
+MEANS_POS = ["获批", "落地", "扩张", "牌照", "合作", "发行", "纳入", "approval", "approved",
+             "license", "launch", "adopt", "partnership", "expand"]
+MEANS_NEG = ["禁", "打击", "收紧", "推迟", "驳回", "诉讼", "罚", "ban", "crackdown", "restrict",
+             "delay", "reject", "lawsuit", "fraud"]
+WORLD_REGIME = ["战争", "入侵", "制裁", "关税", "联盟", "脱钩", "核", "政变", "禁运",
+                "war", "invasion", "sanction", "tariff", "alliance", "decoupl", "embargo", "coup"]
+# 否定/弱化词：命中则该条方向信号降权(治"标题有词就算数")
+NEGATORS = ["否认", "辟谣", "未", "不会", "暂缓", "传闻", "无关", "denies", "denied", "no plan",
+            "rumor", "unlikely", "not "]
+# 相关性闸：该环主题词，标题/摘要须至少命中一个才算"与本环相关"
+RELEVANCE = {
+    "strategy": ["ai", "人工智能", "芯片", "半导体", "英伟达", "台积电", "nvidia", "tsmc",
+                 "gpu", "算力", "数据中心", "hbm", "存储", "晶圆"],
+    "means": ["稳定币", "加密", "比特币", "usdc", "usdt", "stablecoin", "crypto", "bitcoin",
+              "数字资产", "fima", "央行"],
+    "world": ["关税", "制裁", "地缘", "联盟", "脱钩", "贸易战", "tariff", "sanction",
+              "geopolit", "alliance", "war", "台海", "出口管制"],
 }
 
 
@@ -65,10 +107,39 @@ def _write_json(path: Path, data: dict[str, Any]) -> None:
 
 # ── 真源抓取（抓不到→返回 None，由调用方标"待接真源"）────────────────────────
 
-def fetch_news(query: str, limit: int = 6) -> list[dict[str, str]] | None:
-    """Google News RSS（keyless）。返回 [{title, source}]；网络失败→None。"""
-    url = ("https://news.google.com/rss/search?q="
-           + urllib.parse.quote(query) + "&hl=en-US&gl=US&ceid=US:en")
+def _src_tier(src: str) -> str | None:
+    """源白名单判定：命中→返回规范中文源名；剔除模式或名单外→None。"""
+    s = (src or "").strip().lower()
+    if not s:
+        return None
+    if SOURCE_BLOCK_PAT.search(s):
+        return None
+    for key, disp in SOURCE_WHITELIST.items():
+        if key in s:
+            return disp
+    return None
+
+
+def _pub_dt(it) -> "datetime | None":
+    raw = (it.findtext("pubDate") or "").strip()
+    if not raw:
+        return None
+    try:
+        from email.utils import parsedate_to_datetime
+        return parsedate_to_datetime(raw)
+    except Exception:
+        return None
+
+
+def fetch_news(query: str, limit: int = 12, lang: str = "zh") -> list[dict[str, Any]] | None:
+    """Google News RSS（keyless）。中文源优先(zh-CN)→标题原生中文。
+    每条带 pub_dt/pub_date(真实发布日) + source(白名单规范名)；网络失败→None。
+    不在此过滤，过滤交 qualify_news(源白名单+时效)，以便如实报"抓到N条/合格M条"。"""
+    if lang == "zh":
+        suffix = "&hl=zh-CN&gl=CN&ceid=CN:zh-Hans"
+    else:
+        suffix = "&hl=en-US&gl=US&ceid=US:en"
+    url = "https://news.google.com/rss/search?q=" + urllib.parse.quote(query) + suffix
     try:
         req = urllib.request.Request(url, headers=UA)
         raw = urllib.request.urlopen(req, timeout=TIMEOUT).read()
@@ -82,14 +153,76 @@ def fetch_news(query: str, limit: int = 6) -> list[dict[str, str]] | None:
         src_el = it.find("source")
         if src_el is not None and src_el.text:
             src = html.unescape(src_el.text.strip())
-        link = html.unescape((it.findtext("link") or "").strip())  # 真新闻url·让证据链可点(派工单§2.1)
-        # 正文摘要(RSS description)：给"提炼大白话"当原料(派工单§2)；Google News 的 description 含HTML，去标签取纯文本
+        link = html.unescape((it.findtext("link") or "").strip())
         desc = it.findtext("description") or ""
         summary = re.sub(r"<[^>]+>", " ", html.unescape(desc))
         summary = re.sub(r"\s+", " ", summary).strip()[:400]
+        dt = _pub_dt(it)
         if title:
-            items.append({"title": title, "source": src, "url": link, "summary": summary})
+            items.append({"title": title, "source_raw": src, "url": link, "summary": summary,
+                          "pub_dt": dt,
+                          "pub_date": dt.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC") if dt else "发布日待接",
+                          "lang": "en" if _looks_english(title) else "zh"})
     return items or None
+
+
+def _looks_english(s: str) -> bool:
+    zh = sum(1 for c in s if "一" <= c <= "鿿")
+    return zh == 0 and bool(re.search(r"[A-Za-z]{4,}", s or ""))
+
+
+def qualify_news(items: list[dict[str, Any]] | None, ring: str,
+                 now: "datetime | None" = None) -> dict[str, Any]:
+    """源白名单 + 时效(MAX_AGE_HOURS) + 相关性闸 三重过滤。
+    返回 {ok:[合格条], dropped:[(标题,原因)], stats:{...}}。合格0条→上层标"今日无重大新闻·维持基线"。"""
+    now = now or datetime.now(timezone.utc)
+    ok, dropped = [], []
+    for n in (items or []):
+        tier = _src_tier(n.get("source_raw", ""))
+        if not tier:
+            dropped.append((n.get("title", "")[:40], f"源不在白名单/属剔除类：{n.get('source_raw','')}"))
+            continue
+        dt = n.get("pub_dt")
+        if dt is None:
+            dropped.append((n.get("title", "")[:40], "无发布日(pubDate缺)→不采信"))
+            continue
+        age_h = (now - dt.astimezone(timezone.utc)).total_seconds() / 3600.0
+        if age_h > MAX_AGE_HOURS:
+            dropped.append((n.get("title", "")[:40], f"旧闻(发布于{dt.astimezone(timezone.utc):%Y-%m-%d}·距今{age_h:.0f}小时>{MAX_AGE_HOURS})"))
+            continue
+        blob = (n.get("title", "") + " " + n.get("summary", "")).lower()
+        if not any(w.lower() in blob for w in RELEVANCE.get(ring, [])):
+            dropped.append((n.get("title", "")[:40], "与本环主题不相关(未过相关性闸)"))
+            continue
+        n2 = dict(n)
+        n2["source"] = tier
+        n2["age_h"] = round(age_h, 1)
+        ok.append(n2)
+    return {"ok": ok, "dropped": dropped,
+            "stats": {"fetched": len(items or []), "qualified": len(ok), "dropped": len(dropped)}}
+
+
+def _dir_signal(n: dict[str, Any], pos_words: list[str], neg_words: list[str]) -> tuple[float, str]:
+    """单条新闻的方向研判(非机械计数)：判断实质方向+否定词降权+按新鲜度加权。
+    返回 (带权分, 研判理由)。"""
+    blob = (n.get("title", "") + " " + n.get("summary", "")).lower()
+    hit_pos = [w for w in pos_words if w.lower() in blob]
+    hit_neg = [w for w in neg_words if w.lower() in blob]
+    negated = any(w.lower() in blob for w in NEGATORS)
+    if not hit_pos and not hit_neg:
+        return 0.0, "无明确方向(仅相关背景)"
+    raw = (1.0 if hit_pos else 0.0) - (1.0 if hit_neg else 0.0)
+    if hit_pos and hit_neg:
+        raw = 0.0
+    w_fresh = 1.0 if n.get("age_h", 99) <= 12 else 0.6      # 越新权重越高
+    w_neg = 0.35 if negated else 1.0                         # 否定/辟谣→大幅降权
+    score = raw * w_fresh * w_neg
+    why = []
+    if hit_pos: why.append("利多依据:" + "/".join(hit_pos[:2]))
+    if hit_neg: why.append("利空依据:" + "/".join(hit_neg[:2]))
+    if negated: why.append("含否定/辟谣→降权")
+    why.append(f"新鲜度{n.get('age_h','?')}h")
+    return score, "·".join(why)
 
 
 def fetch_fred_latest(series_id: str) -> dict[str, Any] | None:
@@ -119,50 +252,63 @@ def fetch_fred_latest(series_id: str) -> dict[str, Any] | None:
 
 # ── 关键词规则：真新闻→力度（写死·可审计）────────────────────────────────────
 
-def _count(titles: list[str], words: list[str]) -> int:
-    low = " ".join(titles).lower()
-    return sum(low.count(w.lower()) for w in words)
+def _judge(q: dict[str, Any], pos_words: list[str], neg_words: list[str]) -> dict[str, Any]:
+    """对【合格新闻】做加权方向研判(逐条给理由)，非机械计数。返回带权净分与逐条研判。"""
+    per = []
+    net = 0.0
+    for n in q["ok"]:
+        sc, why = _dir_signal(n, pos_words, neg_words)
+        net += sc
+        per.append({"title": n["title"], "source": n["source"], "pub_date": n["pub_date"],
+                    "url": n.get("url", ""), "lang": n.get("lang", "zh"),
+                    "signal": round(sc, 2), "why": why})
+    return {"net": round(net, 2), "per_item": per, "n_ok": len(q["ok"]),
+            "dropped": q["dropped"], "stats": q["stats"]}
 
 
-def score_strategy(news: list[dict[str, str]]) -> dict[str, Any]:
-    titles = [n["title"] for n in news]
-    bull, bear = _count(titles, STRAT_BULL), _count(titles, STRAT_BEAR)
-    net = bull - bear
-    if net >= 2:
+NO_NEWS = "今日无重大新闻·维持基线"
+
+
+def judge_strategy(q: dict[str, Any]) -> dict[str, Any]:
+    j = _judge(q, STRAT_BULL, STRAT_BEAR)
+    if j["n_ok"] == 0:
+        return {**j, "strength": "中", "state": NO_NEWS, "direction": f"AI({NO_NEWS})", "no_news": True}
+    net = j["net"]
+    if net >= 1.5:
         strength, state = "强", "AI产业面走强"
-    elif net <= -2:
+    elif net <= -1.5:
         strength, state = "弱", "AI产业面转弱"
     else:
         strength, state = "中", "AI产业面中性"
-    return {"strength": strength, "state": state, "bull": bull, "bear": bear,
-            "direction": f"AI({state})"}
+    return {**j, "strength": strength, "state": state, "direction": f"AI({state})", "no_news": False}
 
 
-def score_means(news: list[dict[str, str]]) -> dict[str, Any]:
-    titles = [n["title"] for n in news]
-    pos, neg = _count(titles, MEANS_POS), _count(titles, MEANS_NEG)
-    if pos == 0 and neg == 0:
-        strength, state = "弱", "手段层今日无明显动作"
-    elif pos - neg >= 2:
+def judge_means(q: dict[str, Any]) -> dict[str, Any]:
+    j = _judge(q, MEANS_POS, MEANS_NEG)
+    if j["n_ok"] == 0:
+        return {**j, "strength": "中", "state": NO_NEWS, "direction": NO_NEWS, "no_news": True}
+    net = j["net"]
+    if net >= 1.5:
         strength, state = "中", "稳定币/加密通道活跃(偏松)"
-    elif neg - pos >= 2:
+    elif net <= -1.5:
         strength, state = "弱", "稳定币/加密通道受限(偏紧)"
     else:
         strength, state = "中", "手段层有动作·中性"
-    return {"strength": strength, "state": state, "pos": pos, "neg": neg,
-            "direction": state}
+    return {**j, "strength": strength, "state": state, "direction": state, "no_news": False}
 
 
-def score_world(news: list[dict[str, str]]) -> dict[str, Any]:
-    titles = [n["title"] for n in news]
-    regime = _count(titles, WORLD_REGIME)
-    # 世界观级 regime 反转是高门槛：读了真新闻但不凭标题关键词就翻面(诚实)
-    if regime >= 4:
+def judge_world(q: dict[str, Any]) -> dict[str, Any]:
+    """世界观级 regime 反转是高门槛：只有权威源当日实质地缘事件才算数，且仍不凭新闻就翻面(诚实)。"""
+    j = _judge(q, WORLD_REGIME, [])
+    if j["n_ok"] == 0:
+        return {**j, "strength": "中", "state": "三支柱维持·今日无重大地缘新闻",
+                "direction": "变(三支柱维持·今日无重大地缘新闻)", "no_news": True}
+    strong = [p for p in j["per_item"] if p["signal"] > 0]
+    if len(strong) >= 2:
         state = "地缘/秩序信号增多·需盯(未到regime反转)"
     else:
         state = "三支柱维持·无regime反转"
-    return {"strength": "中", "state": state, "regime_hits": regime,
-            "direction": f"变({state})"}
+    return {**j, "strength": "中", "state": state, "direction": f"变({state})", "no_news": False}
 
 
 # ── 组装：把真评写回对应 link（覆盖"待第二块"占位，带 source 指纹）──────────────
@@ -174,101 +320,109 @@ def _find(links: list[dict], keyword: str) -> dict | None:
     return None
 
 
+PLAIN = {
+    "strategy": {"强": "今天 AI 产业的权威新闻里好消息明显多于坏消息，产业面在走强 → 对你：AI 主线基本面还硬，核心仓可以守、别追高。",
+                 "弱": "今天 AI 产业的权威新闻里坏消息偏多、产业面转弱 → 对你：AI 主线要盯着点、别急着加仓。",
+                 "中": "今天 AI 产业好坏消息参半、没大变 → 对你：AI 主线守着看，不追高也不慌。",
+                 "无": "今天没有够格(权威源+当日)的 AI 产业新闻 → 维持基线：AI 主线沿用上次判断，核心仓照守、不因没新闻就动。"},
+    "means": {"活跃": "稳定币/加密这条「钱进美元」的管道今天利好偏多、在变活 → 对你：长期利多美元资产，加密簇按纪律控敞口。",
+              "受限": "稳定币这条管道今天遇到监管收紧 → 对你：短期情绪偏谨慎，加密簇别追。",
+              "中": "稳定币/加密通道今天没明显动作 → 对你：不影响今天动作。",
+              "无": "今天没有够格(权威源+当日)的稳定币/加密新闻 → 维持基线：不影响今天动作。"},
+    "world": {"增多": "地缘/秩序上的紧张信号今天多了一些，但还没到掀翻大格局的程度 → 对你：投资大方向暂时不变，多留个心眼、盯着点。",
+              "维持": "今天没有会掀翻世界大格局的地缘大事，三支柱（美国优先·阵营化·集中砸AI）延续 → 对你：投资大方向不变，照现有框架走。",
+              "无": "今天没有够格(权威源+当日)的地缘新闻 → 维持基线：三支柱延续，大方向不变。"},
+}
+
+
+def _fetch_qualified(ring: str) -> dict[str, Any]:
+    """中文源优先(标题原生中文)；合格不足→英文源兜底(仍走白名单+时效)。"""
+    zh = fetch_news(QUERIES[ring], lang="zh") or []
+    q = qualify_news(zh, ring)
+    used = "中文源(zh-CN)"
+    if q["stats"]["qualified"] == 0:
+        en = fetch_news(QUERIES_EN_FALLBACK[ring], lang="en") or []
+        q2 = qualify_news(en, ring)
+        if q2["stats"]["qualified"] > 0:
+            q2["stats"]["fetched"] += q["stats"]["fetched"]
+            q2["dropped"] = q["dropped"] + q2["dropped"]
+            q = q2
+            used = "中文源0合格→英文权威源兜底"
+    q["feed_used"] = used
+    return q
+
+
+def _write_ring(node: dict, ring: str, jd: dict, q: dict) -> None:
+    """把研判写回环：evidence 讲清「几条抓到/几条合格/为什么剔除/逐条研判」，非关键词计数。"""
+    st = q["stats"]
+    drop_txt = "；".join(f"{t}→{r}" for t, r in q["dropped"][:3]) or "无"
+    if jd.get("no_news"):
+        node["evidence"] = (f"【新闻研判】{ring}：抓{st['fetched']}条 → 过源白名单+时效({MAX_AGE_HOURS}h)+相关性闸后"
+                            f"合格 0 条 → 判「{jd['state']}」(不拿旧闻/杂源凑·不编)。剔除示例：{drop_txt}")
+        node["today_events"] = [f"今日无够格新闻·维持基线（抓{st['fetched']}条·合格0条）"]
+        node["news_items"] = []
+        node["background"] = [f"源白名单=路透/彭博/CNBC/WSJ/FT/官方+财新/华尔街见闻/第一财经/证券时报；时效≤{MAX_AGE_HOURS}h；已剔除大学页/智库博客/内容农场"]
+    else:
+        per = jd["per_item"]
+        node["evidence"] = (f"【新闻研判】{ring}：抓{st['fetched']}条→合格{st['qualified']}条(权威源+{MAX_AGE_HOURS}h内+过相关性闸)，"
+                            f"逐条方向研判加权净分={jd['net']} → 判「{jd['state']}·{jd['strength']}」(非关键词计数)。"
+                            + "样本：" + "；".join(f"{p['title'][:34]}（{p['source']}·{p['pub_date']}·{p['why']}）" for p in per[:3]))
+        node["today_events"] = [f"{p['source']}·{p['pub_date']}：{p['title']}" for p in per[:3]]
+        node["news_items"] = [{"title": p["title"], "source": p["source"], "url": p["url"],
+                               "pub_date": p["pub_date"], "lang": p["lang"],
+                               "judge": p["why"], "signal": p["signal"]} for p in per[:5]]
+        node["background"] = [f"加权研判净分={jd['net']}(逐条:新鲜度加权·否定/辟谣降权·须过相关性闸)",
+                              f"合格{st['qualified']}/抓{st['fetched']}·剔除{st['dropped']}条(源不合格/旧闻/不相关)"]
+    node["strength"] = jd["strength"]
+    node["direction"] = jd["direction"]
+    node["_state"] = jd["state"]
+    node["source"] = f"Google News RSS·{q.get('feed_used','')}·合格{st['qualified']}/抓{st['fetched']}条·源白名单+≤{MAX_AGE_HOURS}h"
+    node["news_dropped"] = [{"title": t, "reason": r} for t, r in q["dropped"][:6]]
+
+
 def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """把三环"待第二块"→机器自动评；返回 (links, report)。抓不到的如实标待接真源。"""
-    report: dict[str, Any] = {"source": "Google News RSS(keyless) + FRED(keyless)",
+    """三环新闻→加权研判写回。整改后：源白名单+时效+中文源+逐条研判(非关键词计数)。"""
+    report: dict[str, Any] = {"source": "Google News RSS(zh-CN优先·keyless) + FRED(keyless)",
+                              "news_rules": {"whitelist": sorted(set(SOURCE_WHITELIST.values())),
+                                             "blocked": "大学活动页/智库博客(ODI等)/内容农场(eciks等)/零售App博客/论坛",
+                                             "max_age_hours": MAX_AGE_HOURS,
+                                             "judge": "逐条方向研判(相关性闸+新鲜度加权+否定词降权)·非关键词命中计数"},
                               "auto_nodes": [], "pending_source_nodes": [], "fetched": {}}
 
-    # —— 环1：战略产业面（AI/半导体新闻）——
-    strat_news = fetch_news(QUERIES["strategy"])
-    node = _find(links, "战略指向")
-    if node is not None:
-        if strat_news:
-            sc = score_strategy(strat_news)
-            heads = [n["title"] for n in strat_news[:3]]
-            node["evidence"] = (f"【第二块·真新闻】AI/半导体产业面：多空关键词 多={sc['bull']}/空={sc['bear']} "
-                                f"→ 规则判「{sc['state']}·{sc['strength']}」。样本：" + "；".join(heads))
-            node["strength"] = sc["strength"]
-            node["direction"] = sc["direction"]
-            node["today_events"] = [f"真新闻：{h}" for h in heads]
-            node["background"] = [f"关键词打分 多{sc['bull']}-空{sc['bear']}=净{sc['bull']-sc['bear']}"]
-            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", ""), "summary": n.get("summary", "")} for n in strat_news[:3]]
-            node["source"] = f"Google News RSS·q=[{QUERIES['strategy']}]·{len(strat_news)}条"
-            node["_state"] = sc["state"]
-            if sc["strength"] == "强":
-                node["plain"] = "今天 AI 产业的好消息明显多于坏消息，产业面在走强 → 对你：AI 主线基本面还硬，核心仓可以守、别追高。"
-            elif sc["strength"] == "弱":
-                node["plain"] = "今天 AI 产业的坏消息偏多、产业面转弱 → 对你：AI 主线要盯着点、别急着加仓。"
-            else:
-                node["plain"] = "今天 AI 产业好坏消息参半、没大变 → 对你：AI 主线守着看，不追高也不慌。"
-            report["auto_nodes"].append("战略产业面")
-            report["fetched"]["strategy"] = {"count": len(strat_news), "score": sc}
-        else:
-            node["evidence"] = "【待接真源】战略产业面新闻源今日抓取失败 → 读上一状态「中」，不编造。"
-            node["direction"] = "AI(待接真源·读上一状态)"
-            node["plain"] = "今天没抓到 AI 产业的新闻，沿用上次判断「AI 主线仍在」→ 对你：核心仓照守，不因抓不到就动。"
-            node["source"] = "Google News RSS 抓取失败·待接真源"
-            report["pending_source_nodes"].append("战略产业面")
-
-    # —— 环2：手段层（稳定币/FIMA 新闻）——
-    means_news = fetch_news(QUERIES["means"])
-    node = _find(links, "手段层")
-    if node is not None:
-        if means_news:
-            sc = score_means(means_news)
-            heads = [n["title"] for n in means_news[:3]]
-            node["evidence"] = (f"【第二块·真新闻】手段层(稳定币/加密通道)：正={sc['pos']}/负={sc['neg']} "
-                                f"→ 规则判「{sc['state']}·{sc['strength']}」。样本：" + "；".join(heads))
-            node["strength"] = sc["strength"]
-            node["direction"] = sc["direction"]
-            node["today_events"] = [f"真新闻：{h}" for h in heads]
-            node["background"] = [f"关键词打分 正{sc['pos']}/负{sc['neg']}", "FIMA 状态见⑦读数表·读固定输入位 data/macro/fima_status.json(人工读公告更新)"]
-            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", ""), "summary": n.get("summary", "")} for n in means_news[:3]]
-            node["source"] = f"Google News RSS·q=[{QUERIES['means']}]·{len(means_news)}条"
-            node["_state"] = sc["state"]
-            if "偏松" in sc["state"] or "活跃" in sc["state"]:
-                node["plain"] = "稳定币/加密这条「钱进美元」的管道今天利好偏多、在变活 → 对你：这条大通道长期利多美元资产，加密簇按纪律控敞口。"
-            elif "受限" in sc["state"] or "偏紧" in sc["state"]:
-                node["plain"] = "稳定币这条管道今天遇到监管收紧 → 对你：短期情绪偏谨慎，加密簇别追。"
-            else:
-                node["plain"] = "稳定币/加密通道今天没明显动作 → 对你：不影响今天动作。"
-            report["auto_nodes"].append("手段层")
-            report["fetched"]["means"] = {"count": len(means_news), "score": sc}
-        else:
-            node["evidence"] = "【待接真源】手段层新闻源今日抓取失败 → 读上一状态，不编造。"
+    for ring, keyword, judger, label in (
+            ("strategy", "战略指向", judge_strategy, "战略产业面"),
+            ("means", "手段层", judge_means, "手段层"),
+            ("world", "总命题", judge_world, "世界观级")):
+        node = _find(links, keyword) or (_find(links, "世界") if ring == "world" else None)
+        if node is None:
+            continue
+        q = _fetch_qualified(ring)
+        if q["stats"]["fetched"] == 0:
+            node["evidence"] = f"【待接真源】{label}新闻源今日抓取失败(网络) → 读上一状态，不编造。"
             node["direction"] = "待接真源·读上一状态"
-            node["plain"] = "今天没抓到稳定币/加密的新闻，沿用上次判断 → 对你：不影响今天动作。"
+            node["plain"] = f"今天没抓到{label}的新闻，沿用上次判断 → 对你：不因抓不到就动。"
             node["source"] = "Google News RSS 抓取失败·待接真源"
-            report["pending_source_nodes"].append("手段层")
-
-    # —— 环3：世界观级（地缘/秩序新闻）——
-    world_news = fetch_news(QUERIES["world"])
-    node = _find(links, "总命题") or _find(links, "世界")
-    if node is not None:
-        if world_news:
-            sc = score_world(world_news)
-            heads = [n["title"] for n in world_news[:3]]
-            node["evidence"] = (f"【第二块·真新闻】地缘/秩序：regime关键词命中={sc['regime_hits']} "
-                                f"→ 规则判「{sc['state']}」(标题关键词不足以宣告regime反转·诚实)。样本：" + "；".join(heads))
-            node["strength"] = sc["strength"]
-            node["direction"] = sc["direction"]
-            node["today_events"] = [f"真新闻：{h}" for h in heads]
-            node["background"] = [f"regime关键词命中={sc['regime_hits']}", "三支柱框架延续"]
-            node["news_items"] = [{"title": n["title"], "source": n.get("source", ""), "url": n.get("url", ""), "summary": n.get("summary", "")} for n in world_news[:3]]
-            node["source"] = f"Google News RSS·q=[{QUERIES['world']}]·{len(world_news)}条"
-            node["_state"] = sc["state"]
-            if "增多" in sc["state"]:
-                node["plain"] = "地缘/秩序上的紧张信号今天多了一些，但还没到掀翻大格局的程度 → 对你：投资大方向暂时不变，多留个心眼、盯着点。"
-            else:
-                node["plain"] = "今天没有会掀翻世界大格局的地缘大事，三支柱（美国优先·阵营化·集中砸AI）延续 → 对你：投资大方向不变，照现有框架走。"
-            report["auto_nodes"].append("世界观级")
-            report["fetched"]["world"] = {"count": len(world_news), "score": sc}
+            report["pending_source_nodes"].append(label)
+            continue
+        jd = judger(q)
+        _write_ring(node, label, jd, q)
+        # 大白话
+        if ring == "strategy":
+            node["plain"] = PLAIN["strategy"]["无" if jd.get("no_news") else jd["strength"]]
+        elif ring == "means":
+            k = "无" if jd.get("no_news") else ("活跃" if "活跃" in jd["state"] else ("受限" if "受限" in jd["state"] else "中"))
+            node["plain"] = PLAIN["means"][k]
         else:
-            node["evidence"] = "【待接真源】世界观级新闻源今日抓取失败 → 读上一状态，不编造。"
-            node["direction"] = "待接真源·读上一状态"
-            node["plain"] = "今天没抓到地缘/秩序的新闻，沿用上次判断 → 对你：大方向不变。"
-            node["source"] = "Google News RSS 抓取失败·待接真源"
-            report["pending_source_nodes"].append("世界观级")
+            k = "无" if jd.get("no_news") else ("增多" if "增多" in jd["state"] else "维持")
+            node["plain"] = PLAIN["world"][k]
+        report["auto_nodes"].append(label)
+        report["fetched"][ring] = {"fetched": q["stats"]["fetched"], "qualified": q["stats"]["qualified"],
+                                   "dropped": q["stats"]["dropped"], "feed": q.get("feed_used"),
+                                   "net": jd.get("net"), "state": jd["state"], "no_news": jd.get("no_news", False),
+                                   "items": [{"title": p["title"], "source": p["source"], "pub_date": p["pub_date"],
+                                              "lang": p["lang"], "signal": p["signal"], "why": p["why"]}
+                                             for p in jd.get("per_item", [])[:5]],
+                                   "dropped_examples": [{"title": t, "reason": r} for t, r in q["dropped"][:5]]}
 
     # —— 总闸 enrich：经济日历真值(非农/CPI/Fed)。本网络下 FRED 超时→待接真源 ——
     fed_node = _find(links, "总闸")
