@@ -371,6 +371,54 @@ def _short(link: dict) -> str:
     return link.get("strength", "")
 
 
+def macro_cal_from_report(mr: dict | None) -> dict:
+    """从 macro_news 富集报告里取宏观日历(含FEDFUNDS)·缺→空(→无Fed事件·沿用/基线)。"""
+    if not mr:
+        return {}
+    return (mr.get("fetched", {}) or {}).get("macro_calendar", {}) or {}
+
+
+def fed_gate_state_machine(date: str, macro_cal: dict, us10y_val, us10y_chg) -> dict[str, Any]:
+    """R2 总闸状态机(事件驱动)：Fed事件=FEDFUNDS变动(决议/加降息)。无事件→沿用上一状态+第N天。
+    US10Y/VIX 只作边际注脚·绝不翻闸。同日重跑幂等(不重复+第N天)。治 B2 单日噪声翻面。"""
+    import json as _json
+    from pathlib import Path as _P
+    sp = ROOT / "data" / "evidence_chain" / "fed_gate_state.json"
+    prev = None
+    if sp.exists():
+        try:
+            prev = _json.loads(sp.read_text(encoding="utf-8"))
+        except Exception:
+            prev = None
+    ff = (macro_cal or {}).get("FedFunds") or (macro_cal or {}).get("FEDFUNDS") or {}
+    v, pv = ff.get("value"), ff.get("prev")
+    fed_event = (v is not None and pv is not None and float(v) != float(pv))
+    footnote = f"边际注脚(仅参考·不翻闸)：US10Y={us10y_val}、较昨{fmt_pct(us10y_chg)}"
+    if prev and prev.get("date") == date:                 # 同日重跑→幂等(不改状态、不+天)
+        st = dict(prev); st["footnote"] = footnote; st["fed_event_today"] = fed_event
+        return st
+    if fed_event:                                          # 有Fed决议事件→重定状态
+        if float(v) > float(pv):
+            state, strength, direction = "偏紧·加息", "中", "偏紧·收水(加息事件)"
+        else:
+            state, strength, direction = "偏松·降息", "中", "偏松(降息事件)"
+        day_n, last_event = 1, ff.get("date")
+    elif prev:                                             # 无事件→沿用昨日状态+第N天
+        state, strength, direction = prev["state"], prev["strength"], prev["direction"]
+        day_n, last_event = int(prev.get("day_n", 1)) + 1, prev.get("last_event")
+    else:                                                  # 首次·无事件·无prev→基线
+        state, strength, direction = "维持·观察", "中", "总闸维持(无新Fed事件·基线)"
+        day_n, last_event = 1, ff.get("date")
+    st = {"date": date, "state": state, "strength": strength, "direction": direction,
+          "day_n": day_n, "last_event": last_event, "fed_funds": v, "fed_event_today": fed_event,
+          "footnote": footnote}
+    try:
+        sp.write_text(_json.dumps(st, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+    return st
+
+
 def build(date: str, with_macro_news: bool = False) -> dict[str, Any]:
     snapshot = load_snapshot()
     curve = load_dated("market", "yield_curve", date)
@@ -397,6 +445,23 @@ def build(date: str, with_macro_news: bool = False) -> dict[str, Any]:
         # enrich 后重取被更新的环，供 derived 读真评
         strategy = next((L for L in links if "战略指向" in str(L.get("node"))), strategy)
         fed = next((L for L in links if "总闸" in str(L.get("node"))), fed)
+
+    # R2：用事件驱动状态机【覆盖】总闸(不再由US10Y日波动定状态)。US10Y=注脚。
+    _us = (snapshot or {}).get("by_symbol", {}).get("US10Y", {}) if snapshot else {}
+    _sm = fed_gate_state_machine(date, macro_cal_from_report(macro_report), _us.get("close", _us.get("price")), _us.get("change_percent"))
+    _day_tag = f"（事件日）" if _sm.get("fed_event_today") else f"（无新Fed事件·沿用第{_sm.get('day_n')}天）"
+    fed["strength"] = _sm["strength"]
+    fed["direction"] = _sm["direction"]
+    fed["_state"] = _sm["state"]
+    fed["evidence"] = (f"【状态机·事件驱动】总闸={_sm['state']}{_day_tag}·据美联储事件(FEDFUNDS/决议)"
+                       f"，非单日行情噪声(治B2)。{_sm['footnote']}。上次事件={_sm.get('last_event')}")
+    fed["plain"] = (f"美联储姿态今天{_sm['state']}{_day_tag}——按'有Fed事件才翻、没事件就沿用'判，"
+                    f"不被国债利率一天涨跌牵着走 → 对你：总闸维持，不因单日行情调仓。")
+    fed["today_events"] = [f"总闸状态机={_sm['state']}{_day_tag}", _sm["footnote"]]
+    for L in links:
+        if "总闸" in str(L.get("node")):
+            L.update({"strength": fed["strength"], "direction": fed["direction"], "_state": fed["_state"],
+                      "evidence": fed["evidence"], "plain": fed["plain"], "today_events": fed["today_events"]})
 
     derived = build_derived(fed, strategy, capital, sector_link, macro_news_on=with_macro_news)
 
