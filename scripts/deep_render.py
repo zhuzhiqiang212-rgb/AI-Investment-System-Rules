@@ -63,14 +63,44 @@ def extract_pack(path: Path) -> dict[str, str]:
     deep_i = text.find("底层深挖")       # 生意/护城河/真数据 只在此之后抓
     upper_i = text.find("上层对比")
     moat_i = text.find("护城河", deep_i if deep_i > -1 else 0)  # 真数据数据段在护城河之后(跳过表头'底层深挖+真数据'里的'真数据')
+    # R5：跨字段标签切除(治MSTR/伊藤忠串字段)——任一段遇到别的字段标签词即截断，不串
+    _OTHER = ["一句话结论", "底层深挖", "上层对比", "对世界观", "对估值", "对组合",
+              "决策合理性", "决策把关", "综合：", "缺口", "来源（", "来源：", "拍板人",
+              "（WebSearch", "WebSearch"]
+    def _cut(s: str) -> str:
+        if not s:
+            return s
+        cut = len(s)
+        for lb in _OTHER:
+            k = s.find(lb)
+            if k > 0:
+                cut = min(cut, k)
+        s = s[:cut].strip(" ：:·、，。\n")
+        # R5：去尾部半截残词(切点前若留下句末标点后的短残词，如'…客户。财务'→'…客户。')
+        s = re.sub(r'([。！？；])[^。！？；]{1,6}$', r'\1', s)
+        return s.strip(" ：:·、，\n")
+
+    # R5 风险(退出条件)：段头锚定——只认专门"风险（…)"或独占一行"风险"，排除"风险最高/经营分散风险"词内命中
+    def _risk_section() -> str:
+        m = re.search(r'风险（[^）]*）', text) or re.search(r'(?:^|\n)风险(?=\n)', text)
+        if not m:
+            return ""     # 无专门风险段 → 退出条件缺(交由 render 标未完成)
+        start = m.end()
+        j = len(text)
+        for s in ("决策合理性", "决策把关", "组合维度", "缺口", "来源", "→ 综合", "拍板人"):
+            k = text.find(s, start)
+            if k > -1:
+                j = min(j, k)
+        return re.sub(r'\s*\n\s*', ' ', text[start:j].strip(" ：:·\n")).strip()
+
     return {
-        "一句话结论": grab("一句话结论", ["底层深挖", "上层对比"]),
-        "生意": grab("生意", ["护城河", "真数据", "上层对比"], frm=deep_i if deep_i > -1 else 0),
-        "护城河": grab("护城河", ["真数据", "上层对比", "风险"], frm=deep_i if deep_i > -1 else 0),
-        "真数据": grab("真数据", ["上层对比", "风险", "决策", "缺口", "来源"], frm=moat_i if moat_i > -1 else 0),
-        "对估值": grab("对估值", ["对组合", "风险", "决策"], frm=upper_i if upper_i > -1 else 0),
-        "风险": grab("风险", ["决策合理性", "决策把关", "缺口", "来源"], frm=upper_i if upper_i > -1 else 0),
-        "决策": grab("综合", ["缺口", "来源"]) or grab("决策合理性把关", ["缺口", "来源"]),
+        "一句话结论": _cut(grab("一句话结论", ["底层深挖", "上层对比"])),
+        "生意": _cut(grab("生意", ["护城河", "真数据", "上层对比"], frm=deep_i if deep_i > -1 else 0)),
+        "护城河": _cut(grab("护城河", ["真数据", "上层对比", "风险"], frm=deep_i if deep_i > -1 else 0)),
+        "真数据": _cut(grab("真数据", ["上层对比", "风险", "决策", "缺口", "来源"], frm=moat_i if moat_i > -1 else 0)),
+        "对估值": _cut(grab("对估值", ["对组合", "风险", "决策"], frm=upper_i if upper_i > -1 else 0)),
+        "风险": _cut(_risk_section()),
+        "决策": _cut(grab("综合", ["缺口", "来源"]) or grab("决策合理性把关", ["缺口", "来源"])),
     }
 
 # ── 动态数据 ──
@@ -164,7 +194,13 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
         def _clean(x): return _scrub_valuation_stance(_scrub_pack_prices(_clean_placeholder(esc(x))))
         biz = _clean(ex["生意"]); moat = _clean(ex["护城河"])
         data = _clean(ex["真数据"] or "判断包未含真数据段")
-        exit_c = _clean(ex["风险"] or "判断包未含退出条件/风险段")
+        # R5：无专门退出条件段 → 标"深研未完成·退出条件待补"，且动作降"初判·待补全"(缺不编)
+        exit_incomplete = not (ex.get("风险") or "").strip()
+        if exit_incomplete:
+            exit_c = '<span style="color:#c9a86a">深研未完成·退出条件待补（判断包无专门退出条件段·不编）</span>'
+            f["action"] = f'初判·待补全（退出条件缺）｜原动作 {f["action"]}'
+        else:
+            exit_c = _clean(ex["风险"])
         _mdate = re.search(r'(20\d{6})', pack.stem)
         as_of = (f"{_mdate.group(1)[:4]}-{_mdate.group(1)[4:6]}-{_mdate.group(1)[6:]}" if _mdate else "判断包未标日期")
         deep = (f'<div class="deep"><span class="k">深研·财报趋势（财报/数据 as_of {esc(as_of)}）</span>{data}'
@@ -172,7 +208,7 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                 f'<span class="k">护城河/竞争格局</span>{moat}</div>'
                 f'<div style="margin-top:5px"><span class="k">退出条件(看生意不看价·非价位)</span>{exit_c}</div>'
                 f'<div class="meta" style="color:#8fd6ff;font-size:12px;margin-top:4px">深研=判断包定性素材·as_of {esc(as_of)}（价位一律以本卡档案/决策条·当日production为准·R4）｜源：{esc(pack.name)}</div></div>')
-        pack_status = "OK"
+        pack_status = "OK" if not exit_incomplete else "退出条件待补"
     else:
         deep = '<div class="deep"><span class="k">深研·财报趋势</span><span style="color:#c9a86a">待建判断包（个股判断包_*.html 缺该只·不编）</span></div>'
         pack_status = "待建判断包"
@@ -329,12 +365,13 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     stocks = [h for h in holds if not str(h.get("symbol","")).startswith("CC.")]
     if only:
         stocks = [h for h in stocks if h.get("symbol") in only]
-    cards = []; stats = {"n": 0, "pack_ok": 0, "pack_wait": []}
+    cards = []; stats = {"n": 0, "pack_ok": 0, "pack_wait": [], "exit_todo": []}
     for h in stocks:
         card, ps = render_card(h["symbol"], h.get("name", h["symbol"]), dyn)
         cards.append(card); stats["n"] += 1
         if ps == "OK": stats["pack_ok"] += 1
-        else: stats["pack_wait"].append(h["symbol"])
+        elif ps == "退出条件待补": stats["pack_ok"] += 1; stats["exit_todo"].append(h["symbol"])   # 有包·仅退出条件缺
+        else: stats["pack_wait"].append(h["symbol"])                                              # 无判断包
     # R3 运行唯一性：run_id + 扫描快照时间戳(锚定 production·稳定→同快照重跑字节一致)
     scan_raw = str(dyn["prod"].get("generated_at") or "")
     scan_ts = scan_raw[:19]   # production 扫描时间戳(本次实时扫描·UTC)
@@ -393,7 +430,7 @@ def main() -> int:
     Path(out).write_text(htmltxt, encoding="utf-8")
     b = Path(out).read_bytes()
     print(f"wrote {out} · bytes={len(b)} · 乱码EFBFBD={b.count(b'\xef\xbf\xbd')}")
-    print(f"卡片 {stats['n']} 只 · 判断包OK {stats['pack_ok']} · 待建判断包 {stats['pack_wait']}")
+    print(f"卡片 {stats['n']} 只 · 判断包命中 {stats['pack_ok']} · 无判断包 {stats['pack_wait']} · 退出条件待补(动作降初判) {stats['exit_todo']}")
     return 0
 
 if __name__ == "__main__":
