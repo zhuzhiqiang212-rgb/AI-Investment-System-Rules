@@ -583,6 +583,108 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
                f'<span class="k">换不换</span>{_nd(pf.get("swap",""))}</p>')
     return '<div class="deep">' + "".join(out) + '</div>'
 
+# ══ 件一：每只卡收尾「今天你怎么办」四行人话(结论/为什么/什么价该动/什么信号变卦) ══
+# 估值算不出的原因(人话·不甩字段名)
+_NOVAL_WHY = {
+    "JP.6857": "这只是做芯片测试机的，生意大起大落（现在毛利64%是行情最好的时候），拿眼下的好光景去算它值多少钱，一定算高",
+    "US.SNDK": "这只做存储芯片，行业价格暴涨暴跌（毛利4个季度从22%冲到78%），拿现在的高点算价一定离谱",
+    "US.TSM": "这只是芯片代工，眼下毛利66%是景气最高点，按现在的赚钱速度算价会高估",
+    "JP.8001": "这是综合商社（一家公司下面几百个生意），公司不公布每块资产值多少，业内也不这么算",
+    "US.COIN": "这只是加密交易所，行情好时暴赚、行情差时巨亏（2022年亏了26亿美元），没有一个'正常年份'可参照",
+    "US.CRCL": "这只九成收入靠美元存款利息，美联储一降息收入就掉，利率一变估值就全变",
+}
+_ACT_LABEL = {"守": "守住核心·别追高别减", "等": "拿着别动·先别加", "加": "可以加一点", "减": "减一点"}
+
+def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> str:
+    valr = dyn.get("valr", {}).get(sym, {})
+    ccy = valr.get("currency", cur(sym))
+    low, high, mid = valr.get("reasonable_low"), valr.get("reasonable_high"), valr.get("target")
+    px = f.get("price")
+    act = str(f.get("action") or "")
+    base = next((v for k, v in _ACT_LABEL.items() if act.startswith(k)), None)
+    qual = str(f.get("quality") or "")
+    has_val = (low is not None and mid is not None)
+    # 1) 结论一句话(必带半句人话理由)
+    if not has_val:
+        concl = "算不清·只能守着看"
+        why_tail = "——因为算不出它该值多少钱，不知道贵还是便宜，就不主动加减"
+    elif base:
+        concl = base
+        why_tail = ""
+    else:
+        concl = "拿着别动·先别加"
+        why_tail = ""
+    reason_bits = []
+    if "①" in qual:
+        reason_bits.append("公司质地是最好那一档")
+    elif "②" in qual:
+        reason_bits.append("公司质地还行、但还在观察期")
+    if has_val and px is not None:
+        try:
+            if float(px) < float(low):
+                reason_bits.append(f"现价{ccy}{fnum(px)}比算出来的合理价下沿{ccy}{fnum(low)}还低，属于偏便宜")
+            elif float(px) > float(high):
+                pct = (float(px) / float(mid) - 1) * 100
+                reason_bits.append(f"现价{ccy}{fnum(px)}比合理价中间值{ccy}{fnum(mid)}高约{pct:.0f}%，属于偏贵")
+            else:
+                reason_bits.append(f"现价{ccy}{fnum(px)}落在合理价{ccy}{fnum(low)}~{ccy}{fnum(high)}区间里，不贵不便宜")
+        except Exception:
+            pass
+    line1 = f'<b style="color:#ffd479">{esc(concl)}</b>' + esc(why_tail) + ("（" + esc("；".join(reason_bits)) + "）" if reason_bits else "")
+    # 2) 为什么(一句人话·不甩"硬性=…+软性=…"机器串)
+    raw = str(f.get("reason") or "")
+    bits2 = []
+    if "符合方向" in raw or "硬性=符合" in raw:
+        bits2.append("它正好落在今天钱在流向的那条线上")
+    if "位置好" in raw:
+        bits2.append("股价位置不算追高（在均线上方但没冲太远）")
+    if "宽护城河" in raw or "护城河=宽" in raw:
+        bits2.append("生意有别人抢不走的东西（护城河宽）")
+    if "①" in qual:
+        bits2.append("账本记它是最好那一档")
+    elif "②" in qual:
+        bits2.append("账本记它还在观察期、没到最好那一档")
+    if not has_val:
+        bits2.append("但算不出它该值多少钱，所以不主动加减")
+    elif has_val and px is not None:
+        try:
+            bits2.append("价格现在" + ("偏便宜" if float(px) < float(low) else ("偏贵" if float(px) > float(high) else "不贵不便宜")))
+        except Exception:
+            pass
+    line2 = esc("；".join(bits2) + "。") if bits2 else esc(_zh_common(_scrub_valuation_stance(raw))) or "待接"
+    # 3) 什么价该动
+    if has_val:
+        line3 = (f'跌到 <b>{esc(ccy)}{esc(fnum(low))}</b> 以下可以考虑加一点（那是算出来的合理价下沿）；'
+                 f'涨过 <b>{esc(ccy)}{esc(fnum(high))}</b> 就偏贵、别追。中间值约 {esc(ccy)}{esc(fnum(mid))}。')
+        if px is not None:
+            line3 += f'　现在是 {esc(ccy)}{esc(fnum(px))}。'
+    else:
+        why = _NOVAL_WHY.get(sym, "这只的赚钱方式没法用常规办法算出一个可信的合理价")
+        line3 = f'<span style="color:#ffb454">这只算不出该值多少钱</span>——{esc(why)}。所以只能守着看、不主动加减；等它跌到明显便宜或基本面变坏再说。'
+    # 4) 什么信号才变卦(董事长盯得住的)
+    sig = None
+    if deep:
+        cats = deep.get("block7_catalysts") or []
+        risks = (deep.get("block8_risks") or {}).get("rows") or []
+        bits = []
+        if cats:
+            bits.append(str(cats[0]).split("：")[0].split("(")[0])
+        for r in risks[:2]:
+            s = str(r.get("signal") or "")
+            if s and "待接" not in s:
+                bits.append(s)
+        if bits:
+            sig = "；".join(bits[:2])
+    line4 = esc(sig) if sig else "下季财报的营收/利润明显不及预期，或出了直接冲击它主业的大新闻，就要重看。"
+    return ('<div class="card" style="background:#12261f;border-color:#4f9e7f;margin-top:8px">'
+            '<div class="hd"><b style="color:#7ee0a0">■ 今天你怎么办</b></div>'
+            f'<div style="font-size:13.5px;line-height:1.9">'
+            f'<div><b>1｜结论：</b>{line1}</div>'
+            f'<div><b>2｜为什么：</b>{line2}</div>'
+            f'<div><b>3｜什么价该动：</b>{line3}</div>'
+            f'<div><b>4｜什么信号才变卦：</b>{line4}</div>'
+            '</div></div>')
+
 def render_card(sym: str, name: str, dyn: dict) -> str:
     f = build_final(sym, name, dyn)                 # ← 唯一决策对象
     _orig_action = f["action"]                       # 存原始动作(深度卡覆盖退出条件时恢复·不误降初判)
@@ -657,7 +759,8 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                    + '　｜　' + _a(L5(_dt, "ruler-6"), "右栏⑥本只静态档案") + '</div>')
     return (f'<div class="card" id="stock-{esc(sym)}">{hd}{final_row}{deep}{dossier}'
             + corro_box(sym, "symbol") + chain_links
-            + f'<div class="you"><span class="k">今天对你(单一源)</span>{f["reason"]}</div></div>'), pack_status
+            + f'<div class="you"><span class="k">今天对你(单一源)</span>{f["reason"]}</div>'
+            + howto_block(sym, name, f, dyn, _deepcard) + '</div>'), pack_status
 
 # ── 第一部分·五层大环境（daily links·今日事件现渲；R10①每层落点到具体持仓） ──
 # R10①：层→风险因子(复用R9映射)→落点持仓(哪几只受影响·敞口现算·非泛泛)
@@ -796,8 +899,9 @@ def part0_diff(date: str, dyn: dict) -> str:
                           f'<div style="font-size:12.5px"><span class="k">依据链(可回溯到层)</span><ul style="margin:2px 0">{chain}</ul>'
                           f'<span class="k">选项</span>{opts}<br>'
                           f'<span class="k">到期默认处理</span>{esc(it.get("default_if_expired"))}<br>'
-                          f'<span class="k">拍板记录</span><b style="color:#ffd479">{esc(it.get("decision"))}</b>'
-                          f'（董事长填入 data/pdca/pending_decisions.json 的 decision → 次日自动进 PDCA 验证）</div></div>')
+                          f'<span class="k">您的拍板</span><b style="color:#ffd479">{esc(it.get("decision"))}</b>'
+                          f'　<span style="color:#7ee0a0">→ 回复我 <b>A</b> / <b>B</b> / <b>C</b> 即可</span>'
+                          f'（回了之后，明天的记分卡会自动验证这次拍板对不对）</div></div>')
     except Exception:
         pend_rows = '<div class="card"><span class="need">待拍板收件箱待接</span>（pending_decisions.json 缺）</div>'
     # 组装
@@ -1036,7 +1140,15 @@ def part4b_swap_engine(daily: dict, dyn: dict) -> str:
                     deltas.append(f'{esc(f)} {before:.1f}%→{after:.1f}%{arrow}')
             delta_txt = "；".join(deltas) if deltas else "该配对下各风险因子敞口基本不变（候选与A因子高度重叠）"
             # 多维比较(护城河/估值/方向/集中度)：A有真数据·候选定性(缺估值源不编)
-            moat_a = esc(str((next((h for h in holds if h.get("symbol") == asym), {}) or {}).get("moat", "") or "待接"))[:40]
+            # 件四①：禁止把 production 的内部字典原样打印进产品(曾泄露 {'status':'待理解岗打分',...})
+            _m = (next((h for h in holds if h.get("symbol") == asym), {}) or {}).get("moat")
+            if isinstance(_m, dict):
+                _g = _m.get("moat_grade") or _m.get("grade") or ""
+                moat_a = esc(str(_g)) if _g else "护城河评级待补（见该只持仓卡③护城河五维）"
+            elif _m:
+                moat_a = esc(str(_m))[:40]
+            else:
+                moat_a = "护城河评级待补（见该只持仓卡③护城河五维）"
             cmp_tbl = ('<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0">'
                        '<tr style="color:#8ea3b6"><th style="text-align:left;padding:4px 6px">维度</th>'
                        f'<th style="text-align:left;padding:4px 6px">持仓A：{esc(name_by.get(asym, aname))}</th>'
@@ -1210,9 +1322,19 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
     if daily:
         fed = next((l for l in (daily.get("links") or []) if "总闸" in str(l.get("node"))), {})
         fed_dir, fed_str = fed.get("direction", "待接"), fed.get("strength", "待接")
-    head = ('<h2>第七部分 · PDCA 复盘记分卡系统（昨判今验 · 累计打分 · 系统的魂）</h2>'
-            f'<div class="card">今天下手的底气(与总闸 final 同源)：<b>{esc(fed_str)}·{esc(fed_dir)}</b>'
-            '<div class="meta" style="color:#8ea3b6;font-size:12px">判对给尺加把握、判错改尺——每环带 预测/置信/验证指标/成败标准/自动记分；累计分见各环。</div></div>')
+    # 件四④：样本太少→加人话兜底，不裸露 0/9 吓人
+    try:
+        _days = len((rj(ROOT / "data" / "pdca" / "scorecards.json").get("history") or []))
+    except Exception:
+        _days = 0
+    _caveat = (f'<div class="card" style="background:#12261f;border-color:#4f9e7f">'
+               f'<b style="color:#7ee0a0">先看这句：</b>这套记分系统<b>才起步 {_days} 天</b>，样本太少，'
+               f'下面的“判对率”数字<b>现在别当真</b>——攒够几个月历史再看才有意义。'
+               f'现在它的用处是：把每天的判断记下来、以后能回头查，而不是拿来评价系统准不准。</div>') if _days < 30 else ""
+    head = ('<h2>第七部分 · 复盘记分卡（昨天judged的、今天验；系统的魂）</h2>'
+            + _caveat +
+            f'<div class="card">今天下手的底气（与第一部分总闸同一判断）：<b>{esc(fed_str)}·{esc(fed_dir)}</b>'
+            '<div class="meta" style="color:#8ea3b6;font-size:12px">判对了就给这把尺加把握、判错了就改尺。每环记：昨天怎么判的／今天验得怎样／累计几分。</div></div>')
     rows = []
     for r in rings:
         rid = r.get("ring_id")
@@ -1244,19 +1366,22 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
 
 # ── 第七部分·系统三件魂（总则第十四条：确定性累积表+多尺度复盘+影子组合反事实） ──
 def _spark(trend: list) -> str:
-    """迷你走势：把每日累积分画成 ▁▃▅▇ 高低块（缺则空）。"""
+    """件六③：把方块字符"图"改成一句人话（董事长看不懂 ▁▃▅▇）。"""
     if not trend:
-        return "（待接·从今日起累积）"
+        return "（还没有历史·从今日起攒）"
     cums = [t.get("cum", 0) for t in trend]
-    lo, hi = min(cums), max(cums)
-    blocks = "▁▂▃▄▅▆▇█"
-    def b(v):
-        if hi == lo:
-            return "▄"
-        return blocks[min(7, max(0, round((v - lo) / (hi - lo) * 7)))]
-    spark = "".join(b(c) for c in cums)
-    seq = "→".join(f'{("+" if t["score"]>0 else "")}{t["score"]}' for t in trend)
-    return f'{spark}　（{seq}）'
+    first, last = cums[0], cums[-1]
+    up = sum(1 for t in trend if (t.get("score") or 0) > 0)
+    down = sum(1 for t in trend if (t.get("score") or 0) < 0)
+    flat = len(trend) - up - down
+    if last > first:
+        trend_txt = "在往上攒"
+    elif last < first:
+        trend_txt = "在往下掉"
+    else:
+        trend_txt = "原地踏步"
+    return (f'这{len(trend)}天里：判对 {up} 天、判错 {down} 天、没变化 {flat} 天；'
+            f'累计分从 {first} 变成 {last}，{trend_txt}。')
 
 def part7_souls(date: str, daily: dict | None = None) -> str:
     out = ['<h3 style="margin-top:16px">第七部分·魂 —— 系统之魂三件（总则第十四条：确定性累积表 + 多尺度复盘 + 影子组合反事实记分）</h3>']
@@ -1446,8 +1571,10 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
         volumes[VOL2(date, sub)] = head + title + _vol_nav(date, 2) + body + "</body></html>"
         deep_total += len(picked)
     stats["deep_blocks"] = deep_total
+    # 件四①/件二/件五：全册统一清洗(内部结构泄露/裸字段名/内部话/草稿语)——只改措辞·判断口径不变
+    volumes = {k: _scrub_leaks(v) for k, v in volumes.items()}
     stats["volumes"] = volumes
-    return vol1, stats
+    return volumes[VOL(date, 1)], stats
 
 
 def _sub_nav(date: str, cur: str) -> str:
@@ -1459,6 +1586,47 @@ def _sub_nav(date: str, cur: str) -> str:
             + '　｜　'.join(bits)
             + '<div class="meta" style="color:#8ea3b6;font-size:11.5px">19只×10块按组合角色分3子册(每册<300KB·内容一字未删)；'
             '各册同一 run_id/data_date/快照戳；上游"落点持仓"按只直链到所属子册锚点。</div></div>')
+
+
+# 件四①：产品内不许出现程序内部结构/裸字段名(渲染后统一清洗·治信任击穿)
+_FIELD_ZH = {"normal_eps": "正常年景每股盈利", "pe_mid": "穿越周期的合理倍数",
+             "normalized_eps": "正常化每股盈利", "pe_normal": "正常化倍数",
+             "eps0": "明年每股盈利", "g_stage1": "头几年增速", "terminal_g": "之后的慢增速",
+             "wacc": "打折率", "bvps": "每股净资产", "target_pb": "目标市净率",
+             "ev_per_share": "每股内含价值", "ev_multiple": "内含价值倍数",
+             "holding_discount": "控股折价", "net_debt": "净负债", "shares": "股本",
+             "assets": "各资产估值", "ebitda_normal": "正常年景EBITDA", "ev_ebitda": "EV/EBITDA倍数"}
+_LEAK_PATS = [
+    # 程序内部字典原样打印(曾泄露 {'status':'待理解岗打分',...})
+    (re.compile(r"\{&#x27;[^}<]{0,200}?\}|\{&#x27;status&#x27;[^<]{0,160}|\{'[a-z_]+':[^}<]{0,200}\}"),
+     "评级待补（见该只持仓卡③护城河五维）"),
+    # 引擎"缺真输入：字段名+字段名（该用…）"整串→人话
+    (re.compile(r"缺真输入[：:][^（(<]{0,120}(（[^）]*）)?"), "算不出该值多少钱的原因见本卡「今天你怎么办」第3行"),
+    # 残留的"缺真输入/不硬编"内部话→人话(判断口径不变·只改措辞)
+    (re.compile(r"（估值引擎缺真输入·不硬编）"), "（算不出可信的合理价·原因见本卡「今天你怎么办」第3行）"),
+    (re.compile(r"缺真输入"), "缺可信的估值输入"),
+    (re.compile(r"·不硬编|・不硬编|不硬编"), "·不瞎编"),
+]
+def _scrub_fields(s: str) -> str:
+    """裸字段名→中文人话(括号里的字段名也去掉)。"""
+    for k, v in sorted(_FIELD_ZH.items(), key=lambda x: -len(x[0])):
+        s = re.sub(r"\(" + k + r"\)|（" + k + r"）", "", s)   # 人话标签后的(eps0)括号→删
+        s = re.sub(r"(?<![A-Za-z_])" + k + r"(?![A-Za-z_])", v, s)
+    return s
+def _scrub_leaks(html_txt: str) -> str:
+    for pat, rep in _LEAK_PATS:
+        html_txt = pat.sub(rep, html_txt)
+    html_txt = _scrub_fields(html_txt)
+    # 件二/件五：内部话与草稿语→人话/删(判断口径不变·只改措辞)
+    for a, b in (("【状态机·事件驱动】", "【判断依据】"), ("状态机", "判断规则"), ("事件驱动", "按事件才改"),
+                 ("对齐R2状态机·与第一部分同源", "与第一部分总闸同一判断"), ("(治B2)", ""), ("治B2", ""),
+                 ("翻闸", "翻转总判断"), ("边际注脚(仅参考·不翻闸)", "只作参考、不足以翻转大判断"),
+                 ("边际注脚", "参考项"), ("·基线)", "·维持原判断)"), ("无新Fed事件·沿用第", "美联储没出新动作·已连续第"),
+                 ("(事件日)", "（美联储今天有动作）"), ("敞口", "占比"), ("风险因子", "共同风险"),
+                 ("请你审这块", ""), ("请你审这版（改进版），回我", ""), ("请你审", ""), ("，回我", ""), ("回我", ""),
+                 ("待董事长审", ""), ("(待审)", ""), ("（待审）", "")):
+        html_txt = html_txt.replace(a, b)
+    return html_txt
 
 
 def _vol_nav(date: str, cur: int) -> str:

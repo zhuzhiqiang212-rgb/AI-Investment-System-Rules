@@ -45,16 +45,27 @@ SOURCE_WHITELIST = {
     "federal reserve": "美联储官方", "美联储": "美联储官方", "sec": "SEC官方",
     "u.s. department of the treasury": "美财政部官方", "white house": "白宫官方",
     "nvidia": "公司官方", "官方": "官方",
-    # 中文财经
+    # 中文主流财经(2026-07-16 放宽：原名单过窄→把登真新闻的大站全挡了·假报"今日无重大新闻")
     "caixin": "财新", "财新": "财新", "财新网": "财新",
     "华尔街见闻": "华尔街见闻", "wallstreetcn": "华尔街见闻",
     "第一财经": "第一财经", "yicai": "第一财经",
     "证券时报": "证券时报", "stcn": "证券时报",
+    "新浪财经": "新浪财经", "sina": "新浪财经",
+    "东方财富": "东方财富", "eastmoney": "东方财富",
+    "澎湃": "澎湃新闻", "thepaper": "澎湃新闻",
+    "界面": "界面新闻", "jiemian": "界面新闻",
 }
-# 明确剔除模式(大学/智库/博客/内容农场/零售App)
+# 明确剔除模式(大学活动页/智库博客/内容农场/零售App博客/论坛)——只挡这些，不挡大站
 SOURCE_BLOCK_PAT = re.compile(
     r"(university|college|\.edu|speaker series|think ?change|\bodi\b|institute|智库|"
-    r"eciks|pluang|blog|博客|medium\.com|substack|wiki|forum|reddit|论坛)", re.I)
+    r"eciks|pluang|medium\.com|substack|wiki|forum|reddit|论坛|贴吧)", re.I)
+
+# 重要性按【内容】判(不光按域名)：命中即属重大，白名单外的大站也不许剔到0
+IMPORTANT_PAT = re.compile(
+    r"(法案|参议院|众议院|国会|监管|新规|加息|降息|议息|美联储|央行|关税|制裁|出口管制|"
+    r"财报|业绩|指引|营收|净利|并购|收购|上市|IPO|代币化|稳定币|禁令|裁决|判决|"
+    r"act\b|senate|congress|regulat|tariff|sanction|earnings|guidance|merger|acquisition|"
+    r"rate (cut|hike)|fed\b|sec\b|ruling|ban\b|tokeniz)", re.I)
 
 # ② 时效：只取最近 N 小时内发布的新闻(旧闻不许挂"今天怎么了")
 MAX_AGE_HOURS = 36
@@ -179,9 +190,15 @@ def qualify_news(items: list[dict[str, Any]] | None, ring: str,
     ok, dropped = [], []
     for n in (items or []):
         tier = _src_tier(n.get("source_raw", ""))
+        blob0 = (n.get("title", "") + " " + n.get("summary", ""))
         if not tier:
-            dropped.append((n.get("title", "")[:40], f"源不在白名单/属剔除类：{n.get('source_raw','')}"))
-            continue
+            # 重要性按内容判(不光按域名)：明确重大新闻(法案/监管/议息/财报/关税…)且非剔除类源→救回
+            src_raw = n.get("source_raw", "")
+            if IMPORTANT_PAT.search(blob0) and not SOURCE_BLOCK_PAT.search(src_raw.lower()):
+                tier = (src_raw or "其他媒体").split(" - ")[0].strip()[:12]
+            else:
+                dropped.append((n.get("title", "")[:40], f"源不在白名单且内容非重大：{src_raw}"))
+                continue
         dt = n.get("pub_dt")
         if dt is None:
             dropped.append((n.get("title", "")[:40], "无发布日(pubDate缺)→不采信"))
