@@ -91,16 +91,30 @@ def _clean_placeholder(s: str) -> str:
     return re.sub(r'[（(]\s*见左栏[^）)]*[现算摘要][^）)]*[）)]', '（AI敞口见第三部分集中度现算）', s or "")
 
 def _scrub_pack_prices(s: str) -> str:
-    """R4：价格类字段只准来自当日 production。抹掉判断包里的现价/目标价/合理区/买卖价等【价位】提法
-    及加密裸价($64k类)，财报数字(营收/EPS/FCF·$B/亿/万亿)不动。治 A1/B4 旧价穿帮。"""
+    """R4返修：只抹【当前交易价】类字段(现价/股价/买入价/卖出价/止损价/低吸价 + 币种数字)——价位只从production。
+    绝不动财报数字(营收/EPS/FCF/利润/关税额·$B/亿/万亿)和分析师目标价叙述(历史研究·带as_of)。
+    治原抹除器把财报量级(营收/利润)误抹的回归；防呆:植入'现价约$99999'仍被抹(现价标签+数字)。"""
     if not s:
         return s
-    # 带价位标签的：现价/股价/目标价/合理区/买入价/止损价/低吸价 + 约≈ + 币种数字
-    s = re.sub(r'(现价|股价|目标价|合理区|公允值?|买入价|卖出价|止损价|低吸价)[^，。；、\s]{0,3}[约≈=]?\s*[¥$]?\s*[\d,]+\.?\d*\s*[kK万亿]?',
-               '（价位以本卡档案/决策条·当日production为准）', s)
-    # 加密/裸价 约$64k、约$1,559 这类"约+币种+数字+(k)"且非财报量级(后面不接 B/亿/万亿/%)
-    s = re.sub(r'[约≈]\s*[¥$]\s*[\d,]+\.?\d*\s*[kK]?(?![\s]*[B亿%万])',
-               '（价位以当日production为准）', s)
+    # 仅带【当前交易价标签】+ 币种数字 才抹(移除原过宽的目标价/合理区/公允值/约$N回溯逻辑)
+    return re.sub(r'(现价|股价|买入价|卖出价|止损价|低吸价)[^，。；、\s]{0,3}[约≈=]?\s*[¥$]\s*[\d,]+\.?\d*\s*[kK万亿]?',
+                  '（现价以本卡档案·当日production为准）', s)
+
+
+def _scrub_valuation_stance(s: str) -> str:
+    """R1补：深研只留定性素材，把估值定性词剥离(估值只在'决策条(单一源)'出现)——治软银深研'偏贵/高于公允值三成'与决策条打架。"""
+    if not s:
+        return s
+    # 多字估值短语(安全·优先)
+    s = re.sub(r'(现价)?[^，。；、]{0,6}(高于|低于)公允值[^，。；、]{0,8}', '（估值以决策条为准）', s)
+    for w in ("合理偏便宜", "偏贵", "偏便宜", "公允值", "估值偏高", "估值偏低"):
+        s = s.replace(w, "（估值见决策条）")
+    # 独立估值判断字'贵'/'便宜'(仅估值语境·避开 宝贵/昂贵/贵州/贵金属 等)
+    s = re.sub(r'(现价|价位|估值|它|该股)([^，。；、]{0,5})(贵|便宜)(?![州族重金])', r'\1\2（估值见决策条）', s)
+    s = re.sub(r'[（(]\s*(偏?贵|便宜|偏便宜)\s*[）)]', '（估值见决策条）', s)            # （贵）（便宜）（偏贵）
+    s = re.sub(r'(不|很|太|够|偏|更|挺|溢价[^，。；、]{0,8})(贵|便宜)(?![州族重金])', r'\1（估值见决策条）', s)  # 不便宜/很贵/溢价…贵
+    s = re.sub(r'(比|较)[^，。；、]{0,24}?(贵|便宜)(一大截|一截)?', '\\1（估值见决策条）', s)   # 比"净币值"贵一大截
+    s = s.replace("便宜有便宜的道理", "（估值见决策条）")
     return s
 
 def build_final(sym: str, name: str, dyn: dict) -> dict:
@@ -146,10 +160,11 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     pack = find_pack(sym, name)
     if pack:
         ex = extract_pack(pack)
-        # R4：价位一律抹除(只从production)，定性/财报保留；财报数字带 as_of=判断包日期
-        biz = _scrub_pack_prices(_clean_placeholder(esc(ex["生意"]))); moat = _scrub_pack_prices(_clean_placeholder(esc(ex["护城河"])))
-        data = _scrub_pack_prices(_clean_placeholder(esc(ex["真数据"] or "判断包未含真数据段")))
-        exit_c = _scrub_pack_prices(_clean_placeholder(esc(ex["风险"] or "判断包未含退出条件/风险段")))
+        # R4:只抹当前交易价(财报/研究目标价保留)；R1补:剥离估值定性词(估值只在决策条)
+        def _clean(x): return _scrub_valuation_stance(_scrub_pack_prices(_clean_placeholder(esc(x))))
+        biz = _clean(ex["生意"]); moat = _clean(ex["护城河"])
+        data = _clean(ex["真数据"] or "判断包未含真数据段")
+        exit_c = _clean(ex["风险"] or "判断包未含退出条件/风险段")
         _mdate = re.search(r'(20\d{6})', pack.stem)
         as_of = (f"{_mdate.group(1)[:4]}-{_mdate.group(1)[4:6]}-{_mdate.group(1)[6:]}" if _mdate else "判断包未标日期")
         deep = (f'<div class="deep"><span class="k">深研·财报趋势（财报/数据 as_of {esc(as_of)}）</span>{data}'
