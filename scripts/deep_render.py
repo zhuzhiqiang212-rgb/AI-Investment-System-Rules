@@ -65,11 +65,13 @@ def extract_pack(path: Path) -> dict[str, str]:
     moat_i = text.find("护城河", deep_i if deep_i > -1 else 0)  # 真数据数据段在护城河之后(跳过表头'底层深挖+真数据'里的'真数据')
     # R5：跨字段标签切除(治MSTR/伊藤忠串字段)——任一段遇到别的字段标签词即截断，不串
     _OTHER = ["一句话结论", "底层深挖", "上层对比", "对世界观", "对估值", "对组合",
-              "决策合理性", "决策把关", "综合：", "缺口", "来源（", "来源：", "拍板人",
-              "（WebSearch", "WebSearch"]
+              "决策合理性", "决策把关", "综合：", "缺口", "来源（", "来源：", "拍板人"]
     def _cut(s: str) -> str:
         if not s:
             return s
+        # WebSearch 来源括注:闭合的删括注(保留前后正文·治第一三共'（WebSearch·很新）'被误吞)；未闭合的删到尾(治微软'财务（WebSearch'截断)
+        s = re.sub(r'（WebSearch[^）]*）', '', s)
+        s = re.sub(r'（?WebSearch[^）]*$', '', s)
         cut = len(s)
         for lb in _OTHER:
             k = s.find(lb)
