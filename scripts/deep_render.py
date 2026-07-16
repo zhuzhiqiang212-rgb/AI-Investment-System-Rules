@@ -199,6 +199,25 @@ def fnum(v):
     except (TypeError, ValueError): return None
 
 # ── 单只持仓卡（R1:决策全引 final·深研只留定性素材） ──
+# R10③：深研英文样本(过程artifact/普通词)译中或去掉；专有名词/术语缩写(公司/产品/试验/法案/技术)保留不失真
+_EN_COMMON = [(r'WebSearch', ''), (r'[Cc]ap[Ee]x', '资本开支'), (r'record', '创纪录'),
+              (r'YTD', '年初至今'), (r'App', '应用'), (r'record-high', '创历史新高')]
+def _zh_common(s: str) -> str:
+    if not s:
+        return s
+    for tok, zh in _EN_COMMON:
+        s = re.sub(r'(?<![A-Za-z])' + tok + r'(?![A-Za-z])', zh, s)
+    s = re.sub(r'\s{2,}', ' ', s)
+    return s
+
+# R10②：账本①/②/③档 → 高/中/低把握(显式)
+def _conf_grade(f: dict) -> str:
+    q = str(f.get("quality", "")); c = str(f.get("confidence", ""))
+    if "①" in q or "①" in c: return "高把握"
+    if "③" in q or "③" in c: return "低把握"
+    if "②" in q or "②" in c: return "中把握"
+    return "把握待接"
+
 def render_card(sym: str, name: str, dyn: dict) -> str:
     f = build_final(sym, name, dyn)                 # ← 唯一决策对象
     ma = dyn["ma"].get(sym, {}); ht = dyn["ht"].get(sym, {}); c = cur(sym)
@@ -207,8 +226,8 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     pack = find_pack(sym, name)
     if pack:
         ex = extract_pack(pack)
-        # R4:只抹当前交易价(财报/研究目标价保留)；R1补:剥离估值定性词(估值只在决策条)
-        def _clean(x): return _scrub_valuation_stance(_scrub_pack_prices(_clean_placeholder(esc(x))))
+        # R4:只抹当前交易价(财报/研究目标价保留)；R1补:剥离估值定性词；R10③:英文普通词译中
+        def _clean(x): return _zh_common(_scrub_valuation_stance(_scrub_pack_prices(_clean_placeholder(esc(x)))))
         biz = _clean(ex["生意"]); moat = _clean(ex["护城河"])
         data = _clean(ex["真数据"] or "判断包未含真数据段")
         # R5：无专门退出条件段 → 标"深研未完成·退出条件待补"，且动作降"初判·待补全"(缺不编)
@@ -248,14 +267,53 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     hd = (f'<div class="hd"><b>{esc(name)}</b> <span class="sym">{esc(sym)}</span> '
           f'<span class="conf">动作：{f["action"]}</span> '
           f'<span class="q">账本：{f["quality"]}</span> <span class="v">估值：{f["valuation_short"]}（{f["valuation_grade"]}）</span></div>')
+    conf_grade = _conf_grade(f)   # R10②:账本档→高/中/低把握(显式)
     final_row = (f'<div class="dossier" style="background:#12203a;border-radius:6px;padding:6px 8px">'
                  f'<span class="k">决策(单一源)</span>'
-                 f'<b>动作</b>{f["action"]} ｜ <b>估值</b>{f["valuation"]} ｜ <b>账本</b>{f["quality"]} ｜ <b>把握</b>{f["confidence"]}</div>')
+                 f'<b>动作</b>{f["action"]} ｜ <b>估值</b>{f["valuation"]} ｜ <b>账本</b>{f["quality"]} '
+                 f'｜ <b>把握</b><span style="color:#ffd479;font-weight:700">{esc(conf_grade)}</span>（{f["confidence"]}）</div>')
     return (f'<div class="card">{hd}{final_row}{deep}{dossier}'
             f'<div class="you"><span class="k">今天对你(单一源)</span>{f["reason"]}</div></div>'), pack_status
 
-# ── 第一部分·五层大环境（daily links·今日事件现渲） ──
-def part1_layers(daily: dict) -> str:
+# ── 第一部分·五层大环境（daily links·今日事件现渲；R10①每层落点到具体持仓） ──
+# R10①：层→风险因子(复用R9映射)→落点持仓(哪几只受影响·敞口现算·非泛泛)
+_LAYER_FACTOR = [(("总命题", "世界", "地缘", "台海"), "台海地缘"),
+                 (("总闸", "美联储", "利率", "久期"), "高利率久期"),
+                 (("战略", "AI/", "AI("), "AI资本开支"),
+                 (("手段", "FIMA", "稳定币", "加密"), "加密β"),
+                 (("资金轮动",), "加密β"),
+                 (("板块", "半导体"), "半导体周期")]
+def _layer_factor(node: str) -> str | None:
+    for kws, fac in _LAYER_FACTOR:
+        if any(k in node for k in kws):
+            return fac
+    return None
+
+def _layer_impact(node: str, dyn: dict) -> str:
+    fac = _layer_factor(node)
+    if not fac:
+        return '<div class="meta" style="color:#8ea3b6;font-size:12px;margin-top:4px">对你·落点持仓：该层无对应风险因子映射（不编）</div>'
+    try:
+        rf = rj(ROOT / "data" / "valuation" / "risk_factors.json")
+        by_sym = rf.get("by_symbol", {}) or {}
+    except Exception:
+        return '<div class="meta" style="color:#8ea3b6;font-size:12px;margin-top:4px">对你·落点持仓：因子映射待接</div>'
+    holds = dyn["prod"].get("holdings", [])
+    name_by = {str(h.get("symbol")): str(h.get("name") or h.get("symbol")) for h in holds}
+    try:
+        cost = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
+        cbt = cost.get("by_ticker") or {}
+    except Exception:
+        cbt = {}
+    mv, total = _mv_usd_by_symbol(holds, cbt)
+    members = [s for s in by_sym if fac in by_sym[s] and s in name_by]
+    names = "、".join(esc(name_by[s]) for s in members) or "—"
+    expo = (sum(mv.get(s, 0.0) for s in members) / total * 100.0) if total > 0 else 0.0
+    return ('<div class="you" style="margin-top:5px;font-weight:400;color:#9ed8ff">'
+            f'<b style="color:#5cc8ff">对你·落点持仓（哪几只受影响）</b>：{names}'
+            f'<span style="color:#8ea3b6">（同属风险因子「{esc(fac)}」·合计敞口 {expo:.1f}%·见第三部分附）</span></div>')
+
+def part1_layers(daily: dict, dyn: dict) -> str:
     links = daily.get("links") or []
     rows = []
     for l in links:
@@ -263,10 +321,11 @@ def part1_layers(daily: dict) -> str:
         plain = l.get("plain") or l.get("today_plain") or ""
         rows.append(f'<div class="card"><div class="hd"><b>{esc(node)}</b> '
                     f'<span class="conf">力度 {esc(strg)} · 方向 {esc(dr)}</span></div>'
-                    f'<div class="you">{esc(plain) if plain else "今日事件待接（daily 无该层大白话·不编）"}</div></div>')
+                    f'<div class="you">{esc(plain) if plain else "今日事件待接（daily 无该层大白话·不编）"}</div>'
+                    + _layer_impact(node, dyn) + '</div>')
     if not rows:
         rows.append('<div class="card">五层数据待接（daily_{date}.json 无 links·不编）</div>')
-    return '<h2>第一部分 · 大环境今天怎么了（五层）</h2>' + "".join(rows)
+    return '<h2>第一部分 · 大环境今天怎么了（五层·每层落点到受影响持仓）</h2>' + "".join(rows)
 
 # ── 第一部分附·宏观判定表（尺模板+当日读数） ──
 def part1_macro_table(daily: dict) -> str:
@@ -282,6 +341,64 @@ def part1_macro_table(daily: dict) -> str:
             f'<div class="you" style="margin-top:6px">当日读数：{td}</div></div>')
 
 # ── 第三部分·集中度%（复用 full_product_render.portfolio_concentration 现算） ──
+# ── 第三部分附·R9 共同风险因子穿透（挂哪几只+合计敞口%·敞口由当日production市值现算·映射data驱动可联动） ──
+def _mv_usd_by_symbol(holdings: list, cost_by_ticker: dict | None) -> tuple[dict, float]:
+    """复用 fpr 折算:每只 market_value→统一美元;返回 {symbol:mv_usd} 与合计(分母)。缺市值不入分母。"""
+    import full_product_render as fpr
+    usdjpy, _ = fpr.resolve_usdjpy()
+    out = {}
+    for h in holdings:
+        sym = str(h.get("symbol") or "")
+        mv_usd, _note = fpr._mv_usd(h, usdjpy)
+        if mv_usd is None and fpr._is_crypto(sym):
+            mv_usd = fpr._crypto_mv_fallback(sym, cost_by_ticker)
+        if mv_usd is not None:
+            out[sym] = float(mv_usd)
+    return out, sum(out.values())
+
+def part3_risk_factors(dyn: dict) -> str:
+    """R9:共同风险因子穿透。每因子列成分股+合计敞口%(敞口=成分股当日折美元市值/全持仓合计)。
+    映射读 data/valuation/risk_factors.json(可迭代·改一只归属→本表数字联动变)。"""
+    try:
+        rf = rj(ROOT / "data" / "valuation" / "risk_factors.json")
+    except Exception as e:
+        return f'<div class="card">共同风险因子表·待接（映射缺：{esc(e)}）</div>'
+    by_sym = rf.get("by_symbol", {}) or {}
+    order = rf.get("factor_order") or sorted({f for v in by_sym.values() for f in v})
+    try:
+        cost = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
+        cbt = None
+        try:
+            import full_product_render as fpr
+            cbt = fpr.cost_by_ticker(cost) if hasattr(fpr, "cost_by_ticker") else (cost.get("by_ticker") or {})
+        except Exception:
+            cbt = cost.get("by_ticker") or {}
+    except Exception:
+        cbt = {}
+    holds = dyn["prod"].get("holdings", [])
+    name_by = {str(h.get("symbol")): str(h.get("name") or h.get("symbol")) for h in holds}
+    mv, total = _mv_usd_by_symbol(holds, cbt)
+    if total <= 0:
+        return '<div class="card">共同风险因子表·待接（分母市值合计=0·当日无可折算市值）</div>'
+    rows = []
+    for f in order:
+        members = [s for s, fs in by_sym.items() if f in fs and s in name_by]
+        expo = sum(mv.get(s, 0.0) for s in members)
+        pct = expo / total * 100.0
+        mem_txt = "、".join(f"{esc(name_by[s])}" + ("" if s in mv else "(市值缺·未计敞口)") for s in members) or "—"
+        rows.append(f'<tr><td style="padding:5px 8px;border-bottom:1px solid #24384c;font-weight:700;color:#ffd479">{esc(f)}</td>'
+                    f'<td style="padding:5px 8px;border-bottom:1px solid #24384c">{mem_txt}</td>'
+                    f'<td style="padding:5px 8px;border-bottom:1px solid #24384c;text-align:right;color:#7ee0a0">{pct:.1f}%</td></tr>')
+    tbl = ('<table style="width:100%;border-collapse:collapse;font-size:13px">'
+           '<tr style="color:#8ea3b6"><th style="text-align:left;padding:5px 8px">共同风险因子</th>'
+           '<th style="text-align:left;padding:5px 8px">挂着哪几只持仓</th>'
+           '<th style="text-align:right;padding:5px 8px">合计敞口%</th></tr>' + "".join(rows) + '</table>')
+    note = ('<div class="meta" style="color:#8ea3b6;font-size:12px;margin-top:6px">'
+            '敞口%=该因子成分股当日折美元市值合计÷全持仓合计（现算·非写死）；一只可挂多因子故各因子敞口相加可>100%。'
+            '归属映射见 data/valuation/risk_factors.json（可迭代·改一只因子归属→本表成分股与敞口数字联动变）。</div>')
+    return ('<h3 style="margin-top:14px">第三部分附 · 共同风险因子穿透（同一冲击会同时打到哪几只）</h3>'
+            '<div class="card">' + tbl + note + '</div>')
+
 def part3_concentration(date: str, dyn: dict) -> str:
     try:
         import full_product_render as fpr
@@ -293,9 +410,10 @@ def part3_concentration(date: str, dyn: dict) -> str:
             pct = v.get("pct"); lim = v.get("limit"); over = v.get("over"); short = v.get("short")
             flag = "⚠超上限" if over else ("⚠低于下限" if short else "在限内")
             rows.append(f'<div>· <b>{esc(k)}</b>：{pct:.1f}%（限 {lim}%）· {flag}</div>')
-        return '<h2>第三部分 · 仓位集中度（哪一类押太多了）</h2><div class="card">' + "".join(rows) + '</div>'
+        conc_html = '<h2>第三部分 · 仓位集中度（哪一类押太多了）</h2><div class="card">' + "".join(rows) + '</div>'
     except Exception as e:
-        return f'<h2>第三部分 · 仓位集中度</h2><div class="card">集中度现算失败·待接（{esc(e)}）</div>'
+        conc_html = f'<h2>第三部分 · 仓位集中度</h2><div class="card">集中度现算失败·待接（{esc(e)}）</div>'
+    return conc_html + part3_risk_factors(dyn)
 
 # ── 第四部分·机会池 6a(R6：候选现算+每候选带'节点+当日证据'·证据驱动) ──
 def _active_nodes(daily: dict) -> list[str]:
@@ -338,6 +456,104 @@ def part4_opportunity(daily: dict, dyn: dict) -> str:
             f'<div class="card">当日激活承接节点(证据源)：{esc("、".join(active) or "待接")}｜机会口径：{scope}'
             '<div class="meta" style="color:#8ea3b6;font-size:12px">候选是否进池由「节点是否在当日激活承接节点」现算·改当日证据→候选集变（6b替换引擎=P2）</div></div>')
     return head + "".join(rows)
+
+# ── 第四部分附·R6-6b 替换引擎（把6a候选升级为"换不换"决策：多维比较+为何不换/什么价换+换后集中度联动） ──
+def _resolve_sym(ticker: str, holds: list) -> str | None:
+    t = ticker.upper()
+    for h in holds:
+        s = str(h.get("symbol") or "")
+        if s.split(".")[-1].upper() == t:
+            return s
+    return None
+
+def part4b_swap_engine(daily: dict, dyn: dict) -> str:
+    try:
+        import full_product_render as fpr
+        wl = list(fpr.OPP_WATCHLIST)
+    except Exception:
+        wl = []
+    try:
+        rf = rj(ROOT / "data" / "valuation" / "risk_factors.json")
+        by_sym = rf.get("by_symbol", {}) or {}; cand_fac = rf.get("candidate_factors", {}) or {}
+    except Exception:
+        by_sym = {}; cand_fac = {}
+    holds = dyn["prod"].get("holdings", [])
+    name_by = {str(h.get("symbol")): str(h.get("name") or h.get("symbol")) for h in holds}
+    try:
+        cost = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json"); cbt = cost.get("by_ticker") or {}
+    except Exception:
+        cbt = {}
+    mv, total = _mv_usd_by_symbol(holds, cbt)
+    active = _active_nodes(daily)
+    def _expo(members):
+        return (sum(mv.get(s, 0.0) for s in members) / total * 100.0) if total > 0 else 0.0
+    cards = []
+    for c in wl:
+        cname = c.get("name", ""); node = c.get("node", ""); nk = _node_key(node)
+        is_active = nk in active
+        cfacs = cand_fac.get(cname, [])
+        for tk, aname in (c.get("swap") or []):
+            asym = _resolve_sym(tk, holds)
+            if not asym:
+                continue
+            fa = build_final(asym, name_by.get(asym, aname), dyn)
+            a_mvusd = mv.get(asym, 0.0)
+            a_pct = (a_mvusd / total * 100.0) if total > 0 else 0.0
+            a_facs = by_sym.get(asym, [])
+            # 换后:A的$额平移给候选 → 从A的因子里减掉a_mv、加到候选的因子里(总额不变)
+            moved = set(a_facs) | set(cfacs)
+            deltas = []
+            for f in sorted(moved):
+                members = [s for s in by_sym if f in by_sym[s] and s in name_by]
+                before = _expo(members)
+                after_mv = sum(mv.get(s, 0.0) for s in members)
+                if f in a_facs: after_mv -= a_mvusd     # A 退出该因子
+                if f in cfacs: after_mv += a_mvusd      # 候选进入该因子(承 A 的$)
+                after = (after_mv / total * 100.0) if total > 0 else 0.0
+                if abs(after - before) >= 0.05:
+                    arrow = "↑" if after > before else "↓"
+                    deltas.append(f'{esc(f)} {before:.1f}%→{after:.1f}%{arrow}')
+            delta_txt = "；".join(deltas) if deltas else "该配对下各风险因子敞口基本不变（候选与A因子高度重叠）"
+            # 多维比较(护城河/估值/方向/集中度)：A有真数据·候选定性(缺估值源不编)
+            moat_a = esc(str((next((h for h in holds if h.get("symbol") == asym), {}) or {}).get("moat", "") or "待接"))[:40]
+            cmp_tbl = ('<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0">'
+                       '<tr style="color:#8ea3b6"><th style="text-align:left;padding:4px 6px">维度</th>'
+                       f'<th style="text-align:left;padding:4px 6px">持仓A：{esc(name_by.get(asym, aname))}</th>'
+                       f'<th style="text-align:left;padding:4px 6px">候选：{esc(cname)}</th></tr>'
+                       f'<tr><td style="padding:4px 6px">护城河</td><td style="padding:4px 6px">{moat_a}</td>'
+                       f'<td style="padding:4px 6px">同赛道·候选未入判断包（护城河待接·不编）</td></tr>'
+                       f'<tr><td style="padding:4px 6px">估值</td><td style="padding:4px 6px">{f_esc(fa["valuation"])}</td>'
+                       f'<td style="padding:4px 6px">候选无估值源（待接·不编）</td></tr>'
+                       f'<tr><td style="padding:4px 6px">方向</td><td style="padding:4px 6px">{f_esc(fa["action"])}</td>'
+                       f'<td style="padding:4px 6px">节点「{esc(nk)}」{"今日激活" if is_active else "今日未激活"}</td></tr>'
+                       f'<tr><td style="padding:4px 6px">集中度</td><td style="padding:4px 6px">A当前占比 {a_pct:.1f}%</td>'
+                       f'<td style="padding:4px 6px">同额置换后候选承 {a_pct:.1f}%</td></tr></table>')
+            # 为什么现在不换/什么价换
+            if is_active:
+                why = (f'节点「{esc(nk)}」今日激活，方向上候选有承接逻辑；但<b>候选无估值源/未入判断包</b>，'
+                       f'不满足「同类更优且更便宜」硬条件 → <b>现在不换</b>（缺证据不编）。')
+                trigger = (f'什么价换：候选进入判断包并给出估值区间、且相对A出现明确折价（或A基本面/估值转弱触发退出条件）时，'
+                           f'再按「只换不加·同额置换」评估。')
+            else:
+                why = (f'节点「{esc(nk)}」今日<b>未激活</b>，承接逻辑不成立 → <b>现在不换</b>（当日证据不足·不编）。')
+                trigger = (f'什么价换：待其节点进入当日激活承接节点、且候选估值相对A折价成立时再议。')
+            cards.append('<div class="card">'
+                         f'<div class="hd"><b>替换评估：{esc(cname)} ⇄ {esc(name_by.get(asym, aname))}</b> '
+                         f'<span class="q">{"换不换：现在不换" }</span></div>'
+                         + cmp_tbl
+                         + f'<div class="you" style="font-weight:400">{why}</div>'
+                         + f'<div class="you" style="font-weight:400;color:#9ed8ff">{trigger}</div>'
+                         + f'<div class="you" style="margin-top:5px"><b style="color:#5cc8ff">换完后集中度/风险因子如何变（同额置换·现算）</b>：{delta_txt}</div>'
+                         '</div>')
+    if not cards:
+        cards.append('<div class="card">替换引擎·待接（OPP_WATCHLIST 无 swap 配对或分母市值缺）</div>')
+    head = ('<h3 style="margin-top:14px">第四部分附 · 替换引擎 6b（该不该"换"：候选 vs 同类持仓A 多维比较+换后集中度联动）</h3>'
+            '<div class="card" style="color:#8ea3b6;font-size:12px">每条给：①护城河/估值/方向/集中度多维比较；'
+            '②为什么现在不换、什么价换；③同额置换后集中度与风险因子敞口「换前→换后」现算（映射见 data/valuation/risk_factors.json·可迭代联动）。只换不加（AI已超配）。</div>')
+    return head + "".join(cards)
+
+def f_esc(x):
+    return esc(str(x))
 
 def part5_closeloop(daily: dict) -> str:
     der = daily.get("derived", {}) or {}
@@ -486,8 +702,8 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     oneline = esc(str(der.get("today_direction_short") or "今天：守核心、不追高、控AI集中"))
     banner = (f'<div class="card" style="background:#1c2740;border-color:#3a5a8a">'
               f'<span class="k">今天一句话</span><b style="font-size:15px">{oneline}</b></div>')
-    full = (title + banner + part1_layers(daily) + part1_macro_table(daily) + part2
-            + part3_concentration(date, dyn) + part4_opportunity(daily, dyn) + part5_closeloop(daily)
+    full = (title + banner + part1_layers(daily, dyn) + part1_macro_table(daily) + part2
+            + part3_concentration(date, dyn) + part4_opportunity(daily, dyn) + part4b_swap_engine(daily, dyn) + part5_closeloop(daily)
             + part6_rulers() + part7_pdca(date, daily))
     stats["ruler_embed"] = full.count('class="ruler-embed"')
     stats["deep_blocks"] = full.count('class="deep"')
