@@ -802,6 +802,92 @@ def part4b_swap_engine(daily: dict, dyn: dict) -> str:
 def f_esc(x):
     return esc(str(x))
 
+# ── 第四部分附·⑤机会池全市场五关漏斗(总则第十四条:候选宇宙→五关现算→三个池) ──
+_NODE_ALIAS = {"算力": ["算力"], "半导体设备": ["半导体设备", "设备"], "代工": ["代工"],
+               "存储": ["存储"], "盟友链": ["盟友链", "盟友"], "电力核电": ["电力核电", "电力", "核电"]}
+def _node_active(node: str, active: list) -> bool:
+    keys = _NODE_ALIAS.get(node, [node])
+    return any(k in a or a in k for a in active for k in keys)
+
+def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
+    active = _active_nodes(daily)
+    try:
+        uni = rj(ROOT / "data" / "valuation" / "candidate_universe.json").get("nodes", {}) or {}
+    except Exception as e:
+        return f'<h2>第四部分附 · 机会池全扫</h2><div class="card">候选宇宙待接（candidate_universe.json 缺：{esc(e)}）</div>'
+    # gate②数据源:复用当日 chain_opportunities 真均线扫描(过硬性关=站上MA)
+    ma_pass = {}
+    try:
+        ch = rj(ROOT / "data" / "opportunities" / f"chain_opportunities_{date}.json")
+        for c in ch.get("candidates", []) or []:
+            code = str(c.get("code") or "")
+            t = c.get("technical", {}) or {}
+            ma_pass[code] = {"price": t.get("latest_price"), "chg20": t.get("change_20d_pct"),
+                             "pass": "站上MA" in str(c.get("hit_reason", "")) or "站上" in str(c.get("hit_reason", ""))}
+    except Exception:
+        ma_pass = {}
+    # 逐候选跑五关(现算)
+    worth = []      # 值得看候选池(过硬性关·节点激活)
+    all_rows = []
+    seen = set()
+    for node, cands in uni.items():
+        for c in (cands or []):
+            nm = c.get("name", ""); tk = str(c.get("ticker") or "")
+            key = (node, nm)
+            if key in seen:
+                continue
+            seen.add(key)
+            g1 = _node_active(node, active)                       # ①硬性:节点激活
+            mp = ma_pass.get(tk)
+            g2 = ("过·站上均线" if (mp and mp.get("pass")) else ("待接·未在当日扫描" if mp is None else "卡·未站上均线"))
+            g3 = "待接·候选估值未接"                                  # ③估值(外部候选无估值源)
+            g4 = "待接·候选护城河未接"                                # ④护城河
+            g5 = "待接·候选未入判断包"                                # ⑤个股
+            # 过到第几关
+            if not g1:
+                stage = "卡在①硬性关（节点今日未激活）"
+            elif not (mp and mp.get("pass")):
+                stage = ("过①硬性·②起待接（未在当日均线扫描内）" if mp is None else "卡在②软性关（未站上均线）")
+            else:
+                stage = "过①②·③起待接（估值/护城河/个股需接真源）"
+            price_txt = (f"·现价{mp['price']}·20日{mp['chg20']:+.1f}%" if mp and mp.get("price") is not None else "")
+            row = {"node": node, "name": nm, "ticker": tk, "g1": g1, "g2": g2, "stage": stage, "price_txt": price_txt,
+                   "source": c.get("source", "")}
+            all_rows.append(row)
+            if g1:
+                worth.append(row)
+    # 过关分布统计
+    n_total = len(all_rows); n_g1 = sum(1 for r in all_rows if r["g1"])
+    n_g2 = sum(1 for r in all_rows if r["g1"] and "过·站上" in r["g2"])
+    # 池一:值得看候选池
+    wrows = ""
+    for r in worth:
+        cmp_tbl = ('<table class="dt" style="margin:4px 0"><tr style="color:#8ea3b6"><th>维度</th><th>候选</th></tr>'
+                   f'<tr><td>护城河</td><td>{esc(r["g4"] if "g4" in r else "待接·候选未入判断包")}</td></tr>'
+                   f'<tr><td>估值</td><td>待接·候选估值未接</td></tr>'
+                   f'<tr><td>方向</td><td>节点「{esc(r["node"])}」今日激活（gate①过）</td></tr>'
+                   f'<tr><td>换进来集中度变化</td><td>若换入→加到「{esc(r["node"])}」相关风险因子敞口(见第三部分附);AI簇已超配·只换不加</td></tr></table>')
+        wrows += (f'<div class="card"><div class="hd"><b>{esc(r["name"])}</b> <span class="sym">{esc(r["ticker"])}</span> '
+                  f'<span class="conf">节点：{esc(r["node"])}</span> <span class="q">{esc(r["stage"])}</span></div>'
+                  f'<div class="you" style="font-weight:400;font-size:12.5px">当日证据：节点「{esc(r["node"])}」在今日激活承接节点内{esc(r["price_txt"])}｜{esc(r["g2"])}｜来源：{esc(r["source"])}</div>'
+                  + cmp_tbl + '</div>')
+    if not wrows:
+        wrows = '<div class="card">今日无候选过硬性关（激活节点内候选均待接均线数据·不编）</div>'
+    # 池二:用户挑战池(结构·待董事长指定)
+    pool2 = ('<div class="blk">池② 用户挑战池（董事长想挑战/加看的标的·跑同样五关给结论）</div>'
+             '<div class="card"><span class="need">待董事长指定</span>——结构已留：董事长点名任一标的，即按同一五关漏斗(①硬性②软性③估值④护城河⑤个股)现算给"过到第几关/卡在哪关+结论"。（缺指定→不编）</div>')
+    # 池三:等好价标的池(好公司但贵·记便宜位到价提醒)
+    pool3 = ('<div class="blk">池③ 等好价标的池（好公司但估值贵·记下便宜位·到价提醒）</div>'
+             '<div class="card">结构已留：好公司但当前估值贵者入此池、记"便宜买入位"、到价提醒。'
+             '当前候选宇宙外部标的估值多为<span class="need">待接·候选估值未接</span>；持仓中估值偏贵者(如IBKR现价约37倍前瞻>正常化中枢$52.8)已在其个股卡⑤标注等更好点位。外部候选到价提醒待接入候选估值后启用。</div>')
+    scope = esc(str((daily.get("derived", {}) or {}).get("opportunity_scope", "待接")))
+    head = ('<h2>第四部分附 · ⑤机会池·全市场五关漏斗（候选宇宙→五关现算→三个池·总则第十四条）</h2>'
+            f'<div class="card">当日激活承接节点：<b>{esc("、".join(active) or "待接")}</b>｜候选宇宙 {n_total} 只(按节点·candidate_universe.json可迭代)｜'
+            f'过①硬性关(节点激活) <b>{n_g1}</b> 只｜过②软性关(站上均线) <b>{n_g2}</b> 只。'
+            f'<div class="meta" style="color:#8ea3b6;font-size:12px">五关=①硬性(节点激活)②软性(均线)③估值④护城河⑤个股；过关进"值得看候选池"。改当日激活节点→候选集变(守第六条动态)。gate②均线复用当日 chain_opportunities 真扫描·③④⑤缺真源标待接不编。｜机会口径：{scope}</div></div>')
+    return (head + f'<div class="blk">池① 值得看候选池（过①硬性关 {n_g1} 只·带节点+当日证据+多维对比）</div>'
+            + wrows + pool2 + pool3)
+
 def part5_closeloop(daily: dict) -> str:
     der = daily.get("derived", {}) or {}
     close = esc(str(der.get("today_direction_short") or der.get("today_direction", "待接")))
@@ -1051,7 +1137,8 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     banner = (f'<div class="card" style="background:#1c2740;border-color:#3a5a8a">'
               f'<span class="k">今天一句话</span><b style="font-size:15px">{oneline}</b></div>')
     full = (title + banner + part1_layers(daily, dyn) + part1_macro_table(daily) + part2
-            + part3_concentration(date, dyn) + part4_opportunity(daily, dyn) + part4b_swap_engine(daily, dyn) + part5_closeloop(daily)
+            + part3_concentration(date, dyn) + part4_opportunity(daily, dyn) + part4b_swap_engine(daily, dyn)
+            + part4_funnel(date, daily, dyn) + part5_closeloop(daily)
             + part6_rulers() + part7_pdca(date, daily))
     stats["ruler_embed"] = full.count('class="ruler-embed"')
     stats["deep_blocks"] = full.count('class="deep"')

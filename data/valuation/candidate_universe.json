@@ -1,0 +1,42 @@
+{
+  "_说明": "机会池候选宇宙(蓝图⑤·总则第十四条)。按承接节点列候选、每只标节点(数据驱动·可迭代·守总则第六条:只锚定义不锚死名单——本表是'定义级'候选池、进池由第四部分五关漏斗按当日激活节点现算)。gate②均线数据复用当日 chain_opportunities_{date}.json 的真扫描;gate③估值/④护城河/⑤个股缺真源标待接不编。",
+  "_填写人": "工程师建候选宇宙·2026-07-16·来源:节点龙头公开事实+当日chain扫描",
+  "_节点别名": "与 daily 激活承接节点对齐:算力/半导体设备/代工/存储/盟友链/电力核电",
+  "nodes": {
+    "算力": [
+      {"name": "AMD", "ticker": "US.AMD", "note": "AI GPU次供(MI系列)·英伟达之外主要通用GPU替代", "source": "公开事实"},
+      {"name": "Marvell", "ticker": "US.MRVL", "note": "定制AI ASIC+光/网络·博通直接同行", "source": "公开事实"},
+      {"name": "联电", "ticker": "US.UMC", "note": "成熟制程代工·当日chain扫描命中(算力节点)", "source": "chain_opportunities 2026-07-16"}
+    ],
+    "半导体设备": [
+      {"name": "东京电子", "ticker": "JP.8035", "note": "涂胶显影/刻蚀龙头·日设备三巨头", "source": "公开事实"},
+      {"name": "ASML", "ticker": "US.ASML", "note": "EUV光刻机独家·设备护城河最宽", "source": "公开事实"},
+      {"name": "应用材料", "ticker": "US.AMAT", "note": "沉积/刻蚀/离子注入综合设备龙头", "source": "公开事实"},
+      {"name": "拉姆研究", "ticker": "US.LRCX", "note": "刻蚀/沉积·存储设备强", "source": "公开事实"},
+      {"name": "科磊", "ticker": "US.KLAC", "note": "量测/检测龙头", "source": "公开事实"},
+      {"name": "斯库林集团", "ticker": "JP.7735", "note": "清洗设备·当日chain扫描命中", "source": "chain_opportunities 2026-07-16"},
+      {"name": "芝浦机电", "ticker": "JP.6590", "note": "当日chain扫描命中(半导体设备)", "source": "chain_opportunities 2026-07-16"},
+      {"name": "日本电子", "ticker": "JP.6951", "note": "电子显微/量测·当日chain扫描命中", "source": "chain_opportunities 2026-07-16"}
+    ],
+    "存储": [
+      {"name": "美光", "ticker": "US.MU", "note": "DRAM/NAND/HBM·美系存储唯一大厂", "source": "公开事实"},
+      {"name": "SK海力士", "ticker": "待接(OpenD无美股代码·韩股KS.000660)", "note": "HBM龙头·AI存储最直接受益", "source": "公开事实·代码待接"},
+      {"name": "三星电子", "ticker": "待接(韩股KS.005930)", "note": "存储综合龙头", "source": "公开事实·代码待接"},
+      {"name": "铠侠", "ticker": "JP.285A", "note": "NAND(闪迪JV伙伴Kioxia)", "source": "公开事实"}
+    ],
+    "代工": [
+      {"name": "联电", "ticker": "US.UMC", "note": "成熟制程代工·当日chain扫描命中", "source": "chain_opportunities 2026-07-16"},
+      {"name": "格芯", "ticker": "US.GFS", "note": "特色工艺代工", "source": "公开事实"},
+      {"name": "中芯国际", "ticker": "HK.00981", "note": "中国代工龙头(地缘/管制敞口)", "source": "公开事实"}
+    ],
+    "电力核电": [
+      {"name": "Vistra", "ticker": "US.VST", "note": "AI数据中心耗电承接·独立电力+核电", "source": "公开事实"},
+      {"name": "Constellation Energy", "ticker": "US.CEG", "note": "美最大核电运营·AI供电PPA", "source": "公开事实"},
+      {"name": "GE Vernova", "ticker": "US.GEV", "note": "电网/燃气/核电设备·AI电力主题", "source": "公开事实"},
+      {"name": "Cameco", "ticker": "US.CCJ", "note": "铀矿·核电燃料上游", "source": "公开事实"}
+    ],
+    "盟友链": [
+      {"name": "(定义级·盟友供应链)", "ticker": "待接", "note": "美盟友(日/台/韩)核心供应链标的·具体候选待理解岗按当日盟友链证据补·守第六条不锚死名单", "source": "待接"}
+    ]
+  }
+}
