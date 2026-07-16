@@ -307,6 +307,19 @@ def _val_sensitivity(sym: str):
                 rows.append((lbl, f"{cur_sym}{v:.0f}", f"{(v-base)/base*100:+.0f}%"))
             return {"model": "mid_cycle", "base": base, "rows": rows,
                     "inputs": {"normal_eps": ne, "pe_mid": pe}}
+        # 券商正常化PE法(如IBKR/COIN/CRCL):变正常化EPS±10%、正常化PE±2
+        nze, nzp = _f2(vi.get("normalized_eps")), _f2(vi.get("pe_normal"))
+        if nze is not None and nzp is not None:
+            base = nze * nzp
+            rows = []
+            for lbl, ee, pp in [(f"盈利更旺：正常化EPS {cur_sym}{nze:g}→{cur_sym}{nze*1.1:g}", nze * 1.1, nzp),
+                                (f"盈利转弱：正常化EPS {cur_sym}{nze:g}→{cur_sym}{nze*0.9:g}", nze * 0.9, nzp),
+                                (f"给估值更高：正常化PE {nzp:g}→{nzp+2:g}倍", nze, nzp + 2),
+                                (f"给估值更低：正常化PE {nzp:g}→{max(1,nzp-2):g}倍", nze, max(1, nzp - 2))]:
+                v = ee * pp
+                rows.append((lbl, f"{cur_sym}{v:.0f}", f"{(v-base)/base*100:+.0f}%"))
+            return {"model": "normalized_pe", "base": base, "rows": rows,
+                    "inputs": {"normalized_eps": nze, "pe_normal": nzp}}
         return None
     except Exception:
         return None
@@ -372,6 +385,8 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
             inval = (f'<div class="plain">本次引擎真输入(NAV净资产法)：持有资产合计 <b>{ip["assets_total"]:,.0f}</b>·净负债 <b>{ip["net_debt"]:,.0f}</b>·股本 <b>{ip["shares"]:g}</b>·控股折价 <b>{ip["discount"]:.0%}</b>（单位见判断包·如十亿円/十亿股）</div>')
         elif m == "pbv":
             inval = (f'<div class="plain">本次引擎真输入(保险PB法)：每股净资产 <b>{ccy}{ip["bvps"]:g}</b>·目标PB <b>{ip["target_pb"]:g}倍</b></div>')
+        elif m == "normalized_pe":
+            inval = (f'<div class="plain">本次引擎真输入(正常化PE法)：正常化EPS <b>{ccy}{ip["normalized_eps"]:g}</b>·正常化PE <b>{ip["pe_normal"]:g}倍</b></div>')
         else:
             inval = ''
         srows = "".join(f'<tr><td>{esc(lbl)}</td><td><b>{esc(mm)}</b></td><td>{esc(dd)}</td></tr>' for lbl, mm, dd in sens["rows"])

@@ -1,0 +1,86 @@
+{
+  "symbol": "US.COIN",
+  "name": "Coinbase",
+  "as_of": "2026-07-16",
+  "source_note": "②财报接Coinbase SEC 10-K/季度股东信(每数带as_of+来源)；⑤Coinbase盈利极端周期(加密牛熊)、无公开权威'正常化EPS'源→估值标待接不硬编、附透明穿越周期区间与市场参照;①③④⑥⑦⑧⑨⑩据SEC披露与权威公开信息补至基准深度。财年=日历年。USD。现价$166.42(OpenD 2026-07-16)。属加密簇(MSTR/COIN/CRCL·计入≤12%上限)。",
+  "block1_business": {
+    "intro": "Coinbase是'最合规的美国加密交易所'——两种赚钱方式、比例是全部故事:交易费(随行情大起大落)+订阅服务(相对稳)。",
+    "streams": [
+      {"block": "交易收入(交易费·周期性)", "what": "买卖加密的手续费(零售高费率为主·机构低费率增长快)", "size": "FY2025约59%净收入·牛市暴涨熊市崩塌"},
+      {"block": "订阅与服务(S&S·稳定增长引擎)", "what": "USDC利息收入(与Circle分成)、质押奖励、托管、Coinbase One订阅", "size": "FY2025约41%·$2.8B·+23%·牛市论点(经常性、少价格敏感)"},
+      {"block": "新腿(权重升)", "what": "衍生品(美国+国际经Deribit)、Base(以太坊L2)、机构prime/托管", "size": "管理层推S&S+衍生品+Base结构性降交易费依赖·方向增长但仍小"}
+    ],
+    "future_growth": "①加密市场周期(量=交易收入);②美国监管明朗(市场结构/稳定币立法·利合规在位者);③USDC增长(经S&S);④Base生态、衍生品/国际扩张。"
+  },
+  "block2_financials": {
+    "plain": "接Coinbase SEC 10-K+季度股东信(GAAP)。关键=极端周期:营收/盈利在加密冬天崩、牛市飙。带待接的是本轮无一手源的项(各年FCF·FY25 S&S细分)。",
+    "margin_label": "调整EBITDA(非GAAP)",
+    "metric_label": "订阅服务(S&S)营收",
+    "rows": [
+      {"fy": "FY2022 (截至2022-12·加密冬)", "revenue": "$3.19B", "yoy": "-60%", "gross_margin": "-$0.37B(调整EBITDA)", "net_income": "-$2.62B(GAAP亏)", "fcf": "待接", "metric": "S&S $0.79B·交易约$2.36B", "as_of": "Q4/FY2022股东信(2023-02-21)", "source": "Coinbase FY2022 10-K"},
+      {"fy": "FY2023 (截至2023-12·低谷)", "revenue": "$3.11B", "yoy": "-2.5%", "gross_margin": "+$1.0B(调整EBITDA)", "net_income": "+$0.095B(勉强盈)", "fcf": "待接", "metric": "S&S $1.41B(+78%·扛P&L)·交易$1.52B", "as_of": "FY2024 10-K", "source": "Coinbase 10-K"},
+      {"fy": "FY2024 (截至2024-12·牛市)", "revenue": "$6.56B", "yoy": "+111%", "gross_margin": "+$3.3B(调整EBITDA)", "net_income": "+$2.58B(峰值)", "fcf": "待接", "metric": "S&S $2.31B(+64%)·交易$3.99B·USDC利息$910M", "as_of": "FY2024 10-K", "source": "Coinbase FY2024 10-K"},
+      {"fy": "FY2025 (截至2025-12)", "revenue": "$7.18B", "yoy": "+9%", "gross_margin": "+$2.8B(调整EBITDA)", "net_income": "+$1.26B(降·opex+35%到约$5.75B+Q4约$718M自有加密未实现亏)", "fcf": "待接", "metric": "S&S $2.83B(+23%)·交易$4.06B·Coinbase One约1M订阅", "as_of": "FY2025 10-K+Q4'25股东信(2026-02-13)", "source": "Coinbase FY2025 10-K"}
+    ],
+    "readout": "极端周期一目了然:FY2022冬天营收-60%、亏$2.6B;FY2024牛市营收翻倍、赚$2.58B;FY2025营收+9%但GAAP净利降到$1.26B(opex+35%+Q4约$718M自有加密未实现亏)。诚实标注:各年FCF无一手源→待接;FY25 S&S细分(USDC/质押/托管)用FY24口径·FY25稳定币约$1.35B为分析师估。S&S是'稳'的一面·但USDC利息随利率降而降(见⑧)。"
+  },
+  "block3_moat": {
+    "rows": [
+      {"dim": "牌子/信任", "width": "宽", "why": "最知名、最合规的美国交易所;熬过FTX/Celsius崩盘无客户资金损失·丑闻中'避险流入'受益"},
+      {"dim": "监管合规", "width": "宽(美国)", "why": "上市披露+美牌照+银行级控制·真壁垒·限制离岸对手(币安)在美;也是成本/负担"},
+      {"dim": "规模/流动性", "width": "窄→中", "why": "美国深度流动性+prime·但全球币安远大·流动性可竞争、费率竞争"},
+      {"dim": "USDC经济", "width": "中·有条件", "why": "平台内USDC利息100%、平台外与Circle 50/50·结构性拿了约50%+ Circle储备收入·但依赖Circle合约(约2026-08续签)与利率"},
+      {"dim": "生态(Base L2)", "width": "窄/新兴", "why": "Base有真流量·但网络效应护城河早期未验证"}
+    ],
+    "score": "护城河 真实但窄~中且周期性——最强在美监管/品牌·最弱在定价权(费率压缩)与利率/合约依赖的USDC腿。"
+  },
+  "block4_rivals": {
+    "rows": [
+      {"rival": "币安(全球更大)", "how": "更大更便宜", "threat": "全球高·美国低", "why_safe": "监管约束+过往美执法限其美国足迹·Coinbase的本土保护"},
+      {"rival": "Kraken/Gemini等美交易所", "how": "费率/特定产品", "threat": "中", "why_safe": "更小·Coinbase靠规模/品牌/机构赢"},
+      {"rival": "Robinhood/PayPal/券商加密", "how": "低费零售加密", "threat": "中·升", "why_safe": "直接压零售费率——Coinbase靠S&S+Coinbase One订阅+机构+衍生品防守·非守高单笔费"},
+      {"rival": "稳定币竞争(USDT/银行稳定币)", "how": "威胁USDC经济", "threat": "升", "why_safe": "Circle重谈(2026-08)或重定Coinbase份额"}
+    ],
+    "oneliner": "美监管段可守·但面结构性费率压缩+稳定币/合约风险(其最高毛利S&S腿);盯混合费率与USDC。"
+  },
+  "block5_valuation": {
+    "method_plain": "Coinbase系交易所/券商类·系统用正常化PE。但盈利极端周期(加密牛熊)、GAAP TTM PE约58倍被周期扭曲(除以FY25低迷/含Q4大额未实现亏损的盈利)·非干净估值信号。",
+    "inputs": [
+      {"input": "正常化EPS", "plain": "穿越加密牛熊的常态每股盈利(须含熊年)"},
+      {"input": "正常化PE", "plain": "穿越周期的合理倍数"}
+    ],
+    "note": "无公开权威'正常化EPS'源→估值中枢/合理区标待接·不硬编。透明构造(供参考·非结论):全周期4年均(含2022深熊)净利约$0.33B→正常化EPS约$1.25(约130倍·贵);中周期3年均(去2022)约$1.31B→约$4.98 EPS(约34倍)。合理穿越周期倍数在两者间·答案全看牛熊加权——正是Coinbase抗拒单一正常化数的原因。诚实结论:无单一权威正常化EPS(待接);透明区间约$1.25~$5.00 EPS·现价已假设持续牛市周期。真实市场参照:现价$166.42(OpenD)、市值约$44B、52周$139~$445(约62%回撤显加密beta)。",
+    "market_pb_ref": true
+  },
+  "block6_scenarios": {
+    "rows": [
+      {"case": "好", "cls": "bull", "assume": "持续加密牛:高交易量+升费、USDC余额/市值增、利率支持、利美国加密立法、Base/衍生品放量、盈利回/超FY24峰值($2.5B+)", "value": "大幅上行·可重估向前高($300~450)", "prob": "约30%"},
+      {"case": "中", "cls": "base", "assume": "震荡区间加密、量归峰值下、S&S($2.8B)托底、适度opex纪律、Circle合约较差续签、盈利约$1~2B/年", "value": "大致区间震荡·现价到中度上行", "prob": "约40%"},
+      {"case": "坏", "cls": "bear", "assume": "加密冬天:量崩(FY22模板)、费率压缩、降息削USDC利息收入、Circle重谈压S&S、监管冲击、GAAP转亏(未实现加密marks放大)", "value": "急跌·历史上50%+回撤属常态", "prob": "约30%"}
+    ],
+    "readout": "极端离散:结果从重估前高到>50%回撤·压倒性由加密周期驱动。账本②趋势观察·把握中。所以'等'(观察加密周期与监管·不追高);按加密簇控仓、非独立券商估。"
+  },
+  "block7_catalysts": [
+    "加密市场周期(主导驱动·量=交易收入)",
+    "美监管明朗(加密市场结构/稳定币立法·利合规在位者)",
+    "USDC增长(市值轨迹·ATH约$75B驱动S&S)",
+    "Circle合约续签(约2026-08)——双刃:催化或风险按条款;摩根大通曾因此下调目标",
+    "Base生态变现、衍生品/国际扩张"
+  ],
+  "block8_risks": {
+    "rows": [
+      {"risk": "加密周期收入波动", "weight": "交易收入约59%净收入·单一冬天曾-66%(2022)", "signal": "BTC/ETH+总加密市值翻转、现货量降"},
+      {"risk": "监管(SEC/全球)", "weight": "执法、产品禁令(质押)、上币审查", "signal": "新SEC行动、不利立法"},
+      {"risk": "费率压缩", "weight": "零售费率长期降·Robinhood/PayPal/券商竞争", "signal": "季度信里混合费率下滑"},
+      {"risk": "USDC/利率依赖", "weight": "S&S约41%靠USDC利息(约$0.9~1.35B/年·系美债收益率)·降息直接削这'稳'收入", "signal": "美联储降息、USDC余额降、Circle续签变差"},
+      {"risk": "自有账簿加密marks", "weight": "Q4'25约$718M未实现亏·GAAP盈利与经营脱钩摆动", "signal": "加密价跌→即便经营尚可GAAP也亏"}
+    ]
+  },
+  "block9_decision_chain": "Coinbase=高beta加密周期bet → 账本②趋势观察·把握中、盈利极端周期(GAAP PE约58倍被扭曲、无可靠正常化EPS·待接) → 现价$166已假设持续牛市周期、52周$139~$445显加密beta → 先看加密周期→再看监管明朗→再看USDC/Circle续签→最后估值 → 所以今天动作='等'(观察·不追高)。什么才算'该走'：①加密结构性熊市、量与S&S双杀 ②监管强制拆分/禁核心产品 ③USDC经济被Circle重谈/稳定币竞争持续侵蚀。",
+  "block10_portfolio": {
+    "common_risks": "加密周期、利率(经USDC利息)、监管;高beta加密bet·非分散器",
+    "weight": "加密簇(MSTR/COIN/CRCL)成员·计入≤12%加密总敞口上限(具体%见第三部分集中度现算)",
+    "correlation": "MSTR/COIN/CRCL彼此高相关且同步加密周期——加COIN不在簇内分散风险;★COIN↔CRCL经USDC直接经济联动:二者分享USDC储备利息(Coinbase平台内100%、平台外50/50)·USDC/利率/Circle合约的冲击同时打二者·同持有=风险重复计",
+    "swap": "高beta加密卫星·非核心/防御;MSTR+COIN+CRCL合计须守≤12%加密簇上限·按簇管而非按只"
+  }
+}
