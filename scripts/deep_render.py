@@ -90,6 +90,19 @@ def _clean_placeholder(s: str) -> str:
     # 去判断包里未解析的现算占位符(B3②)，避免把"(见左栏仓位集中度摘要现算)"印进正文
     return re.sub(r'[（(]\s*见左栏[^）)]*[现算摘要][^）)]*[）)]', '（AI敞口见第三部分集中度现算）', s or "")
 
+def _scrub_pack_prices(s: str) -> str:
+    """R4：价格类字段只准来自当日 production。抹掉判断包里的现价/目标价/合理区/买卖价等【价位】提法
+    及加密裸价($64k类)，财报数字(营收/EPS/FCF·$B/亿/万亿)不动。治 A1/B4 旧价穿帮。"""
+    if not s:
+        return s
+    # 带价位标签的：现价/股价/目标价/合理区/买入价/止损价/低吸价 + 约≈ + 币种数字
+    s = re.sub(r'(现价|股价|目标价|合理区|公允值?|买入价|卖出价|止损价|低吸价)[^，。；、\s]{0,3}[约≈=]?\s*[¥$]?\s*[\d,]+\.?\d*\s*[kK万亿]?',
+               '（价位以本卡档案/决策条·当日production为准）', s)
+    # 加密/裸价 约$64k、约$1,559 这类"约+币种+数字+(k)"且非财报量级(后面不接 B/亿/万亿/%)
+    s = re.sub(r'[约≈]\s*[¥$]\s*[\d,]+\.?\d*\s*[kK]?(?![\s]*[B亿%万])',
+               '（价位以当日production为准）', s)
+    return s
+
 def build_final(sym: str, name: str, dyn: dict) -> dict:
     prod_h = next((h for h in dyn["prod"].get("holdings", []) if h.get("symbol") == sym), {})
     qg = prod_h.get("quality_gate", {}) or {}
@@ -133,14 +146,17 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     pack = find_pack(sym, name)
     if pack:
         ex = extract_pack(pack)
-        biz = _clean_placeholder(esc(ex["生意"])); moat = _clean_placeholder(esc(ex["护城河"]))
-        data = _clean_placeholder(esc(ex["真数据"] or "判断包未含真数据段"))
-        exit_c = _clean_placeholder(esc(ex["风险"] or "判断包未含退出条件/风险段"))
-        deep = (f'<div class="deep"><span class="k">深研·财报趋势</span>{data}'
+        # R4：价位一律抹除(只从production)，定性/财报保留；财报数字带 as_of=判断包日期
+        biz = _scrub_pack_prices(_clean_placeholder(esc(ex["生意"]))); moat = _scrub_pack_prices(_clean_placeholder(esc(ex["护城河"])))
+        data = _scrub_pack_prices(_clean_placeholder(esc(ex["真数据"] or "判断包未含真数据段")))
+        exit_c = _scrub_pack_prices(_clean_placeholder(esc(ex["风险"] or "判断包未含退出条件/风险段")))
+        _mdate = re.search(r'(20\d{6})', pack.stem)
+        as_of = (f"{_mdate.group(1)[:4]}-{_mdate.group(1)[4:6]}-{_mdate.group(1)[6:]}" if _mdate else "判断包未标日期")
+        deep = (f'<div class="deep"><span class="k">深研·财报趋势（财报/数据 as_of {esc(as_of)}）</span>{data}'
                 f'<div style="margin-top:5px"><span class="k">生意/增长点</span>{biz}'
                 f'<span class="k">护城河/竞争格局</span>{moat}</div>'
                 f'<div style="margin-top:5px"><span class="k">退出条件(看生意不看价·非价位)</span>{exit_c}</div>'
-                f'<div class="meta" style="color:#8fd6ff;font-size:12px;margin-top:4px">深研=判断包定性素材（估值/动作以本卡决策条为准·单一源）｜源：{esc(pack.name)}</div></div>')
+                f'<div class="meta" style="color:#8fd6ff;font-size:12px;margin-top:4px">深研=判断包定性素材·as_of {esc(as_of)}（价位一律以本卡档案/决策条·当日production为准·R4）｜源：{esc(pack.name)}</div></div>')
         pack_status = "OK"
     else:
         deep = '<div class="deep"><span class="k">深研·财报趋势</span><span style="color:#c9a86a">待建判断包（个股判断包_*.html 缺该只·不编）</span></div>'
