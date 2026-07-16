@@ -548,6 +548,102 @@ def _match(node, table, default):
             return val
     return default
 
+# ── 第零部分·差分优先页（今日变化页·只显与昨日不同者·D2/D3闭环入口） ──
+def _prev_date(date: str) -> str | None:
+    """找昨日(有真数据的最近前一日)：先试 date-1，再向前找 7 天内存在 production 的日子。"""
+    try:
+        d0 = datetime.strptime(date, "%Y%m%d")
+    except Exception:
+        return None
+    for k in range(1, 8):
+        d = (d0 - timedelta(days=k)).strftime("%Y%m%d")
+        if (ROOT / "data" / "reports" / f"production_{d}.json").exists():
+            return d
+    return None
+
+def part0_diff(date: str, dyn: dict) -> str:
+    prev = _prev_date(date)
+    if not prev:
+        return ('<h2>第零部分 · 今日变化页（差分优先）</h2><div class="card">'
+                '<span class="need">待接·无昨日数据</span>（7天内无更早 production·首日无从比·不编）</div>')
+    changes = []          # ①结论变了
+    # 1) 五层环变化
+    try:
+        d_prev = rj(ROOT / "data" / "evidence_chain" / f"daily_{prev}.json")
+        a = {l.get("node"): l for l in (d_prev.get("links") or [])}
+        b = {l.get("node"): l for l in (dyn["daily"].get("links") or [])}
+        for n, cur_l in b.items():
+            old = a.get(n, {})
+            if old and (old.get("strength") != cur_l.get("strength") or old.get("direction") != cur_l.get("direction")):
+                changes.append(f'<b>{esc(str(n))}</b>：{esc(str(old.get("strength")))}·{esc(str(old.get("direction")))} '
+                               f'<b style="color:#ffd479">→</b> {esc(str(cur_l.get("strength")))}·{esc(str(cur_l.get("direction")))}')
+    except Exception:
+        changes.append('<span class="need">五层环差分待接</span>（昨日 daily 缺）')
+    # 2) 持仓动作变化(引 final 单一源·R1)
+    act_ch = []
+    try:
+        p_prev = {h.get("symbol"): h for h in rj(ROOT / "data" / "reports" / f"production_{prev}.json").get("holdings", [])}
+        for h in dyn["prod"].get("holdings", []):
+            s = h.get("symbol")
+            if str(s).startswith("CC."):
+                continue
+            o = (p_prev.get(s) or {}).get("action")
+            c = h.get("action")
+            if o and c and o != c:
+                act_ch.append(f'<b>{esc(str(h.get("name")))}</b>：{esc(str(o))} → {esc(str(c))}')
+    except Exception:
+        act_ch.append('<span class="need">动作差分待接</span>')
+    # 3) 触发的阈值
+    thr = []
+    try:
+        import full_product_render as fpr
+        cost = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
+        conc = fpr.portfolio_concentration(dyn["prod"].get("holdings", []),
+                                           (cost.get("summary", {}) or {}).get("known_cash_usd"), {})
+        for k, v in (conc.get("categories", {}) or {}).items():
+            if v.get("over"):
+                thr.append(f'⚠ <b>{esc(k)}</b> {v["pct"]:.1f}% <b>超上限 {v["limit"]}%</b>（触发·见待拍板）')
+            elif v.get("short"):
+                thr.append(f'⚠ <b>{esc(k)}</b> {v["pct"]:.1f}% <b>低于下限 {v["limit"]}%</b>（触发·见待拍板）')
+    except Exception:
+        thr.append('<span class="need">阈值现算待接</span>')
+    # 4) 今日待拍板
+    pend_rows = ""
+    n_pend = 0
+    try:
+        pd_ = rj(ROOT / "data" / "pdca" / "pending_decisions.json")
+        n_pend = int(pd_.get("pending_count") or 0)
+        for it in pd_.get("items", []):
+            chain = "".join(f'<li>{esc(c)}</li>' for c in it.get("evidence_chain", []))
+            opts = "　".join(esc(o) for o in it.get("options", []))
+            pend_rows += (f'<div class="card" style="background:#1c2740;border-color:#3a5a8a">'
+                          f'<div class="hd"><b>[{esc(it.get("id"))}] {esc(it.get("proposal"))}</b> '
+                          f'<span class="q">{esc(it.get("status"))}</span></div>'
+                          f'<div style="font-size:12.5px"><span class="k">依据链(可回溯到层)</span><ul style="margin:2px 0">{chain}</ul>'
+                          f'<span class="k">选项</span>{opts}<br>'
+                          f'<span class="k">到期默认处理</span>{esc(it.get("default_if_expired"))}<br>'
+                          f'<span class="k">拍板记录</span><b style="color:#ffd479">{esc(it.get("decision"))}</b>'
+                          f'（董事长填入 data/pdca/pending_decisions.json 的 decision → 次日自动进 PDCA 验证）</div></div>')
+    except Exception:
+        pend_rows = '<div class="card"><span class="need">待拍板收件箱待接</span>（pending_decisions.json 缺）</div>'
+    # 组装
+    concl = ("".join(f'<div>· {c}</div>' for c in changes) if changes else '<div>· 五层环：无变化</div>')
+    acts = ("".join(f'<div>· {c}</div>' for c in act_ch) if act_ch else '<div>· 持仓动作：<b>全部未变</b>（19只动作与昨日一致）</div>')
+    quiet = (not changes) and (not act_ch)
+    head_note = ('<div class="card" style="background:#12261f;border-color:#4f9e7f"><b>今日无重大变化（守·维持）</b>'
+                 '——五层环与19只动作均与昨日一致；下方全量7层照旧，但今天不需要你逐张翻。</div>' if quiet else '')
+    return ('<h2>第零部分 · 今日变化页（差分优先：只显与昨日不同者）</h2>'
+            f'<div class="card">对比基准：<b>{esc(prev[:4])}-{esc(prev[4:6])}-{esc(prev[6:])}</b> → <b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>（真数据现算）'
+            f'｜今日待拍板 <b style="color:#ffd479">{n_pend}</b> 件'
+            '<div class="meta" style="color:#8ea3b6;font-size:12px">只显变化+触发阈值+待拍板；全量19卡与7层在下方照旧。缺昨日数据→标待接不编。</div></div>'
+            + head_note
+            + '<div class="blk">① 今天哪些结论变了</div>'
+            + f'<div class="card">{concl}{acts}</div>'
+            + '<div class="blk">② 触发了哪个阈值</div>'
+            + f'<div class="card">{"".join(f"<div>{x}</div>" for x in thr) if thr else "<div>· 无阈值触发</div>"}</div>'
+            + f'<div class="blk">③ 今日待拍板事项（{n_pend} 件·拍板收件箱）</div>'
+            + (pend_rows or '<div class="card">今日无待拍板事项</div>'))
+
 def part1_layers(daily: dict, dyn: dict) -> str:
     links = daily.get("links") or []
     rows = []
@@ -907,8 +1003,8 @@ def _ruler_body(fname: str) -> str:
 def part6_rulers() -> str:
     RULERS = [
         ("右栏① 世界观 · 完整底子", "右栏_完整世界观描述.html", True),
-        ("右栏② 国家战略地图 · 完整底子", "右栏_完整国家战略地图.html", False),
-        ("右栏②补 · 安全线／能源线（战略地图·同源）", "右栏_完整国家战略地图.html", False),
+        # 去重:②与②补原嵌同一文件→整块重复两份；安全/能源线已并入②文件内、只留一条(内容各留一份)
+        ("右栏② 国家战略地图 · 完整底子（含安全线／能源线完整地图）", "右栏_完整国家战略地图.html", False),
         ("右栏③ 资金流动完整机制", "右栏_资金流动完整机制.html", False),
         ("右栏④ 板块地图", "右栏_板块地图.html", False),
         ("右栏⑤ 过滤标准／筛选规则", "右栏_过滤标准筛选规则.html", False),
@@ -1136,7 +1232,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     oneline = esc(str(der.get("today_direction_short") or "今天：守核心、不追高、控AI集中"))
     banner = (f'<div class="card" style="background:#1c2740;border-color:#3a5a8a">'
               f'<span class="k">今天一句话</span><b style="font-size:15px">{oneline}</b></div>')
-    full = (title + banner + part1_layers(daily, dyn) + part1_macro_table(daily) + part2
+    full = (title + banner + part0_diff(date, dyn) + part1_layers(daily, dyn) + part1_macro_table(daily) + part2
             + part3_concentration(date, dyn) + part4_opportunity(daily, dyn) + part4b_swap_engine(daily, dyn)
             + part4_funnel(date, daily, dyn) + part5_closeloop(daily)
             + part6_rulers() + part7_pdca(date, daily))

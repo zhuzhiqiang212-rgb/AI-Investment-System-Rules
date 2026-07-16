@@ -188,10 +188,58 @@ def build_shadow_nav(date: str) -> dict:
     return prev
 
 
+# ── 拍板收件箱：阈值触发→结构化待拍板事项（依据链可回溯·拍板记录留存→次日PDCA验证） ──
+def build_pending_decisions(date: str) -> dict:
+    path = ROOT / "data" / "pdca" / "pending_decisions.json"
+    prev = rj(path) if path.exists() else {"items": []}
+    old = {i.get("id"): i for i in (prev.get("items") or [])}
+    import full_product_render as fpr
+    prod = rj(ROOT / "data" / "reports" / f"production_{date}.json")
+    cost = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
+    conc = fpr.portfolio_concentration(prod.get("holdings", []),
+                                       (cost.get("summary", {}) or {}).get("known_cash_usd"), {})
+    cats = conc.get("categories", {}) or {}
+    items = []
+    for cat, v in cats.items():
+        pct, lim = v.get("pct"), v.get("limit")
+        if v.get("over"):
+            pid = f"PD-{cat}-超上限"
+            items.append({
+                "id": pid, "date": date, "status": "待拍板",
+                "proposal": f"{cat}集中度 {pct:.1f}% 超 {lim}% 上限 → 是否减仓降敞口？",
+                "evidence_chain": [f"第三部分·集中度现算：{cat} {pct:.1f}% vs 上限 {lim}%（当日production市值折美元）",
+                                   "第三部分附·风险因子穿透：该类成分股与合计敞口",
+                                   "第四部分附·6b替换引擎：同额置换后集中度换前→换后现算",
+                                   "个股卡⑩组合视角：簇内质量相对弱者优先减"],
+                "options": ["A. 减至限内", "B. 维持不动（只换不加·不砍核心）", "C. 部分减（减半）"],
+                "default_if_expired": "无拍板→默认 B 维持（只换不加·不砍核心），次日重新提请",
+                "decision": old.get(pid, {}).get("decision", "待董事长填"),
+                "decided_at": old.get(pid, {}).get("decided_at"),
+            })
+        if v.get("short"):
+            pid = f"PD-{cat}-低于下限"
+            items.append({
+                "id": pid, "date": date, "status": "待拍板",
+                "proposal": f"{cat}集中度 {pct:.1f}% 低于 {lim}% 下限 → 是否加仓补到下限？",
+                "evidence_chain": [f"第三部分·集中度现算：{cat} {pct:.1f}% vs 下限 {lim}%",
+                                   "个股卡⑤估值：该类中是否有对中枢有折让者",
+                                   "个股卡⑩组合视角：该类分散AI风险的角色"],
+                "options": ["A. 加该类中估值有折让者补到下限", "B. 维持（等更好点位）", "C. 分批加"],
+                "default_if_expired": "无拍板→默认 B 维持（等更好点位），次日重新提请",
+                "decision": old.get(pid, {}).get("decision", "待董事长填"),
+                "decided_at": old.get(pid, {}).get("decided_at"),
+            })
+    return {"as_of": date, "generated_at": datetime.now(timezone.utc).isoformat(),
+            "source": "阈值由 第三部分集中度现算 触发·依据链可回溯到层；拍板记录(decision)由董事长填→次日PDCA验证",
+            "pending_count": sum(1 for i in items if i.get("decision") in (None, "", "待董事长填")),
+            "items": items,
+            "note": "到期默认处理=无拍板则按default_if_expired执行并次日重新提请；已拍板项(decision非待填)次日进PDCA验证。"}
+
+
 def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
-    ap = argparse.ArgumentParser(description="系统之魂构建器（pillar_score + shadow_nav）")
+    ap = argparse.ArgumentParser(description="系统之魂构建器（pillar_score + shadow_nav + pending_decisions）")
     ap.add_argument("--date", required=True)
     args = ap.parse_args()
     date = args.date
@@ -201,11 +249,14 @@ def main() -> int:
     wj(ROOT / "data" / "pdca" / "pillar_score.json", pillar)
     shadow = build_shadow_nav(date)
     wj(ROOT / "data" / "pdca" / "shadow_nav.json", shadow)
+    pend = build_pending_decisions(date)
+    wj(ROOT / "data" / "pdca" / "pending_decisions.json", pend)
     print(json.dumps({
         "pillar_pillars": len(pillar["pillars"]),
         "pillar_days": pillar["pillars"][0]["days_tracked"] if pillar["pillars"] else 0,
         "shadow_days": len(shadow["series"]),
-        "shadow_last": shadow["series"][-1],
+        "pending_count": pend["pending_count"],
+        "pending_ids": [i["id"] for i in pend["items"]],
     }, ensure_ascii=False))
     return 0
 
