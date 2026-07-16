@@ -1,0 +1,161 @@
+{
+  "_说明": "分类型估值引擎输入位(尺=右栏_估值方法学.html)。理解岗(Cowork)只填【真财务输入】——模型由引擎按标的类型【自动选】(security_classifier分类→类型→模型)，不再手工填 method。缺真输入→引擎标'待接真源·不硬编'。类型登记见 security_types.json(行业事实·可迭代)。BTC/ETH不在此(资产口径·不做企业估值)。",
+  "_填写人": "工程师去method(改自动选模型)·growth三只+软银NAV已真值·其余待理解岗填真输入 · 2026-07-14",
+  "holdings": {
+    "US.NVDA": {
+      "name": "英伟达",
+      "currency": "$",
+      "eps0": 8.5,
+      "g_stage1": 0.2,
+      "years": 5,
+      "terminal_g": 0.04,
+      "wacc": 0.11,
+      "note": "eps0=FY27 non-GAAP EPS $8.5(valuation实例·真)；一阶段增速20%(较近期+85%大幅保守)、永续4%、折现11%。大仓·AI核心。"
+    },
+    "US.MSFT": {
+      "name": "微软",
+      "currency": "$",
+      "eps0": 19.09,
+      "g_stage1": 0.12,
+      "years": 5,
+      "terminal_g": 0.035,
+      "wacc": 0.1,
+      "note": "eps0=FY27 EPS $19.09(valuation实例·真)；一阶段12%、永续3.5%、折现10%(稳健)。大仓·软件AI核心。"
+    },
+    "JP.4568": {
+      "name": "第一三共",
+      "currency": "¥",
+      "eps0": 165,
+      "g_stage1": 0.08,
+      "years": 5,
+      "terminal_g": 0.025,
+      "wacc": 0.09,
+      "note": "eps0=base forward EPS ¥165(valuation实例·真)；医药成长·一阶段8%(计入专利到期风险)、永续2.5%、折现9%。内在≈¥3300、与管线DCF估值实例吻合·可信度A。"
+    },
+    "JP.9984": {
+      "name": "软银集团",
+      "currency": "¥",
+      "assets": [
+        {
+          "name": "Arm持股(扣保证金贷款后)",
+          "value": 19150
+        },
+        {
+          "name": "其余资产合计(愿景基金/OpenAI/日本电信/现金等)",
+          "value": 29110
+        }
+      ],
+      "net_debt": 8210,
+      "shares": 5.7,
+      "holding_discount": 0,
+      "note": "单位=十亿円(assets/net_debt)、十亿股(shares)。来源:软银官方IR·FY2025Q4(截至2026-03-31)：持有资产¥48.26万亿、净负债¥8.21万亿、NAV¥40.06万亿=每股¥7,029(当日股价¥3,555·约49%折价)；Arm约¥19.15万亿(扣保证金贷款)。算得NAV/股≈¥7,026、与现有合理区¥7150吻合。控股折价取0(现价已含市场折价·把NAV/股当合理锚·保守)。注:6月官方NAV曾升至¥13,000/股(Arm/OpenAI大涨)、本处取更保守的3月官方值。可信度A·NAV。"
+    },
+    "JP.6857": {
+      "name": "爱德万测试",
+      "currency": "¥",
+      "normal_eps": null,
+      "pe_mid": null,
+      "ebitda_normal": null,
+      "ev_ebitda": null,
+      "net_debt": null,
+      "shares": null,
+      "note": "待理解岗填(半导体测试设备·周期股·不用峰值EPS)：正常年景EPS+中周期PE，或中周期EBITDA+EV/EBITDA倍数+净负债+股本。缺→待接。"
+    },
+    "US.SNDK": {
+      "name": "闪迪(SanDisk)",
+      "currency": "$",
+      "normal_eps": null,
+      "pe_mid": null,
+      "ebitda_normal": null,
+      "ev_ebitda": null,
+      "net_debt": null,
+      "shares": null,
+      "note": "待理解岗填(存储·强周期·不用峰值)：正常年景EPS+中周期PE，或中周期EBITDA一套。缺→待接。"
+    },
+    "US.TSM": {
+      "name": "台积电",
+      "currency": "$",
+      "normal_eps": null,
+      "pe_mid": null,
+      "ebitda_normal": null,
+      "ev_ebitda": null,
+      "net_debt": null,
+      "shares": null,
+      "note": "待理解岗填(代工·周期成长·不用峰值)：正常年景EPS+中周期PE，或中周期EBITDA一套。缺→待接。"
+    },
+    "JP.8766": {
+      "name": "东京海上",
+      "currency": "¥",
+      "bvps": null,
+      "target_pb": null,
+      "ev_per_share": null,
+      "ev_multiple": null,
+      "note": "待理解岗填(保险)：每股净资产bvps+目标PB，或内含价值/股ev_per_share+倍数。缺→待接。"
+    },
+    "US.AVGO": {
+      "name": "博通",
+      "currency": "$",
+      "eps0": 11.62,
+      "g_stage1": 0.2,
+      "years": 5,
+      "terminal_g": 0.04,
+      "wacc": 0.11,
+      "note": "成长股·两段式DCF。eps0=FY2026非GAAP共识EPS $11.62(股票分拆后·stockanalysis 41家分析师·2026-07)；一阶段20%(较近期AI营收+65~70%大幅保守)、永续4%、折现11%。AI定制芯片+网络+VMware软件。"
+    },
+    "US.META": {
+      "name": "Meta",
+      "currency": "$",
+      "eps0": 28.0,
+      "g_stage1": 0.12,
+      "years": 5,
+      "terminal_g": 0.04,
+      "wacc": 0.11,
+      "note": "成长股·两段式DCF。eps0=规范化约$28：FY2026 GAAP共识EPS $32.81(stockanalysis 2026-07)剔除Q1 2026约$8B一次性税项收益(约$3/股)→规范化约$29、保守取$28；一阶段12%(自+33%保守减速·计入AI资本开支折旧)、永续4%、折现11%(beta约1.2)。缺非GAAP共识单一权威源→用规范化GAAP并标口径。"
+    },
+    "JP.6758": {
+      "name": "索尼",
+      "currency": "¥",
+      "note": "待理解岗定方法(集团/分部加总?)+真输入。"
+    },
+    "JP.7974": {
+      "name": "任天堂",
+      "currency": "¥",
+      "note": "待理解岗定方法+真输入。"
+    },
+    "JP.7832": {
+      "name": "万代南梦宫",
+      "currency": "¥",
+      "note": "待理解岗定方法+真输入。"
+    },
+    "JP.7203": {
+      "name": "丰田",
+      "currency": "¥",
+      "note": "待理解岗定方法(周期/PB?)+真输入。"
+    },
+    "JP.8001": {
+      "name": "伊藤忠商事",
+      "currency": "¥",
+      "note": "待理解岗定方法(综合商社/NAV或PB?)+真输入。"
+    },
+    "US.IBKR": {
+      "name": "盈透证券",
+      "currency": "$",
+      "note": "待理解岗定方法+真输入。"
+    },
+    "US.MSTR": {
+      "name": "Strategy(MSTR)",
+      "currency": "$",
+      "note": "待理解岗定方法(实为BTC持有载体·或按持币NAV)+真输入。"
+    },
+    "US.COIN": {
+      "name": "Coinbase",
+      "currency": "$",
+      "note": "待理解岗定方法+真输入。"
+    },
+    "US.CRCL": {
+      "name": "Circle",
+      "currency": "$",
+      "note": "待理解岗定方法+真输入。"
+    }
+  }
+}

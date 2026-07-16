@@ -1,0 +1,87 @@
+{
+  "symbol": "US.AVGO",
+  "name": "博通",
+  "as_of": "2026-07-16",
+  "source_note": "②多年财报接博通官方新闻稿/SEC 8-K/10-K(每数带as_of+来源；标'待接·precise'的项本轮未核到官方精确值·不作权威)；⑤估值由估值引擎(growth_dcf·eps0=FY2026非GAAP共识$11.62)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据博通IR与权威公开信息补至基准深度。财年截止11月初；2024年7月做过10拆1、每股数已拆分调整。",
+  "block1_business": {
+    "intro": "博通是'AI算力的第二把铲子'——大厂嫌英伟达通用GPU贵，就找博通量身定制自己的AI专用芯片(XPU/ASIC)、再配上把芯片连起来的网络芯片；另加一块VMware企业软件当现金牛。两大块：",
+    "streams": [
+      {"block": "半导体解决方案", "what": "AI定制芯片(给谷歌/Meta/OpenAI/Anthropic等设计专用XPU)+AI网络(以太网交换Tomahawk/Jericho、光/SerDes)+传统半导体(宽带/无线/存储)", "size": "FY2025占58%($36.858B)·AI半导体$20B(+65%)是增长引擎"},
+      {"block": "基础设施软件", "what": "VMware(2023年约$86~88B收购·转订阅制VCF)+大型机/企业软件(CA/赛门铁克)", "size": "FY2025占42%($27.029B)·高毛利现金牛·+9%稳增"}
+    ],
+    "future_growth": "①AI定制芯片放量(Q3 FY2026指引AI半导体$16B·>200%同比)；②AI网络(以太网替代InfiniBand)；③新客户(OpenAI/Anthropic)专用芯片上量；④VMware订阅制续费。管理层重申FY2027 AI营收目标>$100B。"
+  },
+  "block2_financials": {
+    "plain": "均为博通官方新闻稿/8-K/10-K；营收GAAP与非GAAP同值。标'待接·precise'的是本轮未核到官方精确值的项、不作权威。2024年7月10拆1、每股数已拆调。",
+    "margin_label": "毛利率(非GAAP)",
+    "metric_label": "AI半导体营收",
+    "rows": [
+      {"fy": "FY2023 (截至2023-10-29)", "revenue": "$35.8B", "yoy": "+8%", "gross_margin": "约75%(precise待接)", "net_income": "$14.082B(GAAP)", "fcf": "$17.6B", "metric": "AI约$4.2B(待接)", "as_of": "FY2023 release(SEC 8-K)", "source": "博通FY2023新闻稿(净利经Macrotrends佐证)"},
+      {"fy": "FY2024 (截至2024-11-03)", "revenue": "$51.6B", "yoy": "+44%", "gross_margin": "约76.5%(precise待接)", "net_income": "$5.9B(GAAP·含VMware摊销)", "fcf": "约$19.4B(precise待接)", "metric": "AI约$12.2B(待接)", "as_of": "FY2024 release(2024-12)", "source": "博通FY2024新闻稿(PRNewswire)"},
+      {"fy": "FY2025 (截至2025-11-02)", "revenue": "$63.887B", "yoy": "+24%", "gross_margin": "78.6%(非GAAP)/67.8%(GAAP)", "net_income": "$23.126B(GAAP)/$33.728B(非GAAP)", "fcf": "$26.914B", "metric": "AI $20B(+65%)·半导体$36.9B(58%)/软件$27.0B(42%)", "as_of": "FY2025 release(2025-12)", "source": "博通FY2025新闻稿+10-K(SEC 8-K)"},
+      {"fy": "Q2 FY2026 (截至2026-05-03)", "revenue": "$22.187B(季)", "yoy": "+48%", "gross_margin": "77.1%(非GAAP)", "net_income": "$9.310B(GAAP·季)/$12.074B(非GAAP)", "fcf": "$10.262B(季·占营收46%)", "metric": "AI $10.8B(+143%)·半导体$15.0B(+79%)", "as_of": "Q2 FY2026(2026-06-03)", "source": "博通Q2 FY2026新闻稿(PRNewswire)"}
+    ],
+    "readout": "四年营收 $35.8B→$63.9B(+8%→+24%·VMware并入抬FY2024)，AI半导体是主引擎($4B→$20B、Q2单季+143%)，毛利率非GAAP约78%、自由现金流强(FY2025 $26.9B)。诚实标注：FY2023/24的精确毛利率、非GAAP净利、部分分部/AI拆分本轮无官方精确源→标待接；FY2024 GAAP净利$5.9B偏低系VMware收购摊销。"
+  },
+  "block3_moat": {
+    "rows": [
+      {"dim": "换掉它的代价", "width": "宽·最硬", "why": "定制XPU/ASIC与每个大厂多年共同开发、IP(SerDes/封装)深嵌；VMware/大型机软件是关键任务、重搬成本极高。前五客户约占FY2025营收40%、粘性设计出来的"},
+      {"dim": "规模", "width": "宽", "why": "$64B营收、约$27B自由现金流养研发，小ASIC对手比不了；规模化占用台积电先进制程与CoWoS封装产能"},
+      {"dim": "技术领先", "width": "宽(有收窄风险)", "why": "高速SerDes、AI以太网(Tomahawk/Jericho)、先进封装领先；Marvell是可信的老二"},
+      {"dim": "网络/生态", "width": "中→宽", "why": "VMware装机量+大厂关系强；但没有英伟达CUDA那种开发者生态飞轮"},
+      {"dim": "牌子", "width": "窄", "why": "对CIO/大厂的B2B口碑强，但非消费/开发者品牌护城河、靠能力竞争"}
+    ],
+    "score": "护城河 宽(靠换掉代价+规模+互连/封装技术领先)。主要变量是大厂自研与Marvell竞争、以及客户集中(见④⑧)。"
+  },
+  "block4_rivals": {
+    "rows": [
+      {"rival": "英伟达", "how": "通用GPU+CUDA", "threat": "高但相邻", "why_safe": "英伟达占通用GPU+CUDA；博通赢在大厂想要的'自己拥有的、按活定制、更便宜'专用XPU——更多互补而非正面；AI网络(以太网)与英伟达InfiniBand竞争"},
+      {"rival": "Marvell", "how": "定制ASIC+光/网络", "threat": "高(直接)", "why_safe": "唯一真正的定制芯片同行；博通靠更大规模、更强SerDes/封装IP、最大项目的在位优势守住"},
+      {"rival": "思科/Arista/英伟达(网络)", "how": "数据中心交换", "threat": "中", "why_safe": "博通商用芯片(Tomahawk/Jericho)装在很多交换机OEM里；AI以太网势头对它有利"},
+      {"rival": "大厂自研(谷歌TPU等)", "how": "内部造芯片", "threat": "中", "why_safe": "大厂可内包，但博通的设计IP+上市速度让它仍是首选伙伴——很多'自研'芯片背后正是博通"}
+    ],
+    "oneliner": "正面对手在细分层面威胁真(Marvell、英伟达网络)、但规模+IP使其结构上可守；真正要盯的是大厂自研与客户集中——盯AI半导体订单与大客户动向。"
+  },
+  "block5_valuation": {
+    "method_plain": "博通系成长股、用两段式EPS-DCF(把未来几年赚的钱按打折算回今天)。",
+    "inputs": [
+      {"input": "明年每股赚多少(eps0)", "plain": "FY2026非GAAP共识EPS(约$11.62·股票拆分后)"},
+      {"input": "头几年增速(g_stage1)", "plain": "取约20%·较近期AI营收+65~70%大幅保守"},
+      {"input": "快增长持续几年(years)", "plain": "AI定制芯片放量期"},
+      {"input": "之后的慢增速(terminal_g)", "plain": "成熟后回归约4%"},
+      {"input": "打折率(wacc)", "plain": "钱越贵未来的钱折得越狠·取约11%"}
+    ],
+    "note": "合理区/中枢取自估值引擎(与决策条同一源·R1)；下方敏感性由 two_stage_dcf 变一项现算。真实市场参照：AVGO约$394(stockanalysis 2026-07)、分析师目标约$524。eps0为FY2026非GAAP共识(41家·stockanalysis)。"
+  },
+  "block6_scenarios": {
+    "rows": [
+      {"case": "好", "cls": "bull", "assume": "AI营收达/超FY2026 $56B指引、朝FY2027 >$100B、新XPU客户(OpenAI/Anthropic)上量、毛利守78%+", "value": "EPS复合>25%·中枢上移(增速20%→更高见敏感性)·分析师目标约$524", "prob": "约30%"},
+      {"case": "中", "cls": "base", "assume": "AI高增但基数大后减速、VMware+9%稳、FY2026 EPS约$11.6兑现", "value": "合理区$296~$362(中枢$329)·随EPS增长", "prob": "约50%"},
+      {"case": "坏", "cls": "bear", "assume": "大厂AI资本开支消化/单一大客户内包或延单、半导体周期下行、毛利/估值压缩", "value": "增速降档→中枢下移(增速20%→更低见敏感性)", "prob": "约20%"}
+    ],
+    "readout": "现价约$394 vs 中枢$329→略高于DCF中枢(市场按更高增速定价)；分析师目标约$524偏乐观。质量是宽护城河复利机、但客户集中+估值不便宜→'守核心、不追高'。"
+  },
+  "block7_catalysts": [
+    "下次财报：Q3 FY2026约2026-09-03(季度截至约2026-08-02)",
+    "Q3 FY2026指引：营收约$29.4B(+84%)·AI半导体$16B(>200%同比)——最强催化",
+    "全年AI指引上调至约$56B(+约180%)、重申FY2027 AI营收>$100B目标",
+    "VMware订阅转化基本完成→盯续费/留存与软件+高个位数增长",
+    "新定制芯片客户(OpenAI/Anthropic)上量"
+  ],
+  "block8_risks": {
+    "rows": [
+      {"risk": "客户集中", "weight": "前五客户约占FY2025营收40%、分销商约48%；仅约6个核心定制AI芯片客户(FY2025 10-K)", "signal": "大厂capex指引下调/某客户宣布自研替代/AI半导体订单减速跌破指引"},
+      {"risk": "AI资本开支周期", "weight": "营收越来越押在少数大厂capex预算上", "signal": "云厂capex砍单、CoWoS订单softening"},
+      {"risk": "VMware执行/估值", "weight": "约$86B收购留大额债务", "signal": "续费阻力/软件增速转负"},
+      {"risk": "地缘/台海", "weight": "重度依赖台积电先进制程+CoWoS封装", "signal": "台海事件/对华出口管制加码"},
+      {"risk": "估值", "weight": "现价$394高于DCF中枢$329", "signal": "AI增长一旦失速、高倍数回杀"}
+    ]
+  },
+  "block9_decision_chain": "AI是国力主线、钱砸算力 → 定制芯片+AI网络是英伟达之外最干净的算力敞口 → 博通是这条线的核心供应商(六大云厂的定制伙伴) → 生意/护城河/账本最高档(①优质·高把握) → 但现价高于DCF中枢、客户集中度高 → 所以今天动作='守'(核心持有、不追高)，不加。什么才算'生意坏了要走'(只看生意)：①单一大客户内包替代博通、AI半导体订单持续下滑 ②Marvell在核心项目夺回定制芯片份额 ③AI资本开支周期长期逆转。价格贵只是'不追高'、非卖出理由。",
+  "block10_portfolio": {
+    "common_risks": "AI资本开支、半导体周期、台海地缘(台积电制程+CoWoS依赖)",
+    "weight": "AI硬件敞口的核心之一(具体%见第三部分集中度现算)",
+    "correlation": "与英伟达/台积电同属AI资本开支+半导体周期、同涨同跌；VMware软件给一点周期缓冲；你持博通正是押'大厂自研'这条对英伟达的对冲/补充线",
+    "swap": "AI定制芯片近乎不可替代的头部→基本不在换出名单；因客户集中+估值风险宜'控仓位'管、非满配"
+  }
+}

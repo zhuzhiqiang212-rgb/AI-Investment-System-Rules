@@ -1,0 +1,87 @@
+{
+  "symbol": "US.MSFT",
+  "name": "微软",
+  "as_of": "2026-07-16",
+  "source_note": "②多年财报接微软官方10-K/8-K/季报(SEC·每数带as_of+来源)；⑤估值由估值引擎(growth_dcf)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据微软官方IR与权威公开信息补至基准深度·判断人工不足处标待接不编。财报截止6/30；FY2026全年7/29财报未出→最新为FY26 Q3(截至2026-03-31)。",
+  "block1_business": {
+    "intro": "微软是'企业IT的水和电'——全世界公司办公(Office/Teams)、身份登录、云计算(Azure)都离不开它，AI又给它装了新引擎。钱从三大块来：",
+    "streams": [
+      {"block": "生产力与业务流程", "what": "Office/Microsoft 365、Copilot、Teams、领英、Dynamics(企业办公与协作·按年收订阅费)", "size": "约$35.0B/季·同比+17%——稳、Copilot抬人均收费"},
+      {"block": "智能云 Azure", "what": "公有云与AI算力底座、服务器产品、企业服务", "size": "约$34.7B/季·同比+30%(Q3 Azure+40%)——增长最快的引擎"},
+      {"block": "更个人计算", "what": "Windows、Xbox游戏、Surface、搜索广告", "size": "约$13.2B/季·同比-1%——成熟/走平的老本行"}
+    ],
+    "future_growth": "①Azure AI算力持续放量(Q3 Azure重回+40%、AI业务约$37B年化)；②Copilot把'卖一次软件'变成'按人头年年收租'、抬人均收费；③OpenAI合作把AI能力铺进全线产品；④企业把AI搬进自己的云。"
+  },
+  "block2_financials": {
+    "plain": "均为微软官方财报(SEC 10-K/8-K/季报)GAAP实际数(EPS为稀释后)；微软财年截止6月30日。带'待接'的是官方未单列或本轮未取到firm源的项，不瞎写。",
+    "margin_label": "营业利润率(GAAP)",
+    "metric_label": "Azure/云 增速",
+    "rows": [
+      {"fy": "FY2023 (截至2023-06-30)", "revenue": "$211.9B", "yoy": "+7%", "gross_margin": "41.8%(营业)", "net_income": "$72.4B", "fcf": "约$59.5B(firm单一源待接)", "metric": "Azure约+29%", "as_of": "10-K FY2023(2023-07)", "source": "微软10-K FY2023(SEC)"},
+      {"fy": "FY2024 (截至2024-06-30)", "revenue": "$245.1B", "yoy": "+16%", "gross_margin": "44.6%(营业)", "net_income": "$88.1B", "fcf": "$74.1B", "metric": "Azure约+30%", "as_of": "10-K FY2024(2024-07-30)", "source": "微软10-K FY2024(SEC)"},
+      {"fy": "FY2025 (截至2025-06-30)", "revenue": "$281.7B", "yoy": "+15%", "gross_margin": "约45.6%(营业)", "net_income": "$101.8B", "fcf": "$71.6B(capex拖累·-3.3%)", "metric": "Azure+34%(年化超$75B)", "as_of": "8-K/10-K(2025-07-30)", "source": "微软FY25 Q4&全年新闻稿+10-K(SEC 8-K)"},
+      {"fy": "FY2026 Q3 (截至2026-03-31)", "revenue": "$82.9B", "yoy": "+18%", "gross_margin": "营业利润率待接(本季未取firm)", "net_income": "GAAP稀释EPS $4.27(+23%)·净利firm待接", "fcf": "季度FCF待接", "metric": "Azure+40%(超指引)", "as_of": "FY26 Q3新闻稿(2026-04-29)", "source": "微软FY26 Q3财报(CNBC/Yahoo转载)"}
+    ],
+    "readout": "四年营收 $211.9B→$281.7B、稳步+7~16%，营业利润率约42%→46%、越赚越有效率；Azure是主引擎(Q3重回+40%)。诚实标注：FY23自由现金流无firm单一源、FY26 Q3营业利润率/净利/季度FCF本轮未取到firm源→标待接；FY26全年7月29日才出。近年自由现金流被AI资本开支(约$190B年化节奏)压住、需盯capex转化。"
+  },
+  "block3_moat": {
+    "rows": [
+      {"dim": "换掉它的代价", "width": "宽·最硬", "why": "M365/Azure/AD身份深嵌进企业流程，换掉等于把整套办公+登录+云重搬一遍、又贵又险，没人愿意"},
+      {"dim": "规模/成本", "width": "宽", "why": "超大规模数据中心+每年$80~190B资本开支，单位成本与产能优势极少对手能比"},
+      {"dim": "技术领先(偏AI)", "width": "宽", "why": "OpenAI合作+Copilot铺满全线；Azure AI重新加速(+40%)"},
+      {"dim": "网络效应", "width": "中", "why": "领英/Teams/GitHub/Windows生态有真实但非绝对的网络效应"},
+      {"dim": "牌子", "width": "宽", "why": "企业IT默认信任的供应商、CIO级信誉，采购闭眼选"}
+    ],
+    "score": "护城河 宽(第一梯队)。最硬是'企业换掉它的代价'；主要变量是AI资本开支能否转化成利润(见⑧)。"
+  },
+  "block4_rivals": {
+    "rows": [
+      {"rival": "亚马逊 AWS", "how": "云市场份额更大", "threat": "高", "why_safe": "AWS份额更大，但微软AI增长更快、企业捆绑(身份+办公+云)让Azure更粘"},
+      {"rival": "谷歌(云/Workspace/Gemini)", "how": "强AI模型+办公套件", "threat": "中高", "why_safe": "模型强，但企业销售体系弱、M365锁定深"},
+      {"rival": "Salesforce/ServiceNow等", "how": "单点SaaS", "threat": "中", "why_safe": "只做某一环，缺微软'身份+办公+云'一体化"},
+      {"rival": "OpenAI/Anthropic(作为独立方)", "how": "模型独立商业化", "threat": "中", "why_safe": "既是伙伴又是对手；微软用投资+自研模型两头对冲"}
+    ],
+    "oneliner": "真正的赛点是云+AI：AWS份额领先但微软AI跑得更快，企业级捆绑(身份/办公/云)是它守住的关键——盯Azure增速和Copilot付费渗透。"
+  },
+  "block5_valuation": {
+    "method_plain": "把微软未来几年能赚的钱按'钱有时间价值'折回今天加总(现金流折现·DCF)。微软是成长股、用两段式EPS-DCF。",
+    "inputs": [
+      {"input": "明年每股赚多少(eps0)", "plain": "下一财年EPS(约$19、含非GAAP口径)"},
+      {"input": "头几年增速(g_stage1)", "plain": "取约12%·比近年+15~16%实际保守"},
+      {"input": "快增长持续几年(years)", "plain": "云+AI放量期"},
+      {"input": "之后的慢增速(terminal_g)", "plain": "成熟后回归约3.5%"},
+      {"input": "打折率(wacc)", "plain": "钱越贵(利率越高)、未来的钱折得越狠·微软低beta约取10%"}
+    ],
+    "note": "合理区/中枢取自估值引擎(与决策条同一源·R1)；下方敏感性由 two_stage_dcf 变一项现算。eps0为下年预期(含非GAAP·较GAAP高)。"
+  },
+  "block6_scenarios": {
+    "rows": [
+      {"case": "好", "cls": "bull", "assume": "Azure持续35~40%+、Copilot付费复利、capex转成利润", "value": "增速升档→中枢上移(增速12%→更高见敏感性)", "prob": "约25%"},
+      {"case": "中", "cls": "base", "assume": "Azure渐降到约30%、云+AI带动低两位数EPS增长、capex压近期现金流", "value": "合理区$390~$477(中枢$433)", "prob": "约55%"},
+      {"case": "坏", "cls": "bear", "assume": "AI资本开支过建+需求空档、现金流承压、Azure降到20%多、利润率下滑", "value": "增速降档→中枢下移(增速12%→更低见敏感性)", "prob": "约20%"}
+    ],
+    "readout": "现价对应约20倍前瞻PE、大致合理。上行看Azure/Copilot持续超预期，下行看capex吞现金流+云减速——所以'①优质但估值不便宜→等更好点位、不急加'。"
+  },
+  "block7_catalysts": [
+    "下次财报：2026-07-29(FY2026 Q4+全年·盘后)——微软官方IR已确认",
+    "Copilot企业席位付费渗透、Azure AI产能扩充、消费型计价切换",
+    "资本开支轨迹(约$190B年化节奏)——决定自由现金流与利润率的最大摆动项",
+    "监管：欧盟/英国/FTC 云捆绑与反垄断审查、OpenAI关系结构"
+  ],
+  "block8_risks": {
+    "rows": [
+      {"risk": "AI资本开支过建", "weight": "FY26约$40B/季、约$190B年化(press口径·待7/29确认)；FY25自由现金流已-3.3%", "signal": "自由现金流持续同比下滑 + Azure降到约30%以下"},
+      {"risk": "Azure减速", "weight": "云是最快引擎、一旦减速估值承压", "signal": "增速印在指引区间以下"},
+      {"risk": "折旧压毛利", "weight": "GPU/数据中心大建→折旧上升", "signal": "营业利润率跌破约44%"},
+      {"risk": "监管/反垄断", "weight": "云捆绑与OpenAI关系被审查", "signal": "出现正式的捆绑整改令"},
+      {"risk": "估值", "weight": "约20倍前瞻PE·非便宜", "signal": "EPS增速滑到个位数"}
+    ]
+  },
+  "block9_decision_chain": "AI是国力主线、钱砸算力 → 云+AI是主战场 → 微软是'AI基础设施'最核心的花钱方与受益方之一 → 生意/护城河/账本全是最高档(①优质·高把握) → 但估值约20倍前瞻PE不便宜、且AI资本开支正吞现金流 → 所以今天动作='等'(优质但不急加、等更好点位)，不是'守核心不动'那类、更不是砍。什么才算'生意坏了要走'(只看生意)：①Azure持续减速跌破约30% ②AI资本开支长期无法转化成利润、自由现金流持续恶化 ③企业级护城河(身份/办公捆绑)被绕开。",
+  "block10_portfolio": {
+    "common_risks": "AI资本开支(它是最大花钱方之一)、利率(长久期成长股·多头估值敏感)",
+    "weight": "你的大仓之一、AI敞口里的软件侧核心(具体%见第三部分集中度现算)",
+    "correlation": "与英伟达/博通同属AI资本开支因子、方向相关但不如硬件链同涨同跌那么紧；低beta约0.9、比纯成长股稳",
+    "swap": "软件AI核心、几乎不在换出名单；要腾AI额度优先动质量更弱的仓，不动微软"
+  }
+}

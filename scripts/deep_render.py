@@ -234,25 +234,67 @@ def _nd(s) -> str:
     """待接标橙(不编)。内容为已核准/已接真源的可信HTML片段·原样渲染。"""
     return str(s).replace("待接", '<span class="need">待接</span>')
 
+def _f2(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
 def _val_sensitivity(sym: str):
-    """成长股DCF敏感性：变增长±10pp、折现±2pp·其余不变→中枢怎么变(复用two_stage_dcf现算)。非成长股返回None。"""
+    """估值敏感性(现算·变一项其余不变→中枢怎么变)。
+    成长股(growth_dcf)：增长±10pp、折现±2pp(复用two_stage_dcf)。
+    周期股(mid_cycle)：正常盈利±10%、中周期PE±2(中枢=正常EPS×中周期PE)。
+    缺真输入/不支持→None。"""
     try:
         vi = rj(ROOT / "data" / "valuation" / "val_inputs.json").get("holdings", {}).get(sym, {})
-        from dcf_valuation import two_stage_dcf
+        cur_sym = cur(sym)
+        # 成长股两段式DCF
         e, g, y = vi.get("eps0"), vi.get("g_stage1"), vi.get("years")
         tg, w = vi.get("terminal_g"), vi.get("wacc")
-        if None in (e, g, y, tg, w):
-            return None
-        y = int(y); base = two_stage_dcf(e, g, y, tg, w)
-        rows = []
-        for lbl, gg, ww in [(f"AI更猛：增速 {g:.0%}→{g+0.10:.0%}", g + 0.10, w),
-                            (f"AI降温：增速 {g:.0%}→{g-0.10:.0%}", g - 0.10, w),
-                            (f"利率再涨：折现 {w:.0%}→{w+0.02:.0%}", g, w + 0.02),
-                            (f"利率回落：折现 {w:.0%}→{w-0.02:.0%}", g, w - 0.02)]:
-            v = two_stage_dcf(e, gg, y, tg, ww)
-            rows.append((lbl, f"${v:.0f}", f"{(v-base)/base*100:+.0f}%"))
-        return {"base": base, "rows": rows,
-                "inputs": {"eps0": e, "g": g, "years": y, "tg": tg, "wacc": w}}
+        if None not in (e, g, y, tg, w):
+            from dcf_valuation import two_stage_dcf
+            y = int(y); base = two_stage_dcf(e, g, y, tg, w)
+            rows = []
+            for lbl, gg, ww in [(f"更猛：增速 {g:.0%}→{g+0.10:.0%}", g + 0.10, w),
+                                (f"降温：增速 {g:.0%}→{g-0.10:.0%}", g - 0.10, w),
+                                (f"利率再涨：折现 {w:.0%}→{w+0.02:.0%}", g, w + 0.02),
+                                (f"利率回落：折现 {w:.0%}→{w-0.02:.0%}", g, w - 0.02)]:
+                v = two_stage_dcf(e, gg, y, tg, ww)
+                rows.append((lbl, f"{cur_sym}{v:.0f}", f"{(v-base)/base*100:+.0f}%"))
+            return {"model": "growth_dcf", "base": base, "rows": rows,
+                    "inputs": {"eps0": e, "g": g, "years": y, "tg": tg, "wacc": w}}
+        # 控股/商社NAV法(如软银):变总资产±10%、控股折价±10pp
+        assets = vi.get("assets")
+        if assets:
+            tot = sum(_f2(a.get("value")) for a in assets if _f2(a.get("value")) is not None)
+            nd = _f2(vi.get("net_debt")) or 0.0
+            sh = _f2(vi.get("shares"))
+            disc = _f2(vi.get("holding_discount")) or 0.0
+            if sh and sh > 0:
+                base_nav = (tot - nd) / sh * (1 - disc)
+                rows = []
+                for lbl, at, dd in [("资产涨：持有资产(Arm/OpenAI等) +10%", tot * 1.1, disc),
+                                    ("资产跌：持有资产 -10%", tot * 0.9, disc),
+                                    ("若市场给控股折价 20%(NAV/股打八折)", tot, 0.20),
+                                    ("若市场给控股折价 40%(NAV/股打六折)", tot, 0.40)]:
+                    v = (at - nd) / sh * (1 - dd)
+                    rows.append((lbl, f"{cur_sym}{v:,.0f}", f"{(v-base_nav)/base_nav*100:+.0f}%"))
+                return {"model": "nav", "base": base_nav, "rows": rows,
+                        "inputs": {"assets_total": tot, "net_debt": nd, "shares": sh, "discount": disc}}
+        # 周期股中周期盈利法
+        ne, pe = vi.get("normal_eps"), vi.get("pe_mid")
+        if ne is not None and pe is not None:
+            base = ne * pe
+            rows = []
+            for lbl, nn, pp in [(f"景气更旺：正常盈利 {cur_sym}{ne:g}→{cur_sym}{ne*1.1:g}", ne * 1.1, pe),
+                                (f"景气转弱：正常盈利 {cur_sym}{ne:g}→{cur_sym}{ne*0.9:g}", ne * 0.9, pe),
+                                (f"给估值更高：中周期PE {pe:g}→{pe+2:g}倍", ne, pe + 2),
+                                (f"给估值更低：中周期PE {pe:g}→{pe-2:g}倍", ne, pe - 2)]:
+                v = nn * pp
+                rows.append((lbl, f"{cur_sym}{v:.0f}", f"{(v-base)/base*100:+.0f}%"))
+            return {"model": "mid_cycle", "base": base, "rows": rows,
+                    "inputs": {"normal_eps": ne, "pe_mid": pe}}
+        return None
     except Exception:
         return None
 
@@ -267,16 +309,27 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
                f'<p style="font-size:13px">{_nd(b.get("intro",""))}</p>'
                '<table class="dt"><tr><th>赚钱的块</th><th>是什么（人话）</th><th>多大/趋势</th></tr>' + rows + '</table>'
                f'<div class="plain"><b>未来新钱从哪来</b>：{_nd(b.get("future_growth",""))}</div>')
-    # ② 多年财报表(Code接真源·带as_of/来源)
+    # ② 多年财报表(Code接真源·带as_of/来源)。控股公司(mode=nav)用NAV历史表；其余用收入表·利润率/关键占比两列表头可配置
     fin = deep.get("block2_financials", {})
-    frows = "".join('<tr><td><b>{fy}</b></td><td>{rev}</td><td>{yoy}</td><td>{gm}</td><td>{ni}</td><td>{fcf}</td><td>{dc}</td><td style="color:#8ea3b6;font-size:11px">{aso}<br>{src}</td></tr>'.format(
-        fy=_nd(r.get("fy","")), rev=_nd(r.get("revenue","")), yoy=_nd(r.get("yoy","")), gm=_nd(r.get("gross_margin","")),
-        ni=_nd(r.get("net_income","")), fcf=_nd(r.get("fcf","")), dc=_nd(r.get("dc_share","")),
-        aso=esc(r.get("as_of","")), src=esc(r.get("source",""))) for r in (fin.get("rows") or []))
-    out.append('<div class="blk">② 这几年赚钱的账（营收·利润·现金一路怎么走）</div>'
-               f'<div class="plain">{_nd(fin.get("plain",""))}</div>'
-               '<table class="dt"><tr><th>财年(截止)</th><th>营收</th><th>比去年</th><th>毛利率</th><th>净利</th><th>自由现金流</th><th>数据中心占比</th><th>as_of/来源</th></tr>' + frows + '</table>'
-               f'<div class="plain"><b>这张表说明</b>：{_nd(fin.get("readout",""))}</div>')
+    if fin.get("mode") == "nav":
+        nrows = "".join('<tr><td><b>{pe}</b></td><td>{nav}</td><td>{ltv}</td><td>{nps}</td><td>{disc}</td><td style="color:#8ea3b6;font-size:11px">{aso}<br>{src}</td></tr>'.format(
+            pe=_nd(r.get("period","")), nav=_nd(r.get("nav","")), ltv=_nd(r.get("ltv","")), nps=_nd(r.get("nav_ps","")),
+            disc=_nd(r.get("discount","")), aso=esc(r.get("as_of","")), src=esc(r.get("source",""))) for r in (fin.get("rows") or []))
+        out.append('<div class="blk">② 这几年的账（控股公司看 NAV 净资产·不是看利润）</div>'
+                   f'<div class="plain">{_nd(fin.get("plain",""))}</div>'
+                   '<table class="dt"><tr><th>期末</th><th>NAV(净资产)</th><th>LTV(负债率)</th><th>NAV/股</th><th>折价</th><th>as_of/来源</th></tr>' + nrows + '</table>'
+                   f'<div class="plain"><b>这张表说明</b>：{_nd(fin.get("readout",""))}</div>')
+    else:
+        margin_label = esc(fin.get("margin_label", "毛利率(GAAP)"))
+        metric_label = esc(fin.get("metric_label", "数据中心占比"))
+        frows = "".join('<tr><td><b>{fy}</b></td><td>{rev}</td><td>{yoy}</td><td>{gm}</td><td>{ni}</td><td>{fcf}</td><td>{dc}</td><td style="color:#8ea3b6;font-size:11px">{aso}<br>{src}</td></tr>'.format(
+            fy=_nd(r.get("fy","")), rev=_nd(r.get("revenue","")), yoy=_nd(r.get("yoy","")), gm=_nd(r.get("gross_margin","")),
+            ni=_nd(r.get("net_income","")), fcf=_nd(r.get("fcf","")), dc=_nd(r.get("metric") or r.get("dc_share","")),
+            aso=esc(r.get("as_of","")), src=esc(r.get("source",""))) for r in (fin.get("rows") or []))
+        out.append('<div class="blk">② 这几年赚钱的账（营收·利润·现金一路怎么走）</div>'
+                   f'<div class="plain">{_nd(fin.get("plain",""))}</div>'
+                   f'<table class="dt"><tr><th>财年(截止)</th><th>营收</th><th>比去年</th><th>{margin_label}</th><th>净利</th><th>自由现金流</th><th>{metric_label}</th><th>as_of/来源</th></tr>' + frows + '</table>'
+                   f'<div class="plain"><b>这张表说明</b>：{_nd(fin.get("readout",""))}</div>')
     # ③ 护城河五维逐维
     mo = deep.get("block3_moat", {})
     mrows = "".join(f'<tr><td>{_nd(r.get("dim",""))}</td><td><b>{_nd(r.get("width",""))}</b></td><td>{_nd(r.get("why",""))}</td></tr>' for r in mo.get("rows", []))
@@ -297,13 +350,20 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
     sens = _val_sensitivity(sym)
     inrows = "".join(f'<tr><td>{_nd(i.get("input",""))}</td><td>{_nd(i.get("plain",""))}</td></tr>' for i in v5.get("inputs", []))
     if sens:
-        ip = sens["inputs"]
-        inval = (f'<div class="plain">本次引擎真输入：明年EPS <b>{ccy}{ip["eps0"]}</b>·头几年增速 <b>{ip["g"]:.0%}</b>·快增 <b>{ip["years"]}年</b>·永续 <b>{ip["tg"]:.0%}</b>·折现 <b>{ip["wacc"]:.0%}</b></div>')
-        srows = "".join(f'<tr><td>{esc(lbl)}</td><td><b>{esc(m)}</b></td><td>{esc(d)}</td></tr>' for lbl, m, d in sens["rows"])
+        ip = sens["inputs"]; m = sens.get("model")
+        if m == "growth_dcf":
+            inval = (f'<div class="plain">本次引擎真输入：明年EPS <b>{ccy}{ip["eps0"]}</b>·头几年增速 <b>{ip["g"]:.0%}</b>·快增 <b>{ip["years"]}年</b>·永续 <b>{ip["tg"]:.0%}</b>·折现 <b>{ip["wacc"]:.0%}</b></div>')
+        elif m == "mid_cycle":
+            inval = (f'<div class="plain">本次引擎真输入(中周期盈利法)：正常化EPS <b>{ccy}{ip["normal_eps"]:g}</b>·中周期PE <b>{ip["pe_mid"]:g}倍</b></div>')
+        elif m == "nav":
+            inval = (f'<div class="plain">本次引擎真输入(NAV净资产法)：持有资产合计 <b>{ip["assets_total"]:,.0f}</b>·净负债 <b>{ip["net_debt"]:,.0f}</b>·股本 <b>{ip["shares"]:g}</b>·控股折价 <b>{ip["discount"]:.0%}</b>（单位见判断包·如十亿円/十亿股）</div>')
+        else:
+            inval = ''
+        srows = "".join(f'<tr><td>{esc(lbl)}</td><td><b>{esc(mm)}</b></td><td>{esc(dd)}</td></tr>' for lbl, mm, dd in sens["rows"])
         senstbl = ('<div class="plain"><b>如果输入变了会怎样（敏感性·现算）</b>——因为没人能算准，得知道算错了偏多少：</div>'
                    '<table class="dt"><tr><th>如果…</th><th>合理价中枢变成</th><th>较基准</th></tr>' + srows + '</table>')
     else:
-        inval = ''; senstbl = '<div class="plain"><span class="need">敏感性待接</span>（该只非成长DCF或缺真输入·不编）</div>'
+        inval = ''; senstbl = '<div class="plain"><span class="need">敏感性待接</span>（缺真输入·如周期股无权威正常化EPS源·不硬编）</div>'
     rng = (f'合理区 <b>{esc(ccy)}{esc(fnum(low))} ~ {esc(ccy)}{esc(fnum(high))}</b>，中枢 <b>{esc(ccy)}{esc(fnum(mid))}</b>'
            if low is not None and mid is not None else '<span class="need">合理区/中枢待接</span>（估值引擎缺真输入·不硬编）')
     out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
