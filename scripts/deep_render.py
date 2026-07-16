@@ -147,6 +147,21 @@ def _scrub_valuation_stance(s: str) -> str:
     s = s.replace("便宜有便宜的道理", "（估值见决策条）")
     return s
 
+def _audit_financials(data: str, sym: str) -> str:
+    """R8 财务数字口径审计：标注疑量级/单位错(缺真源不硬改·待核)。日本大盘股年营收多为万亿级，
+    若'营收 ¥N,NNN亿'(N≥1000)标'亿'→疑数字实为十亿円(差一量级)。附审计标注。"""
+    notes = []
+    for m in re.finditer(r'营收.{0,15}?[¥到]\s*[¥]?\s*([\d,]+(?:\.\d+)?)\s*亿', data):
+        try:
+            val = float(m.group(1).replace(",", ""))
+        except ValueError:
+            continue
+        if sym.startswith("JP.") and val >= 1000:   # 万亿级公司却标'¥1000+亿'→疑单位/量级
+            notes.append(f'⚠财务审计：营收「¥{m.group(1)}亿」疑单位/量级错（该司年营收多为万亿级；数字疑为十亿円→约¥{val/1000:.2f}万亿）·缺官方财报源不硬改·待理解岗核订正')
+    return ('<div class="meta" style="color:#ffb454;font-size:12px;margin-top:3px">'
+            + " ｜ ".join(esc(n) for n in notes) + "</div>") if notes else ""
+
+
 def build_final(sym: str, name: str, dyn: dict) -> dict:
     prod_h = next((h for h in dyn["prod"].get("holdings", []) if h.get("symbol") == sym), {})
     qg = prod_h.get("quality_gate", {}) or {}
@@ -203,7 +218,9 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
             exit_c = _clean(ex["风险"])
         _mdate = re.search(r'(20\d{6})', pack.stem)
         as_of = (f"{_mdate.group(1)[:4]}-{_mdate.group(1)[4:6]}-{_mdate.group(1)[6:]}" if _mdate else "判断包未标日期")
-        deep = (f'<div class="deep"><span class="k">深研·财报趋势（财报/数据 as_of {esc(as_of)}）</span>{data}'
+        fin_audit = _audit_financials(ex["真数据"] or "", sym)   # R8 财务口径审计标注
+        _cy = "¥(日元·当日汇率见行情快照)" if sym.startswith("JP.") else "$(美元)"
+        deep = (f'<div class="deep"><span class="k">深研·财报趋势（财报/数据 as_of {esc(as_of)}·计价{esc(_cy)}）</span>{data}{fin_audit}'
                 f'<div style="margin-top:5px"><span class="k">生意/增长点</span>{biz}'
                 f'<span class="k">护城河/竞争格局</span>{moat}</div>'
                 f'<div style="margin-top:5px"><span class="k">退出条件(看生意不看价·非价位)</span>{exit_c}</div>'
