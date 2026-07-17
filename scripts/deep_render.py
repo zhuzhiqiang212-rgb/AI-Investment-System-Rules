@@ -772,6 +772,110 @@ def _val_axis(sym: str, dyn: dict, mini: bool = False) -> str:
               f'<b>{esc(HORIZON_NOTE)}</b>。</div></div>')
 
 
+# ══ 架构师中周期估算（董事局工单2026-07-17）：给那6只缺权威正常化盈利的股票补一个【并列参考】 ══
+# 硬边界(工单3)：
+#   · 全部标「架构师估算·非权威·非当日实时·仅供参考」，与权威估值(deep_cards/val_inputs)视觉区分
+#   · 【不】自动把动作从"守/等"翻成"减" —— 中周期偏贵只作参考，动作仍按现有尺
+#   · 这几只的「⚡加仓价/便宜位」逻辑不变；中周期估算是并列的第二个参考，不覆盖
+_ARCH_CACHE: dict = {}
+
+
+def _arch_est(sym: str) -> dict | None:
+    if "d" not in _ARCH_CACHE:
+        try:
+            p = sorted((ROOT / "data" / "valuation").glob("architect_normalized_est_*.json"))[-1]
+            j = rj(p)
+            _ARCH_CACHE["d"] = {str(e.get("ticker")): {**e, "_file": p.name,
+                                                       "_meta": j.get("_meta", {})}
+                                for e in (j.get("estimates") or [])}
+        except Exception:
+            _ARCH_CACHE["d"] = {}
+    return (_ARCH_CACHE["d"] or {}).get(sym)
+
+
+def _rel_grade(rel: str) -> tuple:
+    """可靠度是自由文本('够'/'勉强'/'够(实际)/勉强(预估)'/'不够(低置信)'…)→判够不够，判不了按低置信兜底。"""
+    r = str(rel or "")
+    low = any(k in r for k in ("不够", "勉强", "低置信", "偏不够"))
+    return (not low, r)
+
+
+def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
+    """架构师中周期估算块。低置信→橙字警示 + 数轴虚线/问号(不给"精确"错觉)。"""
+    e = _arch_est(sym)
+    if not e:
+        return ""
+    fp = e.get("fair_price") or {}
+    lo, mid, hi = fp.get("cheap"), fp.get("mid"), fp.get("rich")
+    if lo is None or mid is None or hi is None:
+        return ""
+    c = cur(sym)
+    px = _price_of(sym, dyn)
+    ok, rel = _rel_grade(e.get("reliability"))
+    vd = str(e.get("verdict") or "")
+    vcol = "#ff6b6b" if "极贵" in vd else ("#ffb454" if "贵" in vd else "#7ee0a0")
+    bd, bg = ("#6b7a8c", "#141c26") if ok else ("#c47a1e", "#241a10")
+    if mini:
+        return (f'<div style="font-size:10.5px;margin-top:4px;padding-top:3px;border-top:1px dashed #4a5a6a">'
+                f'<span style="color:#8ea3b6">架构师中周期估算（非权威）</span>'
+                f'<br>{c}{lo:,.0f}~{c}{hi:,.0f}·中枢{c}{mid:,.0f} → '
+                f'<b style="color:{vcol}">{esc(vd)}</b>'
+                + ('' if ok else '<br><span style="color:#ffb454">低置信·仅作框架参考</span>') + '</div>')
+    # 大块：数轴(低置信画虚线+问号)
+    axis = ""
+    if px is not None and hi > lo:
+        span = hi - lo
+        a0, a1 = lo - span * 0.6, hi + span * 0.6
+        if px > a1:
+            a1 = px * 1.02
+        if px < a0:
+            a0 = px * 0.98
+        W = max(a1 - a0, 1e-9)
+        def pos(x):
+            return max(0.0, min(100.0, (x - a0) / W * 100.0))
+        style = ("" if ok else "opacity:.75;")
+        axis = (f'<div style="position:relative;padding-top:14px;{style}">'
+                f'<div style="position:relative;height:14px;border-radius:7px;overflow:hidden;background:#8a8f96;'
+                f'margin:6px 0 14px;{"" if ok else "border:1px dashed #c47a1e"}">'
+                f'<div style="position:absolute;left:0;width:{pos(lo):.2f}%;height:100%;background:#2f9e5f"></div>'
+                f'<div style="position:absolute;left:{pos(lo):.2f}%;width:{max(pos(hi)-pos(lo),0.5):.2f}%;height:100%;background:#c9922b"></div>'
+                f'<div style="position:absolute;left:{pos(hi):.2f}%;right:0;height:100%;background:#d24b4b"></div></div>'
+                f'<div style="position:absolute;left:{pos(px):.2f}%;top:-2px;transform:translateX(-50%);'
+                f'font-size:13px;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;line-height:1">'
+                f'▼{"" if ok else "<span style=\'color:#ffb454\'>?</span>"}</div></div>'
+                f'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#c8d4de;margin-top:-8px">'
+                f'<span>便宜 {c}{lo:,.0f}</span><span>中枢 {c}{mid:,.0f}</span><span>贵 {c}{hi:,.0f}</span></div>')
+    return ('<div style="background:%s;border:2px dashed %s;border-radius:8px;padding:10px 13px;margin:8px 0">' % (bg, bd)
+            + '<div style="font-size:13px;font-weight:700;color:#b8c6d4">'
+              '📐 架构师中周期估算　<span style="font-size:11px;color:#ffb454;font-weight:400">'
+              '非权威 · 非当日实时 · 仅供参考</span></div>'
+            + f'<div style="font-size:11.5px;color:#8ea3b6;margin-top:2px">可靠度：{esc(rel)}</div>'
+            + axis
+            # ⚠架构师文件里的 current_price 是他写卡时的价(截至7月中旬)、不是今天的实时价 →
+            #   这里一律用【今日实时价】比，且不重复印他那个旧价(否则同卡两个现价打架·L9 会拦)
+            + (f'<div style="font-size:13.5px;margin-top:6px">合理区 <b>{c}{lo:,.0f} ~ {c}{hi:,.0f}</b>'
+               f'·中枢 <b>{c}{mid:,.0f}</b>'
+               + (f'　→　今日实时价 <b>{c}{px:,.2f}</b>' if px is not None else '')
+               + f'　→　<b style="color:{vcol};font-size:15px">{esc(vd)}</b></div>')
+            + f'<div style="font-size:12px;color:#c8d4de;margin-top:4px">'
+              f'<b>怎么算的</b>：{esc(str(e.get("method") or ""))}</div>'
+            # verdict_note 里也夹着架构师写卡时的旧价 → 同步成今日实时价(单卡现价唯一·L9)
+            + (f'<div style="font-size:12px;color:#c8d4de;margin-top:3px">'
+               f'{esc(_sync_card_prices(sym, str(e.get("verdict_note") or ""), dyn))}</div>'
+               if e.get("verdict_note") else '')
+            + ('' if ok else
+               '<div style="background:#3a2410;border-left:4px solid #c47a1e;padding:6px 10px;margin-top:6px;'
+               'font-size:12.5px;color:#ffd7a8"><b style="color:#ffb454">⚠ 低置信 · 仅作框架参考</b>——'
+               f'{esc(str(e.get("reliability_note") or ""))}'
+               '<br><b>决策仍按谨慎／守</b>，不因这个数就动手。</div>')
+            + '<div style="font-size:11.5px;color:#8ea3b6;margin-top:6px;border-top:1px solid #2b4054;padding-top:4px">'
+              '<b>这块和上面的权威估值不是一回事</b>：这是<b>架构师的估算</b>（他自己标了"非权威"），'
+              '用来给你一个"穿过整轮周期看，它大概值多少"的框架感；'
+              '<b>它不改这只今天的动作</b>，也<b>不覆盖</b>本卡自己的加仓价/便宜位判断——那两个照旧。'
+              f'　<span style="color:#6b7a8c">源：{esc(str(e.get("_file") or ""))}</span></div>'
+            + '</div>')
+
+
 def _val_wait_reason(sym: str, dyn: dict) -> str:
     """估值待接的6只：不画轴、写人话原因(缺不编)。"""
     v = (dyn.get("valr", {}) or {}).get(sym, {}) or {}
@@ -988,7 +1092,8 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
     rng = (f'合理区 <b>{esc(ccy)}{esc(fnum(low))} ~ {esc(ccy)}{esc(fnum(high))}</b>，中枢 <b>{esc(ccy)}{esc(fnum(mid))}</b>'
            if low is not None and mid is not None else '<span class="need">合理区/中枢待接</span>（估值引擎缺真输入·不硬编）')
     # 乙6：大估值数轴顶在⑤块最前——替代"四个数挤一句话"；待接的不画轴、写人话原因(丙10:轴上标时间跨度)
-    _axis = _val_axis(sym, dyn) or _val_wait_reason(sym, dyn)
+    # 权威估值有→画权威轴；没有→写人话原因，并【并列】挂上架构师中周期估算(非权威·不覆盖)
+    _axis = _val_axis(sym, dyn) or (_val_wait_reason(sym, dyn) + arch_est_block(sym, dyn))
     out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
                + _axis
                + f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
@@ -1853,7 +1958,8 @@ def part0_jp(date: str, dyn: dict) -> str:
                           else f'<span style="color:#8ea3b6">没到·还高 {r["gap_lo"]:.0f}%</span>'))
             px = f'{c}{r["px"]:,.0f}<br><span style="color:#8ea3b6;font-size:11px">加仓价 {c}{r["lo"]:,.0f}</span>'
         else:
-            trig = '<span class="need">算不出加仓价</span>'
+            # 加仓价逻辑【不变】(工单3)：中周期估算是并列参考、不当加仓价用
+            trig = '<span class="need">算不出加仓价</span>' + arch_est_block(r["sym"], dyn, mini=True)
             px = f'{c}{r["px"]:,.0f}' if r.get("px") else '<span class="need">待接</span>'
         trs += (f'<tr><td>{_a(L2(date, "stock-" + r["sym"]), esc(r["name"]))}</td>'
                 f'<td style="text-align:right">{px}</td><td style="text-align:right">{chg}</td>'
@@ -3397,8 +3503,17 @@ def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
             t = str(v.get("type") or "")
             why = {"周期股": "周期股·景气高点算不准", "控股公司": "控股公司·要分项估值",
                    "商社": "综合商社·要分项估值"}.get(t, "缺可信估值输入")
-            fair = f'<span style="color:#ffb454">算不出该值多少</span><br><span style="color:#8ea3b6;font-size:11px">{esc(why)}</span>'
-            axis = '<span style="color:#8ea3b6;font-size:11px">不画轴——算不出就不编</span>'
+            # 权威估值算不出 → 如实说；但若架构师有中周期估算，并列给一个参考(标非权威·不覆盖动作)
+            _ae = _arch_est(s)
+            if _ae and (_ae.get("fair_price") or {}).get("mid") is not None:
+                _f = _ae["fair_price"]
+                fair = (f'<span style="color:#ffb454">无权威估值</span>'
+                        f'<br><span style="color:#8ea3b6;font-size:11px">{esc(why)}</span>')
+                axis = arch_est_block(s, dyn, mini=True)
+            else:
+                fair = (f'<span style="color:#ffb454">算不出该值多少</span>'
+                        f'<br><span style="color:#8ea3b6;font-size:11px">{esc(why)}</span>')
+                axis = '<span style="color:#8ea3b6;font-size:11px">不画轴——算不出就不编</span>'
         # 五[动作升级]：表里给 加/买/守/等/减 的【具体动作+路径】，不再只"守/等"
         _act, _why = _action_of(s, str(h.get("name") or s), dyn, date)
         rows.append(f'<tr><td>{_a(L2(date, "stock-" + s), esc(str(h.get("name"))))}'

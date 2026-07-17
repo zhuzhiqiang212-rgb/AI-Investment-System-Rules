@@ -211,6 +211,20 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     except Exception:
         pass
 
+    # ── L20 架构师中周期估算的硬边界(工单2026-07-17)：必须标非权威 + 不许自动改动作 ──
+    for fn, h in vols.items():
+        if "架构师中周期估算" not in h:
+            continue
+        n_blk = h.count("📐 架构师中周期估算") + h.count("架构师中周期估算（非权威）")
+        n_tag = h.count("非权威")
+        if n_tag < n_blk:
+            fails.append(f"L20 架构师估算没标非权威：{fn} 有 {n_blk} 处估算块、只有 {n_tag} 处「非权威」标注"
+                         f"——必须与权威估值区分、不许混为一谈")
+        # 低置信的必须带橙字警示
+        t = _txt(h)
+        if ("低置信" in t) and ("仅作框架参考" not in t):
+            fails.append(f"L20 低置信没警示：{fn} 出现「低置信」但没有「仅作框架参考」的警示语")
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:
