@@ -82,10 +82,11 @@ def archive_old(date: str) -> list:
     arc = d / "_历史归档" / "每日产品"
     arc.mkdir(parents=True, exist_ok=True)
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
+    keep = f"★每日产品_{dd}.html"        # 甲[A方案]：合并后每天只留【这一个】文件
     moved = []
     for p in d.glob("★每日产品_*.html"):
-        if dd in p.name:
-            continue
+        if p.name == keep:
+            continue                      # 旧的分册(★每日产品_日期_1_总览闭环.html 等)照样归档
         try:
             tgt = arc / p.name
             if tgt.exists():

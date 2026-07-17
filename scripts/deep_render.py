@@ -382,21 +382,23 @@ def _dd(date: str) -> str:
     return f"{date[:4]}-{date[4:6]}-{date[6:]}"
 
 
+def ONEFILE(date: str) -> str:
+    """甲[工单2026-07-17·A方案]：5册合一 → 每天只有这一个产品文件。"""
+    return f"{VOL_PREFIX}_{_dd(date)}.html"
+
+
+# 合并后跨册链全部退化成【同文件锚点】——保留这两个函数只为不改遍全文调用点。
 def VOL(date: str, n: int) -> str:
-    return {1: f"{VOL_PREFIX}_{_dd(date)}_1_总览闭环.html",
-            2: f"{VOL_PREFIX}_{_dd(date)}_2_持仓深研.html",
-            3: f"{VOL_PREFIX}_{_dd(date)}_3_机会池.html",
-            4: f"{VOL_PREFIX}_{_dd(date)}_4_记分卡.html",
-            5: f"{VOL_PREFIX}_{_dd(date)}_5_右栏6尺.html"}[n]
+    return ""          # 空 href → _a() 会渲成同文件锚点(见下)
+
+
+def VOL2(date: str, sub: str) -> str:
+    return ""
 
 # ②持仓深研册按逻辑拆子册(每册<300KB·绝不删内容·按组合角色分组)
 VOL2_SUBS = [("2a", "AI主线仓", ["US.NVDA", "US.MSFT", "US.AVGO", "US.TSM", "JP.6857", "JP.9984", "US.META", "US.SNDK"]),
              ("2b", "防御分散仓", ["JP.4568", "JP.8766", "JP.6758", "JP.7203", "JP.8001", "JP.7832", "JP.7974"]),
              ("2c", "加密簇与金融仓", ["US.MSTR", "US.COIN", "US.CRCL", "US.IBKR"])]
-
-def VOL2(date: str, sub: str) -> str:
-    # 2a/2b/2c 排在 "_2_" 与 "_3_" 之间 → 与其余4册连续相邻
-    return f"{VOL_PREFIX}_{_dd(date)}_2{sub[-1]}_持仓深研_{dict((s, n) for s, n, _ in VOL2_SUBS)[sub]}.html"
 
 def _sub_of(sym: str) -> str:
     for s, _n, syms in VOL2_SUBS:
@@ -412,15 +414,14 @@ def layer_slug(node: str) -> str:
             return v
     return "layer"
 
+# 甲[A方案]：合并成单文件后，所有原"跨册链"全部退化为【同文件锚点】(#xxx)——
+#   不再有跨文件跳转，也就不会再有"跨册断链"这回事。
 def L1(date: str, anchor: str = "") -> str:
-    return VOL(date, 1) + (("#" + anchor) if anchor else "")
+    return ("#" + anchor) if anchor else "#"
 def L2(date: str, anchor: str = "") -> str:
-    """持仓深研链：按 symbol 定位到它所在的子册(2a/2b/2c)，锚点不跨册断。"""
-    if anchor.startswith("stock-"):
-        return VOL2(date, _sub_of(anchor[6:])) + "#" + anchor
-    return VOL2(date, "2a") + (("#" + anchor) if anchor else "")
+    return ("#" + anchor) if anchor else "#deep-cards"
 def L5(date: str, anchor: str = "") -> str:
-    return VOL(date, 5) + (("#" + anchor) if anchor else "")
+    return ("#" + anchor) if anchor else "#"
 
 def _a(href: str, text: str, color: str = "#8fd6ff") -> str:
     return f'<a href="{href}" style="color:{color};text-decoration:underline dotted">{text}</a>'
@@ -1218,11 +1219,11 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
         bits2.append("虽然算出来它值得更高，但你押在AI上的钱已经超上限、纪律不许再加；真要降AI敞口，也是先减它")
     line2 = esc("；".join(bits2) + "。") if bits2 else esc(_zh_common(_scrub_valuation_stance(raw))) or "待接"
     # 3) 什么价该动
+    # 丙[工单2026-07-17]：这行原来自成一套措辞、会与决策条的 _action_of 打架，且容易读反。
+    #   改为【直接引 _action_of 的同一句话】——一把尺、一处措辞，四件事(现价/贵便宜/能不能动/动到哪停)齐。
     if has_val:
-        line3 = (f'跌到 <b>{esc(ccy)}{esc(fnum(low))}</b> 以下可以考虑加一点（那是算出来的合理价下沿）；'
-                 f'涨过 <b>{esc(ccy)}{esc(fnum(high))}</b> 就偏贵、别追。中间值约 {esc(ccy)}{esc(fnum(mid))}。')
-        if px is not None:
-            line3 += f'　现在是 {esc(ccy)}{esc(fnum(px))}。'
+        line3 = _action_of(sym, name, dyn, dyn.get("date", ""))[1]
+        line3 += f'<br><span style="color:#8ea3b6">（便宜位 {esc(ccy)}{esc(fnum(low))}·中间值 {esc(ccy)}{esc(fnum(mid))}·贵位 {esc(ccy)}{esc(fnum(high))}）</span>'
         # C2：中枢与现价差得离谱时，必须解释为什么，别让董事长以为算错了
         try:
             gap = (float(px) / float(mid) - 1) * 100 if px else 0
@@ -1582,28 +1583,102 @@ def _action_of(sym: str, name: str, dyn: dict, date: str) -> tuple:
         col, bg = _ACT_STYLE.get(a, ("#7cc4ff", "#12203a"))
         return (f'<b style="font-size:15px;color:{col};background:{bg};padding:1px 9px;border-radius:9px">{a}</b>', why)
 
+    # ══ 丙[工单2026-07-17]：每句加/减/守必须把这四件说清、缺一不可 ══
+    #   ①现在什么价 ②对便宜位/贵位——算便宜还是贵 ③现在能不能动手 ④动到什么价就停
+    #   ⚠禁止"读反"：原来写"加到¥4,113附近就够"→读着像"要在高于现价的¥4,113加"。
+    #     正确说法是"涨回¥4,113以上就别追"——【停手价】要说成"到这价就停"，不能说成"加到这价"。
     if not st["ok"]:
-        return tag("守", "算不出它该值多少钱（缺可信估值输入）→ 不主动加减，守着看")
+        return tag("守", "算不出它该值多少钱（缺可信估值输入）→ <b>现在不动手</b>，守着看")
     c, px, lo, hi, mid = st["cur"], st["px"], st["lo"], st["hi"], st["mid"]
+    P = f"现在 <b>{c}{px:,.0f}</b>"
     if st["above_rich"] and in_over:
-        # 超上限的类里、又偏贵 → 优先减(具体路径)
-        return tag("减", f"这一类({cat})已超上限、它又比贵位还贵（现价 {c}{px:,.0f}，高于贵位 {c}{hi:,.0f}）"
-                         f"→ 要降这一类占比，优先从它减；减到 {c}{hi:,.0f} 附近就不必再减")
+        return tag("减", f"{P}，<b>已涨过贵位 {c}{hi:,.0f}、算贵</b>；"
+                         f"而且「{cat}」这一类已经超上限 → <b>现在可以减</b>，优先从它减；"
+                         f"<b>跌回 {c}{hi:,.0f} 以下就别再减了</b>。")
     if st["above_rich"]:
-        return tag("等", f"比贵位还贵（现价 {c}{px:,.0f}，高于贵位 {c}{hi:,.0f}；比中间值高 {st['gap_mid']:.0f}%）→ 不追，等回到合理区")
+        return tag("等", f"{P}，<b>已涨过贵位 {c}{hi:,.0f}、算贵</b>（比中间值高 {st['gap_mid']:.0f}%）→ "
+                         f"<b>现在不追、也不用减</b>（这一类没超限）；<b>等它跌回 {c}{hi:,.0f} 以下</b>再谈。")
     if st["below_cheap"]:
         if in_over:
-            return tag("守", f"已跌到便宜位（现价 {c}{px:,.0f}，低于加仓价 {c}{lo:,.0f}）本可加，"
-                             f"但它属于已超上限的「{cat}」→ <b>只换不加</b>，先别往超配的桶里加钱")
-        return tag("加", f"已跌到便宜位（现价 {c}{px:,.0f}，低于加仓价 {c}{lo:,.0f} 约 {abs(st['gap_lo']):.1f}%）"
-                         + (f"，且它属于还不足下限的「{cat}」→ 加它同时补上防御缺口" if in_short else "")
-                         + f"；加到 {c}{mid:,.0f}（中间值）附近就够，别一次到底")
+            return tag("守", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜</b>——本来可以加，"
+                             f"但它属于已经超上限的「{cat}」→ <b>现在不加</b>（只换不加，别往最挤的地方再塞钱）；"
+                             f"要动它只能是<b>拿它换掉同类里更贵的</b>。")
+        return tag("加", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜（低 {abs(st['gap_lo']):.1f}%）</b> → "
+                         f"<b>现在就可以加</b>"
+                         + (f"（而且「{cat}」还不到下限，加它正好补缺口）" if in_short else "")
+                         + f"；<b>分批买、别一次买满</b>；"
+                           f"<b>涨回 {c}{mid:,.0f} 以上就别再追了</b>。")
     if st["near_cheap"]:
-        return tag("等", f"离加仓价还差 {st['gap_lo']:.1f}%（{c}{px:,.0f} vs {c}{lo:,.0f}）→ 快到了，盯着；到了再加")
+        return tag("等", f"{P}，<b>还没跌到便宜位 {c}{lo:,.0f}，还差 {st['gap_lo']:.1f}%</b> → "
+                         f"<b>现在先别动手</b>，盯着；<b>等它跌到 {c}{lo:,.0f} 以下再加</b>。")
     if in_over:
-        return tag("减", f"这一类({cat})已超上限，而它现在既不便宜也不算贵（{c}{px:,.0f}）"
-                         f"→ 要降这一类占比可以从它减一点；但优先减更贵的那几只")
-    return tag("守", f"在合理区里（{c}{lo:,.0f}~{c}{hi:,.0f}），既不便宜也不贵 → 不动，守着")
+        return tag("减", f"{P}，<b>在合理区里（{c}{lo:,.0f}~{c}{hi:,.0f}）、不算贵也不算便宜</b>；"
+                         f"但「{cat}」这一类已超上限 → <b>要降这一类占比，可以从它减一点</b>，"
+                         f"不过<b>优先减同类里已经涨过贵位的那几只</b>，别先卖不贵的。")
+    return tag("守", f"{P}，<b>在合理区里（{c}{lo:,.0f}~{c}{hi:,.0f}）、不算便宜也不算贵</b> → "
+                     f"<b>现在不动手</b>；<b>跌破 {c}{lo:,.0f} 才谈加、涨过 {c}{hi:,.0f} 才谈减</b>。")
+
+
+def part_actions_table(date: str, dyn: dict) -> str:
+    """乙[工单2026-07-17]：第二层——「今天可做的动作」一张表。
+    把原来分散在 加仓价触发/日股专项/现金/减仓路径 的动作全并到这一处。
+    列＝动作(色标)｜标的｜现价｜一句理由(四件事齐·来自同一算子 _action_of)。"""
+    rows = []
+    for h in dyn["prod"].get("holdings", []):
+        s = str(h.get("symbol"))
+        if s.startswith("CC."):
+            continue
+        act, why = _action_of(s, str(h.get("name") or s), dyn, date)
+        a = re.sub(r"<[^>]+>", "", act).strip()
+        px = _price_of(s, dyn)
+        chg = (_daychg(date).get(s) or {}).get("change_pct")
+        rows.append({"sym": s, "name": str(h.get("name") or s), "act": a, "tag": act,
+                     "why": why, "px": px, "chg": chg, "cur": cur(s)})
+    order = {"加": 0, "买": 1, "减": 2, "等": 3, "守": 4}
+    rows.sort(key=lambda r: (order.get(r["act"], 9), r["name"]))
+    todo = [r for r in rows if r["act"] in ("加", "买", "减")]
+    hold = [r for r in rows if r["act"] not in ("加", "买", "减")]
+    trs = ""
+    for r in todo:
+        chg = (f'<span style="color:{"#ff9a9a" if (r["chg"] or 0) < 0 else "#7ee0a0"};font-size:11px">'
+               f'今天{r["chg"]:+.1f}%</span>' if r["chg"] is not None else '')
+        trs += (f'<tr><td style="white-space:nowrap">{r["tag"]}</td>'
+                f'<td style="white-space:nowrap">{_a("#stock-" + r["sym"], esc(r["name"]))}</td>'
+                f'<td style="text-align:right;white-space:nowrap"><b>{esc(r["cur"])}{r["px"]:,.0f}</b>'
+                f'<br>{chg}</td><td style="font-size:12.5px">{r["why"]}</td></tr>')
+    if not trs:
+        trs = ('<tr><td colspan="4" style="color:#7ee0a0;padding:10px">'
+               '<b>今天没有该动的</b>——按你的估值尺，没有一只到了该加或该减的价。</td></tr>')
+    fold = ""
+    for r in hold:
+        fold += (f'<tr><td style="white-space:nowrap">{r["tag"]}</td>'
+                 f'<td style="white-space:nowrap">{_a("#stock-" + r["sym"], esc(r["name"]))}</td>'
+                 f'<td style="text-align:right;white-space:nowrap">{esc(r["cur"])}{r["px"]:,.0f}</td>'
+                 f'<td style="font-size:12px;color:#8ea3b6">{r["why"]}</td></tr>')
+    # 现金一句话(明细折叠)
+    cash = None
+    try:
+        u = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
+        cash = (u.get("summary", {}) or {}).get("known_cash_usd")
+    except Exception:
+        pass
+    n_add = len([r for r in todo if r["act"] in ("加", "买")])
+    cash_line = (f'<div class="card" style="background:#12203a"><b>现金怎么用</b>：'
+                 + (f'手上 <b>${cash:,.0f}</b>。' if isinstance(cash, (int, float)) else '')
+                 + (f'<b>先拿约 1/3'
+                    + (f'（≈${cash/3:,.0f}）' if isinstance(cash, (int, float)) else '')
+                    + f' 去买上面那 {n_add} 只「加」的，剩下 2/3 留着分批、别一次到底。</b>'
+                    if n_add else '<b>今天没有该买的 → 现金先不动。</b>')
+                 + '</div>')
+    return ('<h2 class="main" id="actions">今天可做的动作</h2>'
+            + '<table class="dt"><tr><th>动作</th><th>标的</th><th style="text-align:right">现价</th>'
+              '<th>为什么·动到什么价停</th></tr>' + trs + '</table>'
+            + cash_line
+            + (f'<details class="sub"><summary>其余 {len(hold)} 只：今天不动（点开看各自的理由）</summary>'
+               f'<table class="dt"><tr><th>动作</th><th>标的</th><th style="text-align:right">现价</th>'
+               f'<th>为什么</th></tr>' + fold + '</table></details>' if fold else '')
+            + '<div class="meta" style="color:#8ea3b6;font-size:11.5px">'
+              '系统只读不下单 · 你拍板。买卖只看估值便宜位/偏贵位，均线只作趋势参考。</div>')
 
 
 def part0_cash(date: str, dyn: dict) -> str:
@@ -1659,7 +1734,8 @@ def part0_cash(date: str, dyn: dict) -> str:
                    f'· <b>{esc(r["name"])}</b>　现价 <b>{c}{r["px"]:,.0f}</b>'
                    f'（已比加仓价 {c}{r["lo"]:,.0f} 低 {abs(r["gap_lo"]):.1f}%）'
                    f'　今天 {r["chg"]:+.2f}%' if r["chg"] is not None else ''
-                   ) + (f'<div style="font-size:12px;color:#8ea3b6">加到 {c}{r["mid"]:,.0f}（中间值）附近就够；'
+                   ) + (f'<div style="font-size:12px;color:#8ea3b6">分批买、别一次买满；'
+                        f'<b>涨回 {c}{r["mid"]:,.0f} 以上就别再追</b>；'
                         + (f'属于「{esc(_cat_of(r["sym"], date, dyn))}」'
                            if _cat_of(r["sym"], date, dyn) else
                            '<span style="color:#ffb454">⚠这只目前没被归进任何集中度类别（AI/加密/防御都不含它）'
@@ -1699,7 +1775,9 @@ def part0_cash(date: str, dyn: dict) -> str:
             li += (f'<div style="padding:6px 0;border-top:1px solid #2b4054">· <b>{esc(r["name"])}</b>　'
                    f'现价 <b>{c}{r["px"]:,.0f}</b>（比中间值 {r["gap_mid"]:+.0f}%·{pos}）'
                    f'　贵位 {c}{r["hi"]:,.0f}'
-                   f'<div style="font-size:12px;color:#8ea3b6">减到 {c}{r["hi"]:,.0f} 附近就不必再减；'
+                   # 丙：这是【停手价】，不能说成"减到X"(会被读成"要在X这个价减")
+                   f'<div style="font-size:12px;color:#8ea3b6">'
+                   f'<b>跌回 {c}{r["hi"]:,.0f} 以下就别再减了</b>；'
                    f'今天 {("%+.2f%%" % r["chg"]) if r["chg"] is not None else "涨跌待接"}</div></div>')
         for k, p, l in oc["over"]:
             need = p - l
@@ -1729,10 +1807,7 @@ def part0_cash(date: str, dyn: dict) -> str:
                      '要补，要么等它跌到便宜位，要么用"减AI换防御"的方式换过去。</span></div></div>')
     return ('<h2 class="main">手上的闲钱今天怎么用</h2>'
             + "".join(o)
-            + '<div class="card" style="background:#12203a;border:1px solid #3a5a8a">'
-              '<b style="color:#ffd479">这是建议，不是指令。</b>市场可能继续跌、也可能明天就反弹，'
-              '谁都不知道。上面每一条都写清了「为什么」和「大概什么价」，'
-              '<b>最终你拍板</b>。系统只读不下单——不会替你买卖任何东西。</div>')
+            )
 
 
 def _trigger_rows(date: str, dyn: dict) -> list:
@@ -1893,8 +1968,7 @@ def part0_critical(date: str, dyn: dict) -> str:
             + '<div class="card" style="background:#3a1414;border:3px solid #d24b4b">'
               '<div style="font-size:20px;font-weight:900;color:#ff9a9a;line-height:1.35">'
               '系统研判：<b>是</b>——什么都不做，等于把「你已经知道的超配风险」在最差的时刻全敞着。</div>'
-              '<div style="font-size:13.5px;color:#e6eef5;margin-top:5px">'
-              '这句话的分量：系统平时不喊话；今天喊，是因为下面三条<b>同时</b>成立，而且都是你自己的数。</div></div>'
+              '</div>'
             + '<div class="card">' + "".join(f'<div style="padding:9px 0;border-top:1px solid #2b4054;font-size:13.5px">{x}</div>' for x in ev) + '</div>'
             + corro_research("世界观", "layer")
             + _critical_research_note())
@@ -3070,7 +3144,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
            f'<div style="font-size:11.5px;color:#9aa8b5;margin-top:5px;line-height:1.75">'
            f'· 数据日 data_date=<b>{esc(_dd)}</b>（这些数字取自哪一天）<br>'
            f'· 生产于 <b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）——这份文件什么时候跑出来的<br>'
-           f'· 编号 run_id=<b>{esc(run_id)}</b>——这一次运行的号；五册必须完全一样，不一样就是有一册是旧的<br>'
+           f'· 编号 run_id=<b>{esc(run_id)}</b>——这一次运行的号（用来回溯是哪次扫描出的）<br>'
            + (f'· 行情快照日：{esc(md_note)}<br>' if md_note else '')
            + f'· 深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编'
            + _price_asof_note(date)
@@ -3084,8 +3158,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     oneline = esc(str(der.get("today_direction_short") or "今天：守核心、不追高、控AI集中"))
     banner = _top3_card(date, dyn, daily, stats, oneline)
     # ══ 分册：同一份同源数据 → 5册(纯移搬·一字不删) ══
-    v1_nav = _vol_nav(date, 1) ; v2_nav = _vol_nav(date, 2)
-    v3_nav = _vol_nav(date, 3) ; v4_nav = _vol_nav(date, 4) ; v5_nav = _vol_nav(date, 5)
+    # 甲2：合并单文件后【去掉分册导航】——已经在同一个文件里，没有册可导
     p_diff = part0_diff(date, dyn)
     p_layers = part1_layers(daily, dyn)
     p_macro = part1_macro_table(daily)
@@ -3097,40 +3170,48 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     p_rulers = part6_rulers()
     p_pdca = part7_pdca(date, daily)
 
-    # 董事局工单 2026-07-17：关键时刻研判/日股专项/现金部署/加仓价触发 全部置顶(紧跟3件卡)
-    vol1 = (head + title + v1_nav + banner
-            + part0_positions_sync(date, dyn)    # 甲P0 持仓实时同步+变化清单(所有数的地基·置最前)
-            + part0_critical(date, dyn)          # 二 这几天是不是关键时刻
-            + part0_triggers(date, dyn)          # 一 今天有没有跌到加仓价
-            + part0_jp(date, dyn)                # 三 日股专项
-            + part0_cash(date, dyn)              # 四 闲钱怎么用
-            + corro_staleness_banner(date)       # 甲5：佐证过期→醒目警条
-            + p_diff + _loop_map(date) + _summary_tables(date, dyn, stats)
-            + p_layers + p_macro + p_conc + p_close + "</body></html>")
-    vol3 = (head + title + v3_nav + p_6a + p_6b + p_funnel + "</body></html>")
-    vol4 = (head + title + v4_nav + p_pdca + "</body></html>")
-    vol5 = (head + title + v5_nav + p_rulers + "</body></html>")
-    stats["ruler_embed"] = vol5.count('class="ruler-embed"')
-    volumes = {VOL(date, 1): vol1, VOL(date, 3): vol3, VOL(date, 4): vol4, VOL(date, 5): vol5}
-    # ②持仓深研：按角色拆3子册(不删内容·每册<300KB)；card_by 保序原样搬
-    deep_total = 0
-    for sub, subname, syms in VOL2_SUBS:
-        # ⚠必须走 _sub_of(它对名单外的新持仓有兜底"2a")——原来直接按写死的 syms 挑，
-        #   富途新买的标的(如 SpaceX)落不进任何子册 → 卡根本没渲出来、上游"落点持仓"链就断了。
-        picked = [card_by[s] for s in [h.get("symbol") for h in stats["_order"]]
-                  if s in card_by and _sub_of(s) == sub]
-        body = (f'<h2 class="main">你的持仓，今天怎么办（{subname}·{len(picked)}只／全19只）</h2>'
-                + _sub_nav(date, sub) + "".join(picked))
-        volumes[VOL2(date, sub)] = head + title + _vol_nav(date, 2) + body + "</body></html>"
-        deep_total += len(picked)
-    stats["deep_blocks"] = deep_total
-    # 件四①/件二/件五：全册统一清洗(内部结构泄露/裸字段名/内部话/草稿语)——只改措辞·判断口径不变
-    # 甲1：候选专用措辞只许在③机会池册生效(持仓册走持仓版·不套候选模板)
-    volumes = {k: _scrub_leaks(v, is_pool=(k == VOL(date, 3))) for k, v in volumes.items()}
+    # ══ 甲[工单2026-07-17·A方案]：7文件合并成【一个】 ★每日产品_日期.html，三层排版 ══
+    #   第一层「今天的决定」置顶最简 → 第二层动作表+一眼看全(扫一遍) → 第三层深料(默认折叠)
+    all_cards = "".join(card_by[s] for s in [h.get("symbol") for h in stats["_order"]] if s in card_by)
+    stats["deep_blocks"] = len([s for s in [h.get("symbol") for h in stats["_order"]] if s in card_by])
+    stats["ruler_embed"] = p_rulers.count('class="ruler-embed"')
+
+    def fold(title_txt: str, body_html: str, anchor: str = "") -> str:
+        aid = f' id="{anchor}"' if anchor else ""
+        return (f'<details class="sub"{aid}><summary>{esc(title_txt)}</summary>'
+                f'<div style="padding:0 4px 8px">{body_html}</div></details>')
+
+    single = (head + title
+              # ── 第一层：今天的决定(置顶·最简·不写解释) ──
+              + part_decision_top(date, dyn, daily, oneline)
+              # ── 第二层：扫一遍 ──
+              + part_actions_table(date, dyn)
+              + _summary_tables(date, dyn, stats)
+              + p_diff
+              # ── 第三层：想深究才点开(默认折叠) ──
+              + '<h2 class="main" style="margin-top:26px">想深究再往下（都默认收起来了）</h2>'
+              + fold("为什么说是关键时刻（3条依据 + 湖水研报佐证）",
+                     part0_critical(date, dyn) + corro_staleness_banner(date), "why-critical")
+              + fold("今天哪几只跌到了加仓价（逐只）", part0_triggers(date, dyn))
+              + fold("日股专项 · 你这几只日股今天怎么样", part0_jp(date, dyn))
+              + fold("手上的闲钱怎么用（明细）", part0_cash(date, dyn))
+              + fold("持仓数据从哪来（富途实时 + 其余账户沿用）", part0_positions_sync(date, dyn))
+              + fold("大环境今天怎么了（六层）", p_layers + p_macro)
+              + fold("组合层 · 你整体押得偏不偏", p_conc)
+              + fold("机会池 · 该不该换、换谁", p_6a + p_6b + p_funnel)
+              + fold("复盘记分卡 · 昨天判的今天验", p_pdca)
+              + fold("右栏底子 · 6把尺（判断依据）", p_rulers)
+              + fold("每只持仓的10块深研（19只全在这）", all_cards, "deep-cards")
+              + fold("整条逻辑怎么闭环", _loop_map(date) + p_close)
+              + "</body></html>")
+    volumes = {ONEFILE(date): single}
+    # 全篇统一清洗(内部结构泄露/裸字段名/内部话/草稿语)——只改措辞·判断口径不变
+    #   单文件里既有持仓卡又有机会池 → is_pool=False，候选专用措辞由 part4 自己带
+    volumes = {k: _scrub_leaks(v, is_pool=False) for k, v in volumes.items()}
     stats["volumes"] = volumes
     stats["run_id"] = run_id          # 丙2/丙3：出厂后登记指纹+回写主控要用
     stats["scan_jst"] = scan_jst
-    return volumes[VOL(date, 1)], stats
+    return volumes[ONEFILE(date)], stats
 
 
 def _sub_nav(date: str, cur: str) -> str:
@@ -3430,6 +3511,50 @@ def _loop_map(date: str) -> str:
             '<b>闭环</b>：⑦记分卡的判对/判错 → 明日回改①-④的确定性档位（见④册魂①支柱累积表）。</div></div>')
 
 
+def part_decision_top(date: str, dyn: dict, daily: dict, oneline: str) -> str:
+    """乙[工单2026-07-17]：第一层「今天的决定」——置顶·最简·不写解释。
+    大方向一句话 + 今天可做(加X/减Y/其余守等) + 要你拍板N件 + 关键时刻是/否 一行。"""
+    acts = {}
+    for h in dyn["prod"].get("holdings", []):
+        s = str(h.get("symbol"))
+        if s.startswith("CC."):
+            continue
+        a = re.sub(r"<[^>]+>", "", _action_of(s, str(h.get("name") or s), dyn, date)[0]).strip()
+        acts.setdefault(a, []).append(str(h.get("name") or s))
+    n_add = len(acts.get("加", [])) + len(acts.get("买", []))
+    n_cut = len(acts.get("减", []))
+    n_rest = sum(len(v) for k, v in acts.items() if k not in ("加", "买", "减"))
+    try:
+        n_pend = int(rj(ROOT / "data" / "pdca" / "pending_decisions.json").get("pending_count") or 0)
+    except Exception:
+        n_pend = 0
+    # 关键时刻：只报是/否一行(依据在第三层)
+    conc = _conc_now(date, dyn)
+    over = [(k, v) for k, v in (conc.get("categories", {}) or {}).items() if v.get("over")]
+    crit = bool(over)
+    add_txt = (f'<b style="color:#8cf5be">加 {n_add}</b>（{esc("、".join(acts.get("加", []) + acts.get("买", [])))}）'
+               if n_add else '<span style="color:#8ea3b6">加 0</span>')
+    cut_txt = (f'<b style="color:#ff9a9a">减 {n_cut}</b>（{esc("、".join(acts.get("减", [])))}）'
+               if n_cut else '<span style="color:#8ea3b6">减 0</span>')
+    return ('<div class="card" style="background:#152238;border:3px solid #ffd479;border-radius:10px">'
+            '<div style="font-size:21px;font-weight:900;color:#ffd479;letter-spacing:.5px;margin-bottom:6px">'
+            '今天的决定</div>'
+            f'<div style="font-size:16px;font-weight:700;margin:4px 0">{oneline}</div>'
+            f'<div style="font-size:15px;margin:6px 0">今天可做：{add_txt}　｜　{cut_txt}　｜　'
+            f'<span style="color:#8ea3b6">其余 {n_rest} 只守/等</span>　'
+            f'{_a("#actions", "→ 看动作表")}</div>'
+            f'<div style="font-size:15px;margin:4px 0">要你拍板：'
+            + (f'<b style="color:#ffd479">{n_pend} 件</b>　{_a("#pending-inbox", "→ 去拍板")}'
+               if n_pend else '<b style="color:#7ee0a0">0 件</b>')
+            + '</div>'
+            + f'<div style="font-size:15px;margin:4px 0">关键时刻：'
+            + (f'<b style="color:#ff9a9a">是</b>'
+               f'（{esc("、".join(f"{k} {v['pct']:.1f}%超{v['limit']:.0f}%上限" for k, v in over))}）'
+               f'　{_a("#why-critical", "→ 为什么")}'
+               if crit else '<b style="color:#7ee0a0">否</b>')
+            + '</div></div>')
+
+
 def _top3_card(date: str, dyn: dict, daily: dict, stats: dict, oneline: str) -> str:
     """甲2：「今天先看这3件」置顶卡——给明确阅读顺序，治"无从下手"。
     三件都只【引用】既有单一源(derived / pending_decisions / final)，不新造判断。"""
@@ -3592,7 +3717,7 @@ def main() -> int:
             for f in fails:
                 print("  ✗ " + f, file=sys.stderr)
             return 5
-        print(f"[出厂核 PASS] {len(vols)} 册 · L1乱码/L2同源/L3转义/L4错模板/L5数字/L6状态词/L7半截/L8链接 全过")
+        print(f"[出厂核 PASS] {len(vols)} 个文件 · 全部规则通过")
         total = 0
         for fname, txt in vols.items():
             p = ROOT / "00_请先看这里" / fname
@@ -3600,7 +3725,7 @@ def main() -> int:
             b = p.read_bytes()
             total += len(b)
             print(f"wrote {fname} · bytes={len(b)} · 乱码EFBFBD={b.count(b'\xef\xbf\xbd')}")
-        print(f"五册合计 bytes={total}")
+        print(f"合计 bytes={total}（单文件）")
         # ── 丙2/丙3：登记实物指纹(防回滚哨兵) + 回写主控进度块 ──
         try:
             from product_manifest import write_manifest, sync_master

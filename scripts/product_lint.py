@@ -34,11 +34,29 @@ def _txt(html: str) -> str:
     return re.sub(r"<[^>]+>", " ", s)
 
 
+SIZE_WARN_MB = 1.5      # 甲3：单文件字节上限预警——超了就提示拆懒加载，别悄悄膨胀
+
+
 def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     """返回 FAIL 列表(空=全过)。vols: {文件名: html文本}"""
     fails: list[str] = []
     if not vols:
         return ["L0 没有任何册可核"]
+
+    # ── L22 单文件字节上限预警(甲3·工单2026-07-17)：合并成一个文件后最怕悄悄膨胀 ──
+    for fn, h in vols.items():
+        mb = len(h.encode("utf-8")) / 1024 / 1024
+        if mb > SIZE_WARN_MB:
+            fails.append(f"L22 单文件过大：{fn} 已 {mb:.2f} MB（预警线 {SIZE_WARN_MB} MB）"
+                         f"——该把深料改成懒加载/外链了，别让它悄悄膨胀到打不开")
+
+    # ── L23 HTML 必须分行(甲3·防"整份挤一行"·便于核验与diff) ──
+    for fn, h in vols.items():
+        lines = h.split("\n")
+        if len(lines) < 50:
+            fails.append(f"L23 HTML没分行：{fn} 只有 {len(lines)} 行——整份挤一行没法核验/diff")
+        elif max(len(x) for x in lines) > 8000:
+            fails.append(f"L23 HTML有超长行：{fn} 最长行 {max(len(x) for x in lines):,} 字符（>8000）")
 
     # ── L1 乱码 ──
     for fn, h in vols.items():
@@ -79,14 +97,18 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
 
     # ── L4 持仓册套了候选专用模板 ──
     POOL_ONLY = ["不在你的持仓里", "不在你持仓里", "候选还没做估值", "这只候选还没做估值"]
+    # 甲[A方案]合并单文件后：机会池与持仓卡在同一个文件里 → 只核【持仓卡区块内】不许有候选话
     for fn, h in vols.items():
-        if "机会池" in fn:
-            continue          # 机会池册本来就该说这些
-        t = _txt(h)
-        for w in POOL_ONLY:
-            if w in t:
-                fails.append(f"L4 错模板：{fn}(持仓/其它册) 出现候选专用话「{w}」")
-                break
+        for m in re.finditer(r'id="stock-([A-Z]{2}\.[A-Z0-9]+)"', h):
+            nxt = h.find('id="stock-', m.end())
+            card = _txt(h[m.start(): nxt if nxt > 0 else m.end() + 40000])
+            for w in POOL_ONLY:
+                if w in card:
+                    fails.append(f"L4 错模板：{fn} 的 {m.group(1)} 持仓卡里出现候选专用话「{w}」")
+                    break
+            else:
+                continue
+            break
 
     # ── L4b 引擎内部话/裸字段名漏进产品(估值待接串曾漏出"(任一整套)（该用…EV/EBITDA）·不硬编") ──
     LEAK = ["任一整套", "该用 ", "不硬编", "缺真输入", "normal_eps", "pe_mid", "normalized_eps",
@@ -143,8 +165,6 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
 
     # ── L9 同一标的现价全卡唯一(甲2·卡文本曾写死旧价:META $631 vs 实时 $687→动摇贵贱结论) ──
     for fn, h in vols.items():
-        if "持仓深研" not in fn:
-            continue
         for m in re.finditer(r'id="stock-([A-Z]{2}\.[A-Z0-9]+)"', h):
             sym = m.group(1)
             nxt = h.find('id="stock-', m.end())
@@ -203,7 +223,7 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     try:
         prod = json.loads((ROOT / "data" / "reports" / f"production_{date}.json").read_text(encoding="utf-8"))
         syms = [str(h["symbol"]) for h in prod.get("holdings", []) if not str(h["symbol"]).startswith("CC.")]
-        allh = "".join(v for k, v in vols.items() if "持仓深研" in k)
+        allh = "".join(vols.values())
         miss = [s for s in syms if f'id="stock-{s}"' not in allh]
         if miss:
             fails.append(f"L19 有持仓没卡：{miss} 在 production 里有仓位，但持仓深研册里找不到它的卡"
@@ -224,6 +244,33 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         t = _txt(h)
         if ("低置信" in t) and ("仅作框架参考" not in t):
             fails.append(f"L20 低置信没警示：{fn} 出现「低置信」但没有「仅作框架参考」的警示语")
+
+    # ── L21 决策话"读反"(工单2026-07-17·丙)：加仓价≥现价 / 减仓价≤现价 的矛盾措辞 ──
+    #     根因样例：「现价¥3,470 → 加到¥4,113附近」——读着像"要在高于现价的位置加仓"。
+    #     正确说法：停手价要说成"涨回¥4,113以上就别追"，不能说成"加到¥4,113"。
+    for fn, h in vols.items():
+        t = _txt(h)
+        for m in re.finditer(r"加到\s*([\$¥])([\d,]+)", t):
+            fails.append(f"L21 读反：{fn} 出现「加到{m.group(1)}{m.group(2)}」"
+                         f"——这是【停手价】，会被读成'要在这个价位加仓'。"
+                         f"请改成「涨回{m.group(1)}{m.group(2)}以上就别再追」")
+            break
+        for m in re.finditer(r"减到\s*([\$¥])([\d,]+)", t):
+            fails.append(f"L21 读反：{fn} 出现「减到{m.group(1)}{m.group(2)}」"
+                         f"——同理，请改成「跌回{m.group(1)}{m.group(2)}以下就别再减」")
+            break
+    # L21b 同一句里"可以加"却给了个高于现价的价、或"可以减"却给了低于现价的价
+    for fn, h in vols.items():
+        t = _txt(h)
+        for m in re.finditer(r"现在\s*([\$¥])([\d,]+)[^。]{0,80}?现在就可以加[^。]{0,60}?涨回\s*\1([\d,]+)", t):
+            try:
+                now_p, stop_p = float(m.group(2).replace(",", "")), float(m.group(3).replace(",", ""))
+                if stop_p <= now_p:
+                    fails.append(f"L21b 读反：{fn}「现在{m.group(1)}{m.group(2)} 可以加，涨回"
+                                 f"{m.group(1)}{m.group(3)} 就别追」——停手价低于现价，逻辑不通")
+                    break
+            except Exception:
+                pass
 
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
@@ -295,8 +342,8 @@ def main() -> int:
     ap.add_argument("--date", required=True)
     a = ap.parse_args()
     sys.path.insert(0, str(ROOT / "scripts"))
-    from deep_render import VOL, VOL2, VOL2_SUBS
-    names = [VOL(a.date, n) for n in (1, 3, 4, 5)] + [VOL2(a.date, s) for s, _n, _y in VOL2_SUBS]
+    from deep_render import ONEFILE
+    names = [ONEFILE(a.date)]      # 甲[A方案]：合并单文件后只核这一个
     vols = {}
     for fn in names:
         p = ROOT / "00_请先看这里" / fn
