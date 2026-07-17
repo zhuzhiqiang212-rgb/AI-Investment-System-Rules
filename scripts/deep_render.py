@@ -188,9 +188,11 @@ def corro_staleness_banner(date: str) -> str:
             f'{"⚠ 佐证料已放了 " + str(days) + " 天（不是今天的料）" if hot else "佐证料 " + str(days) + " 天内·较新"}</div>'
             f'<div style="font-size:13px;margin-top:4px;color:#e6eef5">'
             f'下面每处「佐证」栏里的<b>湖水／老雷</b>观点，最早一份是 <b>{esc(oldest)}</b> 整理的、'
-            f'距今天 <b>{days}</b> 天。'
+            f'距今天 <b>{days}</b> 天。<b>料截至 {esc(oldest)}</b>。'
             f'{"这么旧的料<b>只能当方向性参考</b>，不能当今天的证据——" if hot else ""}'
             f'今天的结论一律以左栏<b>系统证据链</b>（当日实时行情+当日新闻）为准。'
+            f'<br><span style="color:#8ea3b6">（湖水/老雷的活水源还没接上——源位置待架构师给。'
+            f'接上之前，这里只如实标料截止日，不拿旧观点冒充"他们最近怎么说"。）</span>'
             f'佐证只用来「印证」或「挑战」系统判断，<b>永远不盖过系统判断</b>（总则第九条三）。</div></div>')
 
 def corro_box(key: str, kind: str = "layer") -> str:
@@ -1391,10 +1393,24 @@ def _action_of(sym: str, name: str, dyn: dict, date: str) -> tuple:
 
 def part0_cash(date: str, dyn: dict) -> str:
     """四：SBI闲钱怎么用——具体建议(买/减什么·大概价·大概比例·为什么)。价位全部现算。"""
-    cash = None
+    # 甲[P0]：现金也要分清"哪份是今天实时的、哪份是旧快照"——不许把 07-02 的数当今天的闲钱
+    cash, cash_note = None, ""
+    futu_cash = None
+    try:
+        fp = rj(ROOT / "data" / "accounts" / f"futu_positions_{date}.json")
+        if not fp.get("error"):
+            futu_cash = (fp.get("futu_cash") or {}).get("cash")
+    except Exception:
+        pass
     try:
         u = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
         cash = (u.get("summary", {}) or {}).get("known_cash_usd")
+        _gen = str(u.get("generated_at", ""))[:10]
+        cash_note = (f'其中<b>富途 ${futu_cash:,.0f} 是今天 OpenD 拉的实时数</b>；'
+                     f'SBI／IBKR／bitFlyer 的现金还是 {esc(_gen)} 那份快照（那几家不接 OpenD）'
+                     f'<b style="color:#ffb454">→ 需你手工确认</b>。'
+                     if isinstance(futu_cash, (int, float)) else
+                     f'来自 {esc(_gen)} 的快照<b style="color:#ffb454">→ 需你确认是不是还准</b>。')
     except Exception:
         pass
     rows = _trigger_rows(date, dyn)
@@ -1413,6 +1429,7 @@ def part0_cash(date: str, dyn: dict) -> str:
     cash_txt = (f'<b>${cash:,.0f}</b>' if isinstance(cash, (int, float)) else '<span class="need">待接</span>（账户现金数没接进来·不编）')
     o = []
     o.append(f'<div class="card"><b>你手上的闲钱</b>：{cash_txt}'
+             + (f'<div style="font-size:12px;color:#c8d4de;margin-top:3px">{cash_note}</div>' if cash_note else '')
              + ('' if isinstance(cash, (int, float)) else
                 '<div style="font-size:12px;color:#8ea3b6">下面的比例照样能用——把它套到你实际的现金数上即可。</div>')
              + '</div>')
@@ -1558,6 +1575,54 @@ def part0_triggers(date: str, dyn: dict) -> str:
               f'不是均线、不是猜短期。跌到它才谈加；没跌到就不动。'
               + (f'另有 <b>{n_wait}</b> 只算不出估值区间（周期股/控股公司缺真源）→ 不编加仓价。' if n_wait > 0 else '')
             + '</div>' + body)
+
+
+def part0_positions_sync(date: str, dyn: dict) -> str:
+    """甲[P0·工单4]：本次持仓 vs 上次快照 的变化清单 + 哪些账户的数还需你确认。"""
+    try:
+        fp = rj(ROOT / "data" / "accounts" / f"futu_positions_{date}.json")
+    except Exception:
+        return ('<h2 class="sub">持仓数据从哪来</h2><div class="card">'
+                '<span class="need">富途实时持仓待接</span>——今天没拉到 OpenD 持仓，'
+                '下面所有占比/闲钱/建议仍基于旧快照，<b>请先让我重拉</b>。</div>')
+    if fp.get("error"):
+        return ('<h2 class="sub">持仓数据从哪来</h2>'
+                f'<div class="card" style="background:#3a1414;border:2px solid #d24b4b">'
+                f'<b style="color:#ff9a9a">⚠ 富途实时持仓没拉到</b>：{esc(str(fp["error"]))}'
+                '<br>所以下面的占比/闲钱/建议<b>仍基于旧快照</b>，可能不准。</div>')
+    ch = fp.get("changes_vs_last_snapshot") or []
+    cash = fp.get("futu_cash") or {}
+    rows = ""
+    for c in ch:
+        col = {"加仓": "#8cf5be", "新增": "#8cf5be", "减仓": "#ffb454", "清空": "#ff9a9a"}.get(str(c["change"]), "#7cc4ff")
+        cp = (f'成本 <b>{c["cost_price"]:,.2f}</b>' if c.get("cost_price") else '<span class="need">成本待接</span>')
+        rows += (f'<div style="padding:7px 0;border-top:1px solid #2b4054">'
+                 f'<b style="color:{col};font-size:14px">{esc(str(c["change"]))}</b>　'
+                 f'<b>{esc(str(c["name"]))}</b>（{esc(str(c["ticker"]))}）　'
+                 f'{c["old_qty"]:g} → <b>{c["new_qty"]:g}</b> 股　{cp}'
+                 f'<div style="font-size:11.5px;color:#8ea3b6">{esc(str(c.get("note","")))}</div></div>')
+    n_f = len(fp.get("futu_positions") or [])
+    body = ('<div class="card" style="background:#12203a;border:2px solid #4a7fb5">'
+            f'<div style="font-size:15px;font-weight:800;color:#9ed8ff">'
+            f'✔ 富途：已按今天 OpenD 的<b>实时持仓</b>重算（{n_f} 只，带券商成本均价）</div>'
+            + (f'<div style="font-size:13px;margin-top:4px">和上次比，<b>变了 {len(ch)} 处</b>——请你核对：</div>' + rows
+               if ch else '<div style="font-size:13px;margin-top:4px">和上次比<b>没有变化</b>。</div>')
+            + (f'<div style="font-size:12.5px;color:#c8d4de;margin-top:6px">'
+               f'富途现金 <b>${cash.get("cash"):,.2f}</b>（可提 ${cash.get("avl_withdrawal_cash"):,.2f}）·'
+               f'账户总资产 ${cash.get("total_assets"):,.2f}——都是今天 OpenD 拉的实时数。</div>'
+               if cash.get("cash") is not None else '')
+            + '</div>')
+    non = fp.get("non_opend_accounts") or {}
+    body += ('<div class="card" style="background:#2a1f10;border:2px solid #c47a1e">'
+             f'<div style="font-size:15px;font-weight:800;color:#ffb454">'
+             f'⚠ {esc("／".join(non.get("accounts") or []))}：这几个账户的持仓<b>需要你手工确认</b></div>'
+             '<div style="font-size:13px;margin-top:4px;color:#e6eef5">'
+             '这几家券商<b>不接 OpenD</b>，系统拉不到它们的实时持仓。产品里凡是用到它们股数的地方，'
+             '用的都是 <b>2026-07-02 那份 OCR 快照</b>——如果你这半个月在这些账户里动过仓，'
+             '下面的占比/闲钱/建议就会有偏差。'
+             '<br><b style="color:#ffb454">要准，需要你把这几个账户的当前持仓给我一次</b>（截图即可）。'
+             '<span style="color:#8ea3b6">系统不会拿旧数冒充今天的——所以这里明说。</span></div></div>')
+    return '<h2 class="main">持仓数据从哪来（先看这个，下面所有数都建在它上面）</h2>' + body
 
 
 def part0_critical(date: str, dyn: dict) -> str:
@@ -2733,6 +2798,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
 
     # 董事局工单 2026-07-17：关键时刻研判/日股专项/现金部署/加仓价触发 全部置顶(紧跟3件卡)
     vol1 = (head + title + v1_nav + banner
+            + part0_positions_sync(date, dyn)    # 甲P0 持仓实时同步+变化清单(所有数的地基·置最前)
             + part0_critical(date, dyn)          # 二 这几天是不是关键时刻
             + part0_triggers(date, dyn)          # 一 今天有没有跌到加仓价
             + part0_jp(date, dyn)                # 三 日股专项
@@ -2748,7 +2814,10 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     # ②持仓深研：按角色拆3子册(不删内容·每册<300KB)；card_by 保序原样搬
     deep_total = 0
     for sub, subname, syms in VOL2_SUBS:
-        picked = [card_by[s] for s in [h.get("symbol") for h in stats["_order"]] if s in syms and s in card_by]
+        # ⚠必须走 _sub_of(它对名单外的新持仓有兜底"2a")——原来直接按写死的 syms 挑，
+        #   富途新买的标的(如 SpaceX)落不进任何子册 → 卡根本没渲出来、上游"落点持仓"链就断了。
+        picked = [card_by[s] for s in [h.get("symbol") for h in stats["_order"]]
+                  if s in card_by and _sub_of(s) == sub]
         body = (f'<h2 class="main">你的持仓，今天怎么办（{subname}·{len(picked)}只／全19只）</h2>'
                 + _sub_nav(date, sub) + "".join(picked))
         volumes[VOL2(date, sub)] = head + title + _vol_nav(date, 2) + body + "</body></html>"

@@ -21,6 +21,7 @@ render 出五册后【自动】跑这一关：任何一条 FAIL → 不出品（
 from __future__ import annotations
 
 import argparse
+import json
 import re
 from pathlib import Path
 
@@ -164,6 +165,18 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         if bad:
             fails.append(f"L18 裸尖括号：{fn} 正文用了 {bad[:1]} 这种比较号"
                          f"——HTML 里 <> 是标签起止符，请改成「低于/高于」或 &lt;")
+
+    # ── L19 有持仓却没卡(子册按写死名单挑卡→新买的标的落不进任何册·董事长看不到自己的持仓) ──
+    try:
+        prod = json.loads((ROOT / "data" / "reports" / f"production_{date}.json").read_text(encoding="utf-8"))
+        syms = [str(h["symbol"]) for h in prod.get("holdings", []) if not str(h["symbol"]).startswith("CC.")]
+        allh = "".join(v for k, v in vols.items() if "持仓深研" in k)
+        miss = [s for s in syms if f'id="stock-{s}"' not in allh]
+        if miss:
+            fails.append(f"L19 有持仓没卡：{miss} 在 production 里有仓位，但持仓深研册里找不到它的卡"
+                         f"——子册分配漏了(名单写死?)，董事长会看不到自己的持仓")
+    except Exception:
+        pass
 
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())

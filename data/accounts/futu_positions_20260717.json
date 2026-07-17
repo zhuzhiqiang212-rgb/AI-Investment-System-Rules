@@ -1,0 +1,203 @@
+{
+  "_说明": "富途账户的【当前实时持仓+券商成本均价】，直接取自 OpenD 交易接口(只读 position_list_query)，不再用 2026-07-02 的 OCR 快照。SBI/IBKR/bitFlyer 不在 OpenD 里 → 见 non_opend_accounts，那几个账户的持仓需董事长手工确认，系统不拿旧数顶充。",
+  "date": "20260717",
+  "generated_at": "2026-07-17T18:19:57+09:00",
+  "source": "OpenD OpenSecTradeContext.position_list_query(REAL) + accinfo_query",
+  "error": "",
+  "acc_id": 281756477704105599,
+  "futu_positions": [
+    {
+      "symbol": "US.TSM",
+      "name": "台积电",
+      "account": "富途",
+      "quantity": 1.0,
+      "cost_price": 153.123,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 392.62,
+      "broker_nominal_price": 392.62,
+      "pl_ratio": 0.0
+    },
+    {
+      "symbol": "US.SPCX",
+      "name": "SpaceX",
+      "account": "富途",
+      "quantity": 10.0,
+      "cost_price": 138.0,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 1253.6,
+      "broker_nominal_price": 125.36,
+      "pl_ratio": -9.16
+    },
+    {
+      "symbol": "US.SNDK",
+      "name": "闪迪",
+      "account": "富途",
+      "quantity": 20.0,
+      "cost_price": 1531.99,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 26692.0,
+      "broker_nominal_price": 1334.6,
+      "pl_ratio": -12.879999999999999
+    },
+    {
+      "symbol": "US.NVDA",
+      "name": "英伟达",
+      "account": "富途",
+      "quantity": 830.0,
+      "cost_price": 180.759,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 166890.84,
+      "broker_nominal_price": 201.073,
+      "pl_ratio": 66.38
+    },
+    {
+      "symbol": "US.MSTR",
+      "name": "Strategy",
+      "account": "富途",
+      "quantity": 700.0,
+      "cost_price": 181.267,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 63588.0,
+      "broker_nominal_price": 90.84,
+      "pl_ratio": -49.89
+    },
+    {
+      "symbol": "US.MSFT",
+      "name": "微软",
+      "account": "富途",
+      "quantity": 550.0,
+      "cost_price": 406.665,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 217136.7,
+      "broker_nominal_price": 394.794,
+      "pl_ratio": -2.69
+    },
+    {
+      "symbol": "US.CRCL",
+      "name": "Circle",
+      "account": "富途",
+      "quantity": 400.0,
+      "cost_price": 94.918,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 23744.0,
+      "broker_nominal_price": 59.36,
+      "pl_ratio": -37.46
+    },
+    {
+      "symbol": "US.COIN",
+      "name": "Coinbase",
+      "account": "富途",
+      "quantity": 200.0,
+      "cost_price": 228.899,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 30968.0,
+      "broker_nominal_price": 154.84,
+      "pl_ratio": -32.35
+    },
+    {
+      "symbol": "US.AVGO",
+      "name": "博通",
+      "account": "富途",
+      "quantity": 150.0,
+      "cost_price": 383.125,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 54772.68,
+      "broker_nominal_price": 365.151,
+      "pl_ratio": -4.58
+    },
+    {
+      "symbol": "JP.9984",
+      "name": "软银集团",
+      "account": "富途",
+      "quantity": 4100.0,
+      "cost_price": 4457.5992,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 22238400.0,
+      "broker_nominal_price": 5424.0,
+      "pl_ratio": 50.62
+    },
+    {
+      "symbol": "JP.7974",
+      "name": "任天堂",
+      "account": "富途",
+      "quantity": 2000.0,
+      "cost_price": 8246.8,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 14588000.0,
+      "broker_nominal_price": 7294.0,
+      "pl_ratio": -10.879999999999999
+    },
+    {
+      "symbol": "JP.7832",
+      "name": "万代南梦宫",
+      "account": "富途",
+      "quantity": 500.0,
+      "cost_price": 4322.0,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 2094500.0,
+      "broker_nominal_price": 4189.0,
+      "pl_ratio": -1.94
+    },
+    {
+      "symbol": "JP.4568",
+      "name": "第一三共",
+      "account": "富途",
+      "quantity": 6500.0,
+      "cost_price": 3140.3083,
+      "cost_source": "OpenD average_cost(券商平均成本·A级)",
+      "cost_grade": "A",
+      "broker_market_val": 18141500.0,
+      "broker_nominal_price": 2791.0,
+      "pl_ratio": -5.34
+    }
+  ],
+  "futu_cash": {
+    "currency": "USD",
+    "cash": 27123.04,
+    "avl_withdrawal_cash": 41264.86,
+    "total_assets": 1023610.5157,
+    "market_val": 936714.5734,
+    "source": "OpenD accinfo_query(REAL·USD)"
+  },
+  "changes_vs_last_snapshot": [
+    {
+      "ticker": "US.SNDK",
+      "name": "闪迪",
+      "change": "加仓",
+      "old_qty": 5,
+      "new_qty": 20.0,
+      "cost_price": 1531.99,
+      "note": "股数 5 → 20（+15）"
+    },
+    {
+      "ticker": "US.SPCX",
+      "name": "SpaceX",
+      "change": "新增",
+      "old_qty": 0,
+      "new_qty": 10.0,
+      "cost_price": 138.0,
+      "note": "上一份基线里富途没有这只 → 这几天新买的"
+    }
+  ],
+  "non_opend_accounts": {
+    "accounts": [
+      "SBI",
+      "IBKR",
+      "bitFlyer"
+    ],
+    "status": "需董事长手工确认",
+    "note": "这几家券商不接 OpenD，系统拉不到它们的实时持仓。产品里凡用到它们的股数，都是 2026-07-02 的 OCR 快照 → 已在册内标明「该账户持仓需董事长手工确认」，不冒充当日实时。"
+  }
+}

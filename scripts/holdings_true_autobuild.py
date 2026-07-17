@@ -59,6 +59,76 @@ def find_latest_confirmed_base(before_date: str) -> Path | None:
     return cands[-1][1]
 
 
+# ⚠账户名在本系统数据里写作「富通」(不是"富途")——写错就匹配不到、会把富途仓当"新持仓"重复加一遍。
+FUTU_ALIASES = ("富通", "富途", "Futu", "FUTU", "moomoo")
+NON_OPEND_ACCOUNTS = ("SBI", "IBKR", "bitFlyer")
+
+
+def _apply_futu_live(base_holdings: list, date: str) -> list:
+    """甲[P0]：用 OpenD 实时持仓覆盖【富途】那部分股数+成本；其余账户沿用并标"需董事长确认"。"""
+    p = ACCOUNTS_DIR / f"futu_positions_{date}.json"
+    if not p.exists():
+        return base_holdings
+    try:
+        fp = _read_json(p)
+    except Exception:
+        return base_holdings
+    if fp.get("error"):
+        return base_holdings
+    live = {str(x["symbol"]): x for x in (fp.get("futu_positions") or [])}
+    out, seen = [], set()
+    for h in base_holdings:
+        sym = str(h.get("symbol"))
+        accs = list(h.get("accounts") or [])
+        new_accs, changed = [], False
+        for a in accs:
+            an = str(a.get("account"))
+            if an in FUTU_ALIASES:
+                lv = live.get(sym)
+                if lv is None:      # 富途已清空这只 → 该账户份额归0(真事实·不保留旧数)
+                    changed = True
+                    continue
+                a2 = dict(a)
+                a2["quantity"] = lv["quantity"]
+                a2["cost_price"] = lv.get("cost_price")
+                a2["cost_source"] = lv.get("cost_source")
+                a2["cost_grade"] = lv.get("cost_grade")
+                a2["qty_source"] = "OpenD 实时持仓(当日·A级)"
+                new_accs.append(a2)
+                changed = True
+                seen.add(sym)
+            else:
+                a2 = dict(a)
+                a2["qty_source"] = f"{an} 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认"
+                a2["needs_owner_confirm"] = True
+                new_accs.append(a2)
+        if not new_accs or sum(float(a.get("quantity") or 0) for a in new_accs) <= 0:
+            continue                # 四个账户都没有它了(或都归0) → 整只出局
+        row = dict(h)
+        row["accounts"] = new_accs
+        tq = sum(float(a.get("quantity") or 0) for a in new_accs)
+        row["total_quantity"] = tq
+        row["quantity_status"] = ("confirmed·富途实时+其它账户待确认"
+                                  if any(str(a.get("account")) in FUTU_ALIASES for a in new_accs) and
+                                  any(a.get("needs_owner_confirm") for a in new_accs)
+                                  else ("confirmed·富途实时" if changed else "沿用快照·需董事长手工确认"))
+        out.append(row)
+    # 富途新买、但系统里还没有的标的 → 如实加进来(不许漏)
+    for sym, lv in live.items():
+        if sym in seen:
+            continue
+        out.append({"symbol": sym, "name": lv.get("name") or sym,
+                    "total_quantity": lv["quantity"],
+                    "quantity_status": "confirmed·富途实时(新持仓·系统此前没有这只)",
+                    "accounts": [{"account": "富途", "quantity": lv["quantity"],
+                                  "cost_price": lv.get("cost_price"), "cost_source": lv.get("cost_source"),
+                                  "cost_grade": lv.get("cost_grade"),
+                                  "qty_source": "OpenD 实时持仓(当日·A级)"}],
+                    "currency_hint": ("JPY" if sym.startswith("JP.") else "USD"),
+                    "_new_from_futu": True})
+    return out
+
+
 def fetch_today_prices(symbols: list[str]) -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
     """连一次 OpenD，逐标的取今日实时价。抓不到→价 null + 状态，不伪造。"""
     from realtime_price import connect_quote_context, get_realtime_price
@@ -95,6 +165,11 @@ def build(date: str) -> dict[str, Any]:
     base = _read_json(base_path)
     base_date = base_path.stem.replace("holdings_true_", "")
     base_holdings = base.get("holdings", [])
+    # ══ 甲[P0·董事局工单2026-07-17]：富途那部分的股数改用 OpenD 当前实时持仓，不再沿用旧快照 ══
+    #   根因：本函数原来只"沿用上一份 confirmed 股数 + 今日刷价"，股数从来没更新过 →
+    #   董事长在富途的加减仓系统看不见 → 集中度/闲钱/加谁减谁全可能算错。
+    #   SBI/IBKR/bitFlyer 不在 OpenD 里 → 保持沿用并标 needs_owner_confirm，不冒充实时。
+    base_holdings = _apply_futu_live(base_holdings, date)
 
     symbols = [str(h.get("symbol")) for h in base_holdings if h.get("symbol")]
     price_map, attempts = fetch_today_prices(symbols)
