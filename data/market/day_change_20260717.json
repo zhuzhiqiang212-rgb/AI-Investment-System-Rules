@@ -1,0 +1,225 @@
+{
+  "_说明": "当日涨跌%=（OpenD last_price − prev_close_price）÷ prev_close_price。覆盖全持仓+参照指数(日经ETF/SOXX/SPY/恒生/铠侠)。取不到→标待接、不编。",
+  "date": "20260717",
+  "generated_at": "2026-07-17T16:51:30+09:00",
+  "source": "OpenD get_market_snapshot(last_price vs prev_close_price)",
+  "error": "",
+  "changes": {
+    "JP.4568": {
+      "name": "第一三共",
+      "price": 2791.0,
+      "prev_close": 2746.5,
+      "change_pct": 1.62,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.NVDA": {
+      "name": "英伟达",
+      "price": 207.4,
+      "prev_close": 212.5,
+      "change_pct": -2.4,
+      "update_time": "2026-07-17 03:51:24.667",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.MSFT": {
+      "name": "微软",
+      "price": 401.1,
+      "prev_close": 395.63,
+      "change_pct": 1.38,
+      "update_time": "2026-07-17 03:51:18.578",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.MSTR": {
+      "name": "MSTR",
+      "price": 94.03,
+      "prev_close": 97.47,
+      "change_pct": -3.53,
+      "update_time": "2026-07-17 03:50:38.090",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.COIN": {
+      "name": "Coinbase",
+      "price": 160.49,
+      "prev_close": 167.21,
+      "change_pct": -4.02,
+      "update_time": "2026-07-17 03:51:23.477",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.9984": {
+      "name": "软银",
+      "price": 5424.0,
+      "prev_close": 5961.0,
+      "change_pct": -9.01,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.8766": {
+      "name": "东京海上",
+      "price": 7526.0,
+      "prev_close": 7600.0,
+      "change_pct": -0.97,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.6758": {
+      "name": "索尼",
+      "price": 3470.0,
+      "prev_close": 3438.0,
+      "change_pct": 0.93,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.6857": {
+      "name": "爱德万",
+      "price": 27505.0,
+      "prev_close": 29640.0,
+      "change_pct": -7.2,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.7203": {
+      "name": "丰田",
+      "price": 2899.5,
+      "prev_close": 2909.0,
+      "change_pct": -0.33,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.8001": {
+      "name": "伊藤忠",
+      "price": 1902.5,
+      "prev_close": 1919.5,
+      "change_pct": -0.89,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.7832": {
+      "name": "万代",
+      "price": 4189.0,
+      "prev_close": 4108.0,
+      "change_pct": 1.97,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.7974": {
+      "name": "任天堂",
+      "price": 7294.0,
+      "prev_close": 7080.0,
+      "change_pct": 3.02,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.AVGO": {
+      "name": "博通",
+      "price": 374.45,
+      "prev_close": 394.28,
+      "change_pct": -5.03,
+      "update_time": "2026-07-17 03:51:18.372",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.CRCL": {
+      "name": "Circle",
+      "price": 60.64,
+      "prev_close": 65.69,
+      "change_pct": -7.69,
+      "update_time": "2026-07-17 03:51:04.486",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.SNDK": {
+      "name": "闪迪",
+      "price": 1411.08,
+      "prev_close": 1615.0,
+      "change_pct": -12.63,
+      "update_time": "2026-07-17 03:51:29.326",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.TSM": {
+      "name": "台积电",
+      "price": 409.74,
+      "prev_close": 419.48,
+      "change_pct": -2.32,
+      "update_time": "2026-07-17 03:51:16.562",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.META": {
+      "name": "META",
+      "price": 664.54,
+      "prev_close": 681.31,
+      "change_pct": -2.46,
+      "update_time": "2026-07-17 03:50:17.143",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "US.IBKR": {
+      "name": "IBKR",
+      "price": 92.21,
+      "prev_close": 97.41,
+      "change_pct": -5.34,
+      "update_time": "2026-07-17 03:40:01.685",
+      "is_bench": false,
+      "status": "OK"
+    },
+    "JP.1321": {
+      "name": "日经225ETF",
+      "price": 66960.0,
+      "prev_close": 69230.0,
+      "change_pct": -3.28,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": true,
+      "status": "OK"
+    },
+    "US.SOXX": {
+      "name": "半导体指数ETF",
+      "price": 530.5,
+      "prev_close": 555.27,
+      "change_pct": -4.46,
+      "update_time": "2026-07-17 03:51:18.807",
+      "is_bench": true,
+      "status": "OK"
+    },
+    "US.SPY": {
+      "name": "标普500ETF",
+      "price": 750.72,
+      "prev_close": 754.81,
+      "change_pct": -0.54,
+      "update_time": "2026-07-17 03:51:04.292",
+      "is_bench": true,
+      "status": "OK"
+    },
+    "HK.800000": {
+      "name": "恒生指数",
+      "price": 24481.42,
+      "prev_close": 25008.6,
+      "change_pct": -2.11,
+      "update_time": "2026-07-17 15:51:28",
+      "is_bench": true,
+      "status": "OK"
+    },
+    "JP.285A": {
+      "name": "铠侠(日本存储龙头)",
+      "price": 52110.0,
+      "prev_close": 62110.0,
+      "change_pct": -16.1,
+      "update_time": "2026-07-17 15:30:00",
+      "is_bench": true,
+      "status": "OK"
+    }
+  }
+}

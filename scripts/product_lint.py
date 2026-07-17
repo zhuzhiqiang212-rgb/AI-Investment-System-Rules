@@ -158,6 +158,13 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
             fails.append(f"L17 平铺裸标题：{fn} 有 {len(bare)} 个无主次样式的 <h2>（示例「{bare[0][:20]}」）"
                          f"——渲染层的 h2 必须标 class=main(主) 或 class=sub(次)")
 
+    # ── L18 正文里的裸 "<" / ">" 比较号(如 "$202 < $216")会被当成标签起止符·撑坏结构 ──
+    for fn, h in vols.items():
+        bad = re.findall(r"[\$¥][\d,\.]+\s*[<>]\s*[\$¥]?[\d,\.]+", h)
+        if bad:
+            fails.append(f"L18 裸尖括号：{fn} 正文用了 {bad[:1]} 这种比较号"
+                         f"——HTML 里 <> 是标签起止符，请改成「低于/高于」或 &lt;")
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:
