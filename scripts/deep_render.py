@@ -207,9 +207,13 @@ def corro_box(key: str, kind: str = "layer") -> str:
                 e = v
                 break
     if not e:
+        # uncovered_note 自带完整括号("佐证料待接·从接入起用（现有料[…]未覆盖该标的·不编不凑）")，
+        # 外面【不许】再套一层"（…）"——否则括号不闭合、"佐证料待接"还重复两遍。
+        _note = str(c.get("uncovered_note", "现有料未覆盖·不编不凑"))
+        _note = re.sub(r"^佐证料待接·从接入起用\s*", "", _note)   # 去掉与前半句重复的那截
         return ('<div class="meta" style="color:#c9a86a;font-size:11.5px;margin-top:3px">'
                 f'佐证（第九条三·只作印证/挑战·不盖系统判断）：<b>佐证料待接·从接入起用</b>'
-                f'（{esc(str(c.get("uncovered_note", "现有料未覆盖·不编不凑")))}）</div>')
+                f'——{esc(_note)}</div>')
     vd = str(e.get("verdict", "佐证料待接"))
     col = _VERDICT_COLOR.get(vd, "#c9a86a")
     bits = []
@@ -510,6 +514,13 @@ def _load_deep_card(sym: str, dyn: dict | None = None):
 # 治法：现价=production 单一真源；由价推出的前瞻PE用引擎的 eps0 现算；由旧价推出的贵/便宜结论
 # 一律收敛为"指向本卡⑤估值区间与决策条"(R1单一源·判断口径不变·不删肉)。
 _PRICE_RE = re.compile(r"(现价[约]?\s*)([\$¥])\s*([\d,]+(?:\.\d+)?)")
+# 乙7：⑤"真实市场参照"里还有两种不带"现价"二字的第三方旧价写法，也得治：
+#   ①"TSM收盘$419.48(2026-07-15)"  ②"AVGO约$394(stockanalysis 2026-07)"
+# 处理原则(按工单)：要么统一到今日实时价，要么【明确另标它自己的日期+来源】、不许与"现价"混淆。
+_3RD_DATED_RE = re.compile(
+    r"([A-Z]{2,5})\s*(?:收盘|股价|市价)\s*([\$¥])\s*([\d,]+(?:\.\d+)?)\s*[（(]\s*(\d{4}-\d{2}(?:-\d{2})?)\s*[）)]")
+_3RD_SRC_RE = re.compile(
+    r"([A-Z]{2,5})\s*约\s*([\$¥])\s*([\d,]+(?:\.\d+)?)\s*[（(]\s*([a-zA-Z]+)\s+(\d{4}-\d{2}(?:-\d{2})?)\s*[）)]")
 _FWD_PE_RE = re.compile(r"(?:前瞻PE|前瞻市盈率)\s*约?\s*([\d\.]+)(?:\s*[~～-]\s*([\d\.]+))?\s*倍|约\s*([\d\.]+)\s*倍前瞻")
 _CHEAP_RE = re.compile(r"[（(][^（）()]{0,12}(?:偏便宜|偏贵|很便宜|很贵)[^（）()]{0,12}[）)]")
 
@@ -540,6 +551,36 @@ def _sync_card_prices(sym: str, blob: str, dyn: dict) -> str:
         return f"{m.group(1)}{c}{live_s}"
 
     blob = _PRICE_RE.sub(_rep_price, blob)
+
+    # 乙7：第三方旧价(带日期/带来源) → 换成今日实时价；若与今日价差>1%，把旧价降级成"交叉参考"
+    #      并【明确另标它自己的日期+来源】，绝不与"现价"混淆。
+    def _rep_dated(m):
+        sym_t, cy, old, d = m.group(1), m.group(2), m.group(3), m.group(4)
+        try:
+            diff = abs(float(old.replace(",", "")) - float(live)) / float(live) > 0.01
+        except Exception:
+            diff = True
+        if not diff:
+            return f"{sym_t} 现价{c}{live_s}（今日实时）"
+        stale.append(old)
+        return (f"{sym_t} 现价{c}{live_s}（今日实时·与档案行同一源）"
+                f"；另：{d} 的收盘价是{cy}{old}（<b>那是{d}的旧价·不是现价</b>·仅作交叉参考）")
+
+    def _rep_src(m):
+        sym_t, cy, old, src, d = m.group(1), m.group(2), m.group(3), m.group(4), m.group(5)
+        try:
+            diff = abs(float(old.replace(",", "")) - float(live)) / float(live) > 0.01
+        except Exception:
+            diff = True
+        if not diff:
+            return f"{sym_t} 现价{c}{live_s}（今日实时）"
+        stale.append(old)
+        return (f"{sym_t} 现价{c}{live_s}（今日实时·与档案行同一源）"
+                f"；另：第三方{src}在{d}记的是{cy}{old}（<b>那是{d}的旧价·不是现价</b>·仅作交叉参考）")
+
+    blob = _3RD_DATED_RE.sub(_rep_dated, blob)
+    blob = _3RD_SRC_RE.sub(_rep_src, blob)
+
     # 甲5：卡里写"某日收盘价待接"是【写卡当时】没取到价留的坑；今天实时价已经有了→就地填上，
     # 别让同一张卡一边说"待接"、一边在档案行展示 ¥5,961(软银)。
     blob = re.sub(r"[；;、,]?\s*\d{4}-\d{2}-\d{2}\s*收盘价待接",
@@ -963,7 +1004,9 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                        "所以没法算你这只赚了还是亏了。"
                        "要填上它，需要你把各账户的买入均价给我一次（之后就能天天自动算盈亏）。"))
     ma20, ma50, ma200 = ma.get("ma20"), ma.get("ma50"), ma.get("ma200")
-    ma_s = (f"20日{c}{fnum(ma20)}/50日{c}{fnum(ma50)}/200日{c}{fnum(ma200)}（均线位·仅趋势参考·不作买卖线）"
+    # 乙4：分隔符用「 ｜ 」不用「/」——"X/X"归一那条兜底正则会把"¥3,420/200日"里的斜杠吃掉，
+    # 粘成"50日¥3,4200日¥3,737"(看着像数字错，其实是分隔符没了)。
+    ma_s = (f"20日{c}{fnum(ma20)} ｜ 50日{c}{fnum(ma50)} ｜ 200日{c}{fnum(ma200)}（均线位·仅趋势参考·不作买卖线）"
             if ma200 is not None else "待接·均线不足（不编）")
     dossier = (f'<div class="dossier"><span class="k">档案</span><b>持仓</b>{esc(qty_s)} ｜ <b>成本</b>{cost_html} '
                f'｜ <b>现价</b>{esc(c)}{esc(fnum(price)) if price is not None else "待接"}'
@@ -1359,21 +1402,29 @@ def part4_opportunity(daily: dict, dyn: dict) -> str:
     scope = esc(str(der.get("opportunity_scope", "待接")))
     # 甲3：不再自报"现算候选 3/3 进池"(与五关漏斗的23→19→5并存=两套口径)。
     # 全篇机会数字唯一出处 = funnel_scope_line；本节只是候选宇宙里"已配好换法"的重点几只展开。
-    head = ('<h2>第四部分 · 机会池：该不该换、换谁（证据驱动·6a）</h2>'
+    # 甲2：标题原写"（证据驱动·6a）"，术语清洗把内部编号 6a 抹掉后剩"（证据驱动·）"悬空标点→直接不写编号
+    head = ('<h2>第四部分 · 机会池：该不该换、换谁（证据驱动）</h2>'
             f'<div class="card"><b>今天的机会池全貌（全篇唯一口径）</b>：{funnel_scope_line(dyn["date"], daily, dyn)}'
             f'　→ 逐只五关明细见本册下方「五关漏斗」。'
             f'<div style="margin-top:5px">当日激活承接节点(证据源)：{esc("、".join(active) or "待接")}｜机会口径：{scope}</div>'
             f'<div class="meta" style="color:#8ea3b6;font-size:12px">本节展开的是候选宇宙里已预配「换谁」方案的重点 {len(wl)} 只'
-            f'（其中 {in_pool} 只节点今日激活）——它们是上面那{esc(str(n_uni_of(dyn["date"])))}只的子集、不是另一套池子。'
+            f'（其中 {in_pool} 只节点今日激活）——它们是上面那{esc(str(n_uni_of(dyn["date"], daily, dyn)))}只的子集、不是另一套池子。'
             '候选是否进池由「节点是否在当日激活承接节点」现算·改当日证据→候选集变（6b替换引擎）</div></div>')
     return head + "".join(rows)
 
 
-def n_uni_of(date: str) -> int:
-    """候选宇宙"按标的唯一"的只数(甲3：与漏斗同一口径·摘要表也引它)。"""
+def n_uni_of(date: str, daily: dict | None = None, dyn: dict | None = None) -> int:
+    """候选宇宙"按标的唯一"的只数。
+
+    乙6：这里原来自己数一遍(把 ticker='待接' 的节点占位也当标的→22)，而五关漏斗那边已按
+    "无真代码非标的"剔除→21，两处又打架。改为【直接问同一个算子】，不许自己数。
+    """
+    if daily is not None and dyn is not None:
+        return funnel_compute(date, daily, dyn)["n_total"]
     try:
         uni = rj(ROOT / "data" / "valuation" / "candidate_universe.json").get("nodes", {}) or {}
-        return len({str(c.get("ticker") or c.get("name")) for v in uni.values() for c in (v or [])})
+        return len({str(c.get("ticker")) for v in uni.values() for c in (v or [])
+                    if c.get("ticker") and str(c.get("ticker")) not in ("待接", "TBD", "-")})
     except Exception:
         return 0
 
@@ -2145,7 +2196,9 @@ _JARGON_RE = [
     (r"判断ID[:：]\s*[a-z_]+", "这条判断"),
     (r"\bEV/EBITDA\b", "企业价值倍数（衡量贵不贵的一种算法）"),
     (r"\bEBITDA\b", "息税折旧前利润（大致等于主营赚的现金）"),
-    (r"6a\b|6b\b", ""),
+    # ⚠只清【独立出现】的内部编号 6a/6b——原写法 6a\b 会命中 CSS 色值 "#c9a86a" 里的 6a，
+    #   把它吃成 "#c9a8"(非法色值)→佐证栏颜色坏掉。故前面必须不是十六进制字符/井号。
+    (r"(?<![#0-9A-Fa-f])6[ab]\b", ""),
     # A4 10块残留术语 → 加大白话
     (r"\bmNAV\b", "持币净值倍数（股价相对它手上比特币净值的倍数）"),
     (r"\bSOTP\b", "分部估值（把各块生意分开算再加总）"),
@@ -2204,8 +2257,10 @@ def _scrub_jargon(s: str) -> str:
         s = s.replace(a, b)
     s = re.sub(r"（\s*）|\(\s*\)", "", s)
     # 甲4 兜底：术语替换后可能把"(A/B)"两侧替成同一个词→"(定制AI芯片/定制AI芯片)"这类重复渣，一律归一。
-    s = re.sub(r"[（(]\s*([^（）()／/]{2,14})\s*[／/]\s*\1\s*[）)]", r"（\1）", s)
-    s = re.sub(r"([^（）()／/、，]{2,14})\s*[／/]\s*\1(?![^（）]*[／/])", r"\1", s)
+    # ⚠只吃"同一个词被斜杠隔开重复"这一种,且词里必须【不含数字】——
+    #   原写法把"¥3,420/200日¥3,737"这类正当的数字分隔也当重复吃掉了(索尼均线粘连)。
+    s = re.sub(r"[（(]\s*([^\W\d_][^（）()／/\d]{1,13})\s*[／/]\s*\1\s*[）)]", r"（\1）", s)
+    s = re.sub(r"(?<![\d,])([^\W\d_][^（）()／/、，\d]{1,13})\s*[／/]\s*\1(?![^（）]*[／/])(?![\d,])", r"\1", s)
     return s
 
 
@@ -2231,6 +2286,13 @@ _GLOSS = [
     (r"(?<![A-Za-z])FCF(?![A-Za-z])", "FCF（自由现金流·真正能拿走的现金）"),
     (r"(?<![A-Za-z])ROI(?![A-Za-z])", "ROI（投入产出比·花的钱赚没赚回来）"),
     (r"(?<![A-Za-z])mNAV(?![A-Za-z])", "mNAV（市值÷持币净值·大于1=市场给溢价）"),
+    # 丙8（本轮补）
+    # bp 永远跟在数字后("-66bp"/"100bp")→前面【必须】允许数字，只挡字母(避免 bps/bpm 误伤)
+    (r"(?<![A-Za-z])bp(?![A-Za-z])", "bp（基点·1个基点=0.01个百分点）"),
+    (r"调整\s*EBITDA", "调整EBITDA（公司自己调整过的经营利润口径·非官方会计准则）"),
+    (r"(?<![A-Za-z])ILD(?![A-Za-z])", "ILD（间质性肺病·这类抗体药最要盯的副作用）"),
+    (r"(?<![A-Za-z])ASCA(?![A-Za-z])", "ASCA（第一三共与阿斯利康的共同开发/分成合作）"),
+    (r"(?<![A-Za-z])CoWoS(?![A-Za-z])", "CoWoS（台积电的先进封装·把芯片和高带宽存储叠在一起·AI芯片的产能瓶颈）"),
 ]
 
 
@@ -2241,9 +2303,12 @@ def _gloss_first(h: str) -> str:
         m = rx.search(h)
         if not m:
             continue
-        # 已经紧跟解释的(原文自带括号说明)就别再叠
-        tail = h[m.end(): m.end() + 3]
-        if tail[:1] in ("（", "("):
+        # 已经紧跟【真解释】的就别再叠。⚠不能只看"后面有没有括号"——
+        #   "调整EBITDA(非GAAP)" 的括号是限定语不是解释，那样会把该补的解释跳掉。
+        #   判据：括号里得有中文说明字(而不只是 GAAP/US/Q1 这类标签)。
+        tail = h[m.end(): m.end() + 40]
+        mb = re.match(r"\s*[（(]([^）)]{0,36})[）)]", tail)
+        if mb and len(re.findall(r"[一-鿿]", mb.group(1))) >= 4:
             continue
         h = h[:m.start()] + rep + h[m.end():]
     return h
@@ -2283,12 +2348,14 @@ def _scrub_leaks(html_txt: str, is_pool: bool = False) -> str:
     html_txt = re.sub(r"下一步[：:]", "", html_txt)
     # E3/甲1：候选卡无「今天你怎么办」四行→只在机会池册换成候选版措辞；持仓册保持指路(那行真实存在)
     if is_pool:
+        # 甲3：替换文本【不许自带括号】——它常被塞进外层"（…）"里(如"待接（<此处>）")，
+        # 内层再来一对就成了"（A（B）"少一个右括号、句子也断在半截。
         html_txt = html_txt.replace(
             "算不出该值多少钱的原因见本卡「今天你怎么办」第3行",
-            "这只候选还没做估值（不在你持仓里，没跑估值模型）")
+            "这只候选还没做估值——它不在你持仓里，没跑估值模型")
         html_txt = html_txt.replace(
             "算不出可信的合理价·原因见本卡「今天你怎么办」第3行",
-            "还没做估值（不在你持仓里，没跑估值模型）")
+            "还没做估值——它不在你持仓里，没跑估值模型")
     # 甲1：去掉三层套括号(（（x）））
     for _ in range(3):
         html_txt = re.sub(r"（（+", "（", html_txt)

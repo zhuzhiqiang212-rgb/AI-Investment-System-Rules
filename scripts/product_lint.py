@@ -132,6 +132,30 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     if len(days) > 1:
         fails.append(f"L10 记分卡天数打架：全册出现多个'追踪天数' → {sorted(days)}")
 
+    # ── L13 括号不闭合(甲3类:替换文本自带括号又被套进外层"（…）") ──
+    for fn, h in vols.items():
+        t = _txt(h)
+        bad = re.findall(r"（[^（）]{0,70}（[^（）]{0,50}）(?![^（）]{0,50}）)", t)
+        if bad:
+            fails.append(f"L13 括号不闭合：{fn} 有 {len(bad)} 处（示例「{bad[0][:34]}…」）")
+
+    # ── L14 CSS色值被术语清洗吃坏(如 #c9a86a 里的"6a"被当内部编号删→#c9a8) ──
+    for fn, h in vols.items():
+        bad = re.findall(r"color:\s*#(?![0-9A-Fa-f]{3}\b)(?![0-9A-Fa-f]{6}\b)[0-9A-Fa-f]{1,8}", h)
+        if bad:
+            fails.append(f"L14 色值被清洗吃坏：{fn} 出现非法色值 {sorted(set(bad))[:2]}"
+                         f"——术语/编号清洗正则误伤了十六进制")
+
+    # ── L12 同一集中度数字全册唯一(乙5·①册现算14.2% vs 拍板卡读陈旧快照14.1%) ──
+    for cat in ("AI供应链", "防御"):
+        vals = set()
+        for h in vols.values():
+            t = _txt(h)
+            vals |= set(re.findall(cat + r"\s*(?:集中度\s*)?(\d+\.\d)\s*%", t))
+        if len(vals) > 1:
+            fails.append(f"L12 集中度打架：「{cat}」全册出现多个取值 {sorted(vals)}"
+                         f"——拍板卡与集中度表必须同一现算源(别读隔夜快照)")
+
     # ── L11 均线当买卖线(乙·董事长2026-07-17拍板:买卖只看估值·均线只作趋势参考) ──
     MA_TRADE = [
         r"回踩\s*50日[^。；<]{0,8}[＝=]?\s*低吸", r"回调到\s*50日[^。；<]{0,6}低吸",

@@ -1,6 +1,6 @@
 {
-  "as_of": "20260716",
-  "generated_at": "2026-07-16T15:11:27.689086+00:00",
+  "as_of": "20260717",
+  "generated_at": "2026-07-17T02:59:11.570201+00:00",
   "source": "data/pdca/scorecards.json（pdca_scorecard 产物·不另起炉灶）",
   "certainty_ladder": [
     "证伪",
@@ -13,8 +13,8 @@
     {
       "ring_id": "worldview",
       "ring_name": "世界观",
-      "current_certainty": "证伪",
-      "cumulative_score": -2,
+      "current_certainty": "弱",
+      "cumulative_score": -1,
       "trend": [
         {
           "date": "20260702",
@@ -60,16 +60,21 @@
           "date": "20260716",
           "score": -1,
           "cum": -2
+        },
+        {
+          "date": "20260717",
+          "score": 1,
+          "cum": -1
         }
       ],
       "trend_arrow": "↓",
-      "days_tracked": 9
+      "days_tracked": 10
     },
     {
       "ring_id": "fed_gate",
       "ring_name": "总闸",
       "current_certainty": "高",
-      "cumulative_score": 0,
+      "cumulative_score": 1,
       "trend": [
         {
           "date": "20260702",
@@ -115,16 +120,21 @@
           "date": "20260716",
           "score": 1,
           "cum": 0
+        },
+        {
+          "date": "20260717",
+          "score": 1,
+          "cum": 1
         }
       ],
-      "trend_arrow": "→",
-      "days_tracked": 9
+      "trend_arrow": "↑",
+      "days_tracked": 10
     },
     {
       "ring_id": "strategy",
       "ring_name": "战略",
-      "current_certainty": "高",
-      "cumulative_score": 4,
+      "current_certainty": "中",
+      "cumulative_score": 3,
       "trend": [
         {
           "date": "20260702",
@@ -168,12 +178,17 @@
         },
         {
           "date": "20260716",
+          "score": -1,
+          "cum": 2
+        },
+        {
+          "date": "20260717",
           "score": 1,
-          "cum": 4
+          "cum": 3
         }
       ],
       "trend_arrow": "↑",
-      "days_tracked": 9
+      "days_tracked": 10
     },
     {
       "ring_id": "capital_flow",
@@ -225,10 +240,15 @@
           "date": "20260716",
           "score": -1,
           "cum": 0
+        },
+        {
+          "date": "20260717",
+          "score": 0,
+          "cum": 0
         }
       ],
       "trend_arrow": "→",
-      "days_tracked": 9
+      "days_tracked": 10
     },
     {
       "ring_id": "sector_rotation",
@@ -280,12 +300,16 @@
           "date": "20260716",
           "score": -1,
           "cum": -2
+        },
+        {
+          "date": "20260717",
+          "score": 0,
+          "cum": -2
         }
       ],
       "trend_arrow": "↓",
-      "days_tracked": 9
+      "days_tracked": 10
     }
   ],
-  "note": "确定性从'中'往'高'攒：判对+1、无变0、证伪-1，滚动累积。缺更长历史的走势→随日累积。",
-  "_废弃提示": "⚠本文件已降级为【导出物】,不是源。甲1根因:它是scorecards的派生快照但没人刷新→停在07-16T15:11(总闸0/战略4)而scorecards已是(总闸1/战略1),造成分环卡/魂①表/①册摘要三处报三个数。渲染器现已改为 deep_render.pillars_now() 从 scorecards.json 现算,不再读本文件。任何模块【不许】拿本文件当分数源。"
+  "note": "确定性从'中'往'高'攒：判对+1、无变0、证伪-1，滚动累积。缺更长历史的走势→随日累积。"
 }
