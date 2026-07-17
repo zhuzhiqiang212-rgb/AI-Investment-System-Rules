@@ -132,6 +132,32 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     if len(days) > 1:
         fails.append(f"L10 记分卡天数打架：全册出现多个'追踪天数' → {sorted(days)}")
 
+    # ── L16 标签闭合(清洗正则曾把 "</div></div>" 当叠词吃掉一个→迷你数轴每格漏闭合) ──
+    for fn, h in vols.items():
+        body = h.split("<body>", 1)[-1].split("</body>", 1)[0]
+        for tag in ("div", "table", "tr", "td", "details", "span"):
+            o = len(re.findall(r"<" + tag + r"[\s>]", body))
+            c = len(re.findall(r"</" + tag + r">", body))
+            if o != c:
+                fails.append(f"L16 标签不闭合：{fn} <{tag}> 开 {o} / 闭 {c}（差 {o-c}）")
+    # 每个 <td> 内部也要自平衡(表格格里漏闭合最容易把整张表撑坏)
+    for fn, h in vols.items():
+        for m in re.finditer(r"<td[^>]*>(.*?)</td>", h, re.S):
+            cell = m.group(1)
+            o, c = len(re.findall(r"<div[\s>]", cell)), len(re.findall(r"</div>", cell))
+            if o != c:
+                fails.append(f"L16 单元格内div不闭合：{fn} 有 <td> 内 开{o}/闭{c}（示例「{_txt(cell)[:22].strip()}…」）")
+                break
+
+    # ── L17 渲染层不许出平铺裸 <h2>(必须 class=main 主 或 class=sub 次·分出主次) ──
+    #     豁免：右栏6尺【内部】的 h2 是尺的正文(一句话世界观/第1关硬性过滤…)，那是内容不是骨架。
+    for fn, h in vols.items():
+        skel = re.sub(r'<details class="ruler-embed".*?</details>', " ", h, flags=re.S)
+        bare = re.findall(r"<h2>(?!<)([^<]{2,60})</h2>", skel)
+        if bare:
+            fails.append(f"L17 平铺裸标题：{fn} 有 {len(bare)} 个无主次样式的 <h2>（示例「{bare[0][:20]}」）"
+                         f"——渲染层的 h2 必须标 class=main(主) 或 class=sub(次)")
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:

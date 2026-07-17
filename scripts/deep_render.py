@@ -1263,7 +1263,7 @@ def _prev_date(date: str) -> str | None:
 def part0_diff(date: str, dyn: dict) -> str:
     prev = _prev_date(date)
     if not prev:
-        return ('<h2>第零部分 · 今日变化页（差分优先）</h2><div class="card">'
+        return ('<h2 class="main">今日变化 · 只看跟昨天不一样的</h2><div class="card">'
                 '<span class="need">待接·无昨日数据</span>（7天内无更早 production·首日无从比·不编）</div>')
     changes = []          # ①结论变了
     # 1) 五层环变化
@@ -1332,7 +1332,7 @@ def part0_diff(date: str, dyn: dict) -> str:
     quiet = (not changes) and (not act_ch)
     head_note = ('<div class="card" style="background:#12261f;border-color:#4f9e7f"><b>今日无重大变化（守·维持）</b>'
                  '——五层环与19只动作均与昨日一致；下方全量7层照旧，但今天不需要你逐张翻。</div>' if quiet else '')
-    return ('<h2>第零部分 · 今日变化页（差分优先：只显与昨日不同者）</h2>'
+    return ('<h2 class="main">今日变化 · 只看跟昨天不一样的（跟昨天一样的不重复占地方）</h2>'
             f'<div class="card">对比基准：<b>{esc(prev[:4])}-{esc(prev[4:6])}-{esc(prev[6:])}</b> → <b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>（真数据现算）'
             f'｜今日待拍板 <b style="color:#ffd479">{n_pend}</b> 件'
             '<div class="meta" style="color:#8ea3b6;font-size:12px">只显变化+触发阈值+待拍板；全量19卡与7层在下方照旧。缺昨日数据→标待接不编。</div></div>'
@@ -1477,7 +1477,7 @@ def part1_macro_table(daily: dict) -> str:
                   f'<td>{esc(str(l.get("direction","待接")))}</td></tr>')
     six = ('<table border="1" cellpadding="5" style="border-collapse:collapse;font-size:13px;margin-top:8px">'
            '<tr><th>这一层</th><th>今天几分力</th><th>今天什么方向</th></tr>' + rows6 + '</table>') if rows6 else ""
-    return ('<h2>第一部分附 · 宏观指标"强/中/弱/证伪"判定标准表（尺）</h2>'
+    return ('<h2 class="sub">附：宏观指标怎么算强/中/弱/证伪（判定标准·尺）</h2>'
             '<div class="card"><table border="1" cellpadding="5" style="border-collapse:collapse;font-size:13px">'
             '<tr><th>档</th><th>含义（尺）</th></tr>'
             '<tr><td>强</td><td>方向明确成立、证据充分</td></tr>'
@@ -1550,18 +1550,26 @@ def part3_concentration(date: str, dyn: dict) -> str:
         cost = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
         conc = fpr.portfolio_concentration(dyn["prod"].get("holdings", []),
                                            (cost.get("summary", {}) or {}).get("known_cash_usd"), {})
-        # 乙7：横条形图 + 上限/下限红虚线 —— 超标红、不足黄，一眼看到(数字口径不变)
+        # 乙7：横条形图 + 上限红虚线 / 下限黄虚线 —— 超上限红、不足下限黄(数字口径不变)
+        # ⚠必须读上游的 kind：'upper'=这数是上限、'lower'=这数是下限。
+        #   上游把阈值一律放在 limit 字段、靠 kind/over/short 区分方向；
+        #   我原来不看 kind 直接当上限画 → 防御(kind=lower·15%是"至少要保持")被画成"上限15%·在限内(蓝)"，
+        #   与同册头条/待拍板的"低于15%下限·要拍板"打架。同一个15%，图叫上限、头条叫下限。
         rows = []
         for k, v in (conc.get("categories", {}) or {}).items():
-            rows.append(_bar_row(k, float(v.get("pct") or 0), limit=v.get("limit"), floor=v.get("floor")))
-        conc_html = ('<h2>第三部分 · 仓位集中度（哪一类押太多了）</h2><div class="card">'
+            thr = v.get("limit") if v.get("limit") is not None else v.get("floor")
+            is_lower = str(v.get("kind")) == "lower" or bool(v.get("short"))
+            rows.append(_bar_row(k, float(v.get("pct") or 0),
+                                 limit=(None if is_lower else thr),
+                                 floor=(thr if is_lower else v.get("floor"))))
+        conc_html = ('<h2 class="sub">仓位集中度 · 哪一类押太多了</h2><div class="card">'
                      + "".join(rows)
                      + '<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:8px">'
                        '条越长=押得越多。<span style="color:#ff5c5c">红虚线</span>=上限、'
                        '<span style="color:#ffd479">黄虚线</span>=下限；条变红=超了上限，变黄=不到下限。'
                        '按当日实时价折美元现算。</div></div>')
     except Exception as e:
-        conc_html = f'<h2>第三部分 · 仓位集中度</h2><div class="card">集中度现算失败·待接（{esc(e)}）</div>'
+        conc_html = f'<h2 class="sub">仓位集中度</h2><div class="card">集中度现算失败·待接（{esc(e)}）</div>'
     return conc_html + part3_risk_factors(dyn)
 
 # ── 第四部分·机会池 6a(R6：候选现算+每候选带'节点+当日证据'·证据驱动) ──
@@ -1604,7 +1612,7 @@ def part4_opportunity(daily: dict, dyn: dict) -> str:
     # 甲3：不再自报"现算候选 3/3 进池"(与五关漏斗的23→19→5并存=两套口径)。
     # 全篇机会数字唯一出处 = funnel_scope_line；本节只是候选宇宙里"已配好换法"的重点几只展开。
     # 甲2：标题原写"（证据驱动·6a）"，术语清洗把内部编号 6a 抹掉后剩"（证据驱动·）"悬空标点→直接不写编号
-    head = ('<h2>第四部分 · 机会池：该不该换、换谁（证据驱动）</h2>'
+    head = ('<h2 class="main">机会池：该不该换、换谁</h2>'
             f'<div class="card"><b>今天的机会池全貌（全篇唯一口径）</b>：{funnel_scope_line(dyn["date"], daily, dyn)}'
             f'　→ 逐只五关明细见本册下方「五关漏斗」。'
             f'<div style="margin-top:5px">当日激活承接节点(证据源)：{esc("、".join(active) or "待接")}｜机会口径：{scope}</div>'
@@ -1860,7 +1868,7 @@ def funnel_scope_line(date: str, daily: dict, dyn: dict) -> str:
 def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
     fc = funnel_compute(date, daily, dyn)
     if fc.get("err"):
-        return ('<h2>第四部分附 · 机会池全扫</h2>'
+        return ('<h2 class="sub">附：机会池全扫</h2>'
                 f'<div class="card">候选宇宙待接（candidate_universe.json 缺：{esc(fc["err"])}）</div>')
     active = fc["active"]; all_rows = fc["rows"]; worth = fc["worth"]
     n_total, n_g1, n_g2 = fc["n_total"], fc["n_g1"], fc["n_g2"]
@@ -1917,7 +1925,7 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
              '<div class="card">结构已留：好公司但当前估值贵者入此池、记"便宜买入位"、到价提醒。'
              '当前候选宇宙外部标的估值多为<span class="need">待接·候选估值未接</span>；持仓中估值偏贵者(如IBKR现价约37倍前瞻>正常化中枢$52.8)已在其个股卡⑤标注等更好点位。外部候选到价提醒待接入候选估值后启用。</div>')
     scope = esc(str((daily.get("derived", {}) or {}).get("opportunity_scope", "待接")))
-    head = ('<h2>第四部分附 · ⑤机会池·全市场五关漏斗（候选宇宙→五关现算→三个池·总则第十四条）</h2>'
+    head = ('<h2 class="sub">附：全市场五关漏斗（候选宇宙→五关现算→三个池）</h2>'
             f'<div class="card">当日激活承接节点：<b>{esc("、".join(active) or "待接")}</b>｜候选宇宙 {n_total} 只(按节点·candidate_universe.json可迭代)｜'
             f'过①硬性关(节点激活) <b>{n_g1}</b> 只｜过②软性关(站上均线) <b>{n_g2}</b> 只。'
             f'<div class="meta" style="color:#8ea3b6;font-size:12px">五关=①硬性(节点激活)②软性(均线)③估值④护城河⑤个股；过关进"值得看候选池"。改当日激活节点→候选集变(守第六条动态)。gate②均线复用当日 chain_opportunities 真扫描·③④⑤缺真源标待接不编。｜机会口径：{scope}</div></div>')
@@ -1928,7 +1936,7 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
 def part5_closeloop(daily: dict) -> str:
     der = daily.get("derived", {}) or {}
     close = esc(str(der.get("today_direction_short") or der.get("today_direction", "待接")))
-    return '<h2>第五部分 · 整条逻辑怎么闭环</h2>' + f'<div class="card">{close}</div>'
+    return '<h2 class="sub">整条逻辑怎么闭环</h2>' + f'<div class="card">{close}</div>'
 
 # ── 第六部分·6把尺 embed（读右栏_*.html body·浅色皮折叠·7块含②补） ──
 def _ruler_body(fname: str) -> str:
@@ -1958,7 +1966,7 @@ def part6_rulers() -> str:
         folds.append(f'<details class="ruler-embed" id="ruler-{i}"{" open" if opened else ""}>'
                      f'<summary>{esc(title)}</summary>'
                      f'<div style="background:#f6f2e8;color:#2a2a2a;padding:10px;border-radius:6px">{body}</div></details>')
-    return '<h2>第六部分 · 右栏底子（6把尺 · 判断依据）</h2>' + "".join(folds)
+    return '<h2 class="main">右栏底子 · 6把尺（判断依据）</h2>' + "".join(folds)
 
 
 # ── 第七部分·PDCA接真记分(R7：昨判今验+累计+预测字段·底气与总闸final同源) ──
@@ -2005,7 +2013,7 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
                f'到今天一共只追踪了 {_days} 天</b>，样本太少，'
                f'下面的“判对率”数字<b>现在别当真</b>——攒够几个月历史再看才有意义。'
                f'现在它的用处是：把每天的判断记下来、以后能回头查，而不是拿来评价系统准不准。</div>') if _days < 30 else ""
-    head = ('<h2>第七部分 · 复盘记分卡（昨天judged的、今天验；系统的魂）</h2>'
+    head = ('<h2 class="main">复盘记分卡（昨天判的、今天验）</h2>'
             + _caveat +
             f'<div class="card">今天下手的底气（与第一部分总闸同一判断）：<b>{esc(fed_str)}·{esc(fed_dir)}</b>'
             # 甲4：机会口径只许引 derived 的唯一取值(记分卡不再自造"应收口径")
@@ -2158,7 +2166,9 @@ def part7_souls(date: str, daily: dict | None = None) -> str:
         out.append(f'<div class="card"><b>月</b>（确定性趋势+判对率）：自 {esc(hist[0].get("date") if hist else "?")} 累计各环净分 '
                    + "、".join(f'{rname[r]}{("+" if mnet[r]>0 else "")}{mnet[r]}' for r in rids)
                    + f'；累计判对率 {esc(mhit)}。'
-                   + (f'<div class="plain">复盘什么：确定性趋势与判对率；该改什么：判对率高的环升档、低的环重估尺。当前仅 {n_days} 日(<1月)·满月口径随日累积。</div>' ))
+                   # ⚠这里原来只关了 plain、没关外层 card → 整册 <div> 少一个闭合(L16 抓到)
+                   + f'<div class="plain">复盘什么：确定性趋势与判对率；该改什么：判对率高的环升档、低的环重估尺。'
+                     f'当前仅 {n_days} 日(不足1月)·满月口径随日累积。</div></div>')
         # 季 / 年（历史不足→待接）
         out.append('<div class="card"><b>季</b>（改"未来"判断）：<span class="need">待接·从今日起累积</span>（现有约2周历史·不足一季·满季后据季度确定性趋势改未来判断·不编）。'
                    '<div class="plain">复盘什么：季度级方向是否成立；该改什么：改"未来"判断与战略地图。</div></div>')
@@ -2285,7 +2295,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
            + _price_asof_note(date)
            + '</div></details></div>')
     title = big
-    part2 = f'<h2>第二部分 · 你的持仓，今天怎么办（{stats["n"]}只）</h2>' + "".join(cards)
+    part2 = f'<h2 class="main">你的持仓，今天怎么办（{stats["n"]}只）</h2>' + "".join(cards)
     if only:   # 打通模式:只出持仓卡
         return head + title + part2 + "</body></html>", stats
     daily = dyn["daily"]
@@ -2318,7 +2328,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     deep_total = 0
     for sub, subname, syms in VOL2_SUBS:
         picked = [card_by[s] for s in [h.get("symbol") for h in stats["_order"]] if s in syms and s in card_by]
-        body = (f'<h2>第二部分 · 你的持仓，今天怎么办（{subname}·{len(picked)}只／全19只）</h2>'
+        body = (f'<h2 class="main">你的持仓，今天怎么办（{subname}·{len(picked)}只／全19只）</h2>'
                 + _sub_nav(date, sub) + "".join(picked))
         volumes[VOL2(date, sub)] = head + title + _vol_nav(date, 2) + body + "</body></html>"
         deep_total += len(picked)
@@ -2471,8 +2481,19 @@ def _scrub_jargon(s: str) -> str:
     # 甲4 兜底：术语替换后可能把"(A/B)"两侧替成同一个词→"(定制AI芯片/定制AI芯片)"这类重复渣，一律归一。
     # ⚠只吃"同一个词被斜杠隔开重复"这一种,且词里必须【不含数字】——
     #   原写法把"¥3,420/200日¥3,737"这类正当的数字分隔也当重复吃掉了(索尼均线粘连)。
+    #   ⚠再加一道护栏：【绝不碰 HTML 标签】——"</div></div>" 里的 div> / div> 会被当成
+    #   "同一个词被斜杠隔开重复"吃掉一个 → 迷你数轴每格少一个闭合标签(19只全中)。
+    #   故只在纯文本片段上做归一：先把标签挖出来占位，替换完再放回去。
+    _tags: list[str] = []
+
+    def _hide(m):
+        _tags.append(m.group(0))
+        return f"\x00{len(_tags)-1}\x00"
+
+    s = re.sub(r"<[^>]+>", _hide, s)
     s = re.sub(r"[（(]\s*([^\W\d_][^（）()／/\d]{1,13})\s*[／/]\s*\1\s*[）)]", r"（\1）", s)
     s = re.sub(r"(?<![\d,])([^\W\d_][^（）()／/、，\d]{1,13})\s*[／/]\s*\1(?![^（）]*[／/])(?![\d,])", r"\1", s)
+    s = re.sub(r"\x00(\d+)\x00", lambda m: _tags[int(m.group(1))], s)
     return s
 
 
@@ -2607,7 +2628,7 @@ def _loop_map(date: str) -> str:
         f'<a href="{h}" style="display:inline-block;background:#12203a;border:1px solid #3a5a8a;'
         f'border-radius:8px;padding:6px 10px;color:#8fd6ff;text-decoration:none;margin:3px 0">{esc(t)}</a>'
         for t, h in nodes)
-    return ('<h2>七层逻辑闭环图（点节点进对应册/锚点）</h2><div class="card">'
+    return ('<h2 class="sub">七层逻辑闭环图（点节点进对应册/锚点）</h2><div class="card">'
             + chain +
             '<div class="meta" style="color:#8ea3b6;font-size:12px;margin-top:6px">'
             '证据链自上而下：世界观定大势 → 国家战略定钱往哪条线 → 资金流动定松紧 → 板块轮动定哪个群热 → '
@@ -2622,7 +2643,9 @@ def _top3_card(date: str, dyn: dict, daily: dict, stats: dict, oneline: str) -> 
     try:
         pd_ = rj(ROOT / "data" / "pdca" / "pending_decisions.json")
         n_pend = int(pd_.get("pending_count") or 0)
-        pend_txt = "、".join(str(i.get("proposal", ""))[:26] for i in (pd_.get("items") or [])[:2])
+        # 3收尾：原来 [:26] 硬切 proposal → 悬着"…低于15.0%下限 → …"半句。
+        # 改：整句不截(proposal 本来就短)，句尾的"→ 是否…？"是完整问句、别切掉。
+        pend_txt = "；".join(str(i.get("proposal", "")).strip() for i in (pd_.get("items") or [])[:2])
     except Exception:
         n_pend, pend_txt = 0, ""
     # ③ 持仓今天要不要动(动作按 final 单一源统计)
@@ -2655,7 +2678,7 @@ def _top3_card(date: str, dyn: dict, daily: dict, stats: dict, oneline: str) -> 
                    f'<b>{oneline}</b>',
                    _a(L1(date, "layer-world"), "→ 想知道为什么这么判：看下面「大环境六层」"))
             + item(2, "今天要你拍板的事",
-                   (f'<b style="color:#ffd479">{n_pend} 件</b>' + (f'：{esc(pend_txt)}…' if pend_txt else '')
+                   (f'<b style="color:#ffd479">{n_pend} 件</b>' + (f'<br>{esc(pend_txt)}' if pend_txt else '')
                     if n_pend else '<b style="color:#7ee0a0">0 件</b>——今天没有需要你拍板的事'),
                    (_a(L1(date, "pending-inbox"), "→ 去拍板收件箱") if n_pend else ""))
             + item(3, "你的持仓今天要不要动",
