@@ -1,0 +1,253 @@
+{
+  "_说明": "SEC EDGAR XBRL 官方接口取的【真·多年财务数】。本模块只取数+算候选正常化值，不做'正常年景是哪几年'的判断(那属分析判断)。取不到→标待接、不编。",
+  "date": "20260717",
+  "generated_at": "2026-07-17T21:23:25+09:00",
+  "source": "SEC EDGAR XBRL companyconcept (keyless·需 User-Agent)",
+  "error": "",
+  "symbols": {
+    "TSM": {
+      "status": "OK",
+      "cik": 1046179,
+      "xbrl_tag": "ifrs-full:DilutedEarningsLossPerShare",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001046179/ifrs-full/DilutedEarningsLossPerShare.json",
+      "history": [
+        {
+          "fy": 2017,
+          "form": "20-F",
+          "end": "2015-12-31",
+          "eps": 11.68,
+          "filed": "2018-04-19",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2018,
+          "form": "20-F",
+          "end": "2016-12-31",
+          "eps": 12.79,
+          "filed": "2019-04-17",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2019,
+          "form": "20-F",
+          "end": "2017-12-31",
+          "eps": 13.3,
+          "filed": "2020-04-15",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2020,
+          "form": "20-F",
+          "end": "2018-12-31",
+          "eps": 14,
+          "filed": "2021-04-16",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2021,
+          "form": "20-F",
+          "end": "2019-12-31",
+          "eps": 13.65,
+          "filed": "2022-04-14",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2022,
+          "form": "20-F",
+          "end": "2020-12-31",
+          "eps": 19.7,
+          "filed": "2023-04-20",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2023,
+          "form": "20-F",
+          "end": "2021-12-31",
+          "eps": 22.84,
+          "filed": "2024-04-18",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2024,
+          "form": "20-F",
+          "end": "2022-12-31",
+          "eps": 38.29,
+          "filed": "2025-04-17",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2024,
+          "form": "20-F",
+          "end": "2023-12-31",
+          "eps": 32.85,
+          "filed": "2025-04-17",
+          "unit": "TWD/shares"
+        },
+        {
+          "fy": 2024,
+          "form": "20-F",
+          "end": "2024-12-31",
+          "eps": 44.67,
+          "filed": "2025-04-17",
+          "unit": "TWD/shares"
+        }
+      ],
+      "candidate_normalized_eps": {
+        "3年均": 38.6033,
+        "5年均": 31.67,
+        "7年均": 26.5714
+      },
+      "_候选说明": "以上是【按真·历史EPS机械算的候选值】，不是结论。「哪几年算正常年景／该给几倍」属分析判断(CLAUDE.md §1 我不定)——请理解岗挑一个窗口、确认后填进 val_inputs.json 的 normal_eps/normalized_eps，估值引擎会按同一类型模型自动重算(不换方法)。"
+    },
+    "SNDK": {
+      "status": "OK",
+      "cik": 2023554,
+      "xbrl_tag": "us-gaap:EarningsPerShareDiluted",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0002023554/us-gaap/EarningsPerShareDiluted.json",
+      "history": [
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2023-06-30",
+          "eps": -14.78,
+          "filed": "2025-08-21",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2024-06-28",
+          "eps": -4.63,
+          "filed": "2025-08-21",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2025-06-27",
+          "eps": -11.32,
+          "filed": "2025-08-21",
+          "unit": "USD/shares"
+        }
+      ],
+      "candidate_normalized_eps": {
+        "3年均": -10.2433
+      },
+      "_候选说明": "以上是【按真·历史EPS机械算的候选值】，不是结论。「哪几年算正常年景／该给几倍」属分析判断(CLAUDE.md §1 我不定)——请理解岗挑一个窗口、确认后填进 val_inputs.json 的 normal_eps/normalized_eps，估值引擎会按同一类型模型自动重算(不换方法)。"
+    },
+    "COIN": {
+      "status": "OK",
+      "cik": 1679788,
+      "xbrl_tag": "us-gaap:EarningsPerShareDiluted",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001679788/us-gaap/EarningsPerShareDiluted.json",
+      "history": [
+        {
+          "fy": 2021,
+          "form": "10-K",
+          "end": "2019-12-31",
+          "eps": -0.5,
+          "filed": "2022-02-25",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2022,
+          "form": "10-K",
+          "end": "2020-12-31",
+          "eps": 1.4,
+          "filed": "2023-02-21",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2023,
+          "form": "10-K",
+          "end": "2021-12-31",
+          "eps": 14.5,
+          "filed": "2024-02-15",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2024,
+          "form": "10-K",
+          "end": "2022-12-31",
+          "eps": -11.83,
+          "filed": "2025-02-13",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2023-12-31",
+          "eps": 0.37,
+          "filed": "2026-02-12",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2024-12-31",
+          "eps": 9.48,
+          "filed": "2026-02-12",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2025-12-31",
+          "eps": 4.45,
+          "filed": "2026-02-12",
+          "unit": "USD/shares"
+        }
+      ],
+      "candidate_normalized_eps": {
+        "3年均": 4.7667,
+        "5年均": 3.394,
+        "7年均": 2.5529
+      },
+      "_候选说明": "以上是【按真·历史EPS机械算的候选值】，不是结论。「哪几年算正常年景／该给几倍」属分析判断(CLAUDE.md §1 我不定)——请理解岗挑一个窗口、确认后填进 val_inputs.json 的 normal_eps/normalized_eps，估值引擎会按同一类型模型自动重算(不换方法)。"
+    },
+    "CRCL": {
+      "status": "OK",
+      "cik": 1876042,
+      "xbrl_tag": "us-gaap:EarningsPerShareDiluted",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001876042/us-gaap/EarningsPerShareDiluted.json",
+      "history": [
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2023-12-31",
+          "eps": 0.78,
+          "filed": "2026-03-09",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2024-12-31",
+          "eps": 0.3,
+          "filed": "2026-03-09",
+          "unit": "USD/shares"
+        },
+        {
+          "fy": 2025,
+          "form": "10-K",
+          "end": "2025-12-31",
+          "eps": -0.44,
+          "filed": "2026-03-09",
+          "unit": "USD/shares"
+        }
+      ],
+      "candidate_normalized_eps": {
+        "3年均": 0.2133
+      },
+      "_候选说明": "以上是【按真·历史EPS机械算的候选值】，不是结论。「哪几年算正常年景／该给几倍」属分析判断(CLAUDE.md §1 我不定)——请理解岗挑一个窗口、确认后填进 val_inputs.json 的 normal_eps/normalized_eps，估值引擎会按同一类型模型自动重算(不换方法)。"
+    },
+    "JP.6857": {
+      "status": "待接",
+      "reason": "爱德万(日本上市) → 不在 SEC EDGAR，此接口取不到；需另接 EDINET(日本)或公司IR，本单未做"
+    },
+    "JP.8001": {
+      "status": "待接",
+      "reason": "伊藤忠(日本上市) → 不在 SEC EDGAR，此接口取不到；需另接 EDINET(日本)或公司IR，本单未做"
+    }
+  }
+}
