@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""出厂机械核（丙1·董事局工单2026-07-17）· 只读不下单
+
+render 出五册后【自动】跑这一关：任何一条 FAIL → 不出品（渲染器返回非0、不落盘覆盖旧册）。
+每犯一类新错，就在这里加一条规则，让同一个坑不许踩第二次。
+
+规则(每条都必须是机器可判的硬事实·不做主观判断)：
+  L1 乱码        每册 EF BF BD 计数必须=0
+  L2 同源        七册 run_id / data_date 必须完全一致
+  L3 无转义渣    正文里不许出现 &lt;b&gt; 这种"标签被转义成字面量"
+  L4 无错模板    持仓册不许出现候选专用话("不在你持仓里/候选还没做估值")
+  L5 数字一致    册间摘要报的机会数字 = 分册里的数字(同一算子·不许两套)
+  L6 状态词唯一  同一状态词(机会口径/总闸档)全文只许一个取值
+  L7 无半截      新闻标题/日期不许被从中间硬切(半截日期=残段)
+  L8 链接齐      每条新闻要么有可点原文链接、要么明标"无直链"
+
+用法：
+  python scripts/product_lint.py --date 20260716          # 独立核已落盘的册
+  from product_lint import lint_volumes; lint_volumes(vols, date)   # 渲染器内联调用(出厂闸)
+"""
+from __future__ import annotations
+
+import argparse
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _txt(html: str) -> str:
+    """扒标签→只留给董事长看到的正文(避免拿 style/script 里的字符串误判)。"""
+    s = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html, flags=re.S | re.I)
+    return re.sub(r"<[^>]+>", " ", s)
+
+
+def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
+    """返回 FAIL 列表(空=全过)。vols: {文件名: html文本}"""
+    fails: list[str] = []
+    if not vols:
+        return ["L0 没有任何册可核"]
+
+    # ── L1 乱码 ──
+    for fn, h in vols.items():
+        n = h.encode("utf-8").count(b"\xef\xbf\xbd")
+        if n:
+            fails.append(f"L1 乱码：{fn} 出现 EF BF BD ×{n}")
+
+    # ── L2 同源(run_id / data_date 七册一致) ──
+    rid, dd = set(), set()
+    for fn, h in vols.items():
+        rid |= set(re.findall(r"run_id=<b>([^<]+)</b>", h))
+        dd |= set(re.findall(r"data_date=<b>([^<]+)</b>", h))
+    if len(rid) != 1:
+        fails.append(f"L2 同源：run_id 不唯一 → {sorted(rid) or '一个都没有'}")
+    if len(dd) != 1:
+        fails.append(f"L2 同源：data_date 不唯一 → {sorted(dd) or '一个都没有'}")
+
+    # ── L3 转义渣(标签被转义成字面量印给董事长看) ──
+    for fn, h in vols.items():
+        bad = re.findall(r"&lt;/?(?:b|i|br|span|div|a|strong|em)\s*/?&gt;", h)
+        if bad:
+            fails.append(f"L3 转义渣：{fn} 正文出现字面量标签 ×{len(bad)}（示例 {bad[0]}）")
+
+    # ── L4 持仓册套了候选专用模板 ──
+    POOL_ONLY = ["不在你的持仓里", "不在你持仓里", "候选还没做估值", "这只候选还没做估值"]
+    for fn, h in vols.items():
+        if "机会池" in fn:
+            continue          # 机会池册本来就该说这些
+        t = _txt(h)
+        for w in POOL_ONLY:
+            if w in t:
+                fails.append(f"L4 错模板：{fn}(持仓/其它册) 出现候选专用话「{w}」")
+                break
+
+    # ── L4b 引擎内部话/裸字段名漏进产品(估值待接串曾漏出"(任一整套)（该用…EV/EBITDA）·不硬编") ──
+    LEAK = ["任一整套", "该用 ", "不硬编", "缺真输入", "normal_eps", "pe_mid", "normalized_eps",
+            "ebitda_normal", "ev_ebitda", "net_debt", "eps0", "g_stage1", "terminal_g", "wacc",
+            "EV/EBITDA", "'status'", "&#x27;status&#x27;"]
+    for fn, h in vols.items():
+        t = _txt(h)
+        hit = [w for w in LEAK if w in t]
+        if hit:
+            fails.append(f"L4b 内部话泄露：{fn} 出现 {hit[:3]}（引擎内部字段/话术不许印给董事长）")
+
+    # ── L5 册间摘要数字 = 分册数字(机会池口径不许两套) ──
+    nums = set()
+    for fn, h in vols.items():
+        for m in re.finditer(r"候选宇宙\s*<b>(\d+)</b>\s*只", h):
+            nums.add(m.group(1))
+    if len(nums) > 1:
+        fails.append(f"L5 数字打架：'候选宇宙N只' 全册出现多个取值 → {sorted(nums)}")
+
+    # ── L6 同一状态词全文唯一(机会口径/总闸档) ──
+    scopes = set()
+    for h in vols.values():
+        # 只截到句末(。)为止——不许贪到后面别的话，否则排版差异会被误判成口径打架
+        scopes |= set(re.findall(r"机会口径[：:]\s*([^<｜]{4,90}?。)", _txt(h)))
+    # 归一化空白后比对(排版差异不算打架)
+    scopes = {re.sub(r"\s+", "", s) for s in scopes}
+    if len(scopes) > 1:
+        fails.append(f"L6 状态词打架：'机会口径' 全册有 {len(scopes)} 个不同取值 → {sorted(scopes)[:2]}")
+    # L6b 除 derived 外任何模块自造机会口径结论(记分卡曾自写"机会池应收口径"与当日"口径不放宽"打架)
+    for fn, h in vols.items():
+        t = _txt(h)
+        for w in ("应收口径", "必须收口径", "可按纪律放大口径"):
+            if w in t:
+                fails.append(f"L6b 自造口径：{fn} 出现「{w}」——机会口径唯一出处是 derived.opportunity_scope")
+                break
+
+    # ── L7 新闻被从中间硬切(半截日期是最硬的证据) ──
+    for fn, h in vols.items():
+        t = _txt(h)
+        half = re.findall(r"\d{4}-\d{2}-\d(?!\d)", t)          # 2026-07-1 这种缺末位
+        if half:
+            fails.append(f"L7 半截日期：{fn} 出现 {len(half)} 处被切断的日期（示例 {half[0]}）")
+
+    # ── L8 每条新闻要么有链接、要么明标无直链 ──
+    for fn, h in vols.items():
+        n_src = len(re.findall(r"来源：[^<]{1,24}　发布：", h))   # 逐条新闻的固定骨架
+        n_lnk = h.count("阅读原文→") + h.count("无直链")
+        if n_src and n_lnk < n_src:
+            fails.append(f"L8 缺链接：{fn} 有 {n_src} 条新闻、但只有 {n_lnk} 条给了原文链接/无直链标注")
+
+    return fails
+
+
+def main() -> int:
+    import sys
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    ap = argparse.ArgumentParser(description="出厂机械核(FAIL即不出品)")
+    ap.add_argument("--date", required=True)
+    a = ap.parse_args()
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from deep_render import VOL, VOL2, VOL2_SUBS
+    names = [VOL(a.date, n) for n in (1, 3, 4, 5)] + [VOL2(a.date, s) for s, _n, _y in VOL2_SUBS]
+    vols = {}
+    for fn in names:
+        p = ROOT / "00_请先看这里" / fn
+        if p.exists():
+            vols[fn] = p.read_text(encoding="utf-8")
+        else:
+            print(f"[缺册] {fn}")
+    fails = lint_volumes(vols, a.date)
+    if fails:
+        print(f"[出厂核 FAIL] {len(fails)} 条：")
+        for f in fails:
+            print("  ✗ " + f)
+        return 5
+    print(f"[出厂核 PASS] {len(vols)} 册 · L1乱码/L2同源/L3转义/L4错模板/L5数字/L6状态词/L7半截/L8链接 全过")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

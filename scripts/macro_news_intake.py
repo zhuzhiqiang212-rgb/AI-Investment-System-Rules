@@ -54,6 +54,16 @@ SOURCE_WHITELIST = {
     "东方财富": "东方财富", "eastmoney": "东方财富",
     "澎湃": "澎湃新闻", "thepaper": "澎湃新闻",
     "界面": "界面新闻", "jiemian": "界面新闻",
+    "21财经": "21财经", "21世纪经济报道": "21财经",
+    # 乙3：世界观级(地缘/秩序/大国政治)的真新闻不登财经站，登国际新闻通讯社。
+    # 原白名单只有财经媒体→世界观层天天0条、假报"今日无重大地缘新闻"。
+    "rfi": "RFI法广", "法广": "RFI法广",
+    "美国之音": "美国之音", "voa": "美国之音",
+    "bbc": "BBC", "德国之声": "德国之声", "dw": "德国之声",
+    "associated press": "美联社", "ap news": "美联社", "美联社": "美联社",
+    "agence france": "法新社", "法新社": "法新社", "afp": "法新社",
+    "nikkei": "日经", "日经": "日经", "共同社": "共同社", "kyodo": "共同社",
+    "新华社": "新华社", "xinhua": "新华社", "中新社": "中新社", "环球时报": "环球时报",
 }
 # 明确剔除模式(大学活动页/智库博客/内容农场/零售App博客/论坛)——只挡这些，不挡大站
 SOURCE_BLOCK_PAT = re.compile(
@@ -74,12 +84,14 @@ MAX_AGE_HOURS = 36
 QUERIES = {
     "strategy": "英伟达 台积电 AI 芯片 财报 需求 指引",
     "means": "稳定币 加密 监管 银行",
-    "world": "美国 关税 制裁 地缘 联盟",
+    # 乙3：世界一天不可能"无事件"——世界观级本就该覆盖 地缘/秩序/大国政治/央行/战争/制裁/选举/贸易。
+    # ⚠必须用 OR：Google News 空格=AND，堆9个词会 AND 到 0 条(实测)→反而假报"无事件"。
+    "world": "地缘 OR 关税 OR 制裁 OR 战争 OR 央行 OR 选举 OR 贸易战 OR 国际秩序 OR 峰会",
 }
 QUERIES_EN_FALLBACK = {
     "strategy": "AI semiconductor earnings guidance Nvidia TSMC demand",
     "means": "stablecoin regulation crypto bank",
-    "world": "US tariff sanctions geopolitics alliance",
+    "world": "geopolitics OR tariff OR sanctions OR war OR \"central bank\" OR election OR summit",
 }
 
 # ④ 加权研判信号表(带否定词处理·非机械计数；每条命中须过相关性闸)
@@ -102,8 +114,19 @@ RELEVANCE = {
                  "gpu", "算力", "数据中心", "hbm", "存储", "晶圆"],
     "means": ["稳定币", "加密", "比特币", "usdc", "usdt", "stablecoin", "crypto", "bitcoin",
               "数字资产", "fima", "央行"],
-    "world": ["关税", "制裁", "地缘", "联盟", "脱钩", "贸易战", "tariff", "sanction",
-              "geopolit", "alliance", "war", "台海", "出口管制"],
+    # 乙3：世界观相关性放宽——地缘/秩序/大国政治/央行/战争/制裁/选举/贸易 都算世界观相关。
+    # 原名单只有8个地缘词→把"美联储议息/中美贸易/大选/北约"这类真·世界观新闻全挡在门外，
+    # 结果天天假报"今日无重大地缘新闻"、董事长看到就不往下验收了。
+    "world": ["关税", "制裁", "地缘", "联盟", "脱钩", "贸易战", "贸易", "出口管制", "禁运",
+              "战争", "军事", "冲突", "停火", "核", "导弹", "政变",
+              "大选", "选举", "总统", "首相", "议会", "参议院", "众议院", "国会",
+              "央行", "美联储", "加息", "降息", "议息", "利率决议", "欧洲央行", "日本央行",
+              "秩序", "峰会", "条约", "协定", "北约", "联合国", "g7", "g20", "金砖",
+              "中美", "美中", "俄乌", "俄罗斯", "乌克兰", "中东", "以色列", "伊朗", "台海", "朝鲜",
+              "tariff", "sanction", "geopolit", "alliance", "war", "conflict", "ceasefire",
+              "trade", "export control", "embargo", "election", "senate", "congress", "parliament",
+              "central bank", "fed ", "federal reserve", "rate cut", "rate hike", "ecb", "boj",
+              "summit", "treaty", "nato", "united nations", "diploma", "nuclear"],
 }
 
 
@@ -187,36 +210,52 @@ def qualify_news(items: list[dict[str, Any]] | None, ring: str,
     """源白名单 + 时效(MAX_AGE_HOURS) + 相关性闸 三重过滤。
     返回 {ok:[合格条], dropped:[(标题,原因)], stats:{...}}。合格0条→上层标"今日无重大新闻·维持基线"。"""
     now = now or datetime.now(timezone.utc)
-    ok, dropped = [], []
+    ok, dropped, weak = [], [], []
+
+    def _drop(n, reason, near=False):
+        """乙3：剔除条也保完整标题+来源+日期+链接(原来 title[:40] 硬切→半截标题)。
+        near=True 表示"今天真读到了、只是判为弱相关"→要列给董事长自己看，不许直接劝退。"""
+        src_raw = str(n.get("source_raw", "") or "")
+        rec = {"title": n.get("title", ""), "reason": reason,
+               "source": (src_raw.split(" - ")[-1].strip() or src_raw or "来源不详"),
+               "url": n.get("url", ""), "pub_date": n.get("pub_date", "")}
+        dropped.append(rec)
+        if near:
+            weak.append(rec)
+
     for n in (items or []):
         tier = _src_tier(n.get("source_raw", ""))
         blob0 = (n.get("title", "") + " " + n.get("summary", ""))
+        rel_hit = any(w.lower() in blob0.lower() for w in RELEVANCE.get(ring, []))
         if not tier:
             # 重要性按内容判(不光按域名)：明确重大新闻(法案/监管/议息/财报/关税…)且非剔除类源→救回
             src_raw = n.get("source_raw", "")
             if IMPORTANT_PAT.search(blob0) and not SOURCE_BLOCK_PAT.search(src_raw.lower()):
                 tier = (src_raw or "其他媒体").split(" - ")[0].strip()[:12]
             else:
-                dropped.append((n.get("title", "")[:40], f"源不在白名单且内容非重大：{src_raw}"))
+                # 源不够权威但【主题确实相关】→算"弱相关·今天读到了"，列出来给董事长自己看
+                _drop(n, f"源不在权威名单、内容也够不上重大：{src_raw}", near=rel_hit)
                 continue
         dt = n.get("pub_dt")
         if dt is None:
-            dropped.append((n.get("title", "")[:40], "无发布日(pubDate缺)→不采信"))
+            _drop(n, "没有发布日期(pubDate缺)→不采信", near=rel_hit)
             continue
         age_h = (now - dt.astimezone(timezone.utc)).total_seconds() / 3600.0
         if age_h > MAX_AGE_HOURS:
-            dropped.append((n.get("title", "")[:40], f"旧闻(发布于{dt.astimezone(timezone.utc):%Y-%m-%d}·距今{age_h:.0f}小时>{MAX_AGE_HOURS})"))
+            _drop(n, f"旧闻(发布于{dt.astimezone(timezone.utc):%Y-%m-%d}·距今{age_h:.0f}小时>{MAX_AGE_HOURS}小时)",
+                  near=rel_hit)
             continue
         blob = (n.get("title", "") + " " + n.get("summary", "")).lower()
-        if not any(w.lower() in blob for w in RELEVANCE.get(ring, [])):
-            dropped.append((n.get("title", "")[:40], "与本环主题不相关(未过相关性闸)"))
+        if not rel_hit:
+            _drop(n, "与本环主题不相关(未过相关性闸)", near=False)
             continue
         n2 = dict(n)
         n2["source"] = tier
         n2["age_h"] = round(age_h, 1)
         ok.append(n2)
-    return {"ok": ok, "dropped": dropped,
-            "stats": {"fetched": len(items or []), "qualified": len(ok), "dropped": len(dropped)}}
+    return {"ok": ok, "dropped": dropped, "weak": weak,
+            "stats": {"fetched": len(items or []), "qualified": len(ok), "dropped": len(dropped),
+                      "weak": len(weak)}}
 
 
 def _dir_signal(n: dict[str, Any], pos_words: list[str], neg_words: list[str]) -> tuple[float, str]:
@@ -317,15 +356,18 @@ def judge_means(q: dict[str, Any]) -> dict[str, Any]:
 def judge_world(q: dict[str, Any]) -> dict[str, Any]:
     """世界观级 regime 反转是高门槛：只有权威源当日实质地缘事件才算数，且仍不凭新闻就翻面(诚实)。"""
     j = _judge(q, WORLD_REGIME, [])
+    # 甲4：本层问的是"世界是否真变"→ direction 必须【回答】这个问题，不许答"变"却又说"维持"(自打架)。
     if j["n_ok"] == 0:
         return {**j, "strength": "中", "state": "三支柱维持·今日无重大地缘新闻",
-                "direction": "变(三支柱维持·今日无重大地缘新闻)", "no_news": True}
+                "direction": "没变(三支柱维持·今日无重大地缘新闻)", "no_news": True}
     strong = [p for p in j["per_item"] if p["signal"] > 0]
     if len(strong) >= 2:
         state = "地缘/秩序信号增多·需盯(未到regime反转)"
+        direction = f"没变·但要盯({state})"
     else:
         state = "三支柱维持·无regime反转"
-    return {**j, "strength": "中", "state": state, "direction": f"变({state})", "no_news": False}
+        direction = f"没变({state})"
+    return {**j, "strength": "中", "state": state, "direction": direction, "no_news": False}
 
 
 # ── 组装：把真评写回对应 link（覆盖"待第二块"占位，带 source 指纹）──────────────
@@ -388,12 +430,22 @@ def smart_trim(s: str, limit: int = 44) -> str:
 def _write_ring(node: dict, ring: str, jd: dict, q: dict) -> None:
     """把研判写回环：evidence 讲清「几条抓到/几条合格/为什么剔除/逐条研判」，非关键词计数。"""
     st = q["stats"]
-    drop_txt = "；".join(f"{t}→{r}" for t, r in q["dropped"][:3]) or "无"
+    drop_txt = "；".join(f"{smart_trim(d['title'])}→{d['reason']}" for d in q["dropped"][:3]) or "无"
+    weak = q.get("weak") or []
     if jd.get("no_news"):
+        # 乙3：合格0条【绝不】直接"无事件·维持基线"劝退——今天读到的、判为弱相关的也要摆出来给董事长自己看。
         node["evidence"] = (f"【新闻研判】{ring}：抓{st['fetched']}条 → 过源白名单+时效({MAX_AGE_HOURS}h)+相关性闸后"
-                            f"合格 0 条 → 判「{jd['state']}」(不拿旧闻/杂源凑·不编)。剔除示例：{drop_txt}")
-        node["today_events"] = [f"今日无够格新闻·维持基线（抓{st['fetched']}条·合格0条）"]
+                            f"合格 0 条 → 判「{jd['state']}」(不拿旧闻/杂源凑·不编)。"
+                            f"今天读到但判为弱相关的有 {len(weak)} 条(见下·董事长可自己看)。剔除示例：{drop_txt}")
+        if weak:
+            node["today_events"] = [f"今天没有够格的{ring}新闻（抓{st['fetched']}条·合格0条）；"
+                                    f"但今天确实读到了这 {len(weak)} 条弱相关的，摆出来你自己判："]
+        else:
+            node["today_events"] = [f"今日无够格新闻·维持基线（抓{st['fetched']}条·合格0条）"]
         node["news_items"] = []
+        # 弱相关条单列一个字段：渲染层照样出完整标题/来源/日期/可点链接，只是标明"弱相关·未采信"
+        node["weak_items"] = [{"title": d["title"], "source": d["source"], "url": d["url"],
+                               "pub_date": d["pub_date"], "judge": d["reason"]} for d in weak[:3]]
         node["background"] = [f"源白名单=路透/彭博/CNBC/WSJ/FT/官方+财新/华尔街见闻/第一财经/证券时报；时效≤{MAX_AGE_HOURS}h；已剔除大学页/智库博客/内容农场"]
     else:
         per = jd["per_item"]
@@ -406,13 +458,14 @@ def _write_ring(node: dict, ring: str, jd: dict, q: dict) -> None:
         node["news_items"] = [{"title": p["title"], "source": p["source"], "url": p["url"],
                                "pub_date": p["pub_date"], "lang": p["lang"],
                                "judge": p["why"], "signal": p["signal"]} for p in per[:5]]
+        node["weak_items"] = []
         node["background"] = [f"加权研判净分={jd['net']}(逐条:新鲜度加权·否定/辟谣降权·须过相关性闸)",
                               f"合格{st['qualified']}/抓{st['fetched']}·剔除{st['dropped']}条(源不合格/旧闻/不相关)"]
     node["strength"] = jd["strength"]
     node["direction"] = jd["direction"]
     node["_state"] = jd["state"]
     node["source"] = f"Google News RSS·{q.get('feed_used','')}·合格{st['qualified']}/抓{st['fetched']}条·源白名单+≤{MAX_AGE_HOURS}h"
-    node["news_dropped"] = [{"title": t, "reason": r} for t, r in q["dropped"][:6]]
+    node["news_dropped"] = [dict(d) for d in q["dropped"][:6]]   # 乙3:完整标题+来源+日期+链接(不再半截)
 
 
 def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -457,7 +510,7 @@ def enrich_links(links: list[dict[str, Any]], date: str) -> tuple[list[dict[str,
                                    "items": [{"title": p["title"], "source": p["source"], "pub_date": p["pub_date"],
                                               "lang": p["lang"], "signal": p["signal"], "why": p["why"]}
                                              for p in jd.get("per_item", [])[:5]],
-                                   "dropped_examples": [{"title": t, "reason": r} for t, r in q["dropped"][:5]]}
+                                   "dropped_examples": [dict(d) for d in q["dropped"][:5]]}
 
     # —— 总闸 enrich：经济日历真值(非农/CPI/Fed)。本网络下 FRED 超时→待接真源 ——
     fed_node = _find(links, "总闸")

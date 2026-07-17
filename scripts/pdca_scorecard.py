@@ -109,16 +109,19 @@ def apply_certainty(card: dict[str, Any], score: int) -> tuple[str, str]:
 
 
 def decision_quality(cards: list[dict[str, Any]]) -> dict[str, str]:
+    """甲4：本函数只判【底气档】，不再自造"机会口径"结论。
+    机会口径的唯一出处是 evidence_chain daily 的 derived.opportunity_scope(由总闸档现算)——
+    原来这里自己写"机会池应收口径"，与当日 derived 的"口径不放宽"并存 → 全册状态词打架。"""
     certs = [str(card.get("current_certainty", "弱")) for card in cards]
     by_id = {str(card.get("ring_id")): str(card.get("current_certainty", "弱")) for card in cards}
     gate_certainty = by_id.get("fed_gate", "弱")
     if gate_certainty in {"弱", "证伪"}:
-        return {"level": "低", "reason": "总闸确定性降为弱或证伪，机会池必须收口径"}
+        return {"level": "低", "reason": "总闸确定性降为弱或证伪"}
     if "证伪" in certs or certs.count("弱") >= 2:
-        return {"level": "低", "reason": "关键环节确定性弱或证伪，机会池应收口径"}
+        return {"level": "低", "reason": "关键环节确定性弱或证伪"}
     if certs.count("高") >= 3 and "弱" not in certs:
-        return {"level": "高", "reason": "多数关键环节高确定性，可按纪律放大口径"}
-    return {"level": "中", "reason": "关键环节未证伪但确定性未全高，维持谨慎口径"}
+        return {"level": "高", "reason": "多数关键环节高确定性"}
+    return {"level": "中", "reason": "关键环节未证伪但确定性未全高"}
 
 
 def build(date: str) -> dict[str, Any]:

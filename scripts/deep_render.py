@@ -152,6 +152,45 @@ def _corro() -> dict:
 
 _VERDICT_COLOR = {"印证": "#7ee0a0", "挑战": "#ffb454", "佐证料待接": "#c9a86a"}
 
+
+def _corro_age(date: str) -> tuple[int, str]:
+    """甲5：佐证料距当日多少天——每日现算·不写死。返回(最旧料天数, 最新料as_of)。"""
+    c = _corro()
+    srcs = c.get("sources") or []
+    try:
+        today = datetime.strptime(date, "%Y%m%d").date()
+    except Exception:
+        return 0, ""
+    ages = []
+    for s in srcs:
+        try:
+            d = datetime.strptime(str(s.get("as_of", ""))[:10], "%Y-%m-%d").date()
+            ages.append(((today - d).days, str(s.get("as_of"))))
+        except Exception:
+            continue
+    if not ages:
+        return 0, ""
+    ages.sort(reverse=True)
+    return ages[0][0], min(a[1] for a in ages)
+
+
+def corro_staleness_banner(date: str) -> str:
+    """甲5：佐证料过期→醒目警条(不是小字脚注)。天数现算·超30天转橙色告警。"""
+    days, oldest = _corro_age(date)
+    if not days:
+        return ""
+    hot = days > 30
+    bg, bd, col = ("#3a2410", "#c47a1e", "#ffb454") if hot else ("#12261f", "#4f9e7f", "#7ee0a0")
+    return (f'<div class="card" style="background:{bg};border-color:{bd};border-width:2px">'
+            f'<div style="font-size:15px;font-weight:700;color:{col}">'
+            f'{"⚠ 佐证料已放了 " + str(days) + " 天（不是今天的料）" if hot else "佐证料 " + str(days) + " 天内·较新"}</div>'
+            f'<div style="font-size:13px;margin-top:4px;color:#e6eef5">'
+            f'下面每处「佐证」栏里的<b>湖水／老雷</b>观点，最早一份是 <b>{esc(oldest)}</b> 整理的、'
+            f'距今天 <b>{days}</b> 天。'
+            f'{"这么旧的料<b>只能当方向性参考</b>，不能当今天的证据——" if hot else ""}'
+            f'今天的结论一律以左栏<b>系统证据链</b>（当日实时行情+当日新闻）为准。'
+            f'佐证只用来「印证」或「挑战」系统判断，<b>永远不盖过系统判断</b>（总则第九条三）。</div></div>')
+
 def corro_box(key: str, kind: str = "layer") -> str:
     """给一条系统判断挂佐证栏。kind=layer→by_layer(模糊匹配节点名)；kind=symbol→by_symbol。
     有料→印证/挑战+来源；无料→佐证料待接·从接入起用（不编不凑）。佐证绝不盖过系统判断。"""
@@ -191,13 +230,84 @@ def corro_box(key: str, kind: str = "layer") -> str:
             f'佐证（第九条三·只作印证/挑战·<b>不盖系统判断</b>）：<b style="color:{col}">{esc(vd)}</b>'
             + ('｜' + '　'.join(bits) if bits else '')
             + ('<br>' + '｜'.join(tail) if tail else '')
-            + f'<br><span style="color:#8ea3b6">来源：{esc(str(e.get("source", "待接")))}（料非当日·仅方向性参考；当日结论以左栏系统证据链为准）</span></div>')
+            + f'<br><span style="color:#8ea3b6">来源：{esc(str(e.get("source", "待接")))}'
+            + (f'<b style="color:#ffb454">（这份料已放了 {_CORRO_AGE.get("d", 0)} 天·不是今天的料·只作方向性参考）</b>'
+               if _CORRO_AGE.get("d", 0) > 30 else '（料非当日·仅方向性参考）')
+            + '；当日结论以左栏系统证据链为准</span></div>')
+
+
+# 甲5：当日现算的佐证料天数(build 起手写入·供每条佐证栏尾注引用·不写死)
+_CORRO_AGE: dict = {}
+
+# ── 甲6：财报日历驱动·出报日该只卡顶强制横幅(earnings_calendar.json 现算·不写死名单) ──
+_ECAL_CACHE: dict = {}
+
+
+def _ecal(date: str) -> dict:
+    """symbol → 当日财报事件(只认日历里 report_date==当日的)。"""
+    if date in _ECAL_CACHE:
+        return _ECAL_CACHE[date]
+    d = f"{date[:4]}-{date[4:6]}-{date[6:]}"
+    out = {}
+    try:
+        cal = rj(ROOT / "data" / "valuation" / "earnings_calendar.json")
+        for e in cal.get("events", []) or []:
+            if str(e.get("report_date", ""))[:10] == d:
+                out[str(e.get("symbol"))] = e
+    except Exception:
+        out = {}
+    _ECAL_CACHE[date] = out
+    return out
+
+
+def earnings_banner(sym: str, date: str, dyn: dict) -> str:
+    """出报日→该只卡顶部强制横幅。已接到新财报数→报"已更新"；没接到→老实说"数据更新中·②表和估值还是上一季的"。"""
+    e = _ecal(date).get(sym)
+    if not e:
+        return ""
+    fiscal = esc(str(e.get("fiscal", "本季")))
+    sess = esc(str(e.get("session", "")))
+    reported = e.get("reported_on")
+    # 该只的②财报表最新一行覆盖到哪个期(现算·判断新数到没到)
+    got = False
+    try:
+        dc = _load_deep_card(sym)
+        rows = ((dc or {}).get("block2_financials", {}) or {}).get("rows", []) or []
+        last = " ".join(str(rows[-1].get(k, "")) for k in ("fy", "period", "as_of")) if rows else ""
+        got = str(e.get("fiscal", "")).replace("2026Q2", "Q2 2026") in last or "Q2 2026" in last or "2Q26" in last
+    except Exception:
+        got = False
+    val = (dyn.get("valr", {}) or {}).get(sym, {})
+    val_wait = str(val.get("status", "")) == "待接真源"
+    if reported and got:
+        return ('<div class="card" style="background:#12261f;border:2px solid #4f9e7f;margin-bottom:6px">'
+                f'<div style="font-size:16px;font-weight:700;color:#7ee0a0">📣 今日出财报（{fiscal}·{sess}）·新数已接入</div>'
+                '<div style="font-size:13px;margin-top:3px">下面②多年财报表与⑤估值都<b>已按今天这份新财报重算</b>。</div></div>')
+    return ('<div class="card" style="background:#3a2410;border:2px solid #c47a1e;margin-bottom:6px">'
+            f'<div style="font-size:16px;font-weight:700;color:#ffb454">📣 今天出财报（{fiscal}{"·" + sess if sess else ""}）·数据更新中</div>'
+            '<div style="font-size:13px;margin-top:4px;color:#e6eef5">'
+            f'这只<b>今天（{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}）刚出{fiscal}财报</b>，但新数字<b>还没接进本卡</b>——'
+            f'下面②多年财报表最新只到<b>上一季</b>、⑤估值{"也还是<b>待接</b>" if val_wait else "也还是<b>按上一季的数算的</b>"}。'
+            '<br><b style="color:#ffb454">所以：本卡今天的估值结论请先别当准。</b>'
+            '等新财报数字接进来（需要把真实的季度财务数录进估值输入表）后会自动重算——'
+            '缺真源就不编数，这是规矩。</div></div>')
 
 # ══ 分册架构(董事局工单)：5册·同源页眉·跨册相对路径锚·闭环图。纯移搬·一字不删 ══
+# ══ 乙1：统一前缀+日期，让5册在G盘按名排序时【连续相邻】且置顶醒目 ══
+# ★前缀→排到目录最前；「每日产品_日期_序号_」→同日5册必定挨在一起、序号即阅读顺序。
+VOL_PREFIX = "★每日产品"
+
+
+def _dd(date: str) -> str:
+    return f"{date[:4]}-{date[4:6]}-{date[6:]}"
+
+
 def VOL(date: str, n: int) -> str:
-    return {1: f"完整产品_{date}_1总览闭环.html", 2: f"完整产品_{date}_2持仓深研.html",
-            3: f"完整产品_{date}_3机会池.html", 4: f"完整产品_{date}_4记分卡.html",
-            5: f"完整产品_{date}_5右栏6尺.html"}[n]
+    return {1: f"{VOL_PREFIX}_{_dd(date)}_1_总览闭环.html",
+            2: f"{VOL_PREFIX}_{_dd(date)}_2_持仓深研.html",
+            3: f"{VOL_PREFIX}_{_dd(date)}_3_机会池.html",
+            4: f"{VOL_PREFIX}_{_dd(date)}_4_记分卡.html",
+            5: f"{VOL_PREFIX}_{_dd(date)}_5_右栏6尺.html"}[n]
 
 # ②持仓深研册按逻辑拆子册(每册<300KB·绝不删内容·按组合角色分组)
 VOL2_SUBS = [("2a", "AI主线仓", ["US.NVDA", "US.MSFT", "US.AVGO", "US.TSM", "JP.6857", "JP.9984", "US.META", "US.SNDK"]),
@@ -205,7 +315,8 @@ VOL2_SUBS = [("2a", "AI主线仓", ["US.NVDA", "US.MSFT", "US.AVGO", "US.TSM", "
              ("2c", "加密簇与金融仓", ["US.MSTR", "US.COIN", "US.CRCL", "US.IBKR"])]
 
 def VOL2(date: str, sub: str) -> str:
-    return f"完整产品_{date}_{sub}持仓深研_{dict((s, n) for s, n, _ in VOL2_SUBS)[sub]}.html"
+    # 2a/2b/2c 排在 "_2_" 与 "_3_" 之间 → 与其余4册连续相邻
+    return f"{VOL_PREFIX}_{_dd(date)}_2{sub[-1]}_持仓深研_{dict((s, n) for s, n, _ in VOL2_SUBS)[sub]}.html"
 
 def _sub_of(sym: str) -> str:
     for s, _n, syms in VOL2_SUBS:
@@ -563,8 +674,16 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
     out.append('<div class="blk">⑥ 好、中、坏三种情况分别值多少</div>'
                '<table class="dt"><tr><th>情况</th><th>假设(人话)</th><th>值多少</th><th>大概几成可能</th></tr>' + scrows + '</table>'
                f'<p style="font-size:13px"><span class="k">这告诉你</span>{_nd(sc.get("readout",""))}</p>')
-    # ⑦ 催化剂日历
-    cats = "".join(f'<li>{_nd(x)}</li>' for x in deep.get("block7_catalysts", []))
+    # ⑦ 催化剂日历（甲6：当日已出报的那条不许再当"未来要盯的"）
+    _d = dyn.get("date", "")
+    _today_iso = f"{_d[:4]}-{_d[4:6]}-{_d[6:]}" if len(_d) == 8 else ""
+    _is_rep_day = bool(_ecal(_d).get(sym))
+    cats = ""
+    for x in deep.get("block7_catalysts", []):
+        li = _nd(x)
+        if _is_rep_day and _today_iso and _today_iso in str(x) and "财报" in str(x):
+            li = ('<b style="color:#ffb454">［今天已经出了·不是以后的事］</b> ' + li)
+        cats += f'<li>{li}</li>'
     out.append('<div class="blk">⑦ 往后要盯的关键时间点（催化剂日历）</div><ul style="font-size:13px">' + cats + '</ul>')
     # ⑧ 风险量化
     rk = deep.get("block8_risks", {})
@@ -764,13 +883,15 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     else:
         qty_s = "待接·无真股数"
     # 件六①：成本锚真填不了→人话交代原因(四账户持仓截图只有股数、没有买入价)
-    cost_s = (f"{c}{fnum(cost)}（四账户均价·{ht.get('cost_grade','')}级）" if cost is not None
-              else "算不出——你四个账户的持仓记录里<b>只有股数、没有买入价</b>，所以没法算你这只赚了还是亏了。"
-                   "要填上它，需要你把各账户的买入均价给我一次（之后就能天天自动算盈亏）。")
+    # 甲2：这行本来就要带真加粗→自己拼安全HTML(内容各段单独esc)，不再整串过 esc(否则<b>被转义成字面量)
+    cost_html = (esc(f"{c}{fnum(cost)}（四账户均价·{ht.get('cost_grade','')}级）") if cost is not None
+                 else ("算不出——你四个账户的持仓记录里<b>只有股数、没有买入价</b>，"
+                       "所以没法算你这只赚了还是亏了。"
+                       "要填上它，需要你把各账户的买入均价给我一次（之后就能天天自动算盈亏）。"))
     ma20, ma50, ma200 = ma.get("ma20"), ma.get("ma50"), ma.get("ma200")
     ma_s = (f"20日{c}{fnum(ma20)}/50日{c}{fnum(ma50)}/200日{c}{fnum(ma200)}（均线位·仅趋势参考·不作买卖线）"
             if ma200 is not None else "待接·均线不足（不编）")
-    dossier = (f'<div class="dossier"><span class="k">档案</span><b>持仓</b>{esc(qty_s)} ｜ <b>成本</b>{esc(cost_s)} '
+    dossier = (f'<div class="dossier"><span class="k">档案</span><b>持仓</b>{esc(qty_s)} ｜ <b>成本</b>{cost_html} '
                f'｜ <b>现价</b>{esc(c)}{esc(fnum(price)) if price is not None else "待接"}'
                f'<span style="color:#ffb454;font-size:11.5px;margin-left:4px">［{esc(price_stamp(sym, dyn.get("date","")))}］</span>'
                f' ｜ <b>均线</b>{esc(ma_s)}</div>')
@@ -792,7 +913,9 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                         ("sector", "④板块轮动"))) +
                    '　｜　' + _a(VOL(_dt, 3), "⑤机会池册") + '　' + _a(VOL(_dt, 4), "⑦记分卡册")
                    + '　｜　' + _a(L5(_dt, "ruler-6"), "右栏⑥本只静态档案") + '</div>')
-    return (f'<div class="card" id="stock-{esc(sym)}">{hd}{final_row}{deep}{dossier}'
+    # 甲6：出报日→卡顶强制横幅(日历现算·非出报日不出现)
+    _eb = earnings_banner(sym, dyn.get("date", ""), dyn)
+    return (f'<div class="card" id="stock-{esc(sym)}">{_eb}{hd}{final_row}{deep}{dossier}'
             + corro_box(sym, "symbol") + chain_links
             # B4治本：这一行原样甩 production 的旧判词("护城河=窄护城河"等)，与本卡③块/四行打架 →
             # 收敛为指路，结论一律以下面「今天你怎么办」四行为准(单一源)
@@ -960,6 +1083,25 @@ def part0_diff(date: str, dyn: dict) -> str:
             + f'<div class="blk">③ 今日待拍板事项（{n_pend} 件·拍板收件箱）</div>'
             + (pend_rows or '<div class="card">今日无待拍板事项</div>'))
 
+def _news_list(items: list, weak: bool = False) -> str:
+    """新闻逐条渲染的唯一出口(第四轮+乙3)：完整标题/来源/日期一律不截，每条带可点原文链接；
+    取不到URL→明标"无直链"。weak=True 标为弱相关·未采信。"""
+    out = []
+    for n in items:
+        u = str(n.get("url") or "")
+        link = (f'　<a href="{u}" target="_blank" style="color:#8fd6ff">阅读原文→</a>'
+                if u.startswith("http") else
+                f'　<span style="color:#8ea3b6">（来源:{esc(str(n.get("source","")) or "不详")}·无直链）</span>')
+        tag = ('<span style="color:#c9a86a;font-size:11px">［弱相关·未采信］</span> ' if weak else "")
+        jd = str(n.get("judge") or "")
+        out.append(f'<div style="margin-top:3px">· {tag}<b>{esc(str(n.get("title","")))}</b>'
+                   f'<br><span style="color:#8ea3b6;font-size:11.5px">来源：{esc(str(n.get("source","")))}'
+                   f'　发布：{esc(str(n.get("pub_date","")))}'
+                   + (f'　系统怎么看：{esc(jd)}' if jd else "")
+                   + f'</span>{link}</div>')
+    return "".join(out)
+
+
 def part1_layers(daily: dict, dyn: dict) -> str:
     links = daily.get("links") or []
     rows = []
@@ -970,16 +1112,18 @@ def part1_layers(daily: dict, dyn: dict) -> str:
         events = l.get("today_events") or []
         # 第四轮：今天怎么了 = 方向 + 逐条真新闻(完整标题/来源/日期·每条带可点原文链接)
         news = l.get("news_items") or []
+        weak = l.get("weak_items") or []
         if news:
-            nl = []
-            for n in news:   # 全篇新闻都要有链接→不再只渲前3条
-                u = str(n.get("url") or "")
-                link = (f'　<a href="{u}" target="_blank" style="color:#8fd6ff">阅读原文→</a>'
-                        if u.startswith("http") else '　<span style="color:#8ea3b6">（无直链）</span>')
-                nl.append(f'<div style="margin-top:3px">· <b>{esc(str(n.get("title","")))}</b>'
-                          f'<br><span style="color:#8ea3b6;font-size:11.5px">来源：{esc(str(n.get("source","")))}'
-                          f'　发布：{esc(str(n.get("pub_date","")))}</span>{link}</div>')
-            fact = esc(str(dr)) + "".join(nl)
+            fact = esc(str(dr)) + _news_list(news)
+        elif weak:
+            # 乙3：今天没有够格新闻→【不许】只甩一句"无事件·维持基线"劝退，
+            # 把今天真读到、只是判为弱相关的摆出来，董事长自己看。
+            fact = (esc(str(dr))
+                    + f'<div style="margin-top:5px;color:#ffb454;font-size:12.5px">'
+                      f'今天没有够格的重大新闻（权威源+当日+强相关），所以本层维持原判断。'
+                      f'但今天<b>确实读到了下面这 {len(weak)} 条</b>——系统判它们<b>弱相关·没采信</b>，'
+                      f'摆出来你自己看，别只信我这一句：</div>'
+                    + _news_list(weak, weak=True))
         else:
             fact = esc(str(dr)) + ((" ｜ " + esc(str(events[0]))) if events else "")
         why = esc(evidence) if evidence else "为什么这么判：待接（daily 无 evidence·不编）"
@@ -1139,10 +1283,25 @@ def part4_opportunity(daily: dict, dyn: dict) -> str:
     if not rows:
         rows.append('<div class="card">候选watchlist待接（OPP_WATCHLIST 缺）</div>')
     scope = esc(str(der.get("opportunity_scope", "待接")))
-    head = (f'<h2>第四部分 · 机会池：该不该换、换谁（现算候选 {in_pool}/{len(wl)} 进池·证据驱动·6a）</h2>'
-            f'<div class="card">当日激活承接节点(证据源)：{esc("、".join(active) or "待接")}｜机会口径：{scope}'
-            '<div class="meta" style="color:#8ea3b6;font-size:12px">候选是否进池由「节点是否在当日激活承接节点」现算·改当日证据→候选集变（6b替换引擎=P2）</div></div>')
+    # 甲3：不再自报"现算候选 3/3 进池"(与五关漏斗的23→19→5并存=两套口径)。
+    # 全篇机会数字唯一出处 = funnel_scope_line；本节只是候选宇宙里"已配好换法"的重点几只展开。
+    head = ('<h2>第四部分 · 机会池：该不该换、换谁（证据驱动·6a）</h2>'
+            f'<div class="card"><b>今天的机会池全貌（全篇唯一口径）</b>：{funnel_scope_line(dyn["date"], daily, dyn)}'
+            f'　→ 逐只五关明细见本册下方「五关漏斗」。'
+            f'<div style="margin-top:5px">当日激活承接节点(证据源)：{esc("、".join(active) or "待接")}｜机会口径：{scope}</div>'
+            f'<div class="meta" style="color:#8ea3b6;font-size:12px">本节展开的是候选宇宙里已预配「换谁」方案的重点 {len(wl)} 只'
+            f'（其中 {in_pool} 只节点今日激活）——它们是上面那{esc(str(n_uni_of(dyn["date"])))}只的子集、不是另一套池子。'
+            '候选是否进池由「节点是否在当日激活承接节点」现算·改当日证据→候选集变（6b替换引擎）</div></div>')
     return head + "".join(rows)
+
+
+def n_uni_of(date: str) -> int:
+    """候选宇宙"按标的唯一"的只数(甲3：与漏斗同一口径·摘要表也引它)。"""
+    try:
+        uni = rj(ROOT / "data" / "valuation" / "candidate_universe.json").get("nodes", {}) or {}
+        return len({str(c.get("ticker") or c.get("name")) for v in uni.values() for c in (v or [])})
+    except Exception:
+        return 0
 
 # ── 第四部分附·R6-6b 替换引擎（把6a候选升级为"换不换"决策：多维比较+为何不换/什么价换+换后集中度联动） ──
 def _resolve_sym(ticker: str, holds: list) -> str | None:
@@ -1257,12 +1416,27 @@ def _node_active(node: str, active: list) -> bool:
     keys = _NODE_ALIAS.get(node, [node])
     return any(k in a or a in k for a in active for k in keys)
 
-def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
+_FUNNEL_CACHE: dict = {}
+
+
+def funnel_compute(date: str, daily: dict, dyn: dict) -> dict:
+    """甲3：机会池唯一口径的单一算子。6a标题/摘要表/五关漏斗全都只读这里的数字，
+    不许各算各的(原来 6a 报'3/3进池'、漏斗报'23→19→5'=两套并存)。"""
+    ck = (date, id(daily))
+    if ck in _FUNNEL_CACHE:
+        return _FUNNEL_CACHE[ck]
+    r = _funnel_compute_raw(date, daily, dyn)
+    _FUNNEL_CACHE[ck] = r
+    return r
+
+
+def _funnel_compute_raw(date: str, daily: dict, dyn: dict) -> dict:
     active = _active_nodes(daily)
     try:
         uni = rj(ROOT / "data" / "valuation" / "candidate_universe.json").get("nodes", {}) or {}
     except Exception as e:
-        return f'<h2>第四部分附 · 机会池全扫</h2><div class="card">候选宇宙待接（candidate_universe.json 缺：{esc(e)}）</div>'
+        return {"err": str(e), "active": active, "rows": [], "worth": [],
+                "n_total": 0, "n_g1": 0, "n_g2": 0}
     # gate②数据源:复用当日 chain_opportunities 真均线扫描(过硬性关=站上MA)
     ma_pass = {}
     try:
@@ -1277,15 +1451,23 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
     # 逐候选跑五关(现算)
     worth = []      # 值得看候选池(过硬性关·节点激活)
     all_rows = []
-    seen = set()
+    # 甲3：同一只标的可挂多个节点(如联电=算力+代工)→按标的唯一去重、节点合并成一行，不出两张重复卡
+    merged: dict[str, dict] = {}
     for node, cands in uni.items():
         for c in (cands or []):
             nm = c.get("name", ""); tk = str(c.get("ticker") or "")
-            key = (node, nm)
-            if key in seen:
-                continue
-            seen.add(key)
-            g1 = _node_active(node, active)                       # ①硬性:节点激活
+            key = tk or nm
+            if key in merged:
+                if node not in merged[key]["nodes"]:
+                    merged[key]["nodes"].append(node)
+            else:
+                merged[key] = {"name": nm, "ticker": tk, "nodes": [node], "source": c.get("source", "")}
+    for uc in merged.values():
+        if True:
+            nm = uc["name"]; tk = uc["ticker"]
+            node = "／".join(uc["nodes"])                          # 合并后的节点显示(联电=算力／代工)
+            c = {"source": uc["source"]}
+            g1 = any(_node_active(n, active) for n in uc["nodes"])  # ①硬性:任一挂靠节点激活即过
             mp = ma_pass.get(tk)
             g2 = ("过·站上均线" if (mp and mp.get("pass")) else ("待接·未在当日扫描" if mp is None else "卡·未站上均线"))
             g3 = "待接·候选估值未接"                                  # ③估值(外部候选无估值源)
@@ -1304,9 +1486,30 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
             all_rows.append(row)
             if g1:
                 worth.append(row)
-    # 过关分布统计
+    # 过关分布统计(全篇唯一口径·甲3)
     n_total = len(all_rows); n_g1 = sum(1 for r in all_rows if r["g1"])
     n_g2 = sum(1 for r in all_rows if r["g1"] and "过·站上" in r["g2"])
+    return {"err": "", "active": active, "rows": all_rows, "worth": worth,
+            "n_total": n_total, "n_g1": n_g1, "n_g2": n_g2}
+
+
+def funnel_scope_line(date: str, daily: dict, dyn: dict) -> str:
+    """机会池唯一口径的一句话·全篇任何地方要报机会数字都引它(甲3双漏斗根治)。"""
+    fc = funnel_compute(date, daily, dyn)
+    if fc.get("err"):
+        return "候选宇宙待接"
+    return (f'候选宇宙 <b>{fc["n_total"]}</b> 只（按标的唯一计·一只挂多节点只算一次）'
+            f' → 过①硬性关(节点激活) <b>{fc["n_g1"]}</b> 只'
+            f' → 过②软性关(站上均线) <b>{fc["n_g2"]}</b> 只')
+
+
+def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
+    fc = funnel_compute(date, daily, dyn)
+    if fc.get("err"):
+        return ('<h2>第四部分附 · 机会池全扫</h2>'
+                f'<div class="card">候选宇宙待接（candidate_universe.json 缺：{esc(fc["err"])}）</div>')
+    active = fc["active"]; all_rows = fc["rows"]; worth = fc["worth"]
+    n_total, n_g1, n_g2 = fc["n_total"], fc["n_g1"], fc["n_g2"]
     # 池一:值得看候选池
     # 件六②去重：把"护城河待接/估值待接/节点X今日激活/AI簇已超配只换不加"这类逐字重复的话
     # 归纳成一句总述，只对【有实质区别的】(过了均线关·有真价数据)逐只展开。
@@ -1432,7 +1635,10 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
     head = ('<h2>第七部分 · 复盘记分卡（昨天judged的、今天验；系统的魂）</h2>'
             + _caveat +
             f'<div class="card">今天下手的底气（与第一部分总闸同一判断）：<b>{esc(fed_str)}·{esc(fed_dir)}</b>'
-            '<div class="meta" style="color:#8ea3b6;font-size:12px">判对了就给这把尺加把握、判错了就改尺。每环记：昨天怎么判的／今天验得怎样／累计几分。</div></div>')
+            # 甲4：机会口径只许引 derived 的唯一取值(记分卡不再自造"应收口径")
+            + (f'<div style="margin-top:4px">今天的机会口径（与①③册同一取值）：'
+               f'{esc(str((daily.get("derived", {}) or {}).get("opportunity_scope", "待接")))}</div>' if daily else "")
+            + '<div class="meta" style="color:#8ea3b6;font-size:12px">判对了就给这把尺加把握、判错了就改尺。每环记：昨天怎么判的／今天验得怎样／累计几分。</div></div>')
     rows = []
     for r in rings:
         rid = r.get("ring_id")
@@ -1591,6 +1797,7 @@ def _snapshot_guard(date: str, dyn: dict, only) -> None:
 
 def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     dyn = load_dynamic(date)
+    _CORRO_AGE["d"] = _corro_age(date)[0]      # 甲5：佐证料天数当日现算·供各佐证栏尾注引用
     _snapshot_guard(date, dyn, only)   # R3 快照单调性闸
     holds = dyn["prod"].get("holdings", [])
     stocks = [h for h in holds if not str(h.get("symbol","")).startswith("CC.")]
@@ -1627,7 +1834,26 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
             '.need{color:#ffb454;font-weight:700}.bull{color:#7ee0a0;font-weight:700}.bear{color:#ff9a9a;font-weight:700}.base{color:#7cc4ff;font-weight:700}'
             '.dt{width:100%;border-collapse:collapse;margin:7px 0;font-size:12.5px}.dt th,.dt td{border:1px solid #2a3d4f;padding:6px 8px;text-align:left;vertical-align:top}.dt th{background:#13202d;color:#bcd0e2}'
             '</style></head><body>')
-    title = (f'<h1>每日投资决策台 · 完整产品（机器版·实时自动生成）</h1>'
+    # ══ 乙2：页头最顶端超大横幅——一眼知道是不是今天的、是新是旧 ══
+    _dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
+    try:
+        _age_d = (datetime.now(JST).date() - datetime.strptime(date, "%Y%m%d").date()).days
+    except Exception:
+        _age_d = 0
+    _fresh = _age_d <= 0
+    _bg, _bd, _fg = (("#0f2e1c", "#4fbf87", "#8cf5be") if _fresh else ("#3a2410", "#c47a1e", "#ffb454"))
+    _tag = "今天的" if _fresh else (f"{_age_d} 天前的·不是今天" if _age_d > 0 else "")
+    big = (f'<div style="background:{_bg};border:3px solid {_bd};border-radius:12px;'
+           f'padding:14px 18px;margin:0 0 10px">'
+           f'<div style="font-size:30px;font-weight:900;color:{_fg};line-height:1.25;letter-spacing:1px">'
+           f'数据日 {esc(_dd)}　<span style="font-size:20px">［{esc(_tag)}］</span></div>'
+           f'<div style="font-size:16px;color:#e6eef5;font-weight:700;margin-top:6px">'
+           f'生产于 {esc(scan_jst)}　｜　run_id {esc(run_id)}</div>'
+           f'<div style="font-size:12.5px;color:#9aa8b5;margin-top:3px">'
+           f'这一行是这份产品的"身份证"：数据日=数字取自哪一天；生产于=这份文件什么时候跑出来的；'
+           f'run_id=这一次运行的编号。五册的这三项<b>必须完全一样</b>，不一样就是有一册是旧的。</div></div>')
+    title = (big
+             + f'<h1>每日投资决策台 · 完整产品（机器版·实时自动生成）</h1>'
              f'<div style="background:#0e1621;border:1px solid #3a5a8a;border-radius:8px;padding:8px 12px;margin:6px 0;color:#ffd479;font-weight:700">'
              f'🆔 run_id=<b>{esc(run_id)}</b>'
              f' ｜ 📅 data_date=<b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>'
@@ -1658,7 +1884,8 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     p_rulers = part6_rulers()
     p_pdca = part7_pdca(date, daily)
 
-    vol1 = (head + title + v1_nav + banner + p_diff + _loop_map(date) + _summary_tables(date, dyn, stats)
+    vol1 = (head + title + v1_nav + banner + corro_staleness_banner(date)   # 甲5：佐证过期→醒目警条
+            + p_diff + _loop_map(date) + _summary_tables(date, dyn, stats)
             + p_layers + p_macro + p_conc + p_close + "</body></html>")
     vol3 = (head + title + v3_nav + p_6a + p_6b + p_funnel + "</body></html>")
     vol4 = (head + title + v4_nav + p_pdca + "</body></html>")
@@ -1675,8 +1902,11 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
         deep_total += len(picked)
     stats["deep_blocks"] = deep_total
     # 件四①/件二/件五：全册统一清洗(内部结构泄露/裸字段名/内部话/草稿语)——只改措辞·判断口径不变
-    volumes = {k: _scrub_leaks(v) for k, v in volumes.items()}
+    # 甲1：候选专用措辞只许在③机会池册生效(持仓册走持仓版·不套候选模板)
+    volumes = {k: _scrub_leaks(v, is_pool=(k == VOL(date, 3))) for k, v in volumes.items()}
     stats["volumes"] = volumes
+    stats["run_id"] = run_id          # 丙2/丙3：出厂后登记指纹+回写主控要用
+    stats["scan_jst"] = scan_jst
     return volumes[VOL(date, 1)], stats
 
 
@@ -1703,8 +1933,12 @@ _LEAK_PATS = [
     # 程序内部字典原样打印(曾泄露 {'status':'待理解岗打分',...})
     (re.compile(r"\{&#x27;[^}<]{0,200}?\}|\{&#x27;status&#x27;[^<]{0,160}|\{'[a-z_]+':[^}<]{0,200}\}"),
      "评级待补（见该只持仓卡③护城河五维）"),
-    # 引擎"缺真输入：字段名+字段名（该用…）"整串→人话
-    (re.compile(r"缺真输入[：:][^（(<]{0,120}(（[^）]*）)?"), "算不出该值多少钱的原因见本卡「今天你怎么办」第3行"),
+    # 引擎"缺真输入：字段名+字段名(任一整套)（该用…）·不硬编"整串→人话。
+    # ⚠必须吃到结尾标记"·不硬编"为止：原写法 [^（(<]{0,120} 遇到半角括号(如 shares(任一整套))就停，
+    # 把 "(任一整套)（该用 …EV/EBITDA）" 这截内部话原样漏给董事长看(台积电/爱德万/闪迪/伊藤忠/COIN/CRCL 六只)。
+    (re.compile(r"缺真输入[：:].{0,240}?(?:·不硬编|・不硬编)"),
+     "算不出该值多少钱的原因见本卡「今天你怎么办」第3行"),
+    (re.compile(r"缺真输入[：:][^<]{0,240}"), "算不出该值多少钱的原因见本卡「今天你怎么办」第3行"),
     # 残留的"缺真输入/不硬编"内部话→人话(判断口径不变·只改措辞)
     (re.compile(r"（估值引擎缺真输入·不硬编）"), "（算不出可信的合理价·原因见本卡「今天你怎么办」第3行）"),
     (re.compile(r"缺真输入"), "缺可信的估值输入"),
@@ -1809,7 +2043,9 @@ def _scrub_jargon(s: str) -> str:
     return s
 
 
-def _scrub_leaks(html_txt: str) -> str:
+def _scrub_leaks(html_txt: str, is_pool: bool = False) -> str:
+    """is_pool=True 仅机会池册：候选卡没有「今天你怎么办」四行→指路话要换成候选版。
+    持仓册【绝不】走这条(持仓卡有四行·指路正确)——甲1根因就是这里原来不分册全局替换。"""
     for pat, rep in _LEAK_PATS:
         html_txt = pat.sub(rep, html_txt)
     html_txt = _scrub_fields(html_txt)
@@ -1830,12 +2066,19 @@ def _scrub_leaks(html_txt: str) -> str:
     html_txt = re.sub(r"认可\s*→\s*定稿|认可后定稿", "", html_txt)
     html_txt = re.sub(r"要加\s*/\s*改吗[？?]?|对吗[？?]", "", html_txt)
     html_txt = re.sub(r"下一步[：:]", "", html_txt)
-    # E3：机会池替换卡的坏模板(括号套括号·指向不存在的行)
-    html_txt = html_txt.replace(
-        "算不出该值多少钱的原因见本卡「今天你怎么办」第3行",
-        "这只候选还没做估值（它不在你的持仓里，没跑估值模型）")
-    html_txt = re.sub(r"（（+", "（", html_txt)
-    html_txt = re.sub(r"）+）", "）", html_txt)
+    # E3/甲1：候选卡无「今天你怎么办」四行→只在机会池册换成候选版措辞；持仓册保持指路(那行真实存在)
+    if is_pool:
+        html_txt = html_txt.replace(
+            "算不出该值多少钱的原因见本卡「今天你怎么办」第3行",
+            "这只候选还没做估值（不在你持仓里，没跑估值模型）")
+        html_txt = html_txt.replace(
+            "算不出可信的合理价·原因见本卡「今天你怎么办」第3行",
+            "还没做估值（不在你持仓里，没跑估值模型）")
+    # 甲1：去掉三层套括号(（（x）））
+    for _ in range(3):
+        html_txt = re.sub(r"（（+", "（", html_txt)
+        html_txt = re.sub(r"）+）", "）", html_txt)
+        html_txt = re.sub(r"（([^（）]{0,60})（([^（）]{0,60})））", r"（\1\2）", html_txt)
     # E：空标题清掉
     html_txt = re.sub(r"<h([23])>\s*(?:。|”。|“过滤标准”。|\"过滤标准\"。)?\s*</h\1>", "", html_txt)
     return html_txt
@@ -1893,11 +2136,6 @@ def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
     hold_tbl = ('<table class="dt"><tr><th>持仓</th><th>代码</th><th>动作</th><th>账本</th><th>估值</th><th>把握</th></tr>'
                 + "".join(rows) + '</table>')
     try:
-        uni = rj(ROOT / "data" / "valuation" / "candidate_universe.json").get("nodes", {}) or {}
-        n_uni = sum(len(v or []) for v in uni.values())
-    except Exception:
-        n_uni = 0
-    try:
         pd_ = rj(ROOT / "data" / "pdca" / "pending_decisions.json")
         n_pend = int(pd_.get("pending_count") or 0)
     except Exception:
@@ -1911,10 +2149,22 @@ def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
     return ('<h2>摘要表（每行点进对应深册）</h2>'
             f'<div class="blk">持仓摘要（{stats["n"]}只·点名字进 {esc(VOL(date,2))} 该只10块深卡）</div>'
             f'<div class="card">{hold_tbl}</div>'
-            f'<div class="blk">机会摘要</div><div class="card">候选宇宙 <b>{n_uni}</b> 只 → 五关漏斗现算 → 三池；'
+            f'<div class="blk">机会摘要</div><div class="card">'
+            f'{funnel_scope_line(date, dyn["daily"], dyn)}（与③机会池册同一口径·同一算子）；'
             f'详见 {_a(VOL(date, 3), "③机会池册")}。今日待拍板 <b style="color:#ffd479">{n_pend}</b> 件（见本册差分优先页·拍板收件箱）。</div>'
             f'<div class="blk">记分摘要</div><div class="card">支柱确定性累积：{esc(pil)}；'
             f'三件魂详见 {_a(VOL(date, 4), "④记分卡/复盘册")}。</div>')
+
+def _pretty(h: str) -> str:
+    """丙4：单行超长HTML→按块级标签换行(体积几乎不变·便于董事长核验与 git diff)。
+    只在标签【之间】插换行，绝不动标签内部与文本内容 → 渲染结果一字不变。"""
+    # 收尾标签后换行(块级)
+    h = re.sub(r"(</(?:div|h1|h2|h3|table|tr|ul|ol|li|details|p|style|head|body|html)>)(?=<)", r"\1\n", h)
+    # 开头标签前换行(块级·且前面不是换行)
+    h = re.sub(r"(?<!\n)(<(?:div|h1|h2|h3|table|tr|ul|ol|li|details|p)\b)", r"\n\1", h)
+    h = re.sub(r"\n{3,}", "\n\n", h)
+    return h
+
 
 def main() -> int:
     import sys
@@ -1932,6 +2182,21 @@ def main() -> int:
         return 4
     vols = stats.get("volumes") or {}
     if vols and not only:
+        # ── 丙4：单行超长HTML→按块加换行(体积几乎不变·便于核验与diff) ──
+        vols = {k: _pretty(v) for k, v in vols.items()}
+        # ── 丙1：出厂机械核 —— FAIL 即【不出品】(不落盘·不覆盖旧册) ──
+        try:
+            from product_lint import lint_volumes
+            fails = lint_volumes(vols, a.date)
+        except Exception as e:
+            print(f"[出厂核 异常] {e}", file=sys.stderr)
+            return 5
+        if fails:
+            print(f"[出厂核 FAIL·不出品] {len(fails)} 条 —— 旧册未被覆盖：", file=sys.stderr)
+            for f in fails:
+                print("  ✗ " + f, file=sys.stderr)
+            return 5
+        print(f"[出厂核 PASS] {len(vols)} 册 · L1乱码/L2同源/L3转义/L4错模板/L5数字/L6状态词/L7半截/L8链接 全过")
         total = 0
         for fname, txt in vols.items():
             p = ROOT / "00_请先看这里" / fname
@@ -1940,6 +2205,15 @@ def main() -> int:
             total += len(b)
             print(f"wrote {fname} · bytes={len(b)} · 乱码EFBFBD={b.count(b'\xef\xbf\xbd')}")
         print(f"五册合计 bytes={total}")
+        # ── 丙2/丙3：登记实物指纹(防回滚哨兵) + 回写主控进度块 ──
+        try:
+            from product_manifest import write_manifest, sync_master
+            rid = stats.get("run_id", ""); sj = stats.get("scan_jst", "")
+            write_manifest(a.date, rid, sj, list(vols.keys()))
+            print(f"[哨兵] 已登记 {len(vols)} 册指纹 → data/product_manifest.json")
+            print(sync_master(a.date, rid, sj, list(vols.keys())))
+        except Exception as e:
+            print(f"[哨兵/回写 失败] {e}", file=sys.stderr)
     else:
         out = a.out or str(ROOT / "00_请先看这里" / f"完整产品_{a.date}_机器版.html")
         Path(out).write_text(htmltxt, encoding="utf-8")

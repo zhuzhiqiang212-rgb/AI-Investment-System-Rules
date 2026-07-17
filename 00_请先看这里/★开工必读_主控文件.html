@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>★开工必读·主控文件（单一真相源）</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--soft:#9db0c2;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;--bad:#ff9a9a;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.7;font-size:15px;}
+.wrap{max-width:920px;margin:0 auto;padding:20px 16px 90px;}
+.hdr{padding:18px 20px;background:linear-gradient(135deg,#3a2a12,#2a1e10);border:1px solid #5a4020;border-radius:14px;margin-bottom:12px;}
+.hdr h1{font-size:21px;margin:0 0 4px;color:#ffcf6b;}
+.hdr .sub{color:#d8c29b;font-size:12.5px;}
+.truth{background:#2a1313;border:2px solid #7a3a3a;border-radius:12px;padding:14px 18px;margin:12px 0;}
+.truth b{color:#ffcf6b;}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;padding:14px 18px;}
+.sec h2{font-size:16px;margin:0 0 8px;color:#ffe4a8;}
+.sec p,.sec li{font-size:14px;} .sec b{color:#fff;}
+.hl{color:var(--hi);font-weight:700;} .key{color:var(--key);}
+ul{margin:6px 0;padding-left:20px;} li{margin:4px 0;}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px;}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;}
+th{background:#13202d;color:#bcd0e2;}
+.now{background:#12261c;border:1px solid #285039;border-radius:10px;padding:12px 15px;margin:10px 0;}
+.now b{color:#7ee0a0;}
+code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#9ed8ff;}
+</style>
+</head>
+<body>
+<!--PRODUCT_STATUS_START-->
+<div style="background:#0f2e1c;border:3px solid #4fbf87;border-radius:10px;padding:12px 16px;margin:10px 0"><div style="font-size:22px;font-weight:900;color:#1c6b45">当前正式产品 · 数据日 2026-07-16</div><div style="font-size:14px;margin-top:4px">生产于 <b>2026-07-16 23:18:01 JST</b>　｜　run_id <b>R-20260716-231801</b>　｜　本块由生产脚本每次自动回写（不是手填·不会过期）</div><ul style="font-size:13px;margin:6px 0 0 18px"><li><a href="★每日产品_2026-07-16_1_总览闭环.html">★每日产品_2026-07-16_1_总览闭环.html</a></li><li><a href="★每日产品_2026-07-16_3_机会池.html">★每日产品_2026-07-16_3_机会池.html</a></li><li><a href="★每日产品_2026-07-16_4_记分卡.html">★每日产品_2026-07-16_4_记分卡.html</a></li><li><a href="★每日产品_2026-07-16_5_右栏6尺.html">★每日产品_2026-07-16_5_右栏6尺.html</a></li><li><a href="★每日产品_2026-07-16_2a_持仓深研_AI主线仓.html">★每日产品_2026-07-16_2a_持仓深研_AI主线仓.html</a></li><li><a href="★每日产品_2026-07-16_2b_持仓深研_防御分散仓.html">★每日产品_2026-07-16_2b_持仓深研_防御分散仓.html</a></li><li><a href="★每日产品_2026-07-16_2c_持仓深研_加密簇与金融仓.html">★每日产品_2026-07-16_2c_持仓深研_加密簇与金融仓.html</a></li></ul><div style="font-size:12px;color:#555;margin-top:4px">五册的数据日/run_id 必须完全一致；不一致或找不到文件 → 跑 <code>python scripts/product_manifest.py --check</code> 查是不是被旧版覆盖了。</div></div>
+<!--PRODUCT_STATUS_END-->
+<div class="wrap">
+
+<div class="hdr">
+  <h1>★ 开工必读 · 主控文件</h1>
+  <div class="sub">任何AI（Chat/Code/Cowork/GPT）接手本项目，第一件事必须读这份文件 ｜ 这是全项目的"单一真相源"入口 ｜ 最后更新 2026-07-17 10:20 JST</div>
+</div>
+
+<div class="truth">
+  <b>单一真相源铁律（第0步确立）：</b>本项目的"真相"只存在于 <code>G:\我的云端硬盘\AI_Investment_System\00_请先看这里\</code> 的正式文件里。<b>聊天记录、GPT记忆、任何AI的记忆都只是临时缓存，与文件冲突时以文件为准。</b>每个AI：①开工先读本文件+下方清单；②干完必把结论回写文件，不许只留在对话里。这条纪律是为了根治"换线程就忘"。
+</div>
+
+<div class="sec" style="border-left:4px solid #5cc8ff;">
+  <h2>☆ 存储分工（G盘 vs GitHub·防两份真相漂移）</h2>
+  <table>
+    <tr><th>内容</th><th>主存放地</th><th>冲突时以谁为准</th></tr>
+    <tr><td><b>尺（纲领/制度：宪法/总则/元制度/右栏6块/开工必读/CLAUDE.md）</b></td><td class="key">GitHub 主</td><td>GitHub（有版本历史可回退）</td></tr>
+    <tr><td><b>代码（scripts/*.py）</b></td><td class="key">GitHub 主</td><td>GitHub</td></tr>
+    <tr><td><b>数据（求证表/持仓/价格/记分卡 json）</b></td><td class="hl">G盘 主</td><td>G盘（天天变的运行数据）</td></tr>
+    <tr><td><b>每日输出（半成品/日报 html）</b></td><td class="hl">G盘 主</td><td>G盘</td></tr>
+  </table>
+  <p style="font-size:13.5px;">一句话：<b>尺和代码（稳、要留痕可回退）→GitHub主；数据和每日输出（天天变、量大）→G盘主。</b>同步规矩：执行工具（Code/Codex）<b>每次改完尺或代码，顺手推GitHub</b>（commit+push）；再<b>定期批量同步一次当兵底</b>。双保险，GitHub不过期。</p>
+</div>
+
+<div class="sec">
+  <h2>一、先读这些（读完即懂全貌）</h2>
+  <ul>
+    <li><b>本文件</b>（总入口·角色/铁律/当前进度）</li>
+    <li>项目宪法_AI投资公司总纲.html（最高法）</li>
+    <li>产品与公司要求_董事长原话.md（董事长原话·配套宪法）</li>
+    <li>体系建设总则_主心骨世界观证据链.html（七条方法论·主心骨）</li>
+    <li>元制度_CEO自律准绳.html（管住Claude自己的随意性）</li>
+    <li>PDCA记分规则准绳.html（打分/确定性/复盘的尺）</li>
+    <li>完整产品执行计划.html（当前做到哪·下一步）</li>
+    <li>正式生产流程设计.html（三层流水线·半自动→全自动）</li>
+    <li>右栏6块（世界观/战略地图/资金机制/板块地图/过滤规则/持仓档案）</li>
+    <li>线程5捞回_历史共识精华.html（仓位纪律/四账户/七关准入/八段决策·待整合）</li>
+    <li>协作运转手册.html（三角色怎么转·防错·小白只管两个点）</li>
+    <li>文件索引.html（全部文件登记）</li>
+  </ul>
+</div>
+
+<div class="sec">
+  <h2>二、项目一句话</h2>
+  <p>给投资小白董事长做一台<b>每天自动运转、从世界观推到持仓、越用越准的投资决策机器</b>（不是每天写报告）。系统在 <code>G:\我的云端硬盘\AI_Investment_System</code>。</p>
+</div>
+
+<div class="sec">
+  <h2>三、三角色分工（董事长已定·工具可换·知识库不动）</h2>
+  <table>
+    <tr><th>角色</th><th>只负责</th><th>记忆靠</th></tr>
+    <tr><td><b>Chat（首席架构师）</b></td><td>设计·决策·第二质检。=Claude(本聊天)/GPT</td><td>开工读本文件+知识库</td></tr>
+    <tr><td><b>Cowork（项目管理/办公室）</b></td><td class="hl">确定上。持续维护项目状态/进度/任务/知识库，需改文件时调 Code</td><td>Cowork项目持久记忆+回写G盘</td></tr>
+    <tr><td><b>Code（工程师·执行主力）</b></td><td>只改文件/写脚本，不做决策不做设计</td><td>CLAUDE.md=总则/制度</td></tr>
+    <tr><td>Codex（备用执行）</td><td>Code干不好时切回的备胎</td><td>同上CLAUDE.md</td></tr>
+  </table>
+  <p style="font-size:13px;color:#9db0c2;">流程：<b>Chat设计决策 → Cowork维护项目并调度 → Code改文件 → Chat第二质检 → 董事长终审</b>。执行工具是"可换插头"：Code主力、Codex备用，干不好随时换回，G盘系统一字不改、零风险。判断/质检这一环必须留人（系统的魂），不轻易全自动。<br><b>流程细节“任务到哪步改哪步”</b>：角色定义已定；具体生产/设计流程的步骤（谁干哪步）等真跑到那步时用新工具跑一次再改对，不凭空全改。</p>
+</div>
+
+<div class="sec">
+  <h2>四、铁律（每个AI必守）</h2>
+  <ul>
+    <li><b>第二质检七清单</b>（验收逐条）：①独立读实物②核真数据③验动态(改数据输出变)④无乱码字节核⑤对照总则六条⑥结构完整⑦<b>对照蓝图逐条查完整性、判等级不笼统说合格</b>。</li>
+    <li><b>Codex/执行工具会假报完成/干净</b>：必须独立读实物+字节核乱码，不信嘴说。</li>
+    <li><b>元制度管住自己</b>：设计先写依据禁"我觉得"、结构不自创、先确认后动手、一次一版。</li>
+    <li><b>文件唯一性</b>：一种性质一个正式版，改=覆盖不堆版本；废弃进 _历史归档；删要董事长签字；<b>全用.html</b>（董事长打不开.md）。</li>
+    <li><b>大白话</b>：无术语，四步=事实→为什么→对你影响→怎么办。</li>
+    <li><b>推导方向</b>：自上而下(世界观→持仓)，绝不反推。</li>
+    <li><b>动静分清</b>：动态决策不塞静态文件；只锚定义不锚标的死名单(总则第六条)。</li>
+    <li><b>CEO主动义务</b>：落档/整理/审计不等催。</li>
+  </ul>
+</div>
+
+<div class="sec">
+  <h2>五、正式生产流程（三层·一次设计好）</h2>
+  <p>①机械层(取价/扫描/算均线·Codex直接跑)→②<b>判断层(★固定接口"判断包"·前期Claude理解岗填、以后自动模块填)</b>→③机械层(三关/护城河/记分卡/组装HTML到桌面+巡检提醒·Codex跑)。判断被记分卡盯着，判得准就"毕业"到自动，结构永不重建、自动化率0→100。现阶段半自动先生产。</p>
+</div>
+
+<div class="sec">
+  <h2>六、更新+提醒机制（巡检生成器）</h2>
+  <p>A纯数据自动刷不提醒｜B数据变化提醒确认｜C机器取不到提醒你补｜D需决策提醒(触价/替换/战略线激活你无仓)｜尺/框架只有董事长决策才改绝不自动。</p>
+</div>
+
+<div class="now">
+  <b>七、当前进度（每次干完更新这里）</b>
+  <p style="margin:6px 0;font-size:14px;">✅ A记分卡+确定性+复盘+元制度｜✅ B护城河6只｜✅ C右栏6块尺全定稿｜✅ 左栏外部/内部+今日事件结构(TASK-073)。</p>
+  <p style="margin:6px 0;font-size:14px;">🔵 <b>当前=D阶段组装完整产品</b>。D1左右接通已完成(实物核实：右栏6块尺已接左栏 full_product_render.py L755-774,840-847、宏观 L832、左栏外部/内部+今日事件 L823-830、持仓成本 L785,813-818、判断包消费方 L15-19,838-843)。D1剩：个股研究空模板(2026-07-08 建)+数据刷到当日(机器侧OpenD)。板块状态自动更新=defer(缺板块代理指数小尺)、判断包接打分=不做(纯显示)。下一步 → D2图文决策卡 → D3决策到价 → D4巡检生成器 → D5数据全补+清粗糙边 → D6组装+七清单核+董事长验收★。</p>
+  <p style="margin:6px 0;font-size:14px;">🔴 <b>2026-07-15 董事长验收完整产品·打回→重做→拍板</b>：旧产品(骨架真但"给董事长看的层"不合格：满页术语英文、决策自打架均线当买卖线、"待理解岗补深"泛滥、机会池空转)已合并蓝图+总则+0709/0712老审计+董事长15条成 <b>《完整产品_统一问题清单_20260715》</b>(6根因·随时可复盘)。中途一版"大白话"矫枉过正砍成没说服力的废话，董事长打回；据此重做出<b>深度版</b>并拍板"先实现到这个程度"。</p>
+  <p style="margin:6px 0;font-size:14px;">✅ <b>当前正式完整产品＝《完整产品_20260714_深度版.html》</b>(五层大环境+19只持仓+集中度+机会池+闭环，每条五要素讲透、术语当场译、价位只看估值不看均线、标把握、缺数说清)。深度锁进尺 <b>《完整产品_深度标准_v1.html》</b>——以后每天不得低于此。<b>根因①大白话、②决策不打架＝已解</b>；③(分析深度)＝已在深度版示范、待接每日流程自动；④机会对比/⑤右栏尺＝格式已给、数据缺口待补。旧的机器模板版《完整产品_20260714.html》《_v2.html》＝<b>已被深度版取代·待董事长签字后移_历史归档</b>。</p>
+  <p style="margin:6px 0;font-size:14px;">🔵 <b>下一步（实现路径·见深度标准尺§五）</b>：把"分析岗深度分析"落成 data/analysis/deep_{date}.json + 渲染器套版，让深度版能每天自动出(现由分析岗当天手写保证)；并补机会池候选对比真数据、右栏6块尺接入。</p>
+</div>
+
+<div class="sec">
+  <h2>八、已核实关键事实</h2>
+  <ul>
+    <li>沃什2026-5-22就任第17任美联储主席（5-13以54-45确认；5-15鲍威尔主席任期到期、其间由鲍威尔代理）。改革派/主张"regime change"、强调央行独立。利率维持3.50-3.75%（6/17连续第4次不降）；6月点阵图删去年内降息、转向暗示可能加息（年底中值上调至约3.8%）；已停止主动缩表、改为"维持充足准备金"。通胀仍黏（2026 PCE预测3.6%）。总闸"美国优先"=中档。（Chat 2026-07-07 复核）</li>
+    <li>估值中枢：微软$420/英伟达$221/软银¥7150/爱德万¥27700(偏贵)/第一三共¥3300(最便宜)/东京海上¥6860(最贵可减)。</li>
+    <li>护城河：英伟达9宽/微软7宽/爱德万6窄偏上/第一三共4窄/东京海上4窄/软银2无。</li>
+    <li>研究补：AI电力龙头CEG/VST/TLN/GEV/BWXT/Bloom/铀CCJ；AI受益扩散医疗(英伟达×礼来10亿实验室)。</li>
+    <li>持仓(真实跨账户合并)：第一三共9900/英伟达1020/微软690/软银6600/东京海上1000/爱德万800/MSTR858/COIN245等。数据待第一次生产Codex自动灌。</li>
+  </ul>
+</div>
+
+<div class="sec">
+  <h2>九、关键脚本/数据位置</h2>
+  <p><b>scripts/</b>：full_product_render(总组装)、production_pipeline(三关+护城河+机会池)、pdca_scorecard/pdca_review、moat_analysis、skill_gate(第0/0.5闸)、daily_startup_run、realtime_price。<br>
+  <b>data/</b>：evidence_chain/daily_20260702.json(求证表·含外部内部)、reports/production_20260702.json、pdca/、moat/moat_instances/、accounts/holdings_true_20260702.json。<br>
+  <b>GitHub</b>：github.com/zhuzhiqiang212-rgb/AI-Investment-System-Rules</p>
+</div>
+
+</div>
+</body>
+</html>

@@ -355,11 +355,21 @@ def build_derived(fed: dict, strategy: dict, capital: dict, sector: dict, macro_
     parts.append(tail)
     decision_constraint = "".join(parts)
 
+    # 甲4：当日派生状态词全部在此定稿·全册只许引用这里的取值(出厂lint校验"同一状态词全文唯一")
     return {
         "today_direction": today_direction,
         "today_direction_short": today_direction_short,
         "opportunity_scope": opportunity_scope,
         "decision_constraint": decision_constraint,
+        # 状态词唯一取值区(渲染层只读不改)
+        "state_words": {
+            "fed_gate": fed_state,            # 总闸档
+            "fed_strength": fed_s,            # 总闸力度
+            "sector": sec_state,              # 板块方向
+            "strategy": strat_state,          # 战略方向
+            "capital": cap_state,             # 资金方向
+            "opportunity_scope": opportunity_scope,   # 机会口径·全篇唯一
+        },
     }
 
 
