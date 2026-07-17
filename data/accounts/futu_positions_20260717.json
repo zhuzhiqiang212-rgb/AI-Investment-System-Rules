@@ -1,7 +1,7 @@
 {
   "_说明": "富途账户的【当前实时持仓+券商成本均价】，直接取自 OpenD 交易接口(只读 position_list_query)，不再用 2026-07-02 的 OCR 快照。SBI/IBKR/bitFlyer 不在 OpenD 里 → 见 non_opend_accounts，那几个账户的持仓需董事长手工确认，系统不拿旧数顶充。",
   "date": "20260717",
-  "generated_at": "2026-07-17T18:19:57+09:00",
+  "generated_at": "2026-07-17T20:38:27+09:00",
   "source": "OpenD OpenSecTradeContext.position_list_query(REAL) + accinfo_query",
   "error": "",
   "acc_id": 281756477704105599,
@@ -14,8 +14,8 @@
       "cost_price": 153.123,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 392.62,
-      "broker_nominal_price": 392.62,
+      "broker_market_val": 397.7,
+      "broker_nominal_price": 397.7,
       "pl_ratio": 0.0
     },
     {
@@ -26,9 +26,9 @@
       "cost_price": 138.0,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 1253.6,
-      "broker_nominal_price": 125.36,
-      "pl_ratio": -9.16
+      "broker_market_val": 1261.9,
+      "broker_nominal_price": 126.19,
+      "pl_ratio": -8.559999999999999
     },
     {
       "symbol": "US.SNDK",
@@ -38,9 +38,9 @@
       "cost_price": 1531.99,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 26692.0,
-      "broker_nominal_price": 1334.6,
-      "pl_ratio": -12.879999999999999
+      "broker_market_val": 27980.74,
+      "broker_nominal_price": 1399.037,
+      "pl_ratio": -8.68
     },
     {
       "symbol": "US.NVDA",
@@ -50,9 +50,9 @@
       "cost_price": 180.759,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 166890.84,
-      "broker_nominal_price": 201.073,
-      "pl_ratio": 66.38
+      "broker_market_val": 168075.0,
+      "broker_nominal_price": 202.5,
+      "pl_ratio": 67.56
     },
     {
       "symbol": "US.MSTR",
@@ -62,9 +62,9 @@
       "cost_price": 181.267,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 63588.0,
-      "broker_nominal_price": 90.84,
-      "pl_ratio": -49.89
+      "broker_market_val": 64386.0,
+      "broker_nominal_price": 91.98,
+      "pl_ratio": -49.26
     },
     {
       "symbol": "US.MSFT",
@@ -74,9 +74,9 @@
       "cost_price": 406.665,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 217136.7,
-      "broker_nominal_price": 394.794,
-      "pl_ratio": -2.69
+      "broker_market_val": 216491.5,
+      "broker_nominal_price": 393.621,
+      "pl_ratio": -2.98
     },
     {
       "symbol": "US.CRCL",
@@ -86,9 +86,9 @@
       "cost_price": 94.918,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 23744.0,
-      "broker_nominal_price": 59.36,
-      "pl_ratio": -37.46
+      "broker_market_val": 23860.68,
+      "broker_nominal_price": 59.652,
+      "pl_ratio": -37.15
     },
     {
       "symbol": "US.COIN",
@@ -98,9 +98,9 @@
       "cost_price": 228.899,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 30968.0,
-      "broker_nominal_price": 154.84,
-      "pl_ratio": -32.35
+      "broker_market_val": 31170.0,
+      "broker_nominal_price": 155.85,
+      "pl_ratio": -31.91
     },
     {
       "symbol": "US.AVGO",
@@ -110,9 +110,9 @@
       "cost_price": 383.125,
       "cost_source": "OpenD average_cost(券商平均成本·A级)",
       "cost_grade": "A",
-      "broker_market_val": 54772.68,
-      "broker_nominal_price": 365.151,
-      "pl_ratio": -4.58
+      "broker_market_val": 55134.75,
+      "broker_nominal_price": 367.565,
+      "pl_ratio": -3.95
     },
     {
       "symbol": "JP.9984",
@@ -165,10 +165,10 @@
   ],
   "futu_cash": {
     "currency": "USD",
-    "cash": 27123.04,
-    "avl_withdrawal_cash": 41264.86,
-    "total_assets": 1023610.5157,
-    "market_val": 936714.5734,
+    "cash": 41291.68,
+    "avl_withdrawal_cash": 41291.68,
+    "total_assets": 1027398.003,
+    "market_val": 940471.158,
     "source": "OpenD accinfo_query(REAL·USD)"
   },
   "changes_vs_last_snapshot": [

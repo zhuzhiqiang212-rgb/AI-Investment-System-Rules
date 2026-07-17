@@ -1,0 +1,274 @@
+{
+  "_说明": "佐证料语料库：解析董事长 Drive 研报 PDF 正文而来。渲染层据此出佐证——标来源文件名+日期、只摘研报原话、料不反客(总则第九条三)；研报没提的地方标「研报未覆盖·不编」。本模块只做机械抽取，不替作者编他没说过的话。",
+  "_边界": "「印证/挑战」的最终定性属分析判断(CLAUDE.md §1 不设计不决策)；本文件只提供【研报原话+来源+日期】，由渲染层原样摆出来给董事长自己看。",
+  "src_folder": "G:\\我的云端硬盘\\湖水资讯",
+  "date": "20260717",
+  "generated_at": "2026-07-17T20:43:21+09:00",
+  "latest_report_date": "2026-07-10",
+  "window_days": 14,
+  "n_pdf_total": 45,
+  "n_parsed": 44,
+  "n_recent": 10,
+  "recent_files": [
+    {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "title": "7月的交易节奏",
+      "author": "湖水",
+      "pages": 3,
+      "chars": 684,
+      "date_from": "正文"
+    },
+    {
+      "file": "26-07-10-1  周三 北美资金流 脆弱反弹  .pdf",
+      "date": "2026-07-09",
+      "title": "周三 北美资金流 脆弱反弹",
+      "author": "湖水",
+      "pages": 3,
+      "chars": 794,
+      "date_from": "正文"
+    },
+    {
+      "file": "26-07-9-3。Investment strategy for 2H26_ GS.pdf",
+      "date": "2026-07-09",
+      "title": "。Investment strategy for 2H26_ GS",
+      "author": "待接",
+      "pages": 26,
+      "chars": 70401,
+      "date_from": "文件名"
+    },
+    {
+      "file": "26-07-9-6。周三 北美资金流 脆弱反弹  .pdf",
+      "date": "2026-07-09",
+      "title": "。周三 北美资金流 脆弱反弹",
+      "author": "湖水",
+      "pages": 3,
+      "chars": 794,
+      "date_from": "正文"
+    },
+    {
+      "file": "26-07-9-1  盘前 美伊突然升级后的策略和节奏 .pdf",
+      "date": "2026-07-08",
+      "title": "盘前 美伊突然升级后的策略和节奏",
+      "author": "湖水",
+      "pages": 4,
+      "chars": 1141,
+      "date_from": "正文"
+    },
+    {
+      "file": "26-07-9-2。Tech Daily 07.08 周三 .pdf",
+      "date": "2026-07-08",
+      "title": "。Tech Daily 07.08 周三",
+      "author": "湖水",
+      "pages": 8,
+      "chars": 2035,
+      "date_from": "正文"
+    },
+    {
+      "file": "26-07-7-5。Tech Daily 07.07 周二 .pdf",
+      "date": "2026-07-07",
+      "title": "。Tech Daily 07.07 周二",
+      "author": "待接",
+      "pages": 14,
+      "chars": 5003,
+      "date_from": "正文"
+    },
+    {
+      "file": "26-07-7-2 Hedge Fund在7月、8月的行为 .pdf",
+      "date": "2026-07-06",
+      "title": "Hedge Fund在7月、8月的行为",
+      "author": "湖水",
+      "pages": 1,
+      "chars": 288,
+      "date_from": "正文"
+    },
+    {
+      "file": "26-07-7-3。周前瞻 07.06-07.10 .pdf",
+      "date": "2026-07-05",
+      "title": "。周前瞻 07.06-07.10",
+      "author": "湖水",
+      "pages": 5,
+      "chars": 1159,
+      "date_from": "正文"
+    },
+    {
+      "file": "26-06-29-1 交易roadmap .pdf",
+      "date": "2026-06-28",
+      "title": "交易roadmap",
+      "author": "湖水",
+      "pages": 4,
+      "chars": 1199,
+      "date_from": "正文"
+    }
+  ],
+  "by_topic": {
+    "世界观": {
+      "file": "26-07-10-1  周三 北美资金流 脆弱反弹  .pdf",
+      "date": "2026-07-09",
+      "author": "湖水",
+      "title": "周三 北美资金流 脆弱反弹",
+      "hit_keys": [
+        "地缘"
+      ],
+      "excerpt": "consumer discretionary & staples \n4⃣ 期权 \n1.没有地缘政治恐慌。SPX和 NDX的隐含波\n动率基本没变。 \n2.也没有全面 risk-oﬀ。SPX前端的skew上\n升，说明交易员在买短期的SPX保护…"
+    },
+    "总闸": {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "author": "湖水",
+      "title": "7月的交易节奏",
+      "hit_keys": [
+        "FOMC",
+        "CPI",
+        "PPI"
+      ],
+      "excerpt": "TSM Q2 财报\n10.07/22 周三 Alphabet 财报\n11.07/24（周五），hedge fund开始加仓\n12.07/29 周三 FOMC\n13.07/29 周三 MSFT/META财报\n14.07/30 周四 AMZN财报\n15.07/31周五，hedge fund降仓位\n2⃣…"
+    },
+    "战略指向": {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "author": "湖水",
+      "title": "7月的交易节奏",
+      "hit_keys": [
+        "AI",
+        "TSM",
+        "ASML"
+      ],
+      "excerpt": "周四 AMZN财报\n15.07/31周五，hedge fund降仓位\n2⃣ 因此，我们计划： \n1.在07/31前减掉在6月末7月初dip buy的AI\n硬件仓位。减完后，仓位保持在40%左\n右。 \n2.第一个减仓窗⼝：从07/10周五开始到07/\n14下周二 \n3.第二个减仓窗⼝：从07/24到…"
+    },
+    "资金轮动": {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "author": "湖水",
+      "title": "7月的交易节奏",
+      "hit_keys": [
+        "hedge fund",
+        "仓位",
+        "Bulls & Bears"
+      ],
+      "excerpt": "Friday, July 10, 2026\n7月的交易节奏 \n作者：湖水\n1⃣ 考虑到以下几个因素： \n1.到7月8日（周三），hedge fund的net \nleverage 79%。这比较意外，因为7月7日\n的数字是80%。意味着hedge fund 仓位变\n动更加频繁。 \n2.Bof…"
+    },
+    "板块轮动": {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "author": "湖水",
+      "title": "7月的交易节奏",
+      "hit_keys": [
+        "NDX",
+        "纳指"
+      ],
+      "excerpt": "日继续保持在9.5（7月2日 9.5） \n3.07/10周五，Hynix ADR在纳指交易（超7x\n认购）\n4.07/15左右，NDX历史数据，7月表现达到\n最高点\n5.07/15（周一）左右，Hedge fund降仓位\n6.07/14 周二 美国CPI \n7.07/15 周三…"
+    },
+    "机会池": {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "author": "湖水",
+      "title": "7月的交易节奏",
+      "hit_keys": [
+        "加仓"
+      ],
+      "excerpt": "9.07/16 周四 TSM Q2 财报\n10.07/22 周三 Alphabet 财报\n11.07/24（周五），hedge fund开始加仓\n12.07/29 周三 FOMC\n13.07/29 周三 MSFT/META财报\n14.07/30 周四 AMZN财报\n15.07/31周五，h…"
+    }
+  },
+  "by_symbol": {
+    "US.NVDA": {
+      "file": "26-07-9-3。Investment strategy for 2H26_ GS.pdf",
+      "date": "2026-07-09",
+      "author": "待接",
+      "title": "。Investment strategy for 2H26_ GS",
+      "hit_keys": [
+        "NVDA",
+        "Nvidia"
+      ],
+      "excerpt": "Asia AI supply chain (Taiwan semiconductors, memory, SPE), triggered by NVDA ’s \nearnings in mid-2023. Then, in 2025, the stock rally spread to PCB…"
+    },
+    "US.TSM": {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "author": "湖水",
+      "title": "7月的交易节奏",
+      "hit_keys": [
+        "TSM"
+      ],
+      "excerpt": "周二 美国CPI \n7.07/15 周三 ASML Q2财报 \n1\n湖水会员\n8.07/15 周三 美国PPI\n9.07/16 周四 TSM Q2 财报\n10.07/22 周三 Alphabet 财报\n11.07/24（周五），hedge fund开始加仓\n12.07/29 周三 F…"
+    },
+    "US.MSFT": {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "author": "湖水",
+      "title": "7月的交易节奏",
+      "hit_keys": [
+        "MSFT"
+      ],
+      "excerpt": "周三 Alphabet 财报\n11.07/24（周五），hedge fund开始加仓\n12.07/29 周三 FOMC\n13.07/29 周三 MSFT/META财报\n14.07/30 周四 AMZN财报\n15.07/31周五，hedge fund降仓位\n2⃣ 因此，我们计划： \n1.在07/…"
+    },
+    "US.AVGO": {
+      "file": "26-07-7-5。Tech Daily 07.07 周二 .pdf",
+      "date": "2026-07-07",
+      "author": "待接",
+      "title": "。Tech Daily 07.07 周二",
+      "hit_keys": [
+        "Broadcom"
+      ],
+      "excerpt": "底有多持久”，因此波动可能上升。更偏好\n1\nDRAM 和传统内存，相比之下更不看好 \nNAND，⽽模组⼚则是最不看好的环节。\n定制芯⽚ASICs \nBroadcom与Apple 延长定制芯⽚供应合作⾄ \n2031。Broadcom 将继续向 Apple 供应 订定\n制芯⽚。Apple 约占 Bro…"
+    },
+    "US.META": {
+      "file": "26-07-11-1  7月的交易节奏 .pdf",
+      "date": "2026-07-10",
+      "author": "湖水",
+      "title": "7月的交易节奏",
+      "hit_keys": [
+        "META",
+        "Meta"
+      ],
+      "excerpt": "Alphabet 财报\n11.07/24（周五），hedge fund开始加仓\n12.07/29 周三 FOMC\n13.07/29 周三 MSFT/META财报\n14.07/30 周四 AMZN财报\n15.07/31周五，hedge fund降仓位\n2⃣ 因此，我们计划： \n1.在07/31前减掉…"
+    },
+    "US.SNDK": {
+      "file": "26-07-7-2 Hedge Fund在7月、8月的行为 .pdf",
+      "date": "2026-07-06",
+      "author": "湖水",
+      "title": "Hedge Fund在7月、8月的行为",
+      "hit_keys": [
+        "SNDK"
+      ],
+      "excerpt": "报结束。 \n4⃣ 8月5日开始加仓。原因：AI硬件公司的财报\n发布。AMD/ALAB/ANET/COHR/SNDK/\nAMAT \n5⃣ 8月中旬开始降仓位。 \n6⃣ 9月初开始加仓。\n1…"
+    },
+    "US.MSTR": {
+      "file": "26-07-9-3。Investment strategy for 2H26_ GS.pdf",
+      "date": "2026-07-09",
+      "author": "待接",
+      "title": "。Investment strategy for 2H26_ GS",
+      "hit_keys": [
+        "Strategy"
+      ],
+      "excerpt": "this report, we update our Asia Technology team’s investment strategy, focus \nareas, and recommended stocks for the second half of 2026. In 1H26, A…"
+    },
+    "JP.6758": {
+      "file": "26-07-9-3。Investment strategy for 2H26_ GS.pdf",
+      "date": "2026-07-09",
+      "author": "待接",
+      "title": "。Investment strategy for 2H26_ GS",
+      "hit_keys": [
+        "Sony",
+        "6758"
+      ],
+      "excerpt": "14.4X\nCapcom 9697.T Buy Minami Munakata JPY 3,299 4,200 27.3% 18.5X 16.3X\nSony Group 6758.T Buy Minami Munakata JPY 3,422 4,100 19.8% 15.8X 16.3X\n Ja…"
+    },
+    "US.SPCX": {
+      "file": "26-07-7-5。Tech Daily 07.07 周二 .pdf",
+      "date": "2026-07-07",
+      "author": "待接",
+      "title": "。Tech Daily 07.07 周二",
+      "hit_keys": [
+        "SpaceX"
+      ],
+      "excerpt": "COHT, LITE，Sumitomo\n正面。\n半导体设备 UBS 认为 Terafab 可能成为多年\n期 WFE 催化。\nUBS 认为，SpaceX 提出的 “Terafab” AI 制造\n综合体，可能成为半导体资本设备需求的重要\n新增驱动。UBS 估算，仅 AI 相关投资在未来\n五年…"
+    }
+  },
+  "parse_errors": [
+    {
+      "file": "G09_完整投研报表_20260617_V2.pdf",
+      "error": "解析失败：PdfStreamError"
+    }
+  ]
+}

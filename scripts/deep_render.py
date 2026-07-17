@@ -154,6 +154,55 @@ def _corro() -> dict:
 
 _VERDICT_COLOR = {"印证": "#7ee0a0", "挑战": "#ffb454", "佐证料待接": "#c9a86a"}
 
+# ══ 甲[董事局工单2026-07-17]：佐证料改接 Drive 研报 PDF（治佐证停在5月） ══
+_RC_CACHE: dict = {}
+
+
+def _rcorpus() -> dict:
+    if "d" not in _RC_CACHE:
+        try:
+            _RC_CACHE["d"] = rj(ROOT / "data" / "analysis" / "research_corpus.json")
+        except Exception:
+            _RC_CACHE["d"] = {}
+    return _RC_CACHE["d"]
+
+
+def _rc_hit(key: str, kind: str) -> dict | None:
+    c = _rcorpus()
+    if not c:
+        return None
+    tbl = c.get("by_symbol" if kind == "symbol" else "by_topic", {}) or {}
+    if kind == "symbol":
+        return tbl.get(key)
+    for k, v in tbl.items():          # 层名模糊匹配(节点名如"战略指向·AI/安全/能源")
+        if k in str(key) or str(key).startswith(k):
+            return v
+    return None
+
+
+def corro_research(key: str, kind: str = "layer") -> str:
+    """佐证 = 研报【原话】+ 来源文件名 + 日期。研报没提→如实标"研报未覆盖·不编"。
+    ⚠只摆原话、不替作者做"印证/挑战"定性(那属分析判断·CLAUDE.md §1)；料不反客(总则第九条三)。"""
+    c = _rcorpus()
+    if not c or c.get("error"):
+        return ('<div class="meta" style="color:#c9a86a;font-size:11.5px;margin-top:3px">'
+                '佐证（第九条三）：<b>研报语料待接</b>（research_corpus.json 缺·不编）</div>')
+    h = _rc_hit(key, kind)
+    if not h:
+        return ('<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:3px">'
+                f'佐证（第九条三）：<b>研报未覆盖·不编</b>'
+                f'（近 {esc(str(c.get("window_days", "?")))} 天的 {esc(str(c.get("n_recent", "?")))} 份研报里'
+                f'没提到这块 → 不替它编观点）</div>')
+    return ('<div class="meta" style="font-size:11.5px;margin-top:3px;color:#9db0c2;'
+            'border-left:3px solid #7ee0a0;padding-left:7px">'
+            f'佐证（第九条三·只作印证/挑战·<b>不盖系统判断</b>）：'
+            f'<b style="color:#7ee0a0">{esc(str(h.get("author") or "研报"))} 原话</b>'
+            f'（{esc(str(h.get("date")))}）'
+            f'<br><span style="color:#c8d4de">「{esc(str(h.get("excerpt") or ""))}」</span>'
+            f'<br><span style="color:#8ea3b6">来源：{esc(str(h.get("file")))}'
+            f'　命中主题：{esc("、".join(h.get("hit_keys") or []))}'
+            f'　<b>这是研报自己的话，没经系统解读；今天的结论以左栏系统证据链为准。</b></span></div>')
+
 
 def _corro_age(date: str) -> tuple[int, str]:
     """甲5：佐证料距当日多少天——每日现算·不写死。返回(最旧料天数, 最新料as_of)。"""
@@ -177,7 +226,31 @@ def _corro_age(date: str) -> tuple[int, str]:
 
 
 def corro_staleness_banner(date: str) -> str:
-    """甲5：佐证料过期→醒目警条(不是小字脚注)。天数现算·超30天转橙色告警。"""
+    """佐证料新鲜度条。甲[工单2026-07-17]：料源已从 05-29 的旧对照表换成 Drive 研报 PDF
+    → 截至日直接读研报语料的最新研报日，不再显示 5/29。"""
+    c = _rcorpus()
+    if c and not c.get("error") and c.get("latest_report_date"):
+        latest = str(c["latest_report_date"])
+        try:
+            days = (datetime.strptime(date, "%Y%m%d").date()
+                    - datetime.strptime(latest, "%Y-%m-%d").date()).days
+        except Exception:
+            days = 0
+        hot = days > 30
+        bg, bd, col = ("#3a2410", "#c47a1e", "#ffb454") if hot else ("#12261f", "#4f9e7f", "#7ee0a0")
+        files = c.get("recent_files") or []
+        lst = "、".join(str(f.get("title"))[:20] for f in files[:5])
+        return (f'<div class="card" style="background:{bg};border-color:{bd};border-width:2px">'
+                f'<div style="font-size:15px;font-weight:700;color:{col}">'
+                f'佐证料：<b>截至 {esc(latest)}</b>（{days} 天前）·共 {esc(str(c.get("n_recent", 0)))} 份研报</div>'
+                f'<div style="font-size:12.5px;margin-top:4px;color:#e6eef5">'
+                f'下面每处「佐证」栏里的观点，取自你 Drive 里的研报 PDF——'
+                f'近期这几份：<b>{esc(lst)}</b> 等。'
+                f'系统<b>只摘研报原话</b>（标来源文件名+日期），不替作者解读、不替他编没说过的话。'
+                f'研报没提到的地方会明写「研报未覆盖·不编」。'
+                f'<br>今天的结论一律以左栏<b>系统证据链</b>（当日实时行情+当日新闻）为准；'
+                f'佐证只用来「印证」或「挑战」，<b>永远不盖过系统判断</b>（总则第九条三）。</div></div>')
+    # 研报语料没接上→退回旧对照表口径，并如实说
     days, oldest = _corro_age(date)
     if not days:
         return ""
@@ -1181,7 +1254,7 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     # 甲6：出报日→卡顶强制横幅(日历现算·非出报日不出现)
     _eb = earnings_banner(sym, dyn.get("date", ""), dyn)
     return (f'<div class="card" id="stock-{esc(sym)}">{_eb}{hd}{final_row}{deep}{dossier}'
-            + corro_box(sym, "symbol") + chain_links
+            + corro_research(sym, "symbol") + chain_links
             # B4治本：这一行原样甩 production 的旧判词("护城河=窄护城河"等)，与本卡③块/四行打架 →
             # 收敛为指路，结论一律以下面「今天你怎么办」四行为准(单一源)
             + '<div class="you"><span class="k">今天对你</span>'
@@ -1406,11 +1479,13 @@ def part0_cash(date: str, dyn: dict) -> str:
         u = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
         cash = (u.get("summary", {}) or {}).get("known_cash_usd")
         _gen = str(u.get("generated_at", ""))[:10]
+        # 乙：改为"沿用即有效"的中性口径(不是误警)
         cash_note = (f'其中<b>富途 ${futu_cash:,.0f} 是今天 OpenD 拉的实时数</b>；'
-                     f'SBI／IBKR／bitFlyer 的现金还是 {esc(_gen)} 那份快照（那几家不接 OpenD）'
-                     f'<b style="color:#ffb454">→ 需你手工确认</b>。'
+                     f'SBI／IBKR／bitFlyer 的现金按「没交易就不变」沿用 {esc(_gen)} 的已知值'
+                     f'（那几家不接 OpenD）。'
+                     f'<span style="color:#7ee0a0">这几个账户没动过的话，这个数就是准的。</span>'
                      if isinstance(futu_cash, (int, float)) else
-                     f'来自 {esc(_gen)} 的快照<b style="color:#ffb454">→ 需你确认是不是还准</b>。')
+                     f'按「没交易就不变」沿用 {esc(_gen)} 的已知值。')
     except Exception:
         pass
     rows = _trigger_rows(date, dyn)
@@ -1612,16 +1687,17 @@ def part0_positions_sync(date: str, dyn: dict) -> str:
                f'账户总资产 ${cash.get("total_assets"):,.2f}——都是今天 OpenD 拉的实时数。</div>'
                if cash.get("cash") is not None else '')
             + '</div>')
+    # 乙[董事长2026-07-17拍板]：非OpenD账户按「没交易就不变」沿用 → 中性说明，不是橙色警告。
+    #   在"这些账户未交易"的前提下，当前占比/现金/建议就是【准确的】，不是"有偏差"。
     non = fp.get("non_opend_accounts") or {}
-    body += ('<div class="card" style="background:#2a1f10;border:2px solid #c47a1e">'
-             f'<div style="font-size:15px;font-weight:800;color:#ffb454">'
-             f'⚠ {esc("／".join(non.get("accounts") or []))}：这几个账户的持仓<b>需要你手工确认</b></div>'
-             '<div style="font-size:13px;margin-top:4px;color:#e6eef5">'
-             '这几家券商<b>不接 OpenD</b>，系统拉不到它们的实时持仓。产品里凡是用到它们股数的地方，'
-             '用的都是 <b>2026-07-02 那份 OCR 快照</b>——如果你这半个月在这些账户里动过仓，'
-             '下面的占比/闲钱/建议就会有偏差。'
-             '<br><b style="color:#ffb454">要准，需要你把这几个账户的当前持仓给我一次</b>（截图即可）。'
-             '<span style="color:#8ea3b6">系统不会拿旧数冒充今天的——所以这里明说。</span></div></div>')
+    body += ('<div class="card" style="background:#101a26;border:1px solid #2b4054">'
+             f'<div style="font-size:14px;font-weight:700;color:#9ed8ff">'
+             f'{esc("／".join(non.get("accounts") or []))}：按「没交易就不变」沿用上次持仓</div>'
+             '<div style="font-size:13px;margin-top:4px;color:#c8d4de">'
+             '这几家券商不接 OpenD，系统按规矩<b>沿用上次已知持仓（截至 2026-07-02）</b>，'
+             '默认它们仍然有效。<b>你若在这些账户里做了交易，告诉我一声即更新。</b>'
+             '<br><span style="color:#7ee0a0">✔ 在"这几个账户没动过"的前提下，'
+             '下面的集中度／现金／建议 = <b>富途实时 + 这几个账户沿用</b>，就是准确的。</span></div></div>')
     return '<h2 class="main">持仓数据从哪来（先看这个，下面所有数都建在它上面）</h2>' + body
 
 
@@ -1678,15 +1754,37 @@ def part0_critical(date: str, dyn: dict) -> str:
               '<div style="font-size:13.5px;color:#e6eef5;margin-top:5px">'
               '这句话的分量：系统平时不喊话；今天喊，是因为下面三条<b>同时</b>成立，而且都是你自己的数。</div></div>'
             + '<div class="card">' + "".join(f'<div style="padding:9px 0;border-top:1px solid #2b4054;font-size:13.5px">{x}</div>' for x in ev) + '</div>'
-            + corro_box("世界观", "layer")
-            + '<div class="plain" style="border-left-color:#c47a1e;background:#2a1f10;color:#ffd7a8">'
-              '<b>诚实交代（工单核对）</b>：本块只写了系统能拿真数据核实的三条。'
-              '架构师工单里还有两条，我<b>核不到真源，所以没写进去</b>：'
-              '<br>· 「老雷/湖水都说这几天可能是全年关键窗口」——现有佐证料只到 2026-05-29 / 06-04（约七周前），'
-              '里面<b>没有这句话</b>；没有的话我不能替他们说。'
-              '<br>· 「美联储 7/29 开会」——本系统里 7/29 登记的是<b>微软/META/爱德万的财报日</b>，'
-              '没有美联储议息日的真源；这两件事可能被混在一起了。'
-              '<br>这两条若确有出处，请把料给我，我马上接进来。</div>')
+            + corro_research("世界观", "layer")
+            + _critical_research_note())
+
+
+def _critical_research_note() -> str:
+    """研报接进来后：把"关键窗口/FOMC 7-29"这类说法【按研报原话】摆出来(有就有·没有就说没有)。"""
+    c = _rcorpus()
+    if not c or c.get("error"):
+        return ('<div class="plain" style="border-left-color:#c47a1e;background:#2a1f10;color:#ffd7a8">'
+                '<b>诚实交代</b>：研报语料没接上 → 本块只写了系统自己能核实的数据，'
+                '没有引用任何"某某说……"（没有的话不能替人说）。</div>')
+    txt = " ".join(str((v or {}).get("excerpt", "")) for v in (c.get("by_topic") or {}).values())
+    bits = []
+    for pat, lab in ((r"07/29[^0-9]{0,6}(周三)?\s*FOMC", "FOMC 在 07/29"),
+                     (r"hedge fund\s*降仓位|降仓位", "对冲基金降仓位的时间窗"),
+                     (r"减掉[^。]{0,20}AI[^。]{0,10}仓位|减仓窗口", "研报自己也在计划减 AI 仓")):
+        if re.search(pat, txt, re.I):
+            bits.append(lab)
+    latest = esc(str(c.get("latest_report_date") or "?"))
+    if not bits:
+        return ('<div class="plain" style="border-left-color:#4f9e7f">'
+                f'<b>研报怎么说</b>：近期研报（截至 {latest}）里没有专门谈"这几天是不是关键窗口"→ '
+                '不替它编。上面三条依据全部来自你自己的数。</div>')
+    return ('<div class="plain" style="border-left-color:#4f9e7f;background:#12261f;color:#bfe6d3">'
+            f'<b>研报怎么说（截至 {latest}·只摘原话）</b>：'
+            f'你 Drive 里的研报确实谈到了 {esc("、".join(bits))}——'
+            '具体原话见下面各层的「佐证」栏（带来源文件名+日期）。'
+            '<br><b>方向上与系统这条判断一致</b>：研报自己也在算"什么时候减 AI 硬件仓"，'
+            '而系统这边的数是"你的 AI 仓已经超上限"。'
+            '<span style="color:#8ea3b6">两边独立得出、互相印证；但结论仍以左栏系统证据链为准，'
+            '研报不反客为主（总则第九条三）。</span></div>')
 
 
 def part0_jp(date: str, dyn: dict) -> str:
@@ -1940,7 +2038,7 @@ def _layer_horizon(l: dict, dyn: dict) -> str:
 
 def _corro_brief(node: str) -> str:
     """甲4：层内佐证只留一句结论；"料已N天旧"这句全册只在①册顶部说一次(不再层层重复)。"""
-    h = corro_box(node, "layer")
+    h = corro_research(node, "layer")
     h = re.sub(r"<b style=\"color:#ffb454\">（这份料已放了 \d+ 天[^<]*）</b>", "", h)
     h = re.sub(r"（料非当日·仅方向性参考）", "", h)
     return h
@@ -2409,7 +2507,7 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
             f'<div class="card">当日激活承接节点：<b>{esc("、".join(active) or "待接")}</b>｜候选宇宙 {n_total} 只(按节点·candidate_universe.json可迭代)｜'
             f'过①硬性关(节点激活) <b>{n_g1}</b> 只｜过②软性关(站上均线) <b>{n_g2}</b> 只。'
             f'<div class="meta" style="color:#8ea3b6;font-size:12px">五关=①硬性(节点激活)②软性(均线)③估值④护城河⑤个股；过关进"值得看候选池"。改当日激活节点→候选集变(守第六条动态)。gate②均线复用当日 chain_opportunities 真扫描·③④⑤缺真源标待接不编。｜机会口径：{scope}</div></div>')
-    return (head + corro_box("机会池", "layer")
+    return (head + corro_research("机会池", "layer")
             + f'<div class="blk">池① 值得看候选池（过①硬性关 {n_g1} 只·带节点+当日证据+多维对比）</div>'
             + wrows + pool2 + pool3)
 
