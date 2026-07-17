@@ -2569,6 +2569,18 @@ def _node_active(node: str, active: list) -> bool:
     return any(k in a or a in k for a in active for k in keys)
 
 _FUNNEL_CACHE: dict = {}
+_CANDVAL_CACHE: dict = {}
+
+
+def _cand_val(tk: str) -> dict | None:
+    """机会池候选估值+研究(工单2026-07-17)。缺→None。"""
+    if "d" not in _CANDVAL_CACHE:
+        try:
+            p = sorted((ROOT / "data" / "valuation").glob("candidate_valuation_*.json"))[-1]
+            _CANDVAL_CACHE["d"] = rj(p).get("candidates", {}) or {}
+        except Exception:
+            _CANDVAL_CACHE["d"] = {}
+    return (_CANDVAL_CACHE["d"] or {}).get(tk)
 
 
 def _featured_names() -> list[str]:
@@ -2650,9 +2662,22 @@ def _funnel_compute_raw(date: str, daily: dict, dyn: dict) -> dict:
             g1 = any(_node_active(n, active) for n in uc["nodes"])  # ①硬性:任一挂靠节点激活即过
             mp = ma_pass.get(tk)
             g2 = ("过·站上均线" if (mp and mp.get("pass")) else ("待接·未在当日扫描" if mp is None else "卡·未站上均线"))
-            g3 = "待接·候选估值未接"                                  # ③估值(外部候选无估值源)
-            g4 = "待接·候选护城河未接"                                # ④护城河
-            g5 = "待接·候选未入判断包"                                # ⑤个股
+            # 工单2026-07-17：接候选估值+研究 → 不再一整列"待接"
+            _cv = _cand_val(tk)
+            _val = (_cv.get("valuation") or {}) if _cv else {}
+            if _val.get("verdict"):
+                _f = _val.get("fair", {})
+                _cur = "¥" if tk.startswith("JP.") else ("HK$" if tk.startswith("HK.") else "$")
+                _auth = "（架构师估算·非权威·可靠度%s）" % _val.get("reliability", "?") if not _val.get("authoritative", True) else "（候选级·机械算·非精调）"
+                g3 = (f'现价 {_cur}{_cv.get("price")}｜合理 {_cur}{_f.get("cheap")}~{_cur}{_f.get("rich")}'
+                      f'·中枢 {_cur}{_f.get("mid")} → <b>{esc(str(_val["verdict"]))}</b>{_auth}')
+            elif _val.get("status") == "待接":
+                g3 = f'仍待接：{esc(str(_val.get("reason", "缺真源·不编"))[:44])}'
+            else:
+                g3 = "待接·候选估值未接（缺真源·不编）"
+            g4 = (esc(str(_cv.get("research", "护城河待接·不编"))) if _cv and _cv.get("research")
+                  else "待接·候选护城河未接")
+            g5 = "候选级研究已接（够拿来比·未做10块深研）" if (_cv and _cv.get("research")) else "待接·候选未入判断包"
             # 过到第几关
             if not g1:
                 stage = "卡在①硬性关（节点今日未激活）"
@@ -2720,11 +2745,24 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
                         '所以也都不动；那几只单列只是因为已经先想好了"要换的话拿谁换"。）')
                      if _same_feat else ""))
     for r in distinct:
+        # 工单2026-07-17：候选估值+研究已接 → 对比表填真内容，替换引擎能一眼看出换了好在哪
+        _cv = _cand_val(r["ticker"])
+        _val = (_cv.get("valuation") or {}) if _cv else {}
+        if _val.get("verdict"):
+            _f = _val.get("fair", {}); _cc = "¥" if r["ticker"].startswith("JP.") else ("HK$" if r["ticker"].startswith("HK.") else "$")
+            _vcell = (f'现价 {_cc}{_cv.get("price")}｜合理 {_cc}{_f.get("cheap")}~{_cc}{_f.get("rich")}·中枢 {_cc}{_f.get("mid")}'
+                      f' → <b>{esc(str(_val["verdict"]))}</b>'
+                      + ('' if _val.get("authoritative", True) else f'（架构师估算·非权威·可靠度{esc(str(_val.get("reliability","?")))}）'))
+        elif _val.get("status") == "待接":
+            _vcell = f'<span class="need">仍待接</span>：{esc(str(_val.get("reason", ""))[:50])}'
+        else:
+            _vcell = '<span class="need">待接·候选估值未接</span>'
+        _research = esc(str(_cv.get("research"))) if _cv and _cv.get("research") else "候选研究待补·不编"
         cmp_tbl = ('<table class="dt" style="margin:4px 0"><tr style="color:#8ea3b6"><th>维度</th><th>候选</th></tr>'
-                   f'<tr><td>护城河</td><td>{esc(r["g4"] if "g4" in r else "待接·候选未入判断包")}</td></tr>'
-                   f'<tr><td>估值</td><td>待接·候选估值未接</td></tr>'
+                   f'<tr><td>它是干嘛的·护城河</td><td>{_research}</td></tr>'
+                   f'<tr><td>估值（便宜/贵）</td><td>{_vcell}</td></tr>'
                    f'<tr><td>方向</td><td>节点「{esc(r["node"])}」今日激活（gate①过）</td></tr>'
-                   f'<tr><td>换进来集中度变化</td><td>若换入→加到「{esc(r["node"])}」相关风险因子敞口(见第三部分附);AI簇已超配·只换不加</td></tr></table>')
+                   f'<tr><td>换进来集中度变化</td><td>若换入→加到「{esc(r["node"])}」相关风险因子敞口(见组合层);AI簇已超配·只换不加</td></tr></table>')
         wrows += (f'<div class="card"><div class="hd"><b>{esc(r["name"])}</b> <span class="sym">{esc(r["ticker"])}</span> '
                   f'<span class="conf">节点：{esc(r["node"])}</span> <span class="q">{esc(r["stage"])}</span></div>'
                   f'<div class="you" style="font-weight:400;font-size:12.5px">当日证据：节点「{esc(r["node"])}」在今日激活承接节点内{esc(r["price_txt"])}｜{esc(r["g2"])}｜来源：{esc(r["source"])}</div>'
@@ -2747,7 +2785,40 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
             f'<div class="card">当日激活承接节点：<b>{esc("、".join(active) or "待接")}</b>｜候选宇宙 {n_total} 只(按节点·candidate_universe.json可迭代)｜'
             f'过①硬性关(节点激活) <b>{n_g1}</b> 只｜过②软性关(站上均线) <b>{n_g2}</b> 只。'
             f'<div class="meta" style="color:#8ea3b6;font-size:12px">五关=①硬性(节点激活)②软性(均线)③估值④护城河⑤个股；过关进"值得看候选池"。改当日激活节点→候选集变(守第六条动态)。gate②均线复用当日 chain_opportunities 真扫描·③④⑤缺真源标待接不编。｜机会口径：{scope}</div></div>')
-    return (head + corro_research("机会池", "layer")
+    # 工单2026-07-17：候选估值+研究一张总表(全候选·不管过没过均线关·让董事长一眼看全)
+    cv_all = _CANDVAL_CACHE.get("d")
+    if cv_all is None:
+        _cand_val("__warm__")
+        cv_all = _CANDVAL_CACHE.get("d") or {}
+    ct = ""
+    n_val = n_wait = 0
+    for tk, v in sorted(cv_all.items(), key=lambda kv: kv[0]):
+        val = v.get("valuation") or {}
+        cc = "¥" if tk.startswith("JP.") else ("HK$" if tk.startswith("HK.") else "$")
+        if val.get("verdict"):
+            n_val += 1
+            f = val.get("fair", {})
+            vcol = "#ff6b6b" if "极贵" in str(val["verdict"]) else ("#ffb454" if "贵" in str(val["verdict"]) else ("#7ee0a0" if "便宜" in str(val["verdict"]) else "#7cc4ff"))
+            auth = ('' if val.get("authoritative", True) else f'<br><span style="color:#ffb454;font-size:10.5px">架构师估算·非权威·可靠度{esc(str(val.get("reliability","?")))}</span>')
+            valcell = (f'现价 {cc}{v.get("price")}｜合理 {cc}{f.get("cheap")}~{cc}{f.get("rich")}'
+                       f'<br><b style="color:{vcol}">{esc(str(val["verdict"]))}</b>{auth}')
+        else:
+            n_wait += 1
+            valcell = f'<span class="need">仍待接</span><br><span style="color:#8ea3b6;font-size:10.5px">{esc(str(val.get("reason", "缺真源·不编"))[:46])}</span>'
+        rz = str(v.get("research", ""))
+        ct += (f'<tr><td style="white-space:nowrap"><b>{esc(str(v.get("name")))}</b>'
+               f'<br><span style="color:#8ea3b6;font-size:10.5px">{esc(tk)}</span></td>'
+               f'<td style="font-size:12px">{esc(rz.split("。")[0] if rz else "研究待补")}'
+               f'<br><span style="color:#8ea3b6;font-size:11px">{esc("。".join(rz.split("。")[1:2]))}</span></td>'
+               f'<td style="font-size:12px">{valcell}</td></tr>')
+    cand_tbl = ('<h3 class="sub" style="font-size:15px" id="cand-val">候选估值一览（它是干嘛的 · 现在便宜还是贵）</h3>'
+                f'<div class="card"><div style="font-size:12px;color:#8ea3b6;margin-bottom:4px">'
+                f'共 {len(cv_all)} 只候选：<b style="color:#7ee0a0">{n_val} 只有估值</b>、'
+                f'<b style="color:#ffb454">{n_wait} 只仍待接</b>（各标原因）。'
+                f'美股用 EDGAR 真历史EPS 机械算中周期区间(非精调·够拿来比)；日/港/韩股 EDGAR 取不到→待架构师估算。</div>'
+                '<table class="dt"><tr><th>候选</th><th>它是干嘛的·护城河</th><th>估值（现价 vs 合理区）</th></tr>'
+                + ct + '</table></div>')
+    return (head + cand_tbl + corro_research("机会池", "layer")
             + f'<div class="blk">池① 值得看候选池（过①硬性关 {n_g1} 只·带节点+当日证据+多维对比）</div>'
             + wrows + pool2 + pool3)
 

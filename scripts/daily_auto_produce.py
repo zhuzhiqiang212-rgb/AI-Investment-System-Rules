@@ -48,6 +48,7 @@ STEPS = [
     ("⑧ 当日新闻+证据链", "evidence_autobuild.py", True, ["--with-macro-news"]),
     ("⑨ 研报佐证(湖水资讯)", "research_corpus_ingest.py", False),
     ("⑨b 财报官方数(SEC EDGAR)", "edgar_financials.py", False),
+    ("⑨c 机会池候选估值+研究", "candidate_valuation.py", False),
     ("⑩ 记分卡", "pdca_scorecard.py", False),
     ("⑪ 复盘", "pdca_review.py", False),
     ("⑫ 三件魂", "systems_soul_build.py", False),
