@@ -387,13 +387,17 @@ def ONEFILE(date: str) -> str:
     return f"{VOL_PREFIX}_{_dd(date)}.html"
 
 
-# 合并后跨册链全部退化成【同文件锚点】——保留这两个函数只为不改遍全文调用点。
+# 甲3[工单2026-07-17]：合并后原"跨册链"全部退化成【同文件锚点】。
+#   ⚠原来让它们返回空串 → 渲出 45 条 href="" 死链。必须给真锚点。
+_VOL_ANCHOR = {1: "#top", 2: "#deep-cards", 3: "#opp", 4: "#score", 5: "#rulers"}
+
+
 def VOL(date: str, n: int) -> str:
-    return ""          # 空 href → _a() 会渲成同文件锚点(见下)
+    return _VOL_ANCHOR.get(n, "#top")
 
 
 def VOL2(date: str, sub: str) -> str:
-    return ""
+    return "#deep-cards"
 
 # ②持仓深研册按逻辑拆子册(每册<300KB·绝不删内容·按组合角色分组)
 VOL2_SUBS = [("2a", "AI主线仓", ["US.NVDA", "US.MSFT", "US.AVGO", "US.TSM", "JP.6857", "JP.9984", "US.META", "US.SNDK"]),
@@ -1340,14 +1344,22 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                f'<span style="color:#ffb454;font-size:11.5px;margin-left:4px">［{esc(price_stamp(sym, dyn.get("date","")))}］</span>'
                f' ｜ <b>均线</b>{esc(ma_s)}</div>')
     # 标题 + 决策条（全部引 final·单一源）
+    # ══ 甲1[工单2026-07-17]：卡头徽章与卡内「今天你怎么办·结论」必须完全一致 ══
+    #   根因：卡头原来显示 f["action"]（那是【账本基础档】推出来的），卡内结论走 _action_of（今日叠加决策）
+    #   → 两根轴都叫"动作"，20只里13只打架(博通头守·实减；META头等·实减；索尼头等·实加)。
+    #   治法：卡头一律显示【今日动作】(与结论同一算子)；账本档改名叫「账本」，不再叫"动作"。
+    _today_act, _ = _action_of(sym, name, dyn, dyn.get("date", ""))
     hd = (f'<div class="hd"><b>{esc(name)}</b> <span class="sym">{esc(sym)}</span> '
-          f'<span class="conf">动作：{f["action"]}</span> '
+          f'<span class="conf">今日动作：{_today_act}</span> '
           f'<span class="q">账本：{f["quality"]}</span> <span class="v">估值：{f["valuation_short"]}（{f["valuation_grade"]}）</span></div>')
     conf_grade = _conf_grade(f)   # R10②:账本档→高/中/低把握(显式)
     final_row = (f'<div class="dossier" style="background:#12203a;border-radius:6px;padding:6px 8px">'
                  f'<span class="k">决策(单一源)</span>'
-                 f'<b>动作</b>{f["action"]} ｜ <b>估值</b>{f["valuation"]} ｜ <b>账本</b>{f["quality"]} '
-                 f'｜ <b>把握</b><span style="color:#ffd479;font-weight:700">{esc(conf_grade)}</span>（{f["confidence"]}）</div>')
+                 f'<b>今日动作</b>{_today_act} ｜ <b>估值</b>{f["valuation"]} ｜ <b>账本</b>{f["quality"]} '
+                 f'｜ <b>把握</b><span style="color:#ffd479;font-weight:700">{esc(conf_grade)}</span>（{f["confidence"]}）'
+                 f'<div style="font-size:11px;color:#8ea3b6;margin-top:2px">'
+                 f'「今日动作」＝今天该怎么办（与下面「今天你怎么办·结论」同一个判断）；'
+                 f'「账本」＝这门生意的底子好不好（①优质／②观察），那是长期的、不随今天的价变。</div></div>')
     _dt = dyn.get("date", "")
     # 硬链2：持仓卡"决策链"↔上游对应层(总览册各层锚)
     chain_links = ('<div class="meta" style="font-size:11.5px;margin-top:3px;color:#8ea3b6">'
@@ -2123,10 +2135,12 @@ def part0_diff(date: str, dyn: dict) -> str:
         pend_rows = '<div class="card"><span class="need">待拍板收件箱待接</span>（pending_decisions.json 缺）</div>'
     # 组装
     concl = ("".join(f'<div>· {c}</div>' for c in changes) if changes else '<div>· 五层环：无变化</div>')
-    acts = ("".join(f'<div>· {c}</div>' for c in act_ch) if act_ch else '<div>· 持仓动作：<b>全部未变</b>（19只动作与昨日一致）</div>')
+    _n_hold = len([h for h in dyn["prod"].get("holdings", []) if not str(h.get("symbol", "")).startswith("CC.")])
+    acts = ("".join(f'<div>· {c}</div>' for c in act_ch) if act_ch
+            else f'<div>· 持仓动作：<b>全部未变</b>（{_n_hold}只动作与昨日一致）</div>')
     quiet = (not changes) and (not act_ch)
     head_note = ('<div class="card" style="background:#12261f;border-color:#4f9e7f"><b>今日无重大变化（守·维持）</b>'
-                 '——五层环与19只动作均与昨日一致；下方全量7层照旧，但今天不需要你逐张翻。</div>' if quiet else '')
+                 f'——各层与{_n_hold}只动作均与昨日一致；下面的深料照旧，但今天不需要你逐张翻。</div>' if quiet else '')
     return ('<h2 class="main">今日变化 · 只看跟昨天不一样的（跟昨天一样的不重复占地方）</h2>'
             f'<div class="card">对比基准：<b>{esc(prev[:4])}-{esc(prev[4:6])}-{esc(prev[6:])}</b> → <b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>（真数据现算）'
             f'｜今日待拍板 <b style="color:#ffd479">{n_pend}</b> 件'
@@ -3120,7 +3134,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
             'details.sub>summary::marker{content:""}details.sub>summary::before{content:"▸ ";color:#5cc8ff}'
             'details.sub[open]>summary::before{content:"▾ "}details.sub>div,details.sub>table{margin:0 11px 10px}'
             'h2.sub{font-size:15px;color:#8ea3b6;font-weight:600;border-left:3px solid #3a5a8a;padding-left:8px;margin:16px 0 6px}'
-            '</style></head><body>')
+            '</style></head><body><a id="top"></a>')
     # ══ 乙2：页头最顶端超大横幅——一眼知道是不是今天的、是新是旧 ══
     _dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
     try:
@@ -3192,17 +3206,17 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
               + '<h2 class="main" style="margin-top:26px">想深究再往下（都默认收起来了）</h2>'
               + fold("为什么说是关键时刻（3条依据 + 湖水研报佐证）",
                      part0_critical(date, dyn) + corro_staleness_banner(date), "why-critical")
-              + fold("今天哪几只跌到了加仓价（逐只）", part0_triggers(date, dyn))
-              + fold("日股专项 · 你这几只日股今天怎么样", part0_jp(date, dyn))
-              + fold("手上的闲钱怎么用（明细）", part0_cash(date, dyn))
-              + fold("持仓数据从哪来（富途实时 + 其余账户沿用）", part0_positions_sync(date, dyn))
-              + fold("大环境今天怎么了（六层）", p_layers + p_macro)
-              + fold("组合层 · 你整体押得偏不偏", p_conc)
-              + fold("机会池 · 该不该换、换谁", p_6a + p_6b + p_funnel)
-              + fold("复盘记分卡 · 昨天判的今天验", p_pdca)
-              + fold("右栏底子 · 6把尺（判断依据）", p_rulers)
-              + fold("每只持仓的10块深研（19只全在这）", all_cards, "deep-cards")
-              + fold("整条逻辑怎么闭环", _loop_map(date) + p_close)
+              + fold("今天哪几只跌到了加仓价（逐只）", part0_triggers(date, dyn), "triggers")
+              + fold("日股专项 · 你这几只日股今天怎么样", part0_jp(date, dyn), "jp")
+              + fold("手上的闲钱怎么用（明细）", part0_cash(date, dyn), "cash")
+              + fold("持仓数据从哪来（富途实时 + 其余账户沿用）", part0_positions_sync(date, dyn), "positions")
+              + fold("大环境今天怎么了（六层）", p_layers + p_macro, "layers")
+              + fold("组合层 · 你整体押得偏不偏", p_conc, "portfolio")
+              + fold("机会池 · 该不该换、换谁", p_6a + p_6b + p_funnel, "opp")
+              + fold("复盘记分卡 · 昨天判的今天验", p_pdca, "score")
+              + fold("右栏底子 · 6把尺（判断依据）", p_rulers, "rulers")
+              + fold(f"每只持仓的10块深研（{stats[chr(39)+chr(39)] if False else stats['n']}只全在这）", all_cards, "deep-cards")
+              + fold("整条逻辑怎么闭环", _loop_map(date) + p_close, "loop")
               + "</body></html>")
     volumes = {ONEFILE(date): single}
     # 全篇统一清洗(内部结构泄露/裸字段名/内部话/草稿语)——只改措辞·判断口径不变

@@ -272,6 +272,28 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
             except Exception:
                 pass
 
+    # ── L24 卡头动作 ≠ 今日结论动作(甲1·工单2026-07-17)：20只里曾13只打架 ──
+    #     根因：卡头走"账本基础档"、结论走"今日叠加决策"，两根轴都叫"动作"。
+    for fn, h in vols.items():
+        for m in re.finditer(r'id="stock-([A-Z]{2}\.[A-Z0-9]+)"', h):
+            nxt = h.find('id="stock-', m.end())
+            seg = h[m.start(): nxt if nxt > 0 else len(h)]
+            hd = re.search(r"今日动作：.{0,120}?border-radius:9px\">([加买守等减])</b>", seg, re.S)
+            cc = re.search(r"1｜结论：</b>.{0,160}?border-radius:9px\">([加买守等减])</b>", seg, re.S)
+            if hd and cc and hd.group(1) != cc.group(1):
+                fails.append(f"L24 卡头与结论打架：{fn} 的 {m.group(1)} 卡头「{hd.group(1)}」"
+                             f"≠ 今天你怎么办·结论「{cc.group(1)}」——必须同一个判断")
+                break
+
+    # ── L25 死链(甲3·合并单文件后跨册链变成 href=""；或指向不存在的 #id) ──
+    for fn, h in vols.items():
+        n_empty = len(re.findall(r'href=""', h))
+        if n_empty:
+            fails.append(f"L25 空死链：{fn} 有 {n_empty} 处 href=\"\"——点了没反应")
+        bad = sorted({a for a in re.findall(r'href="#([^"]+)"', h) if f'id="{a}"' not in h})
+        if bad:
+            fails.append(f"L25 坏锚点：{fn} 有 {len(bad)} 个 #锚点跳不到 → {bad[:3]}")
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:
