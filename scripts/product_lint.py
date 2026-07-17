@@ -132,6 +132,12 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     if len(days) > 1:
         fails.append(f"L10 记分卡天数打架：全册出现多个'追踪天数' → {sorted(days)}")
 
+    # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
+    n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
+    if n_stale:
+        fails.append(f"L15 提示刷屏：「这份料已放了N天」出现 {n_stale} 处"
+                     f"——这句全册只该在①册顶部的警条里说一次")
+
     # ── L13 括号不闭合(甲3类:替换文本自带括号又被套进外层"（…）") ──
     for fn, h in vols.items():
         t = _txt(h)

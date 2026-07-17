@@ -110,7 +110,9 @@ def extract_pack(path: Path) -> dict[str, str]:
 _MKT_NAME = {"US": "美股", "JP": "日股", "HK": "港股", "CN": "A股", "CC": "加密"}
 _STATE_TXT = {"PRE_MARKET_BEGIN": "盘前", "PRE_MARKET_END": "盘前", "MORNING": "盘中", "AFTERNOON": "盘中",
               "CLOSED": "收盘", "AFTER_HOURS_BEGIN": "盘后", "AFTER_HOURS_END": "盘后",
-              "NIGHT_OPEN": "夜盘", "REST": "午休", "OVERNIGHT": "夜盘"}
+              "NIGHT_OPEN": "夜盘", "REST": "午休", "OVERNIGHT": "夜盘",
+              # 甲1：WAITING_OPEN 是机器话，漏到过页头 → 给人话
+              "WAITING_OPEN": "开盘前", "SUSPENSION": "停牌", "STOP_TRADING": "停牌"}
 _FIELD_TXT = {"last_price": "收盘", "pre_price": "盘前", "after_price": "盘后", "overnight_price": "夜盘"}
 
 def price_stamp(sym: str, date: str) -> str:
@@ -234,10 +236,9 @@ def corro_box(key: str, kind: str = "layer") -> str:
             f'佐证（第九条三·只作印证/挑战·<b>不盖系统判断</b>）：<b style="color:{col}">{esc(vd)}</b>'
             + ('｜' + '　'.join(bits) if bits else '')
             + ('<br>' + '｜'.join(tail) if tail else '')
+            # 甲4：这句"料已N天旧"全册只在①册顶部的警条里说一次，别层层卡卡重复(治刷屏)
             + f'<br><span style="color:#8ea3b6">来源：{esc(str(e.get("source", "待接")))}'
-            + (f'<b style="color:#ffb454">（这份料已放了 {_CORRO_AGE.get("d", 0)} 天·不是今天的料·只作方向性参考）</b>'
-               if _CORRO_AGE.get("d", 0) > 30 else '（料非当日·仅方向性参考）')
-            + '；当日结论以左栏系统证据链为准</span></div>')
+            + '（非当日料·当日结论以左栏系统证据链为准）</span></div>')
 
 
 # 甲5：当日现算的佐证料天数(build 起手写入·供每条佐证栏尾注引用·不写死)
@@ -348,6 +349,32 @@ def L5(date: str, anchor: str = "") -> str:
 
 def _a(href: str, text: str, color: str = "#8fd6ff") -> str:
     return f'<a href="{href}" style="color:{color};text-decoration:underline dotted">{text}</a>'
+
+def _mkt_oneline(date: str) -> str:
+    """甲1：页头那一行小字——各市场的价到底是"今天的"还是"昨晚收盘"。按真数据现算·不写死。"""
+    try:
+        hts = rj(ROOT / "data" / "accounts" / f"holdings_true_{date}.json").get("holdings") or []
+    except Exception:
+        return "各市场价格时点：待接（缺当日持仓真值·不编）"
+    agg = {}
+    for h in hts:
+        sym = str(h.get("symbol") or "")
+        mkt = _MKT_NAME.get(sym.split(".")[0], sym.split(".")[0])
+        dd = str(h.get("price_data_date") or "")
+        st = _STATE_TXT.get(str(h.get("price_market_state")), "")
+        if dd:
+            agg.setdefault(mkt, (dd, st))
+    if not agg:
+        return "各市场价格时点：待接（无行情数据日·不编）"
+    bits = []
+    for mkt, (dd, st) in sorted(agg.items()):
+        if dd.replace("-", "") == date:
+            bits.append(f"<b>{esc(mkt)}＝今天的价</b>（{esc(dd)}{esc(st)}）")
+        else:
+            # 只陈述事实"价停在哪天的哪个时点"，不替市场编"开没开盘"(会说错·如日股此刻正开着)
+            bits.append(f"<b>{esc(mkt)}＝{esc(dd)}{esc(st) or '收盘'}的价</b>（不是今天的）")
+    return "　｜　".join(bits) + "　<span style='color:#8ea3b6'>（每只价旁都标了它自己的时点）</span>"
+
 
 def _price_asof_note(date: str) -> str:
     """头部总说明：按市场汇总各自价格真实时点（不许一个 data_date 盖全部市场）。"""
@@ -605,6 +632,113 @@ def _sync_card_prices(sym: str, blob: str, dyn: dict) -> str:
     return blob
 
 
+# ══ 乙5/乙6：估值数轴（纯HTML/CSS·不引外部库·深浅色都清楚） ══
+# 「便宜─合理─贵」三段 + 现价 ▼ 落点。数字全部来自估值引擎单一源(R1)，本组件只负责【画】，不改口径。
+HORIZON_NOTE = "这是按公司未来约 1~2 年该值多少算出来的合理价，不是猜下个月的股价"
+
+
+def _val_axis(sym: str, dyn: dict, mini: bool = False) -> str:
+    """返回估值数轴HTML；估值待接→返回空串(由调用方写人话原因·不画假轴)。"""
+    v = (dyn.get("valr", {}) or {}).get(sym, {}) or {}
+    if str(v.get("status")) != "OK":
+        return ""
+    lo, mid, hi = v.get("reasonable_low"), v.get("intrinsic"), v.get("reasonable_high")
+    px = _price_of(sym, dyn)
+    if lo is None or hi is None or mid is None or px is None or hi <= lo:
+        return ""
+    c = cur(sym)
+    # 轴的显示范围：把区间左右各放宽30%，保证现价在轴上看得见
+    span = hi - lo
+    a0, a1 = lo - span * 0.6, hi + span * 0.6
+    if px < a0:
+        a0 = px - span * 0.15
+    if px > a1:
+        a1 = px + span * 0.15
+    W = max(a1 - a0, 1e-9)
+
+    def pos(x):
+        return max(0.0, min(100.0, (x - a0) / W * 100.0))
+
+    p_lo, p_hi, p_px, p_mid = pos(lo), pos(hi), pos(px), pos(mid)
+    # 贵/便宜=与中枢比(与决策条同一口径·只是换个画法)
+    gap = (px - mid) / mid * 100.0
+    if px < lo:
+        verd, col = f"偏便宜（比中间值低 {abs(gap):.0f}%）", "#2f9e5f"
+    elif px > hi:
+        verd, col = f"偏贵（比中间值高 {gap:+.0f}%）".replace("+", ""), "#d24b4b"
+    else:
+        verd, col = f"大致合理（比中间值{'高' if gap >= 0 else '低'} {abs(gap):.0f}%）", "#c9922b"
+    h = 8 if mini else 16
+    fs = 10.5 if mini else 12.5
+    bar = (f'<div style="position:relative;height:{h}px;border-radius:{h//2}px;overflow:hidden;'
+           f'background:#8a8f96;margin:{2 if mini else 8}px 0 {"9" if mini else "16"}px">'
+           f'<div style="position:absolute;left:0;width:{p_lo:.2f}%;height:100%;background:#2f9e5f"></div>'
+           f'<div style="position:absolute;left:{p_lo:.2f}%;width:{max(p_hi-p_lo,0.5):.2f}%;height:100%;background:#c9922b"></div>'
+           f'<div style="position:absolute;left:{p_hi:.2f}%;right:0;height:100%;background:#d24b4b"></div>'
+           # 中枢刻度
+           f'<div style="position:absolute;left:{p_mid:.2f}%;top:0;width:2px;height:100%;background:#0b1118;opacity:.75"></div>'
+           f'</div>'
+           # 现价 ▼（放在条上方·深浅色都靠自带描边看得见）
+           f'<div style="position:absolute;left:{p_px:.2f}%;top:-{2 if mini else 4}px;transform:translateX(-50%);'
+           f'font-size:{fs+1:.0f}px;color:#ffffff;text-shadow:0 0 3px #000,0 0 3px #000;line-height:1">▼</div>')
+    wrap = (f'<div style="position:relative;padding-top:{10 if mini else 14}px">{bar}</div>')
+    if mini:
+        return (wrap + f'<div style="font-size:10.5px;color:{col};font-weight:700;margin-top:-4px">{esc(verd)}</div>')
+    labels = (f'<div style="display:flex;justify-content:space-between;font-size:12px;color:#c8d4de;margin-top:-10px">'
+              f'<span>便宜　<b>{c}{lo:,.0f}</b></span>'
+              f'<span>中间值　<b>{c}{mid:,.0f}</b></span>'
+              f'<span>贵　<b>{c}{hi:,.0f}</b></span></div>')
+    return ('<div style="background:#101a26;border:1px solid #2b4054;border-radius:8px;padding:10px 14px 8px;margin:8px 0">'
+            f'<div style="font-size:13px;color:#9ed8ff;font-weight:700;margin-bottom:2px">这只现在贵不贵（一眼看）</div>'
+            + wrap + labels
+            + f'<div style="margin-top:7px;font-size:13.5px">现价 <b style="font-size:15px">{c}{px:,.2f}</b>'
+              f'　<b style="color:{col};font-size:14px">{esc(verd)}</b></div>'
+            + f'<div style="font-size:11.5px;color:#8ea3b6;margin-top:3px">▼＝今天的价。绿=便宜 / 黄=合理 / 红=贵。'
+              f'<b>{esc(HORIZON_NOTE)}</b>。</div></div>')
+
+
+def _val_wait_reason(sym: str, dyn: dict) -> str:
+    """估值待接的6只：不画轴、写人话原因(缺不编)。"""
+    v = (dyn.get("valr", {}) or {}).get(sym, {}) or {}
+    t = str(v.get("type") or "")
+    why = {"周期股": "它是周期股——现在正处在景气高点，拿眼下的盈利去乘倍数会把价算得虚高；"
+                    "得用“穿越一轮周期的正常年景盈利”，而这个数还没有权威来源可接",
+           "控股公司": "它是控股公司——得把手里每块资产分别估值再相加减负债；这套分项真估值还没接进来",
+           "商社": "它是综合商社——得把各块业务分别估值再相加；这套分项真估值还没接进来"}.get(t, "")
+    if not why:
+        why = "这类生意还没有可信的估值输入（缺真源），硬算出来的数会误导你"
+    return ('<div style="background:#2a1f10;border:1px solid #7a5a20;border-radius:8px;padding:9px 13px;margin:8px 0">'
+            '<div style="font-size:13px;color:#ffb454;font-weight:700">这只算不出该值多少钱——所以不画贵便宜轴</div>'
+            f'<div style="font-size:12.5px;color:#e6eef5;margin-top:3px">{esc(why)}。'
+            '<b>缺真源就不编数</b>，这是规矩。所以今天对它只能“守着看”，不主动加减。</div></div>')
+
+
+# ══ 乙7/乙8：横条形图（纯HTML/CSS·深浅色都清楚·带上限/下限红虚线） ══
+def _bar_row(label: str, pct: float, limit=None, floor=None, note: str = "", scale: float = 100.0) -> str:
+    w = max(0.0, min(100.0, pct / scale * 100.0))
+    over = limit is not None and pct > limit
+    short = floor is not None and pct < floor
+    col = "#d24b4b" if over else ("#c9922b" if short else "#3f8fd0")
+    flag = ("<b style='color:#ff9a9a'>⚠ 超上限</b>" if over
+            else ("<b style='color:#ffd479'>⚠ 不足下限</b>" if short else "<span style='color:#8ea3b6'>在限内</span>"))
+    marks = ""
+    for lim, cl, txt in ((limit, "#ff5c5c", "上限"), (floor, "#ffd479", "下限")):
+        if lim is None:
+            continue
+        lp = max(0.0, min(100.0, lim / scale * 100.0))
+        marks += (f'<div style="position:absolute;left:{lp:.2f}%;top:-3px;bottom:-3px;width:0;'
+                  f'border-left:2px dashed {cl}"></div>'
+                  f'<div style="position:absolute;left:{lp:.2f}%;top:-15px;transform:translateX(-50%);'
+                  f'font-size:10px;color:{cl};white-space:nowrap">{txt}{lim:.0f}%</div>')
+    return (f'<div style="margin:16px 0 10px">'
+            f'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">'
+            f'<b>{esc(label)}</b><span><b style="font-size:14px">{pct:.1f}%</b>　{flag}</span></div>'
+            f'<div style="position:relative;height:15px;background:#3a4551;border-radius:4px">'
+            f'<div style="width:{w:.2f}%;height:100%;background:{col};border-radius:4px"></div>{marks}</div>'
+            + (f'<div style="font-size:11.5px;color:#8ea3b6;margin-top:3px">{note}</div>' if note else "")
+            + '</div>')
+
+
 def _nd(s) -> str:
     """待接标橙(不编)。内容为已核准/已接真源的可信HTML片段·原样渲染。"""
     return str(s).replace("待接", '<span class="need">待接</span>')
@@ -778,10 +912,15 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
         inval = ''; senstbl = '<div class="plain"><span class="need">敏感性待接</span>（缺真输入·如周期股无权威正常化EPS源·不硬编）</div>'
     rng = (f'合理区 <b>{esc(ccy)}{esc(fnum(low))} ~ {esc(ccy)}{esc(fnum(high))}</b>，中枢 <b>{esc(ccy)}{esc(fnum(mid))}</b>'
            if low is not None and mid is not None else '<span class="need">合理区/中枢待接</span>（估值引擎缺真输入·不硬编）')
+    # 乙6：大估值数轴顶在⑤块最前——替代"四个数挤一句话"；待接的不画轴、写人话原因(丙10:轴上标时间跨度)
+    _axis = _val_axis(sym, dyn) or _val_wait_reason(sym, dyn)
     out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
-               f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
+               + _axis
+               + f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
                '<table class="dt"><tr><th>要填的输入</th><th>大白话</th></tr>' + inrows + '</table>' + inval
-               + f'<p style="font-size:13px"><span class="k">算出来</span>{rng}（与决策条同一源·R1）。{_nd(v5.get("note",""))}</p>'
+               + f'<p style="font-size:13px"><span class="k">算出来</span>{rng}（与决策条同一源·R1）。'
+               + (f'<span style="color:#8ea3b6">（{esc(HORIZON_NOTE)}）</span>' if low is not None else '')
+               + f'{_nd(v5.get("note",""))}</p>'
                + senstbl)
     # ⑥ 牛/基/熊三情景
     sc = deep.get("block6_scenarios", {})
@@ -947,7 +1086,12 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
             f'<div style="font-size:13.5px;line-height:1.9">'
             f'<div><b>1｜结论：</b>{line1}</div>'
             f'<div><b>2｜为什么：</b>{line2}</div>'
-            f'<div><b>3｜什么价该动：</b>{line3}</div>'
+            # 丙10：加减价必须标时间跨度(有估值的才标·待接的第3行本就是人话原因)
+            f'<div><b>3｜什么价该动：</b>{line3}'
+            + (f'<div style="font-size:11.5px;color:#8ea3b6;margin-top:2px">'
+               f'（{esc(HORIZON_NOTE)}；没有到期时间——到价就提醒，不到就一直不动）</div>'
+               if _val_axis(sym, dyn) else '')
+            + '</div>'
             f'<div><b>4｜什么信号才变卦：</b>{line4}</div>'
             '</div></div>')
 
@@ -1197,7 +1341,7 @@ def part0_diff(date: str, dyn: dict) -> str:
             + f'<div class="card">{concl}{acts}</div>'
             + '<div class="blk">② 触发了哪个阈值</div>'
             + f'<div class="card">{"".join(f"<div>{x}</div>" for x in thr) if thr else "<div>· 无阈值触发</div>"}</div>'
-            + f'<div class="blk">③ 今日待拍板事项（{n_pend} 件·拍板收件箱）</div>'
+            + f'<div class="blk" id="pending-inbox">③ 今日待拍板事项（{n_pend} 件·拍板收件箱）</div>'
             + (pend_rows or '<div class="card">今日无待拍板事项</div>'))
 
 def _news_list(items: list, weak: bool = False) -> str:
@@ -1248,23 +1392,78 @@ def part1_layers(daily: dict, dyn: dict) -> str:
         ruler = _match(node, _LAYER_RULER, "第六部分·右栏底子")
         _dt = dyn.get("date", "")
         _rnum = {"world": 1, "strategy": 2, "means": 3, "capital": 3, "sector": 4, "fedgate": 3}.get(layer_slug(node), 1)
+        # 甲4：每层顶部先给【一句话结论+力度】，细节收进折叠；佐证栏不再层层重复(全册合并到一处)
+        _cl = {"强": "#7ee0a0", "中": "#7cc4ff", "弱": "#ffb454"}.get(str(strg).strip(), "#7cc4ff")
+        head_line = (f'<div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">'
+                     f'<b style="font-size:16px">{esc(node)}</b>'
+                     f'<span style="font-size:11.5px;padding:1px 8px;border-radius:9px;'
+                     f'background:{_cl};color:#0b1118;font-weight:800">力度 {esc(strg)}</span></div>'
+                     f'<div style="font-size:15px;font-weight:700;color:#ffd479;margin-top:3px">'
+                     f'一句话：{esc(str(dr))}</div>'
+                     f'<div style="font-size:13px;color:#c8d4de;margin-top:2px">{esc(plain) if plain else ""}</div>'
+                     # 丙10：这判断预计管多久(事件驱动→以周为单位沿用·现算天数)
+                     + _layer_horizon(l, dyn))
         rows.append(
-            f'<div class="card" id="layer-{layer_slug(node)}"><div class="hd"><b>{esc(node)}</b> '
-            f'<span class="conf">力度 {esc(strg)} · 方向 {esc(dr)}</span></div>'
-            f'<div style="font-size:13px"><span class="k">① 事实(今天怎么了)</span>{fact}</div>'
-            f'<div style="font-size:13px;margin-top:3px"><span class="k">② 为什么(这么判的依据)</span>{why}</div>'
+            f'<div class="card" id="layer-{layer_slug(node)}">{head_line}'
+            + '<details class="sub" style="margin-top:8px;background:#0e1621">'
+              '<summary>细节：今天怎么了 / 为什么这么判 / 落到你哪几只 / 什么情况才改看</summary>'
+            + f'<div style="font-size:13px"><span class="k">① 事实(今天怎么了)</span>{fact}</div>'
+            + f'<div style="font-size:13px;margin-top:3px"><span class="k">② 为什么(这么判的依据)</span>{why}</div>'
             + _layer_impact(node, dyn).replace("对你·落点持仓", "③ 对你·落点持仓")
             + f'<div style="font-size:13px;margin-top:3px"><span class="k">④ 什么情况改看法(证伪)</span>{esc(flip)}</div>'
-            + corro_box(node, "layer")
-            + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:3px">大白话：{esc(plain) if plain else "待接"}'
-            f'｜对应尺：{_a(L5(_dt, "ruler-" + str(_rnum)), esc(ruler))}（点跳右栏6尺册）</div>'
+            + _corro_brief(node)
+            + '</details>'
+            + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:4px">'
+              f'对应尺：{_a(L5(_dt, "ruler-" + str(_rnum)), esc(ruler))}（点跳右栏6尺册）</div>'
             '</div>')
     if not rows:
         rows.append('<div class="card">五层数据待接（daily_{date}.json 无 links·不编）</div>')
     # E2：标题按实际环数(世界观/总闸/战略/手段/资金/板块=六层)，不再写死"五层"
     _cn = {1: "一", 2: "二", 3: "三", 4: "四", 5: "五", 6: "六", 7: "七"}.get(len(rows), str(len(rows)))
-    return (f'<h2>第一部分 · 大环境今天怎么了（{_cn}层·每层 今天怎么了→为什么→对你的影响→什么情况才改看）</h2>'
-            + "".join(rows))
+    return ('<details class="sub" open><summary>大环境今天怎么了（{}层·每层一句话结论；想看依据点开各层细节）</summary>'.format(_cn)
+            + "".join(rows) + '</details>')
+
+
+def _layer_horizon(l: dict, dyn: dict) -> str:
+    """丙10：这一层的判断【预计管多久】——事件驱动的以周为单位沿用，并现算"已连续第N天"。"""
+    node = str(l.get("node") or "")
+    news_n = len(l.get("news_items") or [])
+    # 已连续多少天同方向(往回数真实历史·不写死)
+    days = 1
+    try:
+        d = dyn.get("date", "")
+        seen = d
+        for _ in range(30):
+            p = _prev_date(seen)
+            if not p:
+                break
+            try:
+                pd_ = rj(ROOT / "data" / "evidence_chain" / f"daily_{p}.json")
+            except Exception:
+                break
+            pl = next((x for x in (pd_.get("links") or []) if str(x.get("node")) == node), None)
+            if not pl or str(pl.get("direction")) != str(l.get("direction")):
+                break
+            days += 1
+            seen = p
+    except Exception:
+        pass
+    if news_n:
+        txt = (f"这判断预计管多久：<b>没出反向大事之前，以「周」为单位沿用</b>——它是被事件推着走的，"
+               f"不是每天翻一次。今天有 {news_n} 条够格新闻支持这个判断，已经<b>连续第 {days} 天</b>是这个方向。")
+    else:
+        txt = (f"这判断预计管多久：<b>没出反向大事之前，以「周」为单位沿用</b>——今天没有够格的新事件，"
+               f"所以维持原判断，已经<b>连续第 {days} 天</b>是这个方向。")
+    return (f'<div style="font-size:11.5px;color:#9db0c2;margin-top:4px;'
+            f'border-left:3px solid #3a5a8a;padding-left:7px">{txt}</div>')
+
+
+def _corro_brief(node: str) -> str:
+    """甲4：层内佐证只留一句结论；"料已N天旧"这句全册只在①册顶部说一次(不再层层重复)。"""
+    h = corro_box(node, "layer")
+    h = re.sub(r"<b style=\"color:#ffb454\">（这份料已放了 \d+ 天[^<]*）</b>", "", h)
+    h = re.sub(r"（料非当日·仅方向性参考）", "", h)
+    return h
 
 # ── 第一部分附·宏观判定表（尺模板+当日读数） ──
 def part1_macro_table(daily: dict) -> str:
@@ -1328,23 +1527,21 @@ def part3_risk_factors(dyn: dict) -> str:
     mv, total = _mv_usd_by_symbol(holds, cbt)
     if total <= 0:
         return '<div class="card">共同风险因子表·待接（分母市值合计=0·当日无可折算市值）</div>'
-    rows = []
+    # 乙8：条形图化——让"一个坏消息砸中好几只"看得见(数字/口径不变·只换画法)
+    bars = []
     for f in order:
         members = [s for s, fs in by_sym.items() if f in fs and s in name_by]
         expo = sum(mv.get(s, 0.0) for s in members)
         pct = expo / total * 100.0
         mem_txt = "、".join(f"{esc(name_by[s])}" + ("" if s in mv else "(市值缺·未计敞口)") for s in members) or "—"
-        rows.append(f'<tr><td style="padding:5px 8px;border-bottom:1px solid #24384c;font-weight:700;color:#ffd479">{esc(f)}</td>'
-                    f'<td style="padding:5px 8px;border-bottom:1px solid #24384c">{mem_txt}</td>'
-                    f'<td style="padding:5px 8px;border-bottom:1px solid #24384c;text-align:right;color:#7ee0a0">{pct:.1f}%</td></tr>')
-    tbl = ('<table style="width:100%;border-collapse:collapse;font-size:13px">'
-           '<tr style="color:#8ea3b6"><th style="text-align:left;padding:5px 8px">共同风险因子</th>'
-           '<th style="text-align:left;padding:5px 8px">挂着哪几只持仓</th>'
-           '<th style="text-align:right;padding:5px 8px">合计敞口%</th></tr>' + "".join(rows) + '</table>')
-    note = ('<div class="meta" style="color:#8ea3b6;font-size:12px;margin-top:6px">'
-            '敞口%=该因子成分股当日折美元市值合计÷全持仓合计（现算·非写死）；一只可挂多因子故各因子敞口相加可>100%。'
-            '归属映射见 data/valuation/risk_factors.json（可迭代·改一只因子归属→本表成分股与敞口数字联动变）。</div>')
-    return ('<h3 style="margin-top:14px">第三部分附 · 共同风险因子穿透（同一冲击会同时打到哪几只）</h3>'
+        bars.append((pct, _bar_row(f, pct, note=f"砸中：{mem_txt}")))
+    bars.sort(key=lambda x: -x[0])          # 占比大的排前面=最该先看
+    tbl = "".join(b for _p, b in bars)
+    note = ('<div class="meta" style="color:#8ea3b6;font-size:12px;margin-top:8px">'
+            '条越长=这个坏消息一旦发生、会同时砸到你越多的钱。'
+            '敞口%=该因子成分股当日折美元市值合计÷全持仓合计（按当日实时价现算·非写死）；'
+            '一只股票可能同时挂几个因子，所以各条相加会超过100%——这正是"押得重叠"的意思。</div>')
+    return ('<h3 style="margin-top:14px">第三部分附 · 共同风险因子穿透（同一个坏消息会同时打到哪几只）</h3>'
             '<div class="card">' + tbl + note + '</div>')
 
 def part3_concentration(date: str, dyn: dict) -> str:
@@ -1353,12 +1550,16 @@ def part3_concentration(date: str, dyn: dict) -> str:
         cost = rj(ROOT / "data" / "accounts" / "unified_holdings_latest.json")
         conc = fpr.portfolio_concentration(dyn["prod"].get("holdings", []),
                                            (cost.get("summary", {}) or {}).get("known_cash_usd"), {})
+        # 乙7：横条形图 + 上限/下限红虚线 —— 超标红、不足黄，一眼看到(数字口径不变)
         rows = []
         for k, v in (conc.get("categories", {}) or {}).items():
-            pct = v.get("pct"); lim = v.get("limit"); over = v.get("over"); short = v.get("short")
-            flag = "⚠超上限" if over else ("⚠低于下限" if short else "在限内")
-            rows.append(f'<div>· <b>{esc(k)}</b>：{pct:.1f}%（限 {lim}%）· {flag}</div>')
-        conc_html = '<h2>第三部分 · 仓位集中度（哪一类押太多了）</h2><div class="card">' + "".join(rows) + '</div>'
+            rows.append(_bar_row(k, float(v.get("pct") or 0), limit=v.get("limit"), floor=v.get("floor")))
+        conc_html = ('<h2>第三部分 · 仓位集中度（哪一类押太多了）</h2><div class="card">'
+                     + "".join(rows)
+                     + '<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:8px">'
+                       '条越长=押得越多。<span style="color:#ff5c5c">红虚线</span>=上限、'
+                       '<span style="color:#ffd479">黄虚线</span>=下限；条变红=超了上限，变黄=不到下限。'
+                       '按当日实时价折美元现算。</div></div>')
     except Exception as e:
         conc_html = f'<h2>第三部分 · 仓位集中度</h2><div class="card">集中度现算失败·待接（{esc(e)}）</div>'
     return conc_html + part3_risk_factors(dyn)
@@ -1709,6 +1910,10 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
              '<div class="card"><span class="need">待董事长指定</span>——结构已留：董事长点名任一标的，即按同一五关漏斗(①硬性②软性③估值④护城河⑤个股)现算给"过到第几关/卡在哪关+结论"。（缺指定→不编）</div>')
     # 池三:等好价标的池(好公司但贵·记便宜位到价提醒)
     pool3 = ('<div class="blk">池③ 等好价标的池（好公司但估值贵·记下便宜位·到价提醒）</div>'
+             # 丙10：等好价必须标时间跨度+没有到期时间
+             '<div class="plain"><b>这里说的"便宜位"是什么时间跨度</b>：也是<b>按公司未来约 1~2 年该值多少</b>算出来的，'
+             '不是猜下个月的股价。<b>它没有到期时间</b>——不是"多久之内必须买"，而是<b>便宜了就提醒你</b>，'
+             '一直没便宜就一直不动。</div>'
              '<div class="card">结构已留：好公司但当前估值贵者入此池、记"便宜买入位"、到价提醒。'
              '当前候选宇宙外部标的估值多为<span class="need">待接·候选估值未接</span>；持仓中估值偏贵者(如IBKR现价约37倍前瞻>正常化中枢$52.8)已在其个股卡⑤标注等更好点位。外部候选到价提醒待接入候选估值后启用。</div>')
     scope = esc(str((daily.get("derived", {}) or {}).get("opportunity_scope", "待接")))
@@ -2043,6 +2248,13 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
             '.plain{background:#12261f;border-left:4px solid #4f9e7f;border-radius:0 7px 7px 0;padding:6px 11px;margin:6px 0;font-size:13px;color:#bfe6d3}'
             '.need{color:#ffb454;font-weight:700}.bull{color:#7ee0a0;font-weight:700}.bear{color:#ff9a9a;font-weight:700}.base{color:#7cc4ff;font-weight:700}'
             '.dt{width:100%;border-collapse:collapse;margin:7px 0;font-size:12.5px}.dt th,.dt td{border:1px solid #2a3d4f;padding:6px 8px;text-align:left;vertical-align:top}.dt th{background:#13202d;color:#bcd0e2}'
+            # 甲3：分主次——主(今日变化/待拍板/持仓一眼看全)大而亮；次(大环境/机会池/记分卡/右栏尺)弱化可折叠
+            'h2.main{font-size:23px;color:#ffd479;border-left:6px solid #ffd479;padding-left:10px;margin:22px 0 8px}'
+            'details.sub{margin:10px 0;border:1px solid #24384c;border-radius:8px;background:#101a26}'
+            'details.sub>summary{cursor:pointer;padding:9px 13px;font-size:14px;color:#9ed8ff;font-weight:700;list-style:none}'
+            'details.sub>summary::marker{content:""}details.sub>summary::before{content:"▸ ";color:#5cc8ff}'
+            'details.sub[open]>summary::before{content:"▾ "}details.sub>div,details.sub>table{margin:0 11px 10px}'
+            'h2.sub{font-size:15px;color:#8ea3b6;font-weight:600;border-left:3px solid #3a5a8a;padding-left:8px;margin:16px 0 6px}'
             '</style></head><body>')
     # ══ 乙2：页头最顶端超大横幅——一眼知道是不是今天的、是新是旧 ══
     _dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
@@ -2053,33 +2265,33 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     _fresh = _age_d <= 0
     _bg, _bd, _fg = (("#0f2e1c", "#4fbf87", "#8cf5be") if _fresh else ("#3a2410", "#c47a1e", "#ffb454"))
     _tag = "今天的" if _fresh else (f"{_age_d} 天前的·不是今天" if _age_d > 0 else "")
+    # 甲1：页头只留【一句大字 + 一行小字】。run_id/UTC/快照戳这些机器话收进折叠，别一打开就糊脸。
     big = (f'<div style="background:{_bg};border:3px solid {_bd};border-radius:12px;'
-           f'padding:14px 18px;margin:0 0 10px">'
-           f'<div style="font-size:30px;font-weight:900;color:{_fg};line-height:1.25;letter-spacing:1px">'
-           f'数据日 {esc(_dd)}　<span style="font-size:20px">［{esc(_tag)}］</span></div>'
-           f'<div style="font-size:16px;color:#e6eef5;font-weight:700;margin-top:6px">'
-           f'生产于 {esc(scan_jst)}　｜　run_id {esc(run_id)}</div>'
-           f'<div style="font-size:12.5px;color:#9aa8b5;margin-top:3px">'
-           f'这一行是这份产品的"身份证"：数据日=数字取自哪一天；生产于=这份文件什么时候跑出来的；'
-           f'run_id=这一次运行的编号。五册的这三项<b>必须完全一样</b>，不一样就是有一册是旧的。</div></div>')
-    title = (big
-             + f'<h1>每日投资决策台 · 完整产品（机器版·实时自动生成）</h1>'
-             f'<div style="background:#0e1621;border:1px solid #3a5a8a;border-radius:8px;padding:8px 12px;margin:6px 0;color:#ffd479;font-weight:700">'
-             f'🆔 run_id=<b>{esc(run_id)}</b>'
-             f' ｜ 📅 data_date=<b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>'
-             f' ｜ 本次实时扫描(production)：<b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）'
-             + (f' ｜ 行情快照日：{esc(md_note)}' if md_note else '')
-             + '<div style="font-size:12px;color:#9aa8b5;font-weight:400">run_id 锚定 production_' + esc(date) + '.json（generated_at 同源·可回溯）；同一扫描重渲字节一致（R3运行唯一性）</div>'
-             + _price_asof_note(date) + '</div>'
-             f'<p style="color:#9aa8b5">深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编</p>')
+           f'padding:12px 18px;margin:0 0 8px">'
+           f'<div style="font-size:29px;font-weight:900;color:{_fg};line-height:1.25;letter-spacing:1px">'
+           f'★ 每日投资产品 · {esc(_dd)}　<span style="font-size:19px">［{esc(_tag)}］</span></div>'
+           # _mkt_oneline 返回的是已转义好的安全HTML(内含<b>)→不能再 esc 一次(否则标签变字面量)
+           f'<div style="font-size:12.5px;color:#c8d4de;margin-top:5px">'
+           f'{_mkt_oneline(date)}</div>'
+           # 机器话折叠(要查再展开)
+           f'<details style="margin-top:5px"><summary style="font-size:11.5px;color:#8ea3b6;cursor:pointer">'
+           f'编号 / 生产时间 / 数据来源（点开看·核对用）</summary>'
+           f'<div style="font-size:11.5px;color:#9aa8b5;margin-top:5px;line-height:1.75">'
+           f'· 数据日 data_date=<b>{esc(_dd)}</b>（这些数字取自哪一天）<br>'
+           f'· 生产于 <b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）——这份文件什么时候跑出来的<br>'
+           f'· 编号 run_id=<b>{esc(run_id)}</b>——这一次运行的号；五册必须完全一样，不一样就是有一册是旧的<br>'
+           + (f'· 行情快照日：{esc(md_note)}<br>' if md_note else '')
+           + f'· 深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编'
+           + _price_asof_note(date)
+           + '</div></details></div>')
+    title = big
     part2 = f'<h2>第二部分 · 你的持仓，今天怎么办（{stats["n"]}只）</h2>' + "".join(cards)
     if only:   # 打通模式:只出持仓卡
         return head + title + part2 + "</body></html>", stats
     daily = dyn["daily"]
     der = daily.get("derived", {}) or {}
     oneline = esc(str(der.get("today_direction_short") or "今天：守核心、不追高、控AI集中"))
-    banner = (f'<div class="card" style="background:#1c2740;border-color:#3a5a8a">'
-              f'<span class="k">今天一句话</span><b style="font-size:15px">{oneline}</b></div>')
+    banner = _top3_card(date, dyn, daily, stats, oneline)
     # ══ 分册：同一份同源数据 → 5册(纯移搬·一字不删) ══
     v1_nav = _vol_nav(date, 1) ; v2_nav = _vol_nav(date, 2)
     v3_nav = _vol_nav(date, 3) ; v4_nav = _vol_nav(date, 4) ; v5_nav = _vol_nav(date, 5)
@@ -2403,20 +2615,93 @@ def _loop_map(date: str) -> str:
             '<b>闭环</b>：⑦记分卡的判对/判错 → 明日回改①-④的确定性档位（见④册魂①支柱累积表）。</div></div>')
 
 
+def _top3_card(date: str, dyn: dict, daily: dict, stats: dict, oneline: str) -> str:
+    """甲2：「今天先看这3件」置顶卡——给明确阅读顺序，治"无从下手"。
+    三件都只【引用】既有单一源(derived / pending_decisions / final)，不新造判断。"""
+    # ② 今天要拍板几件
+    try:
+        pd_ = rj(ROOT / "data" / "pdca" / "pending_decisions.json")
+        n_pend = int(pd_.get("pending_count") or 0)
+        pend_txt = "、".join(str(i.get("proposal", ""))[:26] for i in (pd_.get("items") or [])[:2])
+    except Exception:
+        n_pend, pend_txt = 0, ""
+    # ③ 持仓今天要不要动(动作按 final 单一源统计)
+    acts = {}
+    for h in dyn["prod"].get("holdings", []):
+        s = str(h.get("symbol"))
+        if s.startswith("CC."):
+            continue
+        f = build_final(s, h.get("name", s), dyn)
+        a = re.sub(r"<[^>]+>", "", str(f["action"])).strip()
+        acts[a] = acts.get(a, 0) + 1
+    n_all = sum(acts.values())
+    act_txt = "、".join(f"{k} {v} 只" for k, v in sorted(acts.items(), key=lambda x: -x[1]))
+    move = n_all - acts.get("守", 0) - acts.get("等", 0)
+    act_line = (f"<b style='color:#7ee0a0'>今天不用动手</b>——{n_all} 只全是「守／等」" if move == 0
+                else f"<b style='color:#ffd479'>有 {move} 只不是「守／等」</b>，要看一下")
+
+    def item(n, title, body, link):
+        return (f'<div style="display:flex;gap:11px;padding:9px 0;border-top:1px solid #2b4054">'
+                f'<div style="flex:0 0 26px;height:26px;border-radius:50%;background:#2c6e9a;color:#fff;'
+                f'font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center">{n}</div>'
+                f'<div style="flex:1"><div style="font-size:13.5px;color:#9ed8ff;font-weight:700">{title}</div>'
+                f'<div style="font-size:14px;margin-top:2px">{body}</div>'
+                f'<div style="font-size:11.5px;margin-top:2px">{link}</div></div></div>')
+
+    return ('<div class="card" style="background:#152238;border:2px solid #4a7fb5;border-radius:10px">'
+            '<div style="font-size:19px;font-weight:900;color:#ffd479;letter-spacing:.5px">今天先看这 3 件</div>'
+            '<div style="font-size:11.5px;color:#8ea3b6;margin-bottom:2px">按这个顺序看就行；下面的大环境/机会池/记分卡是想深究时才翻的底料。</div>'
+            + item(1, "大方向：今天整体怎么走",
+                   f'<b>{oneline}</b>',
+                   _a(L1(date, "layer-world"), "→ 想知道为什么这么判：看下面「大环境六层」"))
+            + item(2, "今天要你拍板的事",
+                   (f'<b style="color:#ffd479">{n_pend} 件</b>' + (f'：{esc(pend_txt)}…' if pend_txt else '')
+                    if n_pend else '<b style="color:#7ee0a0">0 件</b>——今天没有需要你拍板的事'),
+                   (_a(L1(date, "pending-inbox"), "→ 去拍板收件箱") if n_pend else ""))
+            + item(3, "你的持仓今天要不要动",
+                   f'{act_line}<div style="font-size:12.5px;color:#c8d4de;margin-top:2px">明细：{esc(act_txt)}</div>',
+                   _a(L1(date, "hold-table"), "→ 看下面「持仓一眼看全」表（带现价和贵便宜轴）"))
+            + '</div>')
+
+
 def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
-    """总览册摘要表：持仓/机会/记分 每行链进对应深册锚点。"""
+    """总览册摘要表：持仓/机会/记分 每行链进对应深册锚点。
+    乙5：升级为「一眼看全」对比表——股票｜今天怎么办｜现价｜合理价(未来1~2年)｜贵便宜迷你数轴。"""
     rows = []
     for h in dyn["prod"].get("holdings", []):
         s = str(h.get("symbol"))
         if s.startswith("CC."):
             continue
         f = build_final(s, h.get("name", s), dyn)
-        rows.append(f'<tr><td>{_a(L2(date, "stock-" + s), esc(str(h.get("name"))))}</td>'
-                    f'<td style="color:#8ea3b6">{esc(s)}</td>'
-                    f'<td>{f["action"]}</td><td>{f["quality"]}</td><td>{f["valuation_short"]}</td>'
-                    f'<td>{esc(_conf_grade(f))}</td></tr>')
-    hold_tbl = ('<table class="dt"><tr><th>持仓</th><th>代码</th><th>动作</th><th>账本</th><th>估值</th><th>把握</th></tr>'
-                + "".join(rows) + '</table>')
+        c = cur(s)
+        px = _price_of(s, dyn)
+        v = (dyn.get("valr", {}) or {}).get(s, {}) or {}
+        ok = str(v.get("status")) == "OK" and v.get("intrinsic") is not None
+        if ok:
+            fair = (f'{c}{v["reasonable_low"]:,.0f} ~ {c}{v["reasonable_high"]:,.0f}'
+                    f'<br><span style="color:#8ea3b6;font-size:11px">中间值 {c}{v["intrinsic"]:,.0f}</span>')
+            axis = _val_axis(s, dyn, mini=True)
+        else:
+            # 算不出估值的：这一格写人话原因(不留白·不编数)
+            t = str(v.get("type") or "")
+            why = {"周期股": "周期股·景气高点算不准", "控股公司": "控股公司·要分项估值",
+                   "商社": "综合商社·要分项估值"}.get(t, "缺可信估值输入")
+            fair = f'<span style="color:#ffb454">算不出该值多少</span><br><span style="color:#8ea3b6;font-size:11px">{esc(why)}</span>'
+            axis = '<span style="color:#8ea3b6;font-size:11px">不画轴——算不出就不编</span>'
+        rows.append(f'<tr><td>{_a(L2(date, "stock-" + s), esc(str(h.get("name"))))}'
+                    f'<br><span style="color:#8ea3b6;font-size:11px">{esc(s)}</span></td>'
+                    f'<td><b style="font-size:14px">{f["action"]}</b>'
+                    f'<br><span style="color:#8ea3b6;font-size:11px">{esc(_conf_grade(f))}</span></td>'
+                    f'<td style="text-align:right;white-space:nowrap"><b>{esc(c)}{px:,.2f}</b></td>'
+                    f'<td style="white-space:nowrap">{fair}</td>'
+                    f'<td style="min-width:150px">{axis}</td></tr>')
+    hold_tbl = ('<table class="dt"><tr><th>股票</th><th>今天怎么办</th><th style="text-align:right">现价</th>'
+                '<th>合理价<br><span style="font-weight:400;font-size:10.5px;color:#8ea3b6">未来1~2年该值多少</span></th>'
+                '<th>便宜 ─ 合理 ─ 贵（▼=今天的价）</th></tr>'
+                + "".join(rows) + '</table>'
+                + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px">'
+                  f'「合理价」是<b>{esc(HORIZON_NOTE)}</b>。绿=便宜 / 黄=合理 / 红=贵；▼是今天的价落在哪。'
+                  f'点股票名进该只的10块深卡。</div>')
     try:
         pd_ = rj(ROOT / "data" / "pdca" / "pending_decisions.json")
         n_pend = int(pd_.get("pending_count") or 0)
@@ -2428,14 +2713,15 @@ def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
                        for p in pillars_now(date)["pillars"])
     except Exception:
         pil = "待接"
-    return ('<h2>摘要表（每行点进对应深册）</h2>'
-            f'<div class="blk">持仓摘要（{stats["n"]}只·点名字进 {esc(VOL(date,2))} 该只10块深卡）</div>'
-            f'<div class="card">{hold_tbl}</div>'
-            f'<div class="blk">机会摘要</div><div class="card">'
-            f'{funnel_scope_line(date, dyn["daily"], dyn)}（与③机会池册同一口径·同一算子）；'
-            f'详见 {_a(VOL(date, 3), "③机会池册")}。今日待拍板 <b style="color:#ffd479">{n_pend}</b> 件（见本册差分优先页·拍板收件箱）。</div>'
-            f'<div class="blk">记分摘要</div><div class="card">支柱确定性累积：{esc(pil)}；'
-            f'三件魂详见 {_a(VOL(date, 4), "④记分卡/复盘册")}。</div>')
+    # 甲3 分主次：持仓「一眼看全」是【主】(大标题·置顶)；机会/记分是【次】(可折叠·想深究再翻)
+    return ('<h2 class="main" id="hold-table">持仓 · 一眼看全（{}只）</h2>'.format(stats["n"])
+            + f'<div class="card">{hold_tbl}</div>'
+            + '<details class="sub"><summary>机会 / 记分 摘要（点开看·想深究时才用）</summary>'
+            + f'<div class="card" style="margin-top:6px">{funnel_scope_line(date, dyn["daily"], dyn)}'
+              f'（与③机会池册同一口径·同一算子）；详见 {_a(VOL(date, 3), "③机会池册")}。'
+              f'今日待拍板 <b style="color:#ffd479">{n_pend}</b> 件（见本册上方拍板收件箱）。</div>'
+            + f'<div class="card">支柱确定性累积：{esc(pil)}；三件魂详见 {_a(VOL(date, 4), "④记分卡/复盘册")}。</div>'
+            + '</details>')
 
 def _pretty(h: str) -> str:
     """丙4：单行超长HTML→按块级标签换行(体积几乎不变·便于董事长核验与 git diff)。
