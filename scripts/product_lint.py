@@ -107,6 +107,46 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 fails.append(f"L6b 自造口径：{fn} 出现「{w}」——机会口径唯一出处是 derived.opportunity_scope")
                 break
 
+    # ── L9 同一标的现价全卡唯一(甲2·卡文本曾写死旧价:META $631 vs 实时 $687→动摇贵贱结论) ──
+    for fn, h in vols.items():
+        if "持仓深研" not in fn:
+            continue
+        for m in re.finditer(r'id="stock-([A-Z]{2}\.[A-Z0-9]+)"', h):
+            sym = m.group(1)
+            nxt = h.find('id="stock-', m.end())
+            card = _txt(h[m.start(): nxt if nxt > 0 else len(h)])
+            px = {p.replace(",", "") for p in re.findall(r"现价[约]?\s*[\$¥]\s*([\d,]+(?:\.\d+)?)", card)}
+            if len(px) > 1:
+                # 容差1%：同一价的不同写法(687 / 687.00)不算打架
+                v = sorted(float(x) for x in px)
+                if (v[-1] - v[0]) / v[0] > 0.01:
+                    fails.append(f"L9 现价打架：{fn} 的 {sym} 卡内出现多个现价 {sorted(px)}（必须全卡唯一·取实时源）")
+
+    # ── L10 记分卡同一指标全册一致(甲1·分环卡/魂①表/①册摘要曾报三个数) ──
+    days = set()
+    for h in vols.values():
+        t = _txt(h)
+        days |= set(re.findall(r"一共只追踪了\s*(\d+)\s*天", t))
+        days |= set(re.findall(r"有记录的这\s*(\d+)\s*天里", t))
+        days |= set(re.findall(r"这\s*(\d+)\s*天里", t))
+    if len(days) > 1:
+        fails.append(f"L10 记分卡天数打架：全册出现多个'追踪天数' → {sorted(days)}")
+
+    # ── L11 均线当买卖线(乙·董事长2026-07-17拍板:买卖只看估值·均线只作趋势参考) ──
+    MA_TRADE = [
+        r"回踩\s*50日[^。；<]{0,8}[＝=]?\s*低吸", r"回调到\s*50日[^。；<]{0,6}低吸",
+        r"跌破\s*(?:200日)?年线[^。；<]{0,6}[＝=]\s*止损", r"跌破\s*200日[^。；<]{0,6}止损",
+        r"低吸价（买/加）", r"待均线数据", r"低吸止损待均线",
+    ]
+    for fn, h in vols.items():
+        t = _txt(h)
+        for pat in MA_TRADE:
+            m = re.search(pat, t)
+            if m:
+                fails.append(f"L11 均线当买卖线：{fn} 出现「{m.group(0)[:24]}」"
+                             f"——买卖只看估值便宜位/偏贵位，均线仅趋势参考（与页头宣言一致）")
+                break
+
     # ── L7 新闻被从中间硬切(半截日期是最硬的证据) ──
     for fn, h in vols.items():
         t = _txt(h)

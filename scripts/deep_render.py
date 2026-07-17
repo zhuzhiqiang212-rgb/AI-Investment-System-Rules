@@ -488,14 +488,81 @@ def _conf_grade(f: dict) -> str:
 # ══════════ 成品级深度10块渲染(对齐董事长认可样卡)：定性块来自判断包/认可样卡·②财报Code接真源·⑤估值引擎+敏感性 ══════════
 DEEP_DIR = ROOT / "data" / "analysis" / "deep_cards"
 
-def _load_deep_card(sym: str):
+def _load_deep_card(sym: str, dyn: dict | None = None):
     p = DEEP_DIR / f"{sym}.json"
     if not p.exists():
         return None
     try:
-        return rj(p)
+        d = rj(p)
     except Exception:
         return None
+    if dyn is not None:
+        # 甲2：整卡一次性同步现价(所有块·含②⑤⑥⑨与source_note)→全卡现价唯一
+        try:
+            d = json.loads(_sync_card_prices(sym, json.dumps(d, ensure_ascii=False), dyn))
+        except Exception:
+            pass
+    return d
+
+# ══ 甲2[P0]：现价全卡唯一 —— 深度卡正文里【写死】的旧价/旧PE/旧贵贱，一律按今日实时价现算 ══
+# 根因：deep_cards/*.json 的分析正文里把当时的价写进了句子(如 META"现价约$631、前瞻PE约17~20倍(偏便宜)")，
+# 而档案四行与决策条走 production 实时价($687·系统现算"偏贵19%") → 同一张卡两个价、两个相反结论。
+# 治法：现价=production 单一真源；由价推出的前瞻PE用引擎的 eps0 现算；由旧价推出的贵/便宜结论
+# 一律收敛为"指向本卡⑤估值区间与决策条"(R1单一源·判断口径不变·不删肉)。
+_PRICE_RE = re.compile(r"(现价[约]?\s*)([\$¥])\s*([\d,]+(?:\.\d+)?)")
+_FWD_PE_RE = re.compile(r"(?:前瞻PE|前瞻市盈率)\s*约?\s*([\d\.]+)(?:\s*[~～-]\s*([\d\.]+))?\s*倍|约\s*([\d\.]+)\s*倍前瞻")
+_CHEAP_RE = re.compile(r"[（(][^（）()]{0,12}(?:偏便宜|偏贵|很便宜|很贵)[^（）()]{0,12}[）)]")
+
+
+def _price_of(sym: str, dyn: dict):
+    for h in (dyn.get("prod", {}) or {}).get("holdings", []) or []:
+        if h.get("symbol") == sym:
+            return h.get("price")
+    return None
+
+
+def _sync_card_prices(sym: str, blob: str, dyn: dict) -> str:
+    """把一张深度卡正文里所有写死的现价→今日实时价(单一源)；前瞻PE→现算；旧贵贱结论→指向单一源。"""
+    live = _price_of(sym, dyn)
+    if live is None:
+        return blob
+    c = cur(sym)
+    live_s = f"{live:,.2f}".rstrip("0").rstrip(".") if isinstance(live, (int, float)) else str(live)
+    stale: list[str] = []
+
+    def _rep_price(m):
+        old = m.group(3)
+        try:
+            if abs(float(old.replace(",", "")) - float(live)) / float(live) > 0.01:
+                stale.append(old)
+        except Exception:
+            pass
+        return f"{m.group(1)}{c}{live_s}"
+
+    blob = _PRICE_RE.sub(_rep_price, blob)
+    # 甲5：卡里写"某日收盘价待接"是【写卡当时】没取到价留的坑；今天实时价已经有了→就地填上，
+    # 别让同一张卡一边说"待接"、一边在档案行展示 ¥5,961(软银)。
+    blob = re.sub(r"[；;、,]?\s*\d{4}-\d{2}-\d{2}\s*收盘价待接",
+                  f"；今日实时价{c}{live_s}（见本卡档案行·同一实时源）", blob)
+    if not stale:
+        return blob
+    # 这张卡的正文确实拿旧价说过话 → 前瞻PE按今日价+引擎eps0现算(拿不到eps0就不编、只标)
+    eps0 = None
+    v = (dyn.get("valr", {}) or {}).get(sym, {}) or {}
+    a = v.get("assumptions", {}) or {}
+    for k in ("eps0", "normalized_eps", "normal_eps"):
+        if isinstance(a.get(k), (int, float)):
+            eps0 = a[k]
+            break
+    if eps0:
+        pe_now = float(live) / float(eps0)
+        blob = _FWD_PE_RE.sub(f"前瞻PE约{pe_now:.0f}倍（按今天{c}{live_s}现算）", blob)
+    else:
+        blob = _FWD_PE_RE.sub("前瞻PE（今日现算见本卡⑤估值行）", blob)
+    # 旧价推出来的"(偏便宜)/(偏贵)"括注 → 收敛到单一源(判断口径不变:结论本就以⑤/决策条为准)
+    blob = _CHEAP_RE.sub("（贵还是便宜以本卡⑤估值区间与顶部决策条为准·那是今天现算的）", blob)
+    return blob
+
 
 def _nd(s) -> str:
     """待接标橙(不编)。内容为已核准/已接真源的可信HTML片段·原样渲染。"""
@@ -539,9 +606,16 @@ def _val_sensitivity(sym: str):
             disc = _f2(vi.get("holding_discount")) or 0.0
             if sh and sh > 0:
                 base_nav = (tot - nd) / sh * (1 - disc)
+                # 甲3[factual]：资产名【按本只现取】，不许写死软银的"(Arm/OpenAI等)"。
+                # 原写法让所有走NAV法的标的都贴软银资产名 → MSTR(持的是比特币)敏感性表串成软银模板。
+                _names = [str(a.get("name", "")) for a in assets if a.get("name")]
+                _short = []
+                for _n in _names[:2]:
+                    _short.append(re.split(r"[（(]| ", _n)[0][:14])
+                _an = "／".join(x for x in _short if x) or "持有资产"
                 rows = []
-                for lbl, at, dd in [("资产涨：持有资产(Arm/OpenAI等) +10%", tot * 1.1, disc),
-                                    ("资产跌：持有资产 -10%", tot * 0.9, disc),
+                for lbl, at, dd in [(f"资产涨：{_an} +10%", tot * 1.1, disc),
+                                    (f"资产跌：{_an} -10%", tot * 0.9, disc),
                                     ("若市场给控股折价 20%(NAV/股打八折)", tot, 0.20),
                                     ("若市场给控股折价 40%(NAV/股打六折)", tot, 0.40)]:
                     v = (at - nd) / sh * (1 - dd)
@@ -870,7 +944,7 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
         deep = '<div class="deep"><span class="k">深研·财报趋势</span><span style="color:#c9a86a">待建判断包（个股判断包_*.html 缺该只·不编）</span></div>'
         pack_status = "待建判断包"
     # 成品级深度10块(对齐认可样卡)：有 deep_cards/{sym}.json 则升级为10块+大白话；无则保持4段(其余18只回退·待铺满)
-    _deepcard = _load_deep_card(sym)
+    _deepcard = _load_deep_card(sym, dyn)
     if _deepcard:
         f["action"] = _orig_action   # 深度卡⑧风险量化+⑨"什么才算生意坏了要走"已含退出条件→不降"初判·待补全"
         deep = render_deep_blocks(sym, name, dyn, _deepcard, f)
@@ -1419,6 +1493,29 @@ def _node_active(node: str, active: list) -> bool:
 _FUNNEL_CACHE: dict = {}
 
 
+def _featured_names() -> list[str]:
+    """6a 单独展开的"重点几只"(OPP_WATCHLIST)——五关漏斗的"其余N只"要排除它们，防两处打架。"""
+    try:
+        import full_product_render as fpr
+        return [str(c.get("name", "")) for c in fpr.OPP_WATCHLIST]
+    except Exception:
+        return []
+
+
+def _is_featured(name: str, feat: list[str]) -> bool:
+    """名字写法不一致(“海力士(SK Hynix)” vs “SK海力士”)→按去括号后的核心词互含判定。"""
+    def core(x: str) -> str:
+        return re.sub(r"[（(].*?[）)]|·.*$|\s", "", str(x)).strip()
+    n = core(name)
+    if not n:
+        return False
+    for f in feat:
+        c = core(f)
+        if c and (c in n or n in c):
+            return True
+    return False
+
+
 def funnel_compute(date: str, daily: dict, dyn: dict) -> dict:
     """甲3：机会池唯一口径的单一算子。6a标题/摘要表/五关漏斗全都只读这里的数字，
     不许各算各的(原来 6a 报'3/3进池'、漏斗报'23→19→5'=两套并存)。"""
@@ -1465,6 +1562,11 @@ def _funnel_compute_raw(date: str, daily: dict, dyn: dict) -> dict:
     for uc in merged.values():
         if True:
             nm = uc["name"]; tk = uc["ticker"]
+            # 甲6：候选宇宙里混了"(定义级·盟友供应链)"这种【节点定义占位】(ticker='待接')，
+            # 它不是一只标的，不许算进只数(原来 N=14 里有 1 个是它 → 清单实际13只≠称14)。
+            # 判据=没有真代码：守第六条"只锚定义不锚死名单"，占位保留在数据里、只是不当标的数。
+            if (not tk) or tk in ("待接", "TBD", "-"):
+                continue
             node = "／".join(uc["nodes"])                          # 合并后的节点显示(联电=算力／代工)
             c = {"source": uc["source"]}
             g1 = any(_node_active(n, active) for n in uc["nodes"])  # ①硬性:任一挂靠节点激活即过
@@ -1514,7 +1616,12 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
     # 件六②去重：把"护城河待接/估值待接/节点X今日激活/AI簇已超配只换不加"这类逐字重复的话
     # 归纳成一句总述，只对【有实质区别的】(过了均线关·有真价数据)逐只展开。
     distinct = [r for r in worth if "过·站上" in r["g2"]]
-    same = [r for r in worth if "过·站上" not in r["g2"]]
+    # 甲6：上面 6a 已经把"重点几只"(已预配换法的)单独展开过了 → 这里【排除】它们，
+    # 否则同一只(东京电子/美光/SK海力士)在 6a 说"进池·今日激活"、在这里又被归进"没扫到价·都不动"，
+    # 两处说法相反、且被数了两遍。
+    _feat = _featured_names()
+    same = [r for r in worth if "过·站上" not in r["g2"] and not _is_featured(r["name"], _feat)]
+    _same_feat = [r for r in worth if "过·站上" not in r["g2"] and _is_featured(r["name"], _feat)]
     wrows = ""
     if same:
         by_node = {}
@@ -1527,8 +1634,13 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
                   '它们的节点今天是热的（过了第一关），但<b>今天的全市场扫描没扫到它们的价格/均线</b>，'
                   '所以第二关往后没法判；而且它们都还没做过估值和护城河研究（不在你持仓里）。'
                   '结论也一样：<b>今天都不动</b>——AI这块你已经超配，只换不加。'
-                  '真要动，先等它们进到下面这几只“有真实价格数据”的行列里再说。</div></div>'
-                  % (len(same), lines, len(same)))
+                  '真要动，先等它们进到下面这几只“有真实价格数据”的行列里再说。'
+                  '%s</div></div>'
+                  % (len(same), lines, len(same),
+                     ('（本册开头单独展开的 <b>' + esc("、".join(r["name"] for r in _same_feat))
+                      + '</b> 情况其实和这几只一样——节点热、但今天没扫到价，'
+                        '所以也都不动；那几只单列只是因为已经先想好了"要换的话拿谁换"。）')
+                     if _same_feat else ""))
     for r in distinct:
         cmp_tbl = ('<table class="dt" style="margin:4px 0"><tr style="color:#8ea3b6"><th>维度</th><th>候选</th></tr>'
                    f'<tr><td>护城河</td><td>{esc(r["g4"] if "g4" in r else "待接·候选未入判断包")}</td></tr>'
@@ -1595,7 +1707,12 @@ def part6_rulers() -> str:
 
 # ── 第七部分·PDCA接真记分(R7：昨判今验+累计+预测字段·底气与总闸final同源) ──
 def track_days(date: str) -> tuple[int, str]:
-    """C3：全册唯一的"追踪了几天"。以记分卡历史的起算日为准现算，避免 8/9/7/6 各处打架。"""
+    """全册唯一的"追踪了几天"。
+
+    甲1：必须【不晚于本次数据日】才算数——history 里混进过 20260717(比数据日20260716还新、
+    且在文件里排在16前面)，导致这里数出 10 天、而复盘段按真实序列说"这9天里" → 打架。
+    与 pillars_now 用同一截断口径 → 记分卡内天数全册一致。
+    """
     dates = set()
     try:
         for r in (rj(ROOT / "data" / "pdca" / "scorecards.json").get("history") or []):
@@ -1611,7 +1728,7 @@ def track_days(date: str) -> tuple[int, str]:
                     dates.add(str(s["date"]))
     except Exception:
         pass
-    ds = sorted(dates)
+    ds = sorted(d for d in dates if d <= date)      # ← 不许把"未来日"数进今天的追踪天数
     return (len(ds), ds[0]) if ds else (0, "?")
 
 
@@ -1639,17 +1756,16 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
             + (f'<div style="margin-top:4px">今天的机会口径（与①③册同一取值）：'
                f'{esc(str((daily.get("derived", {}) or {}).get("opportunity_scope", "待接")))}</div>' if daily else "")
             + '<div class="meta" style="color:#8ea3b6;font-size:12px">判对了就给这把尺加把握、判错了就改尺。每环记：昨天怎么判的／今天验得怎样／累计几分。</div></div>')
+    # 甲1[P0·魂]：分环卡的分数/天数与魂①表、①册摘要【同一算子】pillars_now 现算
+    _pn = pillars_now(date)
+    _pby = {p["ring_id"]: p for p in _pn["pillars"]}
     rows = []
     for r in rings:
         rid = r.get("ring_id")
-        tj = traj.get(rid, {})
-        # C3：判对率分母统一为全册同一"追踪天数"(按日期去重·治 8/9/7 打架)
-        series = tj.get("daily_score_series") or []
-        _seen_d = {}
-        for s in series:
-            _seen_d[str(s.get("date"))] = s
-        series = [_seen_d[k] for k in sorted(_seen_d)]
-        pos = sum(1 for s in series if (s.get("daily_score") or 0) > 0)
+        _p = _pby.get(rid, {})
+        # 判对率分母 = 同一截断历史(不数未来日)，与"追踪N天"同源
+        series = _p.get("trend") or []
+        pos = sum(1 for s in series if (s.get("score") or 0) > 0)
         tot = len(series)
         acc = (f"{pos}/{tot} 天判对（{round(pos/tot*100):d}%）" if tot else "首日·待累计")
         # B3③：总闸环今判/置信对齐 R2 状态机 final(与第一部分/底气同源·不再用pdca旧US10Y噪声判)
@@ -1664,8 +1780,9 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
             f' <span style="font-size:11.5px">{_a(L1(date, "layer-" + _jid), "↩它所评的判断(判断ID:" + esc(_jid) + ")")}</span></div>'
             f'<div class="you" style="font-weight:400;font-size:12.5px;color:#bcd8ee">'
             f'· 昨判(预测)：{esc(str(r.get("previous_strength",""))+str(r.get("previous_direction","") or "首日无昨判"))}'
-            f'　· 今日验证/自动记分：{esc(str(r.get("daily_score","0")))}分（{esc(r.get("score_reason","待接"))}）'
-            f'　· 累计分：{esc(str(r.get("cumulative_score","0")))}'
+            # 甲1：今日记分/累计分一律取 pillars_now(与魂①表、①册摘要同一取值)
+            f'　· 今日验证/自动记分：{esc(str(_p.get("today_score", 0)))}分（{esc(r.get("score_reason","待接"))}）'
+            f'　· 累计分：{esc(str(_p.get("cumulative_score", 0)))}'
             f'　· 判对率(自 {esc((series[0].get("date") if series else "?"))})：{esc(acc)}'
             f'　· 成败标准：确定性{esc(r.get("certainty_before","?"))}→{esc(r.get("current_certainty","?"))}（{esc(r.get("certainty_event","维持"))}）</div></div>')
     if not rows:
@@ -1692,25 +1809,67 @@ def _spark(trend: list) -> str:
     return (f'有记录的这 {len(trend)} 天里：判对 {up} 天、判错 {down} 天、没变化 {flat} 天；'
             f'累计分从 {first} 变成 {last}，{trend_txt}')
 
+_RIDS = ["worldview", "fed_gate", "strategy", "capital_flow", "sector_rotation"]
+_RNAME = {"worldview": "世界观", "fed_gate": "总闸", "strategy": "战略",
+          "capital_flow": "资金", "sector_rotation": "板块"}
+
+
+def pillars_now(date: str) -> dict:
+    """甲1[P0·魂]：记分卡的【唯一】算子——所有分数/天数一律从 scorecards.json 现算。
+
+    根因：pillar_score.json 是"接scorecards"的派生快照，但没人在渲染时刷新它 →
+    它停在 2026-07-16T15:11(总闸0/战略4)，而 scorecards 已经是(总闸1/战略1) →
+    分环卡/魂①表/①册摘要三处报三个数。治法=不再读那个快照，全部从 scorecards 现算，
+    pillar_score.json 降级为导出物(谁都不许拿它当源)。
+    """
+    sc = rj(ROOT / "data" / "pdca" / "scorecards.json")
+    hist = sorted(sc.get("history", []) or [], key=lambda r: str(r.get("date", "")))
+    # ⚠只认【不晚于本次数据日】的记录：history 里混进过 20260717(比数据日还新·且排在16前面)
+    # → 造成"追踪10天"与"这9天里"并存。按数据日截断=天数全册唯一。
+    hist = [h for h in hist if str(h.get("date", "")) <= date]
+    cards = sc.get("cards", {}) or {}
+    out = []
+    for rid in _RIDS:
+        ser = [{"date": h.get("date"), "score": int((h.get("scores", {}) or {}).get(rid, 0) or 0)} for h in hist]
+        cum = 0
+        trend = []
+        for s in ser:
+            cum += s["score"]
+            trend.append({"date": s["date"], "score": s["score"], "cum": cum})
+        c = cards.get(rid, {}) or {}
+        first, last = (trend[0]["cum"], trend[-1]["cum"]) if trend else (0, 0)
+        out.append({"ring_id": rid, "ring_name": _RNAME[rid],
+                    "current_certainty": c.get("current_certainty", "待接"),
+                    "cumulative_score": cum,                       # ← 现算·不读快照
+                    "today_score": ser[-1]["score"] if ser else 0,  # ← 当日各环记分·与分环卡同一取值
+                    "trend_arrow": "↑" if last > first else ("↓" if last < first else "→"),
+                    "trend": trend, "days_tracked": len(trend)})
+    return {"pillars": out, "history": hist, "days": len(hist),
+            "start": hist[0].get("date") if hist else "", "cards": cards}
+
+
 def part7_souls(date: str, daily: dict | None = None) -> str:
     out = ['<h3 style="margin-top:16px">第七部分·魂 —— 系统之魂三件（总则第十四条：确定性累积表 + 多尺度复盘 + 影子组合反事实记分）</h3>']
-    # 魂① 支柱确定性累积表
+    # 魂① 支柱确定性累积表（甲1：与分环卡/①册摘要同一算子 pillars_now·不再读陈旧快照）
     try:
-        ps = rj(ROOT / "data" / "pdca" / "pillar_score.json")
-        ladder = "＜".join(ps.get("certainty_ladder", ["证伪", "弱", "中", "高"]))
+        pn = pillars_now(date)
+        ladder = "＜".join(["证伪", "弱", "中", "高"])
         prows = ""
-        for pl in ps.get("pillars", []):
-            prows += (f'<tr><td><b>{esc(pl.get("ring_name"))}</b></td>'
-                      f'<td style="color:#ffd479">{esc(pl.get("current_certainty"))}</td>'
-                      f'<td style="text-align:right">{esc(str(pl.get("cumulative_score")))}</td>'
-                      f'<td>{esc(pl.get("trend_arrow"))}</td>'
-                      f'<td style="font-family:monospace;font-size:12px">{esc(_spark(pl.get("trend", [])))}</td>'
-                      f'<td style="color:#8ea3b6">{esc(str(pl.get("days_tracked")))}日</td></tr>')
+        for pl in pn["pillars"]:
+            prows += (f'<tr><td><b>{esc(pl["ring_name"])}</b></td>'
+                      f'<td style="color:#ffd479">{esc(pl["current_certainty"])}</td>'
+                      f'<td style="text-align:right">{esc(str(pl["cumulative_score"]))}</td>'
+                      f'<td style="text-align:right">{esc(str(pl["today_score"]))}</td>'
+                      f'<td>{esc(pl["trend_arrow"])}</td>'
+                      f'<td style="font-size:12px">{esc(_spark(pl["trend"]))}</td>'
+                      f'<td style="color:#8ea3b6">{esc(str(pl["days_tracked"]))}日</td></tr>')
         out.append('<div class="blk">魂① 支柱确定性累积表（三支柱从"中"往"高"攒）</div>'
-                   f'<div class="plain">确定性阶梯：{esc(ladder)}；每环每日按尺(支持+1/无变0/证伪-1)滚动累积——判对攒把握、判错减分。源：pillar_score.json(接scorecards·不另起炉灶)。</div>'
-                   '<table class="dt"><tr><th>支柱环</th><th>当前档</th><th>累计分</th><th>走势</th><th>近N日轨迹(累积/每日)</th><th>追踪</th></tr>' + prows + '</table>')
+                   f'<div class="plain">确定性阶梯：{esc(ladder)}；每环每日按尺(支持+1/无变0/证伪-1)滚动累积——判对攒把握、判错减分。'
+                   f'本表的分数与天数与上面分环卡、①册摘要<b>同一个算子现算</b>（都数 scorecards 的真实历史），不会各报各的。</div>'
+                   '<table class="dt"><tr><th>支柱环</th><th>当前档</th><th>累计分</th><th>今日记分</th><th>走势</th><th>这些天怎么走的</th><th>追踪</th></tr>'
+                   + prows + '</table>')
     except Exception as e:
-        out.append(f'<div class="card">魂①支柱确定性累积表·待接（pillar_score.json 缺：{esc(e)}）</div>')
+        out.append(f'<div class="card">魂①支柱确定性累积表·待接（scorecards.json 缺：{esc(e)}）</div>')
     # 魂② 多尺度复盘 日/周/月/季/年
     try:
         sc = rj(ROOT / "data" / "pdca" / "scorecards.json")
@@ -2008,6 +2167,10 @@ _JARGON_RE = [
     (r"\bHBM\b", "高带宽内存（AI芯片专用的高速存储）"),
     (r"\bCoWoS\b", "先进封装（把芯片和内存叠在一起的工艺）"),
     (r"\bNAND\b", "闪存芯片"),
+    # 甲4：整组先吃掉——原来 XPU 与 ASIC 各替一次，"(XPU/ASIC)"就成了"(定制AI芯片/定制AI芯片)"
+    (r"[（(]\s*XPU\s*[／/]\s*(?:定制)?ASIC\s*[）)]", "（定制AI芯片）"),
+    (r"[（(]\s*(?:定制)?ASIC\s*[／/]\s*XPU\s*[）)]", "（定制AI芯片）"),
+    (r"\bXPU\s*[／/]\s*(?:定制)?ASIC\b|\b(?:定制)?ASIC\s*[／/]\s*XPU\b", "定制AI芯片"),
     (r"\bXPU\b|定制ASIC|\bASIC\b", "定制AI芯片"),
     (r"\bLTV\b", "负债率"),
     (r"\bPPA\b", "长期购电协议"),
@@ -2040,7 +2203,50 @@ def _scrub_jargon(s: str) -> str:
                  ("（，", "（"), ("(，", "("), (" ｜ ｜ ", " ｜ ")):
         s = s.replace(a, b)
     s = re.sub(r"（\s*）|\(\s*\)", "", s)
+    # 甲4 兜底：术语替换后可能把"(A/B)"两侧替成同一个词→"(定制AI芯片/定制AI芯片)"这类重复渣，一律归一。
+    s = re.sub(r"[（(]\s*([^（）()／/]{2,14})\s*[／/]\s*\1\s*[）)]", r"（\1）", s)
+    s = re.sub(r"([^（）()／/、，]{2,14})\s*[／/]\s*\1(?![^（）]*[／/])", r"\1", s)
     return s
+
+
+# ══ 甲7[大白话]：通篇未解释的术语 → 每册【首次出现】就地加括号解释，之后不再啰嗦 ══
+# 董事长看不懂 = 这句话白写。不删肉：术语保留，只在第一次出现时把人话补进去。
+_GLOSS = [
+    (r"(?<![A-Za-z])OI(?![A-Za-z])", "OI（营业利润）"),
+    (r"(?<![A-Za-z])DARTs?(?![A-Za-z])", "DARTs（客户日均交易笔数·衡量交易活跃度）"),
+    (r"(?<![A-Za-z])PFOF(?![A-Za-z])", "PFOF（把客户订单卖给做市商换回扣的做法·美国有争议）"),
+    (r"(?<![A-Za-z])DAR(?![A-Za-z])", "DAR（每个抗体平均挂几个药物分子·抗体药的关键工艺指标）"),
+    (r"(?<![A-Za-z])IRA(?![A-Za-z])", "IRA（美国《通胀削减法案》·内含药价管制）"),
+    (r"(?<![A-Za-z])CMO(?![A-Za-z])", "CMO（代工生产药品的厂商）"),
+    (r"拓扑异构酶(?:抑制剂)?载荷", "拓扑异构酶载荷（抗体上挂的那个杀癌细胞的药物弹头）"),
+    (r"ASU\s*2023-08", "ASU2023-08（美国新会计准则·允许把比特币按市价计入利润表）"),
+    (r"(?<![A-Za-z])senior(?:\s+notes?)?(?![A-Za-z])", "senior notes（优先级较高的公司债·还钱顺位排在股票前面）"),
+    (r"(?<![A-Za-z])ATM(?![A-Za-z])", "ATM（随行就市增发·公司按市价一点点卖新股融资）"),
+    (r"(?<![A-Za-z])LTV(?![A-Za-z])", "LTV（借款占资产的比例·衡量杠杆有多重）"),
+    (r"(?<![A-Za-z])DER(?![A-Za-z])", "DER（净负债÷净资产·衡量借了多少钱）"),
+    (r"Up-C\s*结构", "Up-C结构（上市公司只占运营实体一部分·财报净利与你能分到的不是一回事）"),
+    (r"(?<![A-Za-z])SerDes(?![A-Za-z])", "SerDes（芯片间高速收发电路）"),
+    (r"(?<![A-Za-z])HBM(?![A-Za-z])", "HBM（高带宽存储·AI芯片旁边那种贵内存）"),
+    (r"(?<![A-Za-z])NBM(?![A-Za-z])", "NBM（NAND闪存的高带宽新形态·对标HBM）"),
+    (r"(?<![A-Za-z])FCF(?![A-Za-z])", "FCF（自由现金流·真正能拿走的现金）"),
+    (r"(?<![A-Za-z])ROI(?![A-Za-z])", "ROI（投入产出比·花的钱赚没赚回来）"),
+    (r"(?<![A-Za-z])mNAV(?![A-Za-z])", "mNAV（市值÷持币净值·大于1=市场给溢价）"),
+]
+
+
+def _gloss_first(h: str) -> str:
+    """每册首次出现的术语就地解释一次(之后同术语不再加·免刷屏)。只加字·不删原文。"""
+    for pat, rep in _GLOSS:
+        rx = re.compile(pat)
+        m = rx.search(h)
+        if not m:
+            continue
+        # 已经紧跟解释的(原文自带括号说明)就别再叠
+        tail = h[m.end(): m.end() + 3]
+        if tail[:1] in ("（", "("):
+            continue
+        h = h[:m.start()] + rep + h[m.end():]
+    return h
 
 
 def _scrub_leaks(html_txt: str, is_pool: bool = False) -> str:
@@ -2050,6 +2256,15 @@ def _scrub_leaks(html_txt: str, is_pool: bool = False) -> str:
         html_txt = pat.sub(rep, html_txt)
     html_txt = _scrub_fields(html_txt)
     html_txt = _scrub_jargon(html_txt)
+    # 甲7：世界观"没变·但要盯(…需盯(…))"双盯嵌套 → 拆成一句人话
+    html_txt = re.sub(r"没变·但要盯\([^()]*?需盯\(未到世界大格局翻转\)\)",
+                      "没变（大格局还是原样），但地缘/秩序上的紧张信号今天多了，要盯着点", html_txt)
+    html_txt = re.sub(r"没变·但要盯\(([^()]{0,40})\)", r"没变，但要盯着点（\1）", html_txt)
+    html_txt = re.sub(r"没变\(三支柱维持·([^()]{0,30})\)", r"没变（三支柱延续·\1）", html_txt)
+    # 甲7：VIX那句三层括号 → 拆短句
+    html_txt = re.sub(r"（VIX\s*较昨([+\-][\d.]+)%、曲线未倒挂\(10Y-3M=([\d.]+)·2年待接\)）",
+                      r"：市场恐慌指数较昨天\1%，长短期利率没有倒挂，属正常", html_txt)
+    html_txt = _gloss_first(html_txt)          # 术语首次出现就地解释
     # 件二/件五：内部话与草稿语→人话/删(判断口径不变·只改措辞)
     for a, b in (("【状态机·事件驱动】", "【判断依据】"), ("状态机", "判断规则"), ("事件驱动", "按事件才改"),
                  ("对齐R2状态机·与第一部分同源", "与第一部分总闸同一判断"), ("(治B2)", ""), ("治B2", ""),
@@ -2141,9 +2356,9 @@ def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
     except Exception:
         n_pend = 0
     try:
-        ps = rj(ROOT / "data" / "pdca" / "pillar_score.json")
+        # 甲1：①册摘要也走同一算子(原来读陈旧的 pillar_score.json → 与④册报不同的数)
         pil = "、".join(f'{p["ring_name"]}{p["current_certainty"]}({p["cumulative_score"]:+d}{p["trend_arrow"]})'
-                       for p in ps.get("pillars", []))
+                       for p in pillars_now(date)["pillars"])
     except Exception:
         pil = "待接"
     return ('<h2>摘要表（每行点进对应深册）</h2>'

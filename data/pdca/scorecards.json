@@ -3,15 +3,15 @@
     "worldview": {
       "ring_id": "worldview",
       "ring_name": "世界观",
-      "judgment": "变(三支柱维持·今日无重大地缘新闻)",
+      "judgment": "没变·但要盯(地缘/秩序信号增多·需盯(未到regime反转))",
       "created_at": "20260702",
       "initial_strength": "中",
-      "cumulative_score": -2,
-      "current_certainty": "证伪",
-      "support_streak": 0,
-      "hit_streak": 2,
+      "cumulative_score": -1,
+      "current_certainty": "弱",
+      "support_streak": 1,
+      "hit_streak": 0,
       "last_strength": "中",
-      "last_evidence": "【新闻研判】世界观级：抓12条 → 过源白名单+时效(36h)+相关性闸后合格 0 条 → 判「三支柱维持·今日无重大地缘新闻」(不拿旧闻/杂源凑·不编)。剔除示例：“中等强国新联盟”与国际秩序再造 - 中美聚焦→源不在白名单且内容非重大：中美聚焦；观点 | 特朗普邀请黄仁勋一同访华！潜在可能与成果一文看懂 港美股资讯 - hs→源不在白名单且内容非重大：hstong.com；盘点美国破坏全球产供链“十宗罪” 中国商务部发起贸易壁垒调查 - 香港01→源不在白名单且内容非重大：香港01"
+      "last_evidence": "【新闻研判】世界观级：抓12条→合格9条(权威源+36h内+过相关性闸)，逐条方向研判加权净分=3.6 → 判「地缘/秩序信号增多·需盯(未到regime反转)·中」(非关键词计数)。样本：白宫：特朗普总统将就选举诚信问题发表讲话（美国之音·2026-07-16 22:26 UTC·无明确方向(仅相关背景)）；特朗普将就选举公正性发表全国讲话（RFI法广·2026-07-16 21:07 UTC·无明确方向(仅相关背景)）；央行开展4505亿元7天期逆回购操作 净投放4305亿元（观点网·2026-07-17 01:42 UTC·无明确方向(仅相关背景)）"
     },
     "fed_gate": {
       "ring_id": "fed_gate",
@@ -19,25 +19,25 @@
       "judgment": "总闸维持(无新Fed事件·基线)",
       "created_at": "20260702",
       "initial_strength": "中",
-      "cumulative_score": 0,
+      "cumulative_score": 1,
       "current_certainty": "高",
-      "support_streak": 5,
+      "support_streak": 8,
       "hit_streak": 0,
       "last_strength": "中",
-      "last_evidence": "【状态机·事件驱动】总闸=维持·观察（无新Fed事件·沿用第2天）·据美联储事件(FEDFUNDS/决议)，非单日行情噪声(治B2)。边际注脚(仅参考·不翻闸)：US10Y=4.545、较昨-0.87%。上次事件=2026-06-01"
+      "last_evidence": "【状态机·事件驱动】总闸=维持·观察（无新Fed事件·沿用第5天）·据美联储事件(FEDFUNDS/决议)，非单日行情噪声(治B2)。边际注脚(仅参考·不翻闸)：US10Y=4.545、较昨-0.87%。上次事件=2026-06-01"
     },
     "strategy": {
       "ring_id": "strategy",
       "ring_name": "战略",
-      "judgment": "AI(AI产业面走强)",
+      "judgment": "AI(AI产业面中性)",
       "created_at": "20260702",
       "initial_strength": "中",
-      "cumulative_score": 4,
-      "current_certainty": "高",
+      "cumulative_score": 3,
+      "current_certainty": "中",
       "support_streak": 1,
       "hit_streak": 0,
-      "last_strength": "强",
-      "last_evidence": "【新闻研判】战略产业面：抓12条→合格4条(权威源+36h内+过相关性闸)，逐条方向研判加权净分=1.6 → 判「AI产业面走强·强」(非关键词计数)。样本：没等来 “吊炸天”！“还凑合” 台积电扛不起 AI 大叙事了？ - （华尔街见闻·2026-07-16 12:04 UTC·无明确方向(仅相关背景)）；台积电财报：AI需求比芯片抛售潮所暗示的更为强劲 - Moomoo（Moomoo·2026-07-16 07:38 UTC·利多依据:强劲·利空依据:抛售·新鲜度6.7h）；台积电Q2净利润同比增长77.4%大超预期，毛利率达67.7%，AI（华尔街见闻·2026-07-16 05:50 UTC·利多依据:超预期/强劲·新鲜度8.5h）"
+      "last_strength": "中",
+      "last_evidence": "【新闻研判】战略产业面：抓12条→合格4条(权威源+36h内+过相关性闸)，逐条方向研判加权净分=1.2 → 判「AI产业面中性·中」(非关键词计数)。样本：没等来 “吊炸天”！“还凑合” 台积电扛不起 AI 大叙事了？（华尔街见闻·2026-07-16 12:04 UTC·无明确方向(仅相关背景)）；台积电财报：AI需求比芯片抛售潮所暗示的更为强劲（Moomoo·2026-07-16 07:38 UTC·利多依据:强劲·利空依据:抛售·新鲜度18.9h）；台积电第二季度净利润大增77.4%创纪录，AI芯片需求推动业绩超预期（TradingKey·2026-07-15 15:22 UTC·利多依据:创纪录/超预期·新鲜度35.2h）"
     },
     "capital_flow": {
       "ring_id": "capital_flow",
@@ -48,7 +48,7 @@
       "cumulative_score": 0,
       "current_certainty": "强",
       "support_streak": 0,
-      "hit_streak": 4,
+      "hit_streak": 0,
       "last_strength": "中",
       "last_evidence": "【行情·主】VIX 较昨+1.08%、曲线未倒挂(10Y-3M=0.857·2年待接)（阈值 VIX>+5.0%或倒挂→避险）→ 规则判「中性」。"
     },
@@ -61,7 +61,7 @@
       "cumulative_score": -2,
       "current_certainty": "证伪",
       "support_streak": 0,
-      "hit_streak": 7,
+      "hit_streak": 0,
       "last_strength": "弱",
       "last_evidence": "【行情·主】SOXX 较昨-2.23%（阈值±1.0%）→ 规则判「走弱」。"
     }
@@ -183,17 +183,31 @@
       "date": "20260716",
       "decision_quality": {
         "level": "低",
-        "reason": "关键环节确定性弱或证伪，机会池应收口径"
+        "reason": "关键环节确定性弱或证伪"
       },
       "scores": {
         "worldview": -1,
         "fed_gate": 1,
-        "strategy": 1,
+        "strategy": -1,
         "capital_flow": -1,
         "sector_rotation": -1
       }
+    },
+    {
+      "date": "20260717",
+      "decision_quality": {
+        "level": "低",
+        "reason": "关键环节确定性弱或证伪"
+      },
+      "scores": {
+        "worldview": 1,
+        "fed_gate": 1,
+        "strategy": 1,
+        "capital_flow": 0,
+        "sector_rotation": 0
+      }
     }
   ],
-  "updated_at": "2026-07-16T14:18:03.555125+00:00",
+  "updated_at": "2026-07-17T02:32:46.893979+00:00",
   "rule_source": "00_请先看这里/PDCA记分规则准绳.html"
 }
