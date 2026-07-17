@@ -1312,6 +1312,43 @@ _LAYER_RULER = [(("总命题", "世界"), "第六部分·右栏① 世界观"),
                 (("手段", "FIMA", "稳定币", "加密"), "第六部分·右栏③ 资金流动完整机制"),
                 (("资金轮动",), "第六部分·右栏③ 资金流动完整机制"),
                 (("板块", "半导体"), "第六部分·右栏④ 板块地图")]
+# ══ 乙[证伪指标集·董事长2026-07-17拍板采纳架构师规格] ══
+# 每支柱给【可观测指标 + 阈值 + 复核周期】——不是一句"出现反转就改"，而是说清"看哪个数、到多少、多久核一次"。
+FALSIFY_PILLARS = [
+    {"pillar": "支柱1 · 美国优先（高利率／美元强）",
+     "plain": "美国把资源往自己这边收、利率维持高位、美元强 —— 这是你日元敞口和高利率受益仓的前提。",
+     "indicators": ["美联储决议方向（降息／维持／加息）", "点阵图年内路径",
+                    "DXY 美元指数", "FIMA 用量（美联储给外国央行的美元窗口）"],
+     "falsify": "连续 <b>2 次</b>决议转为降息，或出现大放水 → 这根支柱证伪",
+     "cycle": "每次 FOMC 核一次"},
+    {"pillar": "支柱2 · 阵营化（脱钩／盟友链）",
+     "plain": "世界在分阵营、供应链按阵营重排 —— 这是你台海地缘敞口和盟友链节点的前提。",
+     "indicators": ["新出口管制／关税", "盟友链协议", "脱钩 vs 融合的方向"],
+     "falsify": "出现<b>重大脱钩逆转</b>（如管制大幅松绑、阵营重新融合）→ 这根支柱证伪",
+     "cycle": "月度核一次"},
+    {"pillar": "支柱3 · AI 国力竞争（钱砸算力）",
+     "plain": "各国把 AI 当国力在砸钱 —— 这是你 AI 供应链超配的前提，也是最该盯的一根。",
+     "indicators": ["大厂 capex 季度指引同比", "AI 收入 ÷ capex（砸的钱有没有换回收入）", "AI 管制方向"],
+     "falsify": "capex <b>连 2 季转负</b> 且 AI 收入增速 <b>&lt;20%</b> → 这根支柱证伪",
+     "cycle": "季度核一次"},
+]
+
+
+def falsify_block() -> str:
+    """证伪指标集：进世界观层「什么情况改看」——每支柱的指标/阈值/复核周期。"""
+    rows = ""
+    for p in FALSIFY_PILLARS:
+        rows += (f'<tr><td><b>{p["pillar"]}</b>'
+                 f'<div style="font-size:11.5px;color:#8ea3b6;margin-top:2px">{p["plain"]}</div></td>'
+                 f'<td style="font-size:12px">{"<br>".join("· " + esc(i) for i in p["indicators"])}</td>'
+                 f'<td style="font-size:12.5px;color:#ff9a9a">{p["falsify"]}</td>'
+                 f'<td style="white-space:nowrap;color:#9ed8ff">{esc(p["cycle"])}</td></tr>')
+    return ('<div style="margin-top:6px"><b style="color:#9ed8ff">什么情况这根支柱就算被推翻了（证伪指标集）</b>'
+            '<div style="font-size:11.5px;color:#8ea3b6">不是"感觉不对就改"——每根支柱都说死了：看哪个数、到多少算翻、多久核一次。</div>'
+            '<table class="dt"><tr><th>支柱</th><th>盯哪几个数</th><th>到什么程度算被推翻</th><th>多久核一次</th></tr>'
+            + rows + '</table></div>')
+
+
 _LAYER_FLIP = [(("总命题", "世界"), "出现 regime 级反转信号(秩序/联盟根本重构)，而非零星地缘噪声"),
                (("总闸", "美联储"), "美联储出现新的加息/降息事件(FEDFUNDS 变动)——按状态机才翻闸，单日利率波动不算"),
                (("战略", "AI"), "AI 产业面多空关键词转为空占优，或大厂集体下修 AI 资本开支"),
@@ -1989,6 +2026,8 @@ def part1_layers(daily: dict, dyn: dict) -> str:
             + f'<div style="font-size:13px;margin-top:3px"><span class="k">② 为什么(这么判的依据)</span>{why}</div>'
             + _layer_impact(node, dyn).replace("对你·落点持仓", "③ 对你·落点持仓")
             + f'<div style="font-size:13px;margin-top:3px"><span class="k">④ 什么情况改看法(证伪)</span>{esc(flip)}</div>'
+            # 乙[证伪指标集]：世界观层给全三支柱的"指标+阈值+复核周期"(其余层沿用单句)
+            + (falsify_block() if layer_slug(node) == "world" else "")
             + _corro_brief(node)
             + '</details>'
             + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:4px">'
@@ -2140,7 +2179,14 @@ def part3_concentration(date: str, dyn: dict) -> str:
             rows.append(_bar_row(k, float(v.get("pct") or 0),
                                  limit=(None if is_lower else thr),
                                  floor=(thr if is_lower else v.get("floor"))))
-        conc_html = ('<h2 class="sub">仓位集中度 · 哪一类押太多了</h2><div class="card">'
+        conc_html = ('<h2 class="main" id="layer-portfolio">⑦ 组合层 · 你整体押得偏不偏</h2>'
+                     '<div class="plain">这是<b>正式的一层</b>（董事长2026-07-17拍板升格）：'
+                     '前面几层看的是"大环境怎么样""每只该怎么办"，这一层看的是——'
+                     '<b>把你所有仓位放一起，有没有押得太偏</b>。它管三件事：'
+                     '①各类占比 vs 你自己定的上下限　②同一个坏消息会同时砸中哪几只　③要换的话换谁。'
+                     '<br>今天需要你拍板的事，就是这一层提出来的。'
+                     '<span style="color:#8ea3b6">对应尺：右栏「各类上下限定义 + 减仓/补仓触发规则」。</span></div>'
+                     '<h3 class="sub" style="font-size:15px">各类占比 vs 上下限</h3><div class="card">'
                      + "".join(rows)
                      + '<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:8px">'
                        '条越长=押得越多。<span style="color:#ff5c5c">红虚线</span>=上限、'
@@ -2607,9 +2653,10 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
         _p = _pby.get(rid, {})
         # 判对率分母 = 同一截断历史(不数未来日)，与"追踪N天"同源
         series = _p.get("trend") or []
-        pos = sum(1 for s in series if (s.get("score") or 0) > 0)
+        # 乙[记分卡预测式]：旧的"状态当预测"判对率【已废弃】——那只是描述今天、不是预测明天。
+        #   这里改为只报"记录了几天"，真判对率见下面「预测记分（新口径）」。
         tot = len(series)
-        acc = (f"{pos}/{tot} 天判对（{round(pos/tot*100):d}%）" if tot else "首日·待累计")
+        acc = (f"已记录 {tot} 天状态（<b>不当判对率</b>·真判对率见下方「预测记分」）" if tot else "首日·待累计")
         # B3③：总闸环今判/置信对齐 R2 状态机 final(与第一部分/底气同源·不再用pdca旧US10Y噪声判)
         _judg, _cert = r.get("judgment"), r.get("current_certainty", "待接")
         if "总闸" in str(r.get("ring_name")) and fed_dir != "待接":
@@ -2625,11 +2672,11 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
             # 甲1：今日记分/累计分一律取 pillars_now(与魂①表、①册摘要同一取值)
             f'　· 今日验证/自动记分：{esc(str(_p.get("today_score", 0)))}分（{esc(r.get("score_reason","待接"))}）'
             f'　· 累计分：{esc(str(_p.get("cumulative_score", 0)))}'
-            f'　· 判对率(自 {esc((series[0].get("date") if series else "?"))})：{esc(acc)}'
+            f'　· 状态记录(自 {esc((series[0].get("date") if series else "?"))})：{acc}'
             f'　· 成败标准：确定性{esc(r.get("certainty_before","?"))}→{esc(r.get("current_certainty","?"))}（{esc(r.get("certainty_event","维持"))}）</div></div>')
     if not rows:
         rows.append('<div class="card">PDCA rings 待接（pdca_daily 无 rings·不编）</div>')
-    return head + "".join(rows) + part7_souls(date, daily)
+    return head + "".join(rows) + part7_forecasts(date) + part7_souls(date, daily)
 
 
 # ── 第七部分·系统三件魂（总则第十四条：确定性累积表+多尺度复盘+影子组合反事实） ──
@@ -2688,6 +2735,56 @@ def pillars_now(date: str) -> dict:
                     "trend": trend, "days_tracked": len(trend)})
     return {"pillars": out, "history": hist, "days": len(hist),
             "start": hist[0].get("date") if hist else "", "cards": cards}
+
+
+def part7_forecasts(date: str) -> str:
+    """乙[记分卡预测式·董事长2026-07-17拍板]：每层每天一条有期限可结算的预测；
+    **只有到期结算过的才进判对率**——旧的"状态当预测"口径已废弃。"""
+    try:
+        d = rj(ROOT / "data" / "pdca" / "forecast_ledger.json")
+    except Exception:
+        return ('<div class="blk">预测记分（新口径）</div>'
+                '<div class="card"><span class="need">待接</span>（forecast_ledger.json 缺·不编）</div>')
+    fs = d.get("forecasts") or []
+    acc = d.get("accuracy") or {}
+    today = [f for f in fs if str(f.get("date")) == date]
+    done = [f for f in fs if f.get("result") in ("对", "错")]
+    rows = ""
+    for f in today:
+        rows += (f'<tr><td>{esc(str(f.get("layer"))[:14])}</td>'
+                 f'<td style="font-size:12.5px">{esc(str(f.get("claim")))}</td>'
+                 f'<td style="white-space:nowrap">{esc(str(f.get("confidence")))}</td>'
+                 f'<td style="white-space:nowrap;color:#8ea3b6">{esc(str(f.get("due_date")))}</td>'
+                 f'<td style="font-size:11.5px;color:#8ea3b6">{esc(str(f.get("settle_by")))}</td></tr>')
+    hist = ""
+    for f in sorted(done, key=lambda x: str(x.get("settled_at", "")), reverse=True)[:8]:
+        col = "#7ee0a0" if f["result"] == "对" else "#ff9a9a"
+        hist += (f'<tr><td style="color:#8ea3b6">{esc(str(f.get("date")))}</td>'
+                 f'<td>{esc(str(f.get("layer"))[:12])}</td>'
+                 f'<td style="font-size:12px">{esc(str(f.get("claim"))[:44])}</td>'
+                 f'<td><b style="color:{col}">{esc(f["result"])}</b></td>'
+                 f'<td style="font-size:11.5px;color:#8ea3b6">{esc(str(f.get("why", ""))[:60])}</td></tr>')
+    rate = acc.get("rate_pct")
+    return ('<div class="blk">预测记分（新口径·只有"到期结算过的"才算数）</div>'
+            '<div class="plain"><b>为什么换口径</b>：以前把"今天状态=走弱"当成一条预测记分——'
+            '可那只是<b>描述今天</b>，不是预测明天，判对率没意义。'
+            '现在每层每天下一条<b>写死了赌什么、赌到哪天、拿什么数结算</b>的预测，'
+            '到期用真行情判对错，<b>只有结算过的才进判对率</b>。'
+            '（状态读数照样给你看，但不再当预测计分。）</div>'
+            + f'<div class="card"><b>今天下的 {len(today)} 条预测</b>'
+            + ('<table class="dt"><tr><th>哪一层</th><th>赌什么</th><th>把握</th><th>到期日</th><th>拿什么结算</th></tr>'
+               + rows + '</table>' if rows else '<div style="color:#8ea3b6">今天没有可下的预测</div>')
+            + '</div>'
+            + '<div class="card"><b>判对率（只数已结算的）</b>：'
+            + (f'<b style="font-size:16px">{acc.get("hit")}/{acc.get("settled_total")} = {rate}%</b>'
+               if rate is not None else
+               '<b style="color:#ffd479">还没有到期的预测 → 先攒着，不给假数字</b>')
+            + f'　<span style="color:#8ea3b6">未到期 {acc.get("pending", 0)} 条'
+            + (f'；无法结算 {acc.get("unsettleable", 0)} 条（缺真数据·不计入·不编）'
+               if acc.get("unsettleable") else '') + '</span>'
+            + (('<table class="dt" style="margin-top:6px"><tr><th>下的那天</th><th>哪一层</th><th>赌了什么</th>'
+                '<th>结果</th><th>怎么算出来的</th></tr>' + hist + '</table>') if hist else '')
+            + '</div>')
 
 
 def part7_souls(date: str, daily: dict | None = None) -> str:
@@ -3209,9 +3306,12 @@ def _vol_nav(date: str, cur: int) -> str:
 
 def _loop_map(date: str) -> str:
     """硬链3：七层逻辑闭环图(每节点点进对应册/锚点)。"""
+    # 乙[组合层升格·董事长2026-07-17拍板]：集中度/共同风险穿透/替换引擎 立为正式一层「⑥组合层」，
+    #   位置在【持仓与复盘之间】——先看单只(⑤持仓)，再看整体押得偏不偏(⑥组合)，最后复盘(⑦)。
     nodes = [("①世界观", L1(date, "layer-world")), ("②国家战略", L1(date, "layer-strategy")),
              ("③资金流动", L1(date, "layer-capital")), ("④板块轮动", L1(date, "layer-sector")),
-             ("⑤机会池", VOL(date, 3)), ("⑥持仓", VOL2(date, "2a")), ("⑦复盘记分卡", VOL(date, 4))]
+             ("⑤机会池", VOL(date, 3)), ("⑥持仓", VOL2(date, "2a")),
+             ("⑦组合层", L1(date, "layer-portfolio")), ("⑧复盘记分卡", VOL(date, 4))]
     chain = ' <span style="color:#ffd479">→</span> '.join(
         f'<a href="{h}" style="display:inline-block;background:#12203a;border:1px solid #3a5a8a;'
         f'border-radius:8px;padding:6px 10px;color:#8fd6ff;text-decoration:none;margin:3px 0">{esc(t)}</a>'

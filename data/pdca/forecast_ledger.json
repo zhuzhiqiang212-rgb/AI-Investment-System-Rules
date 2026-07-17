@@ -1,0 +1,81 @@
+{
+  "_说明": "预测式打分台账。每层每天下一条【有期限可结算】的预测，到期用真数据判对/错，**只有已结算的才进判对率**。状态读数照展示但不当预测计分——旧的『状态当预测』口径已废弃(那只是描述今天、不是预测明天)。",
+  "_期限": "5 个交易日",
+  "date": "20260717",
+  "generated_at": "2026-07-17T21:58:52+09:00",
+  "accuracy": {
+    "settled_total": 0,
+    "hit": 0,
+    "rate_pct": null,
+    "by_layer": {},
+    "pending": 5,
+    "unsettleable": 0
+  },
+  "forecasts": [
+    {
+      "layer": "总命题·世界是否真变",
+      "date": "20260717",
+      "due_date": "20260724",
+      "state_when_made": "没变·但要盯(地缘/秩序信号增多·需盯(未到regime反转))",
+      "confidence": "中",
+      "result": "",
+      "claim": "未来 5 个交易日内，这一层不会出现翻转级事件（状态维持「没变·但要盯(地缘/秩序信号增多·需盯(未到regime反转))」）",
+      "settle_by": "该层状态是否翻转",
+      "code": "",
+      "op": "state_hold",
+      "target": "没变·但要盯(地缘/秩序信号增多·需盯(未到regime反转))"
+    },
+    {
+      "layer": "总闸·美联储是否美国优先",
+      "date": "20260717",
+      "due_date": "20260724",
+      "state_when_made": "总闸维持(无新Fed事件·基线)",
+      "confidence": "中",
+      "result": "",
+      "claim": "未来 5 个交易日内，这一层不会出现翻转级事件（状态维持「总闸维持(无新Fed事件·基线)」）",
+      "settle_by": "该层状态是否翻转",
+      "code": "",
+      "op": "state_hold",
+      "target": "总闸维持(无新Fed事件·基线)"
+    },
+    {
+      "layer": "战略指向·AI/安全/能源",
+      "date": "20260717",
+      "due_date": "20260724",
+      "state_when_made": "AI(AI产业面中性)",
+      "confidence": "中",
+      "result": "",
+      "claim": "未来 5 个交易日内，AI 主线不会被证伪（半导体不累计跌破 -10%）",
+      "settle_by": "SOXX 区间累计涨跌%",
+      "code": "US.SOXX",
+      "op": "gt",
+      "target": -10.0
+    },
+    {
+      "layer": "板块轮动",
+      "date": "20260717",
+      "due_date": "20260724",
+      "state_when_made": "半导体走弱",
+      "confidence": "低",
+      "result": "",
+      "claim": "未来 5 个交易日内，半导体(SOXX)不会出现累计 +5% 以上的强反弹",
+      "settle_by": "SOXX 区间累计涨跌%",
+      "code": "US.SOXX",
+      "op": "lt",
+      "target": 5.0
+    },
+    {
+      "layer": "资金轮动",
+      "date": "20260717",
+      "due_date": "20260724",
+      "state_when_made": "中性",
+      "confidence": "中",
+      "result": "",
+      "claim": "未来 5 个交易日内，市场不会转入明显避险（标普不累计跌破 -5%）",
+      "settle_by": "SPY 区间累计涨跌%",
+      "code": "US.SPY",
+      "op": "gt",
+      "target": -5.0
+    }
+  ]
+}

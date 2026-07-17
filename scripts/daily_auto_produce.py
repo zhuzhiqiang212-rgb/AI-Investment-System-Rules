@@ -51,6 +51,7 @@ STEPS = [
     ("⑩ 记分卡", "pdca_scorecard.py", False),
     ("⑪ 复盘", "pdca_review.py", False),
     ("⑫ 三件魂", "systems_soul_build.py", False),
+    ("⑫b 预测记分(下预测+结算到期)", "forecast_ledger.py", False),
 ]
 
 
@@ -60,9 +61,13 @@ def _now() -> str:
 
 def run_step(label: str, script: str, date: str, extra: list | None = None) -> tuple[int, str]:
     cmd = [sys.executable, str(ROOT / "scripts" / script), "--date", date] + (extra or [])
+    # 甲3：光在父进程 encoding="utf-8" 解不够——【子进程】默认按系统 GBK 编码写 stdout，
+    #   于是中文进日志就成了乱码("持仓20项"→"�ֲ� 20 ��")。必须让子进程也用 UTF-8 输出。
+    import os
+    env = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
     try:
         p = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", timeout=900)
+                           encoding="utf-8", errors="replace", timeout=900, env=env)
         tail = ((p.stdout or "") + (p.stderr or "")).strip().splitlines()
         return p.returncode, (tail[-1][:200] if tail else "")
     except subprocess.TimeoutExpired:

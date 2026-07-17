@@ -55,6 +55,21 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         fails.append(f"L2 同源：run_id 不唯一 → {sorted(rid) or '一个都没有'}")
     if len(dd) != 1:
         fails.append(f"L2 同源：data_date 不唯一 → {sorted(dd) or '一个都没有'}")
+    # L2b 快照戳也要五册一致 + 必须等于本次 production 的 generated_at(不许旧快照顶充)
+    snaps = set()
+    for h in vols.values():
+        snaps |= set(re.findall(r"UTC\s+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})", h))
+    if len(snaps) > 1:
+        fails.append(f"L2b 同源：快照戳不唯一 → {sorted(snaps)}")
+    elif snaps:
+        try:
+            gen = json.loads((ROOT / "data" / "reports" / f"production_{date}.json")
+                             .read_text(encoding="utf-8")).get("generated_at", "")[:19]
+            if gen and gen not in snaps:
+                fails.append(f"L2b 快照对不上：册里写 {sorted(snaps)}，但 production_{date}.json 是 {gen}"
+                             f"——册不是这次扫描出的(旧版顶充?)")
+        except Exception:
+            pass
 
     # ── L3 转义渣(标签被转义成字面量印给董事长看) ──
     for fn, h in vols.items():
@@ -82,6 +97,24 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         hit = [w for w in LEAK if w in t]
         if hit:
             fails.append(f"L4b 内部话泄露：{fn} 出现 {hit[:3]}（引擎内部字段/话术不许印给董事长）")
+    # L4c 内部结构泄露：python dict 原样打印 / data 路径 / 裸 .json 文件名 / 裸字段名
+    STRUCT = [
+        (r"\{['\"&][^}<]{0,120}?:\s*['\"&][^}<]{0,120}?\}", "python字典被原样打印"),
+        (r"data/[a-z_]+/[a-z_0-9]+\.json|data\\\\[a-z_]+", "内部数据路径"),
+        (r"(?<![\w/])[a-z_]{3,}_\d{8}\.json|(?<![\w/])[a-z_]{4,}\.json", "内部json文件名"),
+        (r"(?<![\w])(?:by_symbol|by_layer|by_ticker|aggregate_by_ticker|holdings_true|"
+         r"quantity_status|price_data_date|change_pct|cost_price|reasonable_low|reasonable_high|"
+         r"current_certainty|cumulative_score|daily_score|opportunity_scope|today_direction)(?![\w])",
+         "裸字段名"),
+    ]
+    for fn, h in vols.items():
+        t = _txt(h)
+        for pat, why in STRUCT:
+            m = re.search(pat, t)
+            if m:
+                fails.append(f"L4c 内部结构泄露：{fn} 出现{why}「{m.group(0)[:34]}」"
+                             f"——程序内部结构不许印给董事长")
+                break
 
     # ── L5 册间摘要数字 = 分册数字(机会池口径不许两套) ──
     nums = set()
