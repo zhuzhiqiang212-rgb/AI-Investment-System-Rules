@@ -1380,7 +1380,7 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
                        _a(L1(_dt, "layer-" + s), t) for s, t in
                        (("world", "①世界观"), ("strategy", "②国家战略"), ("capital", "③资金流动"),
                         ("sector", "④板块轮动"))) +
-                   '　｜　' + _a(VOL(_dt, 3), "⑤机会池册") + '　' + _a(VOL(_dt, 4), "⑦记分卡册")
+                   '　｜　' + _a(VOL(_dt, 3), "⑤机会池册") + '　' + _a(VOL(_dt, 4), "⑧记分卡册")
                    + '　｜　' + _a(L5(_dt, "ruler-6"), "右栏⑥本只静态档案") + '</div>')
     # 甲6：出报日→卡顶强制横幅(日历现算·非出报日不出现)
     _eb = earnings_banner(sym, dyn.get("date", ""), dyn)
@@ -1817,6 +1817,64 @@ def part_actions_table(date: str, dyn: dict) -> str:
               '系统只读不下单 · 你拍板。买卖只看估值便宜位/偏贵位，均线只作趋势参考。</div>')
 
 
+def _exec_buy_lines(r: dict, budget_usd, fx, total_usd, cat: str, cats: dict, date: str, dyn: dict) -> str:
+    """现金落到可执行（第二档7·修1·董事长2026-07-18）：每条买入给全6项——
+    ①从哪个账户出 ②币种换算 ③这只分多少钱 ④第一批买几股 ⑤第二批具体在什么价再买 ⑥买完后各类占比。
+    全部现算；缺现金/汇率→那几项标待接，不编。"""
+    sym = r["sym"]; c = r["cur"]; px = r["px"]; lo = r["lo"]
+    is_jp = sym.startswith("JP.")
+    acct = ("<b>SBI</b>（日元账户·能买日股；这只是日股）" if is_jp
+            else "<b>富途</b> 或 <b>IBKR</b>（美元账户；这只是美股）")
+    # ② 币种换算
+    if isinstance(budget_usd, (int, float)) and isinstance(fx, (int, float)) and fx > 0:
+        if is_jp:
+            budget_local = budget_usd * fx
+            fxline = f'预算 <b>${budget_usd:,.0f}</b> ×汇率 {fx:.1f} = <b>¥{budget_local:,.0f}</b>（日元买）'
+        else:
+            budget_local = budget_usd
+            fxline = f'预算 <b>${budget_usd:,.0f}</b>（美元账户直接买·无需换汇）'
+        # ④ 第一批股数 = 预算(本币) ÷ 现价，向下取整
+        shares = int(budget_local // px) if px else 0
+        spent_local = shares * px
+        spent_usd = (spent_local / fx) if is_jp else spent_local
+        sharesline = (f'第一批买 <b>{shares:,} 股</b>（¥{budget_local:,.0f}÷现价¥{px:,.0f} 取整）＝实花约 ¥{spent_local:,.0f}（≈${spent_usd:,.0f}）'
+                      if is_jp else
+                      f'第一批买 <b>{shares:,} 股</b>（${budget_local:,.0f}÷现价${px:,.0f} 取整）＝实花约 ${spent_local:,.0f}')
+    else:
+        fxline = '<span class="need">预算/汇率待接·不编</span>'
+        sharesline = '<span class="need">股数待接（缺现金或汇率）·不编</span>'
+        spent_usd = None
+    # ⑤ 第二批具体价 = 便宜位再低 5%（透明机械规则·不写死"别追"）
+    p2 = round(lo * 0.95)
+    secondline = (f'第二批：<b>若再跌到约 {c}{p2:,.0f}</b>（便宜位 {c}{lo:,.0f} 再低 5%）加第二批；'
+                  f'没跌到就<b>不追</b>，留着。')
+    # ⑥ 买完后 AI供应链/防御/加密 各类占比变化（归类的类升、其余被摊薄；未归类则三类同被摊薄）
+    if isinstance(spent_usd, (int, float)) and isinstance(total_usd, (int, float)) and total_usd > 0 and cats:
+        new_tot = total_usd + spent_usd
+        parts = []
+        for ck in ("AI供应链", "防御", "加密"):
+            cp = (cats.get(ck, {}) or {}).get("pct")
+            if not isinstance(cp, (int, float)):
+                continue
+            cusd = cp / 100.0 * total_usd + (spent_usd if ck == cat else 0.0)
+            parts.append(f'{ck} <b>{cp:.1f}%→{cusd / new_tot * 100.0:.1f}%</b>')
+        tail = ("（这只归入「%s」→该类升、其余被摊薄）" % esc(cat) if cat
+                else "（这只<b>未归入</b>三类→三类都因总盘做大被小幅摊薄；也提醒它没补上防御缺口）")
+        pctline = "买完后：" + "　".join(parts) + tail
+    else:
+        pctline = '<span class="need">买后占比待接（缺现金/汇率/总资产）·不编</span>'
+    return ('<div style="font-size:12px;color:#c8d4de;margin-top:3px;padding-left:8px;border-left:2px solid #2f5540">'
+            f'① 从哪出：{acct}<br>'
+            f'② 币种换算：{fxline}<br>'
+            f'③④ 这只分多少·买几股：{sharesline}<br>'
+            f'⑤ {secondline}<br>'
+            f'⑥ {pctline}</div>')
+
+
+def r_over(cat: str, date: str, dyn: dict) -> bool:
+    return cat in {k for k, _p, _l in _over_cats(date, dyn)["over"]}
+
+
 def part0_cash(date: str, dyn: dict) -> str:
     """四：SBI闲钱怎么用——具体建议(买/减什么·大概价·大概比例·为什么)。价位全部现算。"""
     # 甲[P0]：现金也要分清"哪份是今天实时的、哪份是旧快照"——不许把 07-02 的数当今天的闲钱
@@ -1861,23 +1919,22 @@ def part0_cash(date: str, dyn: dict) -> str:
              + ('' if isinstance(cash, (int, float)) else
                 '<div style="font-size:12px;color:#8ea3b6">下面的比例照样能用——把它套到你实际的现金数上即可。</div>')
              + '</div>')
-    # 建议1：用约1/3买今天跌到加仓价的
+    # 建议1：用约1/3买今天跌到加仓价的（修1：每只落到6项可执行）
+    fx = conc.get("usdjpy"); total_usd = conc.get("total_usd")
+    budget_total = (cash / 3) if isinstance(cash, (int, float)) else None
+    per = (budget_total / len(addable)) if (budget_total and addable) else None
     if addable:
         li = ""
         for r in addable:
             c = r["cur"]
+            catr = _cat_of(r["sym"], date, dyn)
             li += (f'<div style="padding:6px 0;border-top:1px solid #2b4054">'
                    + act_marker_lit(r["sym"], "现金建议·买", "加")
                    + f'· <b>{esc(r["name"])}</b>　现价 <b>{c}{r["px"]:,.0f}</b>'
                    f'（已比加仓价 {c}{r["lo"]:,.0f} 低 {abs(r["gap_lo"]):.1f}%）'
-                   f'　今天 {r["chg"]:+.2f}%' if r["chg"] is not None else ''
-                   ) + (f'<div style="font-size:12px;color:#8ea3b6">分批买、别一次买满；'
-                        f'<b>涨回 {c}{r["mid"]:,.0f} 以上就别再追</b>；'
-                        + (f'属于「{esc(_cat_of(r["sym"], date, dyn))}」'
-                           if _cat_of(r["sym"], date, dyn) else
-                           '<span style="color:#ffb454">⚠这只目前没被归进任何集中度类别（AI/加密/防御都不含它）'
-                           '——加它不会补上防御缺口，也不会加重AI超配；归类需理解岗补</span>')
-                        + '</div></div>')
+                   + (f'　今天 {r["chg"]:+.2f}%' if r["chg"] is not None else '')
+                   + _exec_buy_lines(r, per, fx, total_usd, catr, cats, date, dyn)
+                   + '</div>')
         amt = (f'约 <b>${cash/3:,.0f}</b>（现金的 1/3）' if isinstance(cash, (int, float)) else '约<b>现金的 1/3</b>')
         o.append('<div class="card" style="background:#0f2e1c;border:2px solid #4fbf87">'
                  f'<div style="font-size:15px;font-weight:800;color:#8cf5be">建议 1｜{amt}：买今天真跌到加仓价的这 {len(addable)} 只</div>'
@@ -1903,19 +1960,40 @@ def part0_cash(date: str, dyn: dict) -> str:
              '<div style="font-size:11.5px;color:#8ea3b6;margin-top:3px">'
              '注：架构师原工单写"等美联储 7/29 前后"。本系统里 7/29 登记的是<b>微软/META/爱德万的财报日</b>，'
              '查不到美联储议息日的真源 → 这里不写死那个日子，只说"分批、别一次到底"。</div></div>')
-    # 建议3：把超配减下来(具体路径)
+    # 建议3：把超配减下来(具体路径·修1：每只落到"减几股·减后占比")
+    qmap = {str(h.get("symbol")): h.get("quantity") for h in dyn["prod"].get("holdings", [])}
     if cut:
+        # 该超配类要砍掉的美元金额（第一个 over 类）
+        _ov = oc["over"][0] if oc["over"] else None
+        need_usd = ((_ov[1] - _ov[2]) / 100.0 * total_usd) if (_ov and isinstance(total_usd, (int, float))) else None
+        _gsum = sum(max(r["gap_mid"], 0.1) for r in cut) or 1.0
         li = ""
+        cum_sold_usd = 0.0
         for r in cut:
             c = r["cur"]
             pos = ("比贵位还贵" if r["above_rich"] else ("在合理区偏上" if r["gap_mid"] > 0 else "在合理区偏下"))
+            # 按"贵的程度"分配这只该砍的美元 → 股数
+            exec_line = ""
+            if isinstance(need_usd, (int, float)) and isinstance(fx, (int, float)) and fx > 0:
+                alloc_usd = need_usd * (max(r["gap_mid"], 0.1) / _gsum)
+                px_usd = (r["px"] / fx) if r["sym"].startswith("JP.") else r["px"]
+                held = qmap.get(r["sym"])
+                sh = int(alloc_usd // px_usd) if px_usd else 0
+                if isinstance(held, (int, float)):
+                    sh = min(sh, int(held))
+                sold_usd = sh * px_usd
+                cum_sold_usd += sold_usd
+                heldtxt = f'（现持约 {held:,.0f} 股）' if isinstance(held, (int, float)) else ''
+                exec_line = (f'<div style="font-size:12px;color:#c8d4de;padding-left:8px;border-left:2px solid #5a2f2f;margin-top:2px">'
+                             f'· <b>减约 {sh:,} 股</b>{heldtxt}＝回笼约 ${sold_usd:,.0f}'
+                             f'（从哪减：这只在{"SBI日元账户" if r["sym"].startswith("JP.") else "富途/IBKR美元账户"}）</div>')
             li += (f'<div style="padding:6px 0;border-top:1px solid #2b4054">'
                    + act_marker_lit(r["sym"], "现金建议·减", "减")
                    + f'· <b>{esc(r["name"])}</b>　'
                    f'现价 <b>{c}{r["px"]:,.0f}</b>（比中间值 {r["gap_mid"]:+.0f}%·{pos}）'
                    f'　贵位 {c}{r["hi"]:,.0f}'
-                   # 丙：这是【停手价】，不能说成"减到X"(会被读成"要在X这个价减")
-                   f'<div style="font-size:12px;color:#8ea3b6">'
+                   + exec_line
+                   + f'<div style="font-size:12px;color:#8ea3b6">'
                    f'<b>跌回 {c}{r["hi"]:,.0f} 以下就别再减了</b>；'
                    f'今天 {("%+.2f%%" % r["chg"]) if r["chg"] is not None else "涨跌待接"}</div></div>')
         for k, p, l in oc["over"]:
@@ -1926,6 +2004,11 @@ def part0_cash(date: str, dyn: dict) -> str:
                      '<div style="font-size:13px;margin-top:3px">要降到限内，得把这一类的市值<b>砍掉约 '
                      f'{need/p*100:.0f}%</b>。<b>先减最贵的</b>——同样是卖，卖贵的比卖便宜的划算：</div>'
                      + li
+                     + ((lambda np2: f'<div style="font-size:12.5px;color:#8cf5be;margin-top:4px">'
+                        f'按上面各只减完，「{esc(k)}」占比：<b>{p:.1f}% → 约 {np2:.1f}%</b>'
+                        f'（目标≤{l:.0f}%）</div>')(
+                            (p / 100.0 * total_usd - cum_sold_usd) / (total_usd - cum_sold_usd) * 100.0)
+                        if isinstance(total_usd, (int, float)) and total_usd - cum_sold_usd > 0 else "")
                      # "核心不动"不许写死名单(会与上面现算的减仓名单打架)——按同一把尺现算谁不该减
                      + (lambda keep: ('<div style="font-size:12.5px;color:#c8d4de;margin-top:5px">'
                                       f'<b>这几只不从它们先减</b>：{esc("、".join(keep))}——'
@@ -2271,7 +2354,7 @@ def part0_diff(date: str, dyn: dict) -> str:
     return ('<h2 class="main">今日变化 · 只看跟昨天不一样的（跟昨天一样的不重复占地方）</h2>'
             f'<div class="card">对比基准：<b>{esc(prev[:4])}-{esc(prev[4:6])}-{esc(prev[6:])}</b> → <b>{esc(date[:4])}-{esc(date[4:6])}-{esc(date[6:])}</b>（真数据现算）'
             f'｜今日待拍板 <b style="color:#ffd479">{n_pend}</b> 件'
-            '<div class="meta" style="color:#8ea3b6;font-size:12px">只显变化+触发阈值+待拍板；全量19卡与7层在下方照旧。缺昨日数据→标待接不编。</div></div>'
+            '<div class="meta" style="color:#8ea3b6;font-size:12px">只显变化+触发阈值+待拍板；全量持仓卡与大环境各层在下方照旧。缺昨日数据→标待接不编。</div></div>'
             + head_note
             + '<div class="blk">① 今天哪些结论变了</div>'
             + f'<div class="card">{concl}{acts}</div>'
@@ -3927,10 +4010,10 @@ def _vol_nav(date: str, cur: int) -> str:
 
 
 def _loop_map(date: str) -> str:
-    """硬链3：七层逻辑闭环图(每节点点进对应册/锚点)。"""
-    # 乙[组合层升格·董事长2026-07-17拍板]：集中度/共同风险穿透/替换引擎 立为正式一层「⑥组合层」，
-    #   位置在【持仓与复盘之间】——先看单只(⑤持仓)，再看整体押得偏不偏(⑥组合)，最后复盘(⑦)。
-    # 第三档10[蓝图统一8层·董事长已定]：全产品编号一致
+    """硬链3：八层逻辑闭环图(每节点点进对应册/锚点)。"""
+    # 乙[组合层升格·董事长2026-07-17拍板]：集中度/共同风险穿透/替换引擎 立为正式一层「⑦组合层」，
+    #   位置在【持仓与复盘之间】——先看单只(⑥持仓)，再看整体押得偏不偏(⑦组合)，最后复盘(⑧记分卡)。
+    # 第三档10 + 修2[蓝图统一8层·董事长已定]：全产品层编号一致(记分卡=⑧·组合层=⑦)
     nodes = [("①世界怎么了", L1(date, "layer-world")), ("②美国把钱推向哪", L1(date, "layer-strategy")),
              ("③钱松还是紧", L1(date, "layer-capital")), ("④哪些行业变强弱", L1(date, "layer-sector")),
              ("⑤有哪些新机会", "#opp"), ("⑥现有持仓怎么办", "#deep-cards"),
@@ -3939,12 +4022,12 @@ def _loop_map(date: str) -> str:
         f'<a href="{h}" style="display:inline-block;background:#12203a;border:1px solid #3a5a8a;'
         f'border-radius:8px;padding:6px 10px;color:#8fd6ff;text-decoration:none;margin:3px 0">{esc(t)}</a>'
         for t, h in nodes)
-    return ('<h2 class="sub">七层逻辑闭环图（点节点进对应册/锚点）</h2><div class="card">'
+    return ('<h2 class="sub">八层逻辑闭环图（点节点进对应册/锚点）</h2><div class="card">'
             + chain +
             '<div class="meta" style="color:#8ea3b6;font-size:12px;margin-top:6px">'
-            '证据链自上而下：世界观定大势 → 国家战略定钱往哪条线 → 资金流动定松紧 → 板块轮动定哪个群热 → '
-            '机会池按五关筛候选 → 持仓按单一源决策 → 复盘记分卡回评每层判断（判断ID回链）。'
-            '<b>闭环</b>：⑦记分卡的判对/判错 → 明日回改①-④的确定性档位（见④册魂①支柱累积表）。</div></div>')
+            '证据链自上而下：①世界观定大势 → ②国家战略定钱往哪条线 → ③资金流动定松紧 → ④板块轮动定哪个群热 → '
+            '⑤机会池按五关筛候选 → ⑥持仓按单一源决策 → ⑦组合层看整体押得偏不偏 → ⑧复盘记分卡回评每层判断（判断ID回链）。'
+            '<b>闭环</b>：⑧记分卡的判对/判错 → 明日回改①-④的确定性档位（见④册魂①支柱累积表）。</div></div>')
 
 
 def cant_rely_block(date: str, dyn: dict) -> str:

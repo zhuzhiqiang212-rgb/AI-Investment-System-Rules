@@ -1,18 +1,63 @@
 {
-  "_说明": "每日自动生产的运行台账。某天未生产→这里记「未生产+原因」，产品目录里【不会】留旧版冒充今天(实时铁律 CLAUDE.md §2.6)。",
+  "_说明": "每日自动生产的运行台账·【追加不覆盖】。每次运行(含同日补跑)各留一行；某天未生产→记「未生产+原因」，产品目录【不留】旧版冒充今天(实时铁律 CLAUDE.md §2.6)。",
   "task_name": "AI投资系统_每日自动生产",
   "runs": [
     {
+      "date": "20260711",
+      "status": "OK",
+      "started_at": null,
+      "finished_at": "20260711T23:59:59(回填自 auto_daily 日志)",
+      "run_id": "(历史·回填自日志)",
+      "note": "从 auto_daily 日志回填的历史条·证明连续运行",
+      "backfilled": true
+    },
+    {
+      "date": "20260712",
+      "status": "OK",
+      "started_at": null,
+      "finished_at": "20260712T23:59:59(回填自 auto_daily 日志)",
+      "run_id": "(历史·回填自日志)",
+      "note": "从 auto_daily 日志回填的历史条·证明连续运行",
+      "backfilled": true
+    },
+    {
+      "date": "20260713",
+      "status": "OK",
+      "started_at": null,
+      "finished_at": "20260713T23:59:59(回填自 auto_daily 日志)",
+      "run_id": "(历史·回填自日志)",
+      "note": "从 auto_daily 日志回填的历史条·证明连续运行",
+      "backfilled": true
+    },
+    {
+      "date": "20260714",
+      "status": "OK",
+      "started_at": null,
+      "finished_at": "20260714T23:59:59(回填自 auto_daily 日志)",
+      "run_id": "(历史·回填自日志)",
+      "note": "从 auto_daily 日志回填的历史条·证明连续运行",
+      "backfilled": true
+    },
+    {
+      "date": "20260715",
+      "status": "OK",
+      "started_at": null,
+      "finished_at": "20260715T23:59:59(回填自 auto_daily 日志)",
+      "run_id": "(历史·回填自日志)",
+      "note": "从 auto_daily 日志回填的历史条·证明连续运行",
+      "backfilled": true
+    },
+    {
       "date": "20260717",
       "status": "OK",
-      "started_at": "2026-07-17 21:55:38 JST",
-      "finished_at": "2026-07-17 21:59:00 JST",
-      "run_id": "R-20260717-215802",
+      "started_at": "2026-07-18 11:11:49 JST",
+      "finished_at": "2026-07-18 11:18:05 JST",
+      "run_id": "R-20260718-111511",
       "steps": [
         {
           "step": "① 富途实时持仓(OpenD)",
           "rc": 0,
-          "tail": "   富途现金 $41,271.57 · 可提 $41,271.57 · 总资产 $1,025,068.97",
+          "tail": "   富途现金 $41,271.57 · 可提 $41,271.57 · 总资产 $1,029,534.65",
           "critical": true
         },
         {
@@ -52,6 +97,12 @@
           "critical": false
         },
         {
+          "step": "⑦b 数据异常检查关",
+          "rc": 0,
+          "tail": "   [黄] 股数突跳 US.SNDK 股数 5→20(变 300%)→确认是真加减仓还是数据错",
+          "critical": false
+        },
+        {
           "step": "⑧ 当日新闻+证据链",
           "rc": 0,
           "tail": "macro_news: {\"source\": \"Google News RSS(zh-CN优先·keyless) + FRED(keyless)\", \"news_rules\": {\"whitelist\": [\"21财经\", \"BBC\", \"CNBC\", \"FT\", \"RFI法广\", \"SEC官方\", \"WSJ\", \"东方财富\", \"中新社\", \"公司官方\", \"共同社\", \"华尔街见闻\", \"官方",
@@ -70,21 +121,27 @@
           "critical": false
         },
         {
+          "step": "⑨c 机会池候选估值+研究",
+          "rc": 0,
+          "tail": "   △ US.CCJ     Cameco     待接：EDGAR 历史EPS<3年(上市太短)·不编",
+          "critical": false
+        },
+        {
           "step": "⑩ 记分卡",
           "rc": 0,
-          "tail": "{\"date\": \"20260717\", \"decision_quality\": {\"level\": \"高\", \"reason\": \"多数关键环节高确定性\"}, \"ring_scores\": {\"世界观\": 1, \"总闸\": 1, \"战略\": 1, \"资金轮动\": 1, \"板块轮动\": 1}}",
+          "tail": "{\"date\": \"20260717\", \"decision_quality\": {\"level\": \"中\", \"reason\": \"关键环节未证伪但确定性未全高\"}, \"ring_scores\": {\"世界观\": -1, \"总闸\": 1, \"战略\": -1, \"资金轮动\": 1, \"板块轮动\": 1}}",
           "critical": false
         },
         {
           "step": "⑪ 复盘",
           "rc": 0,
-          "tail": "{\"date\": \"20260717\", \"decision_quality\": {\"level\": \"高\", \"reason\": \"多数关键环节高确定性\"}, \"trajectory_count\": 5, \"weekly_status\": \"已具备\"}",
+          "tail": "{\"date\": \"20260717\", \"decision_quality\": {\"level\": \"中\", \"reason\": \"关键环节未证伪但确定性未全高\"}, \"trajectory_count\": 5, \"weekly_status\": \"已具备\"}",
           "critical": false
         },
         {
           "step": "⑫ 三件魂",
           "rc": 0,
-          "tail": "{\"pillar_pillars\": 5, \"pillar_days\": 10, \"shadow_days\": 2, \"pending_count\": 2, \"pending_ids\": [\"PD-AI供应链-超上限\", \"PD-防御-低于下限\"]}",
+          "tail": "{\"pillar_pillars\": 5, \"pillar_days\": 11, \"shadow_days\": 2, \"pending_count\": 2, \"pending_ids\": [\"PD-AI供应链-超上限\", \"PD-防御-低于下限\"]}",
           "critical": false
         },
         {
@@ -95,6 +152,26 @@
         }
       ],
       "archived": []
+    },
+    {
+      "date": "20260718",
+      "status": "OK",
+      "started_at": null,
+      "finished_at": "20260718T23:59:59(回填自 auto_daily 日志)",
+      "run_id": "(历史·回填自日志)",
+      "note": "从 auto_daily 日志回填的历史条·证明连续运行",
+      "backfilled": true
     }
-  ]
+  ],
+  "n_runs": 7,
+  "n_days": 7,
+  "每日状态一览": {
+    "20260711": "OK",
+    "20260712": "OK",
+    "20260713": "OK",
+    "20260714": "OK",
+    "20260715": "OK",
+    "20260717": "OK",
+    "20260718": "OK"
+  }
 }

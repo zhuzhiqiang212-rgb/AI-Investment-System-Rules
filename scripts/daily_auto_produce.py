@@ -101,6 +101,9 @@ def archive_old(date: str) -> list:
 
 
 def _log(rec: dict) -> None:
+    """台账【追加】不覆盖(机器加固2026-07-18·4)：每次运行都新增一行、保留多日历史，
+    这样才能证明"连续N个交易日准时/用当天数据/失败也留痕"。同日多次跑(失败后补跑)各留一行，
+    不再按日 dedup 顶掉前一次。保留最近 400 行(约一年·含同日重试)。"""
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     hist = []
     if RUNLOG.exists():
@@ -108,12 +111,22 @@ def _log(rec: dict) -> None:
             hist = json.loads(RUNLOG.read_text(encoding="utf-8")).get("runs", [])
         except Exception:
             hist = []
-    hist = [h for h in hist if h.get("date") != rec["date"]] + [rec]
-    hist.sort(key=lambda h: str(h.get("date")))
+    # 幂等保护：同一次运行(同 date+同 finished_at)不重复追加；否则一律追加
+    stamp = (rec.get("date"), rec.get("finished_at"))
+    if not any((h.get("date"), h.get("finished_at")) == stamp for h in hist):
+        hist.append(rec)
+    hist.sort(key=lambda h: (str(h.get("date")), str(h.get("finished_at") or "")))
+    # 每日一览：按日取该日最后一条的状态，方便"连续N交易日"核查
+    by_day = {}
+    for h in hist:
+        by_day[str(h.get("date"))] = h.get("status")
     RUNLOG.write_text(json.dumps(
-        {"_说明": "每日自动生产的运行台账。某天未生产→这里记「未生产+原因」，"
-                  "产品目录里【不会】留旧版冒充今天(实时铁律 CLAUDE.md §2.6)。",
-         "task_name": TASK_NAME, "runs": hist[-60:]},
+        {"_说明": "每日自动生产的运行台账·【追加不覆盖】。每次运行(含同日补跑)各留一行；"
+                  "某天未生产→记「未生产+原因」，产品目录【不留】旧版冒充今天(实时铁律 CLAUDE.md §2.6)。",
+         "task_name": TASK_NAME,
+         "n_runs": len(hist), "n_days": len(by_day),
+         "每日状态一览": dict(sorted(by_day.items())),
+         "runs": hist[-400:]},
         ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 

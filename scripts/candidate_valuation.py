@@ -52,6 +52,18 @@ RESEARCH = {
 # 板块中枢PE(穿周期·保守·不锚景气高点)——机械参数、可迭代
 SECTOR_PE = {"算力": 22, "半导体设备": 20, "代工": 15, "存储": 12, "电力核电": 18}
 
+# 修3[董事长2026-07-18定]：成长/电力股估值以 forward P/E(看明年预计利润的市盈率)为【主口径】，
+#   【不】套"中周期正常化盈利"——那把尺是给强周期(半导体设备/存储/代工)用的，
+#   对成长/电力会误判"偏贵/极贵"，与架构师研究(VST~17、CEG~21-24=合理)打架。
+#   这类只标"以 forward P/E 为准·见架构师板块研究"，不产出 偏贵/极贵 结论。
+FWD_PE_NODES = {"电力核电节点", "电力核电"}
+FWD_PE_TICKERS = {"US.VST", "US.CEG", "US.GEV", "US.CCJ",   # 电力/能源
+                  "US.VEEV", "US.NOW", "US.PLTR", "US.ANET", "US.VRT"}  # 成长软件/网络
+
+
+def _is_forward_pe(tk: str, node: str) -> bool:
+    return tk in FWD_PE_TICKERS or str(node) in FWD_PE_NODES
+
 
 def _edgar():
     try:
@@ -134,7 +146,19 @@ def build(date: str) -> dict:
             rec["valuation"] = {"source": "架构师估算", "authoritative": False, **arch[tk]}
             out[tk] = rec
             continue
-        # ② 美股 → EDGAR 真历史EPS 算中周期候选区间
+        # ②′ 成长/电力股 → 以 forward P/E 为主口径，不套中周期正常化(修3·董事长2026-07-18)
+        if _is_forward_pe(tk, node):
+            rec["valuation"] = {
+                "source": "候选估值·成长/电力股口径(forward P/E)", "authoritative": True,
+                "reliability": "候选级·口径说明",
+                "method": "看明年预计利润的市盈率(forward P/E)为主口径",
+                "verdict": "以 forward P/E 为准（见架构师板块研究）",
+                "note": ("这类是成长/电力股，估值以 forward P/E(明年预计利润的市盈率)为主口径——"
+                         "【不】套中周期正常化盈利那把尺(那是给强周期半导体/存储用的，"
+                         "拿来量成长/电力会误判『偏贵/极贵』)。现价合不合理见架构师板块深度研究的 forward P/E。")}
+            out[tk] = rec
+            continue
+        # ② 美股(强周期：半导体/存储/代工) → EDGAR 真历史EPS 算中周期候选区间
         base = tk.split(".")[-1]
         cik = cikmap.get(base.upper())
         if E and cik:
