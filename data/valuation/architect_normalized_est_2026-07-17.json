@@ -44,9 +44,8 @@
     "https://stockanalysis.com/quote/tyo/6857/financials/",
     "https://www.macrotrends.net/stocks/charts/ATEYY/advantest/net-income"
    ],
-   "scale_status": "待架构师复核",
-   "review_ratio": 9.2,
-   "review_note": "现价¥27,505是中周期中枢¥3,000的约9倍——真价(OpenD确认)。待架构师复核:是\"真景气高点的正常极贵\"还是normalized口径/拆股还原算错。暂不用它判贵贱。"
+   "scale_status": "已复核·峰值定价",
+   "resolved_note": "现价¥27,505按持续峰值定价(峰值EPS¥513·峰值PE约54)·中周期公允¥3,000远在其下——数据真实、是真·景气高点的正常极贵，别把超级景气当常态 → 守·不追高、留峰值风险安全垫"
   },
   {
    "name": "闪迪 SanDisk",

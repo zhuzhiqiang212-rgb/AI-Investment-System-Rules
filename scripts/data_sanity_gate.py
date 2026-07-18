@@ -76,12 +76,19 @@ def check(date: str) -> list:
         mid = (e.get("fair_price") or {}).get("mid")
         lvl, gap = mag_flag(px, mid, e.get("reliability", ""))
         if lvl in ("red", "caution"):
-            # 价多为真(哨兵只提示差距)→ 问题在估值口径 → 待架构师复核
-            issues.append({"level": "红" if lvl == "red" else "黄", "type": "量级哨兵",
-                           "symbol": s, "name": h.get("name"),
-                           "detail": (f"现价 {px} 与中周期估算中枢 {mid} 差约 {gap:.0f} 倍"
-                                      f"（可靠度：{e.get('reliability','?')}）→ 现价多为真价·"
-                                      f"这套穿周期估算参考度低，待架构师复核·暂不用它判贵贱")})
+            resolved = str(e.get("scale_status", "")).startswith("已复核")
+            if resolved:
+                # 架构师已复核·非算错(如爱德万:真景气高点的正常极贵·峰值定价)
+                issues.append({"level": "黄", "type": "量级哨兵", "symbol": s, "name": h.get("name"),
+                               "detail": (f"现价 {px} 是中周期公允 {mid} 的约 {gap:.0f} 倍——架构师已复核："
+                                          f"真·景气高点的正常极贵(峰值定价·峰值PE约54)，非算错。"
+                                          f"守·不追高、留峰值风险安全垫")})
+            else:
+                issues.append({"level": "红" if lvl == "red" else "黄", "type": "量级哨兵",
+                               "symbol": s, "name": h.get("name"),
+                               "detail": (f"现价 {px} 与中周期估算中枢 {mid} 差约 {gap:.0f} 倍"
+                                          f"（可靠度：{e.get('reliability','?')}）→ 现价多为真价·"
+                                          f"这套穿周期估算参考度低，待架构师复核·暂不用它判贵贱")})
     holds = [h for h in prod.get("holdings", []) if not str(h.get("symbol", "")).startswith("CC.")]
     valr = {r["symbol"]: r for r in (_rj(ROOT / "data" / "valuation" / f"valuation_results_{date}.json")
                                      .get("results") or []) if r.get("symbol")}

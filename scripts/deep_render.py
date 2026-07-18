@@ -836,8 +836,13 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
         _mag, _gap = _SG.mag_flag(px, mid, e.get("reliability", ""))
     except Exception:
         _mag, _gap = None, 0
-    if _mag in ("red", "caution"):
-        # 现价 vs 估值中枢差 >6 倍 → 价多为真(已核)、问题在估值 → 标"待架构师复核·暂不用它判贵贱"
+    _resolved = str(e.get("scale_status", "")).startswith("已复核")
+    if _resolved and e.get("resolved_note"):
+        # 架构师已复核·非算错(如爱德万:真景气高点的正常极贵·峰值定价)→ 显复核结论、撤"待复核"
+        vd = "极贵（峰值定价·已复核）"
+        vcol = "#ff6b6b"
+    elif _mag in ("red", "caution"):
+        # 现价 vs 估值中枢差 >6 倍且未复核 → 价多为真、问题在估值 → 标"待架构师复核·暂不用它判贵贱"
         vd = f"⚠ 估值中枢与现价差约 {_gap:.0f} 倍·待架构师复核（暂不用它判贵贱）"
         vcol = "#ff5c5c" if _mag == "red" else "#ffb454"
     else:
@@ -874,7 +879,13 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
                 f'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#c8d4de;margin-top:-8px">'
                 f'<span>便宜 {c}{lo:,.0f}</span><span>中枢 {c}{mid:,.0f}</span><span>贵 {c}{hi:,.0f}</span></div>')
     red_banner = ""
-    if _mag in ("red", "caution"):
+    if _resolved and e.get("resolved_note"):
+        # 已复核(如爱德万·峰值定价)→ 显架构师复核结论，不再显"待复核"
+        red_banner = ('<div style="background:#2a1f10;border:2px solid #c47a1e;border-radius:6px;'
+                      'padding:7px 10px;margin:6px 0;font-size:12.5px;color:#ffe0b0">'
+                      f'<b style="color:#ffb454">✔ 已复核·真·景气高点的正常极贵（非算错）</b>'
+                      f'<br>{esc(str(e.get("resolved_note")))}</div>')
+    elif _mag in ("red", "caution"):
         red_banner = ('<div style="background:#2a1f10;border:2px solid #c47a1e;border-radius:6px;'
                       'padding:7px 10px;margin:6px 0;font-size:12.5px;color:#ffe0b0">'
                       f'<b style="color:#ffb454">⚠ 现价与这套估算差约 {_gap:.0f} 倍·待架构师复核</b>'
@@ -2518,26 +2529,68 @@ def sector_deep_block(date: str) -> str:
 
 
 def _optical_stub_card(date: str, amb: str) -> str:
-    """光模块单列：架构师暂未出深度研究，用已有板块卡 sub_driver 的 OPTICAL 口径起头，
-    五维/动部分照实标『待架构师深度研究』，不编。"""
-    line = ""
-    try:
-        import glob as _glob
-        cands = sorted(_glob.glob(str(ROOT / "data" / "evidence_chain" / "gen_sector_*.json")))
-        if cands:
-            gs = rj(Path(cands[-1]))
-            line = str((gs.get("sub_drivers") or {}).get("OPTICAL") or "")
-    except Exception:
-        pass
-    if not line:
-        line = "算力集群要高速互联，光模块／光网络需求随 AI 集群规模升温（博通在互联侧也有份）。"
+    """光模块板块深度尺（架构师研究·非权威·下单价以OpenD实时核·龙头名单季度级更新非死名单）。
+    静(是什么/在AI链哪环/长期逻辑) + 动(过去/现在/未来带数字) + 龙头五维小研报 + 前瞻分两类。"""
+    st = {
+        "what": "数据中心把电信号转光信号的「接头」、AI服务器高速互联的血管接口（400G→800G→1.6T，越高越值钱）。",
+        "chain": "AI基础设施里最直接受益、有独立技术升级的一环。",
+        "long": "算力扩张→互联需求爆炸（量升）+ 速率代际升级（价升）＝量价齐升。",
+    }
+    dy = {
+        "past": "领涨——1.6T放量预期 + 云厂 capex 拉动。",
+        "now": "随 AI 硬件回调。",
+        "next": ("主线成长——2026年 800G+1.6T 市场约 $146亿（占数通光模块 64%）、1.6T 出货 2000~3000万只·同比+10倍、"
+                 "CPO 把单模块功耗 30W→9W（省电3.5倍）、英伟达砸 $40亿做硅光。"),
+    }
+    leaders = [
+        {"title": "中际旭创（300308）",
+         "w": "全球第一、英伟达最大光模块供应商（拿英伟达约35%订单）；技术=硅光+CPO长距，CPO样机已过英伟达认证、2026试产配 GB200。",
+         "f": "2025营收382亿（+60%）、2026E净利约300亿（近翻三倍）。",
+         "v": "按明年利润的市盈率约40~45倍（2026E）/22~25（2027E）——增长快但当前处历史高位·偏贵。",
+         "vs": "英伟达GPU服务器的配套下游，跟英伟达/博通同涨同跌——买它=加重AI，不是分散。",
+         "rec": "好公司但偏贵 + 不分散你已超配的AI → 等回调、别追。"},
+        {"title": "新易盛（300502）",
+         "w": "拿英伟达约25%订单、与博通关系密切、LPO 独家过英伟达 1.6T 认证（Blackwell配套）、中短距。",
+         "f": "2025营收248亿（+187%）、净利95亿（+236%）。",
+         "v": "贵。",
+         "vs": "同英伟达涨跌·不分散。",
+         "rec": "等回调。"},
+        {"title": "天孚通信（300394）",
+         "w": "上游光器件、绑龙头供应链。", "f": "", "v": "", "vs": "跟随光模块龙头景气。", "rec": "随板块·等回调。"},
+        {"title": "海外：Coherent（COHR）/ Lumentum（LITE）",
+         "w": "英伟达硅光合作方。", "f": "", "v": "", "vs": "同AI互联链景气。", "rec": "同属好公司但贵一档·等回调。"},
+    ]
+    ld = ""
+    for L in leaders:
+        rows = ""
+        for lab, k, col in (("① 为什么是他（业务＋技术）", "w", "#ffd479"), ("② 财报真数据", "f", "#9ed8ff"),
+                            ("③ 估值贵不贵", "v", "#ffb454"), ("④ 跟你持仓比", "vs", "#c8d4de"),
+                            ("⑤ 决策建议", "rec", "#8cf5be")):
+            val = L.get(k) or ""
+            cell = esc(val) if val else '<span class="need">待接·不编</span>'
+            rows += (f'<div style="margin-top:3px"><span class="k" style="color:{col}">{lab}</span>'
+                     f'<span style="font-size:12.5px">{cell}</span></div>')
+        ld += (f'<details class="sub" style="margin-top:5px;background:#141c26"><summary><b>{esc(L["title"])}</b></summary>'
+               f'<div style="padding:2px 4px">{rows}</div></details>')
+    fwd = ('<div style="margin-top:6px;background:#2a1f10;border:1px solid #7a5a20;border-radius:6px;padding:6px 8px">'
+           '<div style="font-weight:800;color:#ffb454;font-size:12.5px">⏳ 好公司但贵·等回调（全部）</div>'
+           '<div style="font-size:12px;color:#d8c68a;margin-top:2px">光模块龙头<b>全是</b>「好公司但贵 + 跟英伟达同涨同跌（加重AI集中·不分散）→ 等回调」。'
+           '<b>本板块无可推荐</b>——想分散AI，看电力/军工/软件。</div></div>')
     return (f'<div class="card" style="border-left:4px solid {amb}">'
             f'<div style="font-size:15px;font-weight:800">光模块／光互联'
-            f'<span style="font-size:11px;color:{amb};font-weight:600">　AI 集群互联（单列）</span></div>'
-            f'<div style="font-size:12.5px;margin-top:4px"><span class="k">是什么</span>{esc(line)}</div>'
-            f'<div style="font-size:12px;color:#ffb454;margin-top:4px">动（过去/现在/未来）+ 龙头小研报（中际旭创/Coherent/Lumentum 等）：'
-            f'<b>待架构师深度研究</b>——本轮只把它从板块地图的"次要驱动"里单列出来占位，真研究进来前不编数字。</div>'
-            f'</div>')
+            f'<span style="font-size:11px;color:{amb};font-weight:600">　AI 集群互联（单列·架构师研究）</span></div>'
+            f'<div style="font-size:12.5px;margin-top:4px"><span class="k">是什么</span>{esc(st["what"])}</div>'
+            f'<div style="font-size:12.5px"><span class="k">在AI链哪一环</span>{esc(st["chain"])}</div>'
+            f'<div style="font-size:12.5px"><span class="k">长期逻辑</span>{esc(st["long"])}</div>'
+            f'<div style="margin-top:5px;background:#0e1621;border-radius:6px;padding:5px 7px;font-size:12.5px">'
+            f'<span class="k" style="color:#9ed8ff">过去近一季</span>{esc(dy["past"])}<br>'
+            f'<span class="k" style="color:#7ee0a0">现在本周</span>{esc(dy["now"])}<br>'
+            f'<span class="k" style="color:#ffd479">未来一季·驱动</span>{esc(dy["next"])}</div>'
+            + fwd
+            + f'<div style="margin-top:6px;font-size:12px;color:#8ea3b6">龙头小研报（{len(leaders)} 只·点开看五维·名单季度级更新·非死名单）：</div>'
+            + ld
+            + f'<div class="meta" style="font-size:11px;color:{amb};margin-top:5px">架构师研究·非权威·非富途实时价——下单价以 OpenD 实时核。</div>'
+            + '</div>')
 
 
 def part1_layers(daily: dict, dyn: dict) -> str:
