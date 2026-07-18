@@ -424,6 +424,25 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
             fails.append(f"L12 集中度打架：「{cat}」全册出现多个取值 {sorted(vals)}"
                          f"——拍板卡与集中度表必须同一现算源(别读隔夜快照)")
 
+    # ── L31 AI集中度全文一致(董事长2026-07-18)：覆盖【板块研究文/所有嵌入文本】,不只主体 ──
+    #     板块研究文曾写 65.8% 与权威 65.6% 打架。做法：逐个扫 6X.X% 数字，
+    #     若其前后 24 字窗口含 AI 集中度语境(AI + 超配/集中/敞口/资本开支/供应链/仓位) → 收集；
+    #     排除投影值(紧跟"→"的买后/换后数)。收集到的当前值须唯一，出现两个→拦。
+    _AICTX = ("超配", "集中", "敞口", "资本开支", "供应链", "仓位", "AI仓")
+    for fn, h in vols.items():
+        t = _txt(h)
+        ai_pct = set()
+        for m in re.finditer(r"(6\d\.\d)\s*%", t):
+            i = m.start()
+            if "→" in t[max(0, i - 8):i] or "目标" in t[max(0, i - 10):i]:   # 投影值(→约Y%/目标≤Y)不算当前集中度
+                continue
+            win = t[max(0, i - 24): i + 18]
+            if "AI" in win and any(k in win for k in _AICTX):
+                ai_pct.add(m.group(1))
+        if len(ai_pct) > 1:
+            fails.append(f"L31 AI集中度打架：{fn} 全文(含板块研究文)出现多个 AI 集中度取值 {sorted(ai_pct)}%"
+                         f"——必须全指向同一 production 现算值(别一处 65.6 一处 65.8)")
+
     # ── L11 均线当买卖线(乙·董事长2026-07-17拍板:买卖只看估值·均线只作趋势参考) ──
     MA_TRADE = [
         r"回踩\s*50日[^。；<]{0,8}[＝=]?\s*低吸", r"回调到\s*50日[^。；<]{0,6}低吸",

@@ -818,7 +818,22 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
     px = _price_of(sym, dyn)
     ok, rel = _rel_grade(e.get("reliability"))
     vd = str(e.get("verdict") or "")
-    vcol = "#ff6b6b" if "极贵" in vd else ("#ffb454" if "贵" in vd else "#7ee0a0")
+    # 量级哨兵(董事长2026-07-18)：现价 vs 中枢差 >6 倍 → 不许静默只写"极贵"
+    try:
+        import data_sanity_gate as _SG
+        _mag, _gap = _SG.mag_flag(px, mid, e.get("reliability", ""))
+    except Exception:
+        _mag, _gap = None, 0
+    if _mag == "red":
+        # 差到离谱(如24倍·无法用周期解释)→ 这只估值不可靠，改标待接、不用它判贵贱
+        vd = f"⚠ 估值不可靠·待人工核（现价约中枢 {_gap:.0f} 倍·无法用周期解释）"
+        vcol = "#ff5c5c"
+    elif _mag == "caution":
+        # 真价+周期顶导致的极贵(可解释)→ 正常显示，但注明倍数与"参考度低"
+        vd = f"极贵（景气高点·中周期算·现价约中枢 {_gap:.0f} 倍·估值参考度低）"
+        vcol = "#ff6b6b"
+    else:
+        vcol = "#ff6b6b" if "极贵" in vd else ("#ffb454" if "贵" in vd else "#7ee0a0")
     bd, bg = ("#6b7a8c", "#141c26") if ok else ("#c47a1e", "#241a10")
     if mini:
         return (f'<div style="font-size:10.5px;margin-top:4px;padding-top:3px;border-top:1px dashed #4a5a6a">'
@@ -850,10 +865,18 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
                 f'▼{"" if ok else "<span style=\'color:#ffb454\'>?</span>"}</div></div>'
                 f'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#c8d4de;margin-top:-8px">'
                 f'<span>便宜 {c}{lo:,.0f}</span><span>中枢 {c}{mid:,.0f}</span><span>贵 {c}{hi:,.0f}</span></div>')
+    red_banner = ""
+    if _mag == "red":
+        red_banner = ('<div style="background:#3a1414;border:2px solid #ff5c5c;border-radius:6px;'
+                      'padding:7px 10px;margin:6px 0;font-size:12.5px;color:#ffd0d0">'
+                      f'<b style="color:#ff5c5c">⚠ 现价与这套估算差约 {_gap:.0f} 倍·疑价格异常或估值失真·待人工核</b>'
+                      f'——下面的「合理区 {c}{lo:,.0f}~{c}{hi:,.0f}·中枢 {c}{mid:,.0f}」<b>已不可靠·仅存档</b>，'
+                      f'<b>不用它判这只贵不贵</b>（这只的动作看本卡权威估值/加仓价，不看这套）。</div>')
     return ('<div style="background:%s;border:2px dashed %s;border-radius:8px;padding:10px 13px;margin:8px 0">' % (bg, bd)
             + '<div style="font-size:13px;font-weight:700;color:#b8c6d4">'
               '📐 架构师中周期估算　<span style="font-size:11px;color:#ffb454;font-weight:400">'
               '非权威 · 非当日实时 · 仅供参考</span></div>'
+            + red_banner
             + f'<div style="font-size:11.5px;color:#8ea3b6;margin-top:2px">可靠度：{esc(rel)}</div>'
             + axis
             # ⚠架构师文件里的 current_price 是他写卡时的价(截至7月中旬)、不是今天的实时价 →
@@ -4046,6 +4069,15 @@ def _loop_map(date: str) -> str:
 def cant_rely_block(date: str, dyn: dict) -> str:
     """第二档5[验收整改]：首页集中列「今天哪些不能依赖」——一次说清·别让董事长误以为都是准的。"""
     items = []
+    # 量级哨兵命中(现价 vs 估值差 >6 倍)——最要紧·排最前(董事长2026-07-18)
+    try:
+        sg = rj(ROOT / "data" / "reports" / f"data_sanity_{date}.json")
+        for x in (sg.get("issues") or []):
+            if x.get("type") == "量级哨兵":
+                mk = "🔴" if x.get("level") == "红" else "🟡"
+                items.append(f'{mk} <b>{esc(str(x.get("name") or x.get("symbol")))}</b>：{esc(str(x.get("detail")))}')
+    except Exception:
+        pass
     # 机会池后三关未接
     items.append("<b>机会池的估值/护城河/个股关</b>：候选只做到「节点激活+均线」，估值只对能取到财报的美股机械算(非精调)；日/港/韩候选待架构师估算。")
     # 机构vs散户资金

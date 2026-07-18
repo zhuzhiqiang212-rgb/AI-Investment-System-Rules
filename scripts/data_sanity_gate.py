@@ -30,9 +30,54 @@ def _rj(p: Path) -> dict:
         return {}
 
 
+def mag_flag(px, mid, reliability: str = "") -> tuple:
+    """量级哨兵(董事长2026-07-18)：现价 ÷ 合理价中枢 差多少倍。
+    返回 (级别, 倍数)：
+      · 'red'    —— 差 >15 倍，或 >6 倍且估值可靠度低(勉强/不够) → 离谱·无法用周期解释·标红待人工核
+      · 'caution'—— 差 6~15 倍且可靠度够 → 真价+周期顶导致的极贵·可解释·正常显示
+      · None     —— ≤6 倍，正常
+    <1/6(现价远低于中枢)同样按 red 处理(疑喂价错/拆股)。"""
+    try:
+        px = float(px); mid = float(mid)
+    except (TypeError, ValueError):
+        return None, 0.0
+    if px <= 0 or mid <= 0:
+        return None, 0.0
+    gap = px / mid if px >= mid else mid / px
+    low_rel = any(k in str(reliability) for k in ("勉强", "不够"))
+    if gap > 15 or (gap > 6 and low_rel) or px < mid / 6:
+        return "red", gap
+    if gap > 6:
+        return "caution", gap
+    return None, gap
+
+
 def check(date: str) -> list:
     issues = []
     prod = _rj(ROOT / "data" / "reports" / f"production_{date}.json")
+    # 量级哨兵：现价 vs 架构师中周期估算中枢差 >6 倍 → 红/黄(离谱失真 vs 周期顶可解释)
+    arch = {}
+    try:
+        ap = sorted((ROOT / "data" / "valuation").glob("architect_normalized_est_*.json"))
+        if ap:
+            for e in _rj(ap[-1]).get("estimates", []):
+                arch[str(e.get("ticker"))] = e
+    except Exception:
+        pass
+    for h in [x for x in prod.get("holdings", []) if not str(x.get("symbol", "")).startswith("CC.")]:
+        s = str(h.get("symbol")); px = h.get("price")
+        e = arch.get(s) or {}
+        mid = (e.get("fair_price") or {}).get("mid")
+        lvl, gap = mag_flag(px, mid, e.get("reliability", ""))
+        if lvl == "red":
+            issues.append({"level": "红", "type": "量级哨兵", "symbol": s, "name": h.get("name"),
+                           "detail": (f"现价 {px} 与中周期估算中枢 {mid} 差约 {gap:.0f} 倍"
+                                      f"（可靠度：{e.get('reliability','?')}）→ 差到离谱·无法用周期解释，"
+                                      f"疑价格异常或估值失真·待人工核，别用它判贵贱")})
+        elif lvl == "caution":
+            issues.append({"level": "黄", "type": "量级哨兵", "symbol": s, "name": h.get("name"),
+                           "detail": (f"现价 {px} 是中周期中枢 {mid} 的约 {gap:.0f} 倍（真价·景气高点）"
+                                      f"→ 极贵(中周期算)可解释，但估值参考度已低")})
     holds = [h for h in prod.get("holdings", []) if not str(h.get("symbol", "")).startswith("CC.")]
     valr = {r["symbol"]: r for r in (_rj(ROOT / "data" / "valuation" / f"valuation_results_{date}.json")
                                      .get("results") or []) if r.get("symbol")}
