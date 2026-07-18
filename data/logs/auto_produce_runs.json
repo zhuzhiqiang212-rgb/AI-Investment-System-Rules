@@ -1,6 +1,17 @@
 {
   "_说明": "每日自动生产的运行台账·【追加不覆盖】。每次运行(含同日补跑)各留一行；某天未生产→记「未生产+原因」，产品目录【不留】旧版冒充今天(实时铁律 CLAUDE.md §2.6)。",
   "task_name": "AI投资系统_每日自动生产",
+  "n_runs": 8,
+  "n_days": 7,
+  "每日状态一览": {
+    "20260711": "OK",
+    "20260712": "OK",
+    "20260713": "OK",
+    "20260714": "OK",
+    "20260715": "OK",
+    "20260717": "OK",
+    "20260718": "OK"
+  },
   "runs": [
     {
       "date": "20260711",
@@ -156,22 +167,119 @@
     {
       "date": "20260718",
       "status": "OK",
+      "started_at": "2026-07-18 13:21:31 JST",
+      "finished_at": "2026-07-18 13:26:57 JST",
+      "run_id": "R-20260718-132404",
+      "steps": [
+        {
+          "step": "① 富途实时持仓(OpenD)",
+          "rc": 0,
+          "tail": "   富途现金 $41,271.57 · 可提 $41,271.57 · 总资产 $1,029,534.65",
+          "critical": true
+        },
+        {
+          "step": "② 持仓真表",
+          "rc": 0,
+          "tail": "持仓 20 项；今日价 OK 20 项",
+          "critical": true
+        },
+        {
+          "step": "③ 审持仓+权威价",
+          "rc": 0,
+          "tail": "SAMPLE=JP.6758 索尼 QTY=1000.0 PRICE=3470.0 FIELD=last_price VERDICT=今日不在激活节点上 NODES=",
+          "critical": true
+        },
+        {
+          "step": "④ production(当日实时价)",
+          "rc": 0,
+          "tail": "wrote G:\\我的云端硬盘\\AI_Investment_System\\data\\reports\\production_20260718.json",
+          "critical": true
+        },
+        {
+          "step": "⑤ 均线(趋势参考)",
+          "rc": 0,
+          "tail": "}",
+          "critical": false
+        },
+        {
+          "step": "⑥ 估值分派",
+          "rc": 0,
+          "tail": "}",
+          "critical": false
+        },
+        {
+          "step": "⑦ 当日涨跌",
+          "rc": 0,
+          "tail": "   任天堂           JP.7974       +3.02%",
+          "critical": false
+        },
+        {
+          "step": "⑦b 数据异常检查关",
+          "rc": 0,
+          "tail": "   ✔ 无数据异常",
+          "critical": false
+        },
+        {
+          "step": "⑧ 当日新闻+证据链",
+          "rc": 0,
+          "tail": "macro_news: {\"source\": \"Google News RSS(zh-CN优先·keyless) + FRED(keyless)\", \"news_rules\": {\"whitelist\": [\"21财经\", \"BBC\", \"CNBC\", \"FT\", \"RFI法广\", \"SEC官方\", \"WSJ\", \"东方财富\", \"中新社\", \"公司官方\", \"共同社\", \"华尔街见闻\", \"官方",
+          "critical": true
+        },
+        {
+          "step": "⑨ 研报佐证(湖水资讯)",
+          "rc": 0,
+          "tail": "   ⚠ G09_完整投研报表_20260617_V2.pdf：解析失败：PdfStreamError",
+          "critical": false
+        },
+        {
+          "step": "⑨b 财报官方数(SEC EDGAR)",
+          "rc": 0,
+          "tail": "   ⚠ 候选值需理解岗确认后填 val_inputs.json 才会进估值（我不替它定'正常年景'）",
+          "critical": false
+        },
+        {
+          "step": "⑨c 机会池候选估值+研究",
+          "rc": 1,
+          "tail": "KeyError: 'fair'",
+          "critical": false
+        },
+        {
+          "step": "⑩ 记分卡",
+          "rc": 0,
+          "tail": "{\"date\": \"20260718\", \"decision_quality\": {\"level\": \"高\", \"reason\": \"多数关键环节高确定性\"}, \"ring_scores\": {\"世界观\": 1, \"总闸\": 1, \"战略\": 1, \"资金轮动\": 0, \"板块轮动\": 0}}",
+          "critical": false
+        },
+        {
+          "step": "⑪ 复盘",
+          "rc": 0,
+          "tail": "{\"date\": \"20260718\", \"decision_quality\": {\"level\": \"高\", \"reason\": \"多数关键环节高确定性\"}, \"trajectory_count\": 5, \"weekly_status\": \"已具备\"}",
+          "critical": false
+        },
+        {
+          "step": "⑫ 三件魂",
+          "rc": 0,
+          "tail": "{\"pillar_pillars\": 5, \"pillar_days\": 11, \"shadow_days\": 3, \"pending_count\": 2, \"pending_ids\": [\"PD-AI供应链-超上限\", \"PD-防御-低于下限\"]}",
+          "critical": false
+        },
+        {
+          "step": "⑫b 预测记分(下预测+结算到期)",
+          "rc": 0,
+          "tail": "   判对率(只算已结算)：0/0 → 还没有到期的，先攒着 · 未到期 10 条 · 无法结算 0 条",
+          "critical": false
+        }
+      ],
+      "archived": [
+        "★每日产品_2026-07-17.html"
+      ]
+    },
+    {
+      "date": "20260718",
+      "status": "OK",
       "started_at": null,
       "finished_at": "20260718T23:59:59(回填自 auto_daily 日志)",
       "run_id": "(历史·回填自日志)",
       "note": "从 auto_daily 日志回填的历史条·证明连续运行",
       "backfilled": true
     }
-  ],
-  "n_runs": 7,
-  "n_days": 7,
-  "每日状态一览": {
-    "20260711": "OK",
-    "20260712": "OK",
-    "20260713": "OK",
-    "20260714": "OK",
-    "20260715": "OK",
-    "20260717": "OK",
-    "20260718": "OK"
-  }
+  ]
 }

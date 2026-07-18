@@ -1,0 +1,290 @@
+{
+  "_说明": "机会池候选的估值(中周期机械算·或架构师估算)+一句话研究。够拿来比'该不该换'。缺真源、架构师也没给→标待接+原因，不编。",
+  "date": "20260718",
+  "generated_at": "2026-07-18T13:28:33+09:00",
+  "error": "",
+  "candidates": {
+    "US.AMD": {
+      "name": "AMD",
+      "node": "算力",
+      "research": "CPU/GPU 设计商，MI 系列是英伟达在 AI 加速卡上的主要挑战者。有 x86 生态 + 先进制程绑定台积电，但 AI 软件生态(CUDA)落后英伟达 → 护城河中。进池因【算力节点】激活。",
+      "price": 495.76,
+      "pe_ttm": 162.544,
+      "valuation": {
+        "source": "候选估值·forward P/E",
+        "authoritative": true,
+        "status": "待接",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "reason": "这只该用『看明年预计利润的市盈率（forward P/E）』，但本单没有可靠的明年预计利润(forward EPS)/架构师也未给该只 forward 判定 → 老实标待接·不编，【不】改套中周期正常化(那会算出假极贵)。"
+      }
+    },
+    "US.MRVL": {
+      "name": "Marvell",
+      "node": "算力",
+      "research": "数据中心定制芯片(ASIC)+光/网络互连，AI 基建的‘卖铲子’。定制芯片设计门槛高、客户粘性强 → 护城河中偏宽。进池因【算力节点】激活。",
+      "price": 188.68,
+      "pe_ttm": 64.838,
+      "valuation": {
+        "source": "候选估值·forward P/E",
+        "authoritative": true,
+        "status": "待接",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "reason": "这只该用『看明年预计利润的市盈率（forward P/E）』，但本单没有可靠的明年预计利润(forward EPS)/架构师也未给该只 forward 判定 → 老实标待接·不编，【不】改套中周期正常化(那会算出假极贵)。"
+      }
+    },
+    "US.UMC": {
+      "name": "联电",
+      "node": "算力",
+      "research": "台湾成熟制程晶圆代工(非先进制程)。成熟制程壁垒低于台积电、偏周期 → 护城河窄。进池因【算力/代工节点】激活。",
+      "price": 21.25,
+      "pe_ttm": 34.219,
+      "valuation": {
+        "source": "候选估值",
+        "authoritative": true,
+        "status": "待接",
+        "reason": "机械算说'便宜'但当前市盈率却达 34 倍→两把尺打架，多是EPS口径/ADR折股/货币对不上·不敢下结论·待架构师核·不编",
+        "method": "正常化中周期（穿周期均值盈利×板块PE）"
+      }
+    },
+    "JP.8035": {
+      "name": "东京电子",
+      "node": "半导体设备",
+      "research": "东京电子·涂胶显影/刻蚀设备龙头。日系设备龙头、与台积电深度绑定 → 护城河宽。进池因【半导体设备节点】激活。",
+      "price": 65100.0,
+      "pe_ttm": 52.043,
+      "valuation": {
+        "source": "候选估值·forward P/E",
+        "authoritative": true,
+        "status": "待接",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "reason": "这只该用『看明年预计利润的市盈率（forward P/E）』，但本单没有可靠的明年预计利润(forward EPS)/架构师也未给该只 forward 判定 → 老实标待接·不编，【不】改套中周期正常化(那会算出假极贵)。"
+      }
+    },
+    "US.ASML": {
+      "name": "ASML",
+      "node": "半导体设备",
+      "research": "光刻机独家垄断(EUV 全球唯一)。EUV 独此一家、不可替代 → 护城河极宽。进池因【半导体设备节点】激活。",
+      "price": 1747.58,
+      "pe_ttm": 55.45,
+      "valuation": {
+        "source": "候选估值·forward P/E(架构师研究)",
+        "authoritative": true,
+        "reliability": "架构师研究·非机械",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "verdict": "贵·等回调",
+        "note": "用『看明年预计利润的市盈率（forward P/E）』：贵。股价~1815美元(7/15)、前瞻PE约49.6倍,较半导体板块中位(~34)高47%。垄断溢价合理,但价格已包含很多好消息。（架构师板块研究·半导体设备与存储）。【不】套中周期正常化——那把尺给强周期存储/成熟代工用，量成长/设备/电力会误判假极贵。"
+      }
+    },
+    "US.AMAT": {
+      "name": "应用材料",
+      "node": "半导体设备",
+      "research": "半导体设备龙头(沉积/刻蚀等全线)。设备种类全、与晶圆厂深度绑定 → 护城河宽。进池因【半导体设备节点】激活。",
+      "price": 529.66,
+      "pe_ttm": 49.826,
+      "valuation": {
+        "source": "候选估值·forward P/E(架构师研究)",
+        "authoritative": true,
+        "reliability": "架构师研究·非机械",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "verdict": "贵·等回调",
+        "note": "用『看明年预计利润的市盈率（forward P/E）』：AMAT前瞻PE~36/一年+164%（架构师板块研究·半导体设备与存储）。【不】套中周期正常化——那把尺给强周期存储/成熟代工用，量成长/设备/电力会误判假极贵。"
+      }
+    },
+    "US.LRCX": {
+      "name": "拉姆研究",
+      "node": "半导体设备",
+      "research": "刻蚀/沉积设备龙头(存储厂关键供应商)。刻蚀细分领先、存储资本开支直接受益 → 护城河宽。进池因【半导体设备节点】激活。",
+      "price": 313.3,
+      "pe_ttm": 59.224,
+      "valuation": {
+        "source": "候选估值·forward P/E(架构师研究)",
+        "authoritative": true,
+        "reliability": "架构师研究·非机械",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "verdict": "贵·等回调",
+        "note": "用『看明年预计利润的市盈率（forward P/E）』：涨太多了。AMAT~534美元、前瞻PE约36倍、一年涨164%;LRCX 6月见顶438.5美元后剧烈震荡(一年一度涨~287%)。基本面强但价格已透支近期利好。（架构师板块研究·半导体设备与存储）。【不】套中周期正常化——那把尺给强周期存储/成熟代工用，量成长/设备/电力会误判假极贵。"
+      }
+    },
+    "US.KLAC": {
+      "name": "科磊",
+      "node": "半导体设备",
+      "research": "量检测设备近乎垄断。量测环节壁垒极高、几无对手 → 护城河极宽。进池因【半导体设备节点】激活。",
+      "price": 212.75,
+      "pe_ttm": 60.252,
+      "valuation": {
+        "source": "候选估值·forward P/E",
+        "authoritative": true,
+        "status": "待接",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "reason": "这只该用『看明年预计利润的市盈率（forward P/E）』，但本单没有可靠的明年预计利润(forward EPS)/架构师也未给该只 forward 判定 → 老实标待接·不编，【不】改套中周期正常化(那会算出假极贵)。"
+      }
+    },
+    "JP.7735": {
+      "name": "斯库林集团",
+      "node": "半导体设备",
+      "research": "斯库林·涂胶清洗设备。细分设备有位置、规模小于东电 → 护城河中。进池因【半导体设备节点】激活。",
+      "price": 16510.0,
+      "pe_ttm": 33.927,
+      "valuation": {
+        "source": "候选估值·forward P/E",
+        "authoritative": true,
+        "status": "待接",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "reason": "这只该用『看明年预计利润的市盈率（forward P/E）』，但本单没有可靠的明年预计利润(forward EPS)/架构师也未给该只 forward 判定 → 老实标待接·不编，【不】改套中周期正常化(那会算出假极贵)。"
+      }
+    },
+    "JP.6590": {
+      "name": "芝浦机电",
+      "node": "半导体设备",
+      "research": "芝浦机电·半导体/FPD 设备。细分设备商 → 护城河窄→中。进池因【半导体设备节点】激活。",
+      "price": 5040.0,
+      "pe_ttm": 29.598,
+      "valuation": {
+        "source": "候选估值·forward P/E",
+        "authoritative": true,
+        "status": "待接",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "reason": "这只该用『看明年预计利润的市盈率（forward P/E）』，但本单没有可靠的明年预计利润(forward EPS)/架构师也未给该只 forward 判定 → 老实标待接·不编，【不】改套中周期正常化(那会算出假极贵)。"
+      }
+    },
+    "JP.6951": {
+      "name": "日本电子",
+      "node": "半导体设备",
+      "research": "日本电子·电子显微镜/分析仪器。科学仪器细分龙头 → 护城河中。进池因【半导体设备节点】激活。",
+      "price": 8034.0,
+      "pe_ttm": 18.572,
+      "valuation": {
+        "source": "候选估值·forward P/E",
+        "authoritative": true,
+        "status": "待接",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "reason": "这只该用『看明年预计利润的市盈率（forward P/E）』，但本单没有可靠的明年预计利润(forward EPS)/架构师也未给该只 forward 判定 → 老实标待接·不编，【不】改套中周期正常化(那会算出假极贵)。"
+      }
+    },
+    "US.MU": {
+      "name": "美光",
+      "node": "存储",
+      "research": "DRAM/NAND 存储三巨头之一。存储是重资产强周期、HBM 是 AI 亮点但商品属性强 → 护城河窄→中。进池因【存储节点】激活。",
+      "price": 848.95,
+      "pe_ttm": 19.189,
+      "valuation": {
+        "source": "候选估值·机械算(中周期正常化EPS×板块PE)·EDGAR us-gaap:EarningsPerShareDiluted",
+        "method": "正常化中周期（穿周期均值盈利×板块PE）",
+        "authoritative": true,
+        "reliability": "候选级(机械·非精调)",
+        "normalized_eps": 3.39,
+        "pe_mid": 12,
+        "fair": {
+          "cheap": 30.5,
+          "mid": 40.7,
+          "rich": 52.9
+        },
+        "verdict": "极贵(按正常化盈利)",
+        "gap_mid_pct": 1987.8,
+        "note": "穿 7 年正常化EPS≈3.39×板块中枢PE 12倍；现价848.95对中枢+1988%·⚠现价是正常化盈利的 251 倍——这类多是市场按【高成长/未来爆发】定价，中周期正常化这把尺会显得极贵；要不要换它、别只看这个数，等架构师中周期精调",
+        "history_years": 17
+      }
+    },
+    "JP.285A": {
+      "name": "铠侠",
+      "node": "存储",
+      "research": "铠侠·NAND 存储原厂。存储强周期、AI 缺货尖峰不可持续 → 护城河窄。进池因【存储节点】激活。",
+      "price": 52110.0,
+      "pe_ttm": 51.637,
+      "valuation": {
+        "source": "候选估值",
+        "authoritative": true,
+        "status": "待接",
+        "reason": "JP股不在 SEC EDGAR(需 EDINET/公司IR 或架构师估算)·本单未接·不编",
+        "method": "正常化中周期（穿周期均值盈利×板块PE）"
+      }
+    },
+    "US.GFS": {
+      "name": "格芯",
+      "node": "代工",
+      "research": "格芯·成熟/特色制程代工。特色工艺有一定粘性、但非先进制程 → 护城河窄→中。进池因【代工节点】激活。",
+      "price": 57.48,
+      "pe_ttm": 41.352,
+      "valuation": {
+        "source": "候选估值",
+        "authoritative": true,
+        "status": "待接",
+        "reason": "穿周期均值EPS为负(-0.05)→周期底部亏损、正常化不可靠·不编",
+        "method": "正常化中周期（穿周期均值盈利×板块PE）"
+      }
+    },
+    "HK.00981": {
+      "name": "中芯国际",
+      "node": "代工",
+      "research": "中芯国际·中国大陆代工龙头。受出口管制约束、政策扶持 vs 技术代差 → 护城河窄→中。进池因【代工节点】激活。",
+      "price": 67.7,
+      "pe_ttm": 106.446,
+      "valuation": {
+        "source": "候选估值",
+        "authoritative": true,
+        "status": "待接",
+        "reason": "HK股不在 SEC EDGAR(需 EDINET/公司IR 或架构师估算)·本单未接·不编",
+        "method": "正常化中周期（穿周期均值盈利×板块PE）"
+      }
+    },
+    "US.VST": {
+      "name": "Vistra",
+      "node": "电力核电",
+      "research": "美国独立发电商(含核电/燃气)。电力资产 + AI 数据中心用电爆发 → 护城河中(受管制)。进池因【电力核电节点】激活。",
+      "price": 155.44,
+      "pe_ttm": 25.993,
+      "valuation": {
+        "source": "候选估值·forward P/E(架构师研究)",
+        "authoritative": true,
+        "reliability": "架构师研究·非机械",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "verdict": "合理",
+        "note": "用『看明年预计利润的市盈率（forward P/E）』：约155.67美元；待接·不编(未直接抓到,约500-600亿美元量级)；约26倍(部分源20.9)；约17.4倍；福特P/E约17.4、配上预期约140%的EPS跳增,在电力板块里属『相对便宜+高增长』;市盈率较12个月均值(47.7)大幅压缩,估值有修复空间。（架构师板块研究·AI电力/能源(数据中心供电·核电·电网·燃气)）。【不】套中周期正常化——那把尺给强周期存储/成熟代工用，量成长/设备/电力会误判假极贵。"
+      }
+    },
+    "US.CEG": {
+      "name": "Constellation Energy",
+      "node": "电力核电",
+      "research": "美国最大核电运营商。核电牌照壁垒极高、AI 数据中心长约受益 → 护城河宽。进池因【电力核电节点】激活。",
+      "price": 252.39,
+      "pe_ttm": 21.927,
+      "valuation": {
+        "source": "候选估值·forward P/E(架构师研究)",
+        "authoritative": true,
+        "reliability": "架构师研究·非机械",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "verdict": "合理",
+        "note": "用『看明年预计利润的市盈率（forward P/E）』：约250美元；约903亿美元；约21-22倍；约21-24倍(不同源口径)；对一家利润20%复合增长的公用事业股,福特P/E约21-24不算贵、也不算白菜价——合理偏上。质地是板块里最硬的。（架构师板块研究·AI电力/能源(数据中心供电·核电·电网·燃气)）。【不】套中周期正常化——那把尺给强周期存储/成熟代工用，量成长/设备/电力会误判假极贵。"
+      }
+    },
+    "US.GEV": {
+      "name": "GE Vernova",
+      "node": "电力核电",
+      "research": "GE 电力设备(燃气轮机/电网)。电网设备 + 电力资本开支周期 → 护城河中偏宽。进池因【电力核电节点】激活。",
+      "price": 1057.84,
+      "pe_ttm": 30.912,
+      "valuation": {
+        "source": "候选估值·forward P/E(架构师研究)",
+        "authoritative": true,
+        "reliability": "架构师研究·非机械",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "verdict": "贵·等回调",
+        "note": "用『看明年预计利润的市盈率（forward P/E）』：约1062-1091美元；约32倍；约60-70倍；基本面极强(订单+71%、订单簿1630亿),但股价一年翻倍多,福特P/E 60-70倍远高于工业设备中位约20倍——好公司,价已炒到很贵。（架构师板块研究·AI电力/能源(数据中心供电·核电·电网·燃气)）。【不】套中周期正常化——那把尺给强周期存储/成熟代工用，量成长/设备/电力会误判假极贵。"
+      }
+    },
+    "US.CCJ": {
+      "name": "Cameco",
+      "node": "电力核电",
+      "research": "全球最大铀矿商之一。铀矿资源禀赋 + 核电复兴需求 → 护城河中偏宽。进池因【电力核电节点】激活。",
+      "price": 85.62,
+      "pe_ttm": 80.697,
+      "valuation": {
+        "source": "候选估值·forward P/E",
+        "authoritative": true,
+        "status": "待接",
+        "method": "看明年预计利润的市盈率（forward P/E）",
+        "reason": "这只该用『看明年预计利润的市盈率（forward P/E）』，但本单没有可靠的明年预计利润(forward EPS)/架构师也未给该只 forward 判定 → 老实标待接·不编，【不】改套中周期正常化(那会算出假极贵)。"
+      }
+    }
+  }
+}

@@ -285,8 +285,10 @@ def main() -> int:
     for k, v in cs.items():
         val = v.get("valuation") or {}
         if val.get("verdict"):
-            f = val["fair"]
-            print(f"   ✔ {k:10s} {v['name'][:8]:10s} 现价{v.get('price')} · 合理{f['cheap']}~{f['rich']}(中枢{f['mid']}) → {val['verdict']}")
+            f = val.get("fair") or {}
+            fair_txt = (f"合理{f['cheap']}~{f['rich']}(中枢{f['mid']})" if f.get("cheap") is not None
+                        else f"[{val.get('method','')[:10]}]")
+            print(f"   ✔ {k:10s} {v['name'][:8]:10s} 现价{v.get('price')} · {fair_txt} → {val['verdict']}")
         else:
             print(f"   △ {k:10s} {v['name'][:8]:10s} 待接：{val.get('reason','')[:50]}")
     return 0
