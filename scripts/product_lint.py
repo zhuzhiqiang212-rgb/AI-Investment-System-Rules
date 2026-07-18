@@ -394,6 +394,25 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
             fails.append(f"L30 估值口径打架：{base} 板块推荐语判「{a_verd}」，但机会池估值表却显「{t_verd}」"
                          f"——推荐合理却算极贵=两把尺打架，成长/电力股该走 forward P/E、别套正常化")
 
+    # ── L32 架构师有估算的持仓不许再显光秃秃"算不出/待接真源"(董事长2026-07-18) ──
+    #     6只(architect_normalized_est)在卡内三处应显【值+尺+可靠度+怎么办】；仍出现"待接真源/算不出该值"→拦。
+    try:
+        ap = sorted((ROOT / "data" / "valuation").glob("architect_normalized_est_*.json"))
+        arch_syms = {str(e.get("ticker")) for e in (json.loads(ap[-1].read_text(encoding="utf-8")).get("estimates") or [])
+                     if (e.get("fair_price") or {}).get("mid") is not None} if ap else set()
+    except Exception:
+        arch_syms = set()
+    for fn, h in vols.items():
+        for sym in arch_syms:
+            for m in re.finditer(r'id="stock-' + re.escape(sym) + r'"', h):
+                nxt = h.find('id="stock-', m.end())
+                seg = _txt(h[m.start(): nxt if nxt > 0 else len(h)])
+                if "待接真源" in seg or "算不出它该值多少钱" in seg:
+                    bad = "待接真源" if "待接真源" in seg else "算不出它该值多少钱"
+                    fails.append(f"L32 架构师估算未显值：{fn} 的 {sym} 卡内仍出现「{bad}」"
+                                 f"——这只有架构师中周期估算，三处应显 值+尺+可靠度+怎么办，不许光秃秃待接")
+                    break
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:

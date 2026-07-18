@@ -554,10 +554,17 @@ def build_final(sym: str, name: str, dyn: dict) -> dict:
         valuation_short = f'合理区 {c}{fnum(v.get("reasonable_low"))}~{c}{fnum(v.get("reasonable_high"))}·中枢{c}{fnum(v.get("target"))}'
         valuation_grade = "A·精算"
     else:
-        _reason = esc(v.get("reason") or "待接真源")
-        valuation_text = f'{esc(v.get("model_disp","按类型"))}·待接（{_reason}）'
-        valuation_short = "待接真源"
-        valuation_grade = "待接"
+        # 权威估值待接 → 若架构师有中周期估算(6只)，三处一律回退显【值+尺+可靠度+怎么办】·不再光秃秃"待接"
+        _av = arch_val_display(sym, dyn)
+        if _av:
+            valuation_text = _av["text"]
+            valuation_short = _av["short"]
+            valuation_grade = _av["grade"]
+        else:
+            _reason = esc(v.get("reason") or "待接真源")
+            valuation_text = f'{esc(v.get("model_disp","按类型"))}·待接（{_reason}）'
+            valuation_short = "待接真源"
+            valuation_grade = "待接"
     return {
         "symbol": sym, "name": name,
         "quality": f'{esc(qg.get("tier",""))}{esc(qg.get("tier_label","待接"))}',
@@ -803,6 +810,36 @@ def _rel_grade(rel: str) -> tuple:
     r = str(rel or "")
     low = any(k in r for k in ("不够", "勉强", "低置信", "偏不够"))
     return (not low, r)
+
+
+def arch_val_display(sym: str, dyn: dict) -> dict | None:
+    """董事长2026-07-18：权威估值待接、但架构师有中周期估算的持仓 → 三处(深研卡估值栏/决策条/
+    「今天你怎么办」第3行)一律显【值+尺+可靠度+怎么办】，不再显光秃秃"待接真源/算不出"。
+    返回 {short, text, grade, why}（都是同一套值·同一个答案）；无架构师估算→None。"""
+    e = _arch_est(sym)
+    if not e:
+        return None
+    fp = e.get("fair_price") or {}
+    lo, mid, hi = fp.get("cheap"), fp.get("mid"), fp.get("rich")
+    if lo is None or mid is None or hi is None:
+        return None
+    c = cur(sym)
+    ruler = str(e.get("ruler_short") or "中周期估算")
+    rel = str(e.get("reliability") or "?")
+    ok, _ = _rel_grade(rel)
+    lowconf = "" if ok else "·低置信"
+    vd = str(e.get("verdict") or "")
+    howto = str(e.get("howto_short") or "守·不追高")
+    px = _price_of(sym, dyn)
+    pxbit = f"现价 {c}{px:,.0f} → " if px is not None else ""
+    short = f'架构师估算 {c}{lo:,.0f}~{c}{hi:,.0f}·中枢{c}{mid:,.0f}（尺:{ruler}·{rel}·非权威{lowconf}）'
+    text = (f'架构师{ruler}估算·{c}{lo:,.0f}~{c}{hi:,.0f}·中枢{c}{mid:,.0f}（可靠度{rel}·非权威{lowconf}）'
+            f' → {pxbit}{esc(vd)}·{esc(howto)}')
+    why = (f'架构师中周期估算 <b>{c}{lo:,.0f}~{c}{hi:,.0f}·中枢{c}{mid:,.0f}</b>'
+           f'（尺:{esc(ruler)}·可靠度{esc(rel)}·<b>非权威</b>{lowconf}）→ {pxbit}<b>{esc(vd)}</b>'
+           f' → <b>{esc(howto)}</b>（权威估值待接·这套是架构师非权威估算·只作框架参考）')
+    grade = f'架构师·非权威{lowconf}'
+    return {"short": short, "text": text, "grade": grade, "why": why}
 
 
 def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
@@ -1225,8 +1262,13 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
     base = next((v for k, v in _ACT_LABEL.items() if act.startswith(k)), None)
     qual = str(f.get("quality") or "")
     has_val = (low is not None and mid is not None)
+    # 权威估值待接但架构师有中周期估算(6只)→用架构师值，不再显光秃秃"算不出"(董事长2026-07-18)
+    _archv = arch_val_display(sym, dyn) if not has_val else None
     # 1) 结论一句话(必带半句人话理由)
-    if not has_val:
+    if not has_val and _archv:
+        concl = str(_arch_est(sym).get("howto_short") or "守·不追高")
+        why_tail = "——权威估值待接，看架构师中周期估算（下方·非权威）"
+    elif not has_val:
         concl = "算不清·只能守着看"
         why_tail = "——因为算不出它该值多少钱，不知道贵还是便宜，就不主动加减"
     elif base:
@@ -1269,7 +1311,9 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
         bits2.append("账本记它是最好那一档")
     elif "②" in qual:
         bits2.append("账本记它还在观察期、没到最好那一档")
-    if not has_val:
+    if not has_val and _archv:
+        bits2.append(f'权威估值待接·架构师中周期估算 {_archv["short"]}')
+    elif not has_val:
         bits2.append("但算不出它该值多少钱，所以不主动加减")
     elif px is not None:
         try:
@@ -1775,6 +1819,10 @@ def _action_of_raw(sym: str, name: str, dyn: dict, date: str) -> tuple:
     #   ⚠禁止"读反"：原来写"加到¥4,113附近就够"→读着像"要在高于现价的¥4,113加"。
     #     正确说法是"涨回¥4,113以上就别追"——【停手价】要说成"到这价就停"，不能说成"加到这价"。
     if not st["ok"]:
+        # 权威估值待接 → 若架构师有中周期估算(6只)，第3行显【值+尺+可靠度+怎么办】·不再光秃秃"算不出"
+        _av = arch_val_display(sym, dyn)
+        if _av:
+            return tag("守", _av["why"])
         return tag("守", "算不出它该值多少钱（缺可信估值输入）→ <b>现在不动手</b>，守着看")
     c, px, lo, hi, mid = st["cur"], st["px"], st["lo"], st["hi"], st["mid"]
     P = f"现在 <b>{c}{px:,.0f}</b>"
