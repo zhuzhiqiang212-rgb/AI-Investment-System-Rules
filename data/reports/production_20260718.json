@@ -1,7 +1,7 @@
 {
   "task_id": "TASK-2026-07-02-064",
   "mode": "formal",
-  "generated_at": "2026-07-18T13:16:04.308617+00:00",
+  "generated_at": "2026-07-18T14:55:54.394087+00:00",
   "fingerprint": {
     "date": "20260718",
     "framework_fixed": true,
@@ -30,30 +30,21 @@
   "evidence_summary": {
     "world": {
       "node": "总命题·世界是否真变",
-      "evidence": "【新闻研判】世界观级：抓12条→合格5条(权威源+36h内+过相关性闸)，逐条方向研判加权净分=1.0 → 判「三支柱维持·无regime反转·中」(非关键词计数)。样本：特朗普总统指控中国干预美国选举并公布相关细节（美国之音·2026-07-17 23:20 UTC·无明确方向(仅相关背景)）；中期选举临近特朗普剑指中国 称美国选举安全存在“令人震惊的漏洞”（BBC·2026-07-17 07:34 UTC·无明确方向(仅相关背景)）；特朗普指责加拿大野火殃及美国空气 威胁以关税追偿（新华网·2026-07-18 02:19 UTC·利多依据:关税·新鲜度4.7h）",
+      "evidence": "【新闻研判】世界观级：抓12条→合格6条(权威源+36h内+过相关性闸)，逐条方向研判加权净分=2.0 → 判「地缘/秩序信号增多·需盯(未到regime反转)·中」(非关键词计数)。样本：中期选举临近特朗普剑指中国 称美国选举安全存在“令人震惊的漏洞”（BBC·2026-07-17 07:34 UTC·无明确方向(仅相关背景)）；特朗普总统指控中国干预美国选举并公布相关细节（美国之音·2026-07-17 23:20 UTC·无明确方向(仅相关背景)）；特朗普指责中方曾试图影响美选举结果后 白宫确认9月的特习会仍将按计划进行（RFI法广·2026-07-18 10:02 UTC·无明确方向(仅相关背景)）",
       "strength": "中",
-      "direction": "没变(三支柱维持·无regime反转)",
-      "plain": "今天没有会掀翻世界大格局的地缘大事，三支柱（美国优先·阵营化·集中砸AI）延续 → 对你：投资大方向不变，照现有框架走。",
+      "direction": "没变·但要盯(地缘/秩序信号增多·需盯(未到regime反转))",
+      "plain": "地缘/秩序上的紧张信号今天多了一些，但还没到掀翻大格局的程度 → 对你：投资大方向暂时不变，多留个心眼、盯着点。",
       "today_events": [
-        "美国之音·2026-07-17 23:20 UTC：特朗普总统指控中国干预美国选举并公布相关细节",
         "BBC·2026-07-17 07:34 UTC：中期选举临近特朗普剑指中国 称美国选举安全存在“令人震惊的漏洞”",
-        "新华网·2026-07-18 02:19 UTC：特朗普指责加拿大野火殃及美国空气 威胁以关税追偿"
+        "美国之音·2026-07-17 23:20 UTC：特朗普总统指控中国干预美国选举并公布相关细节",
+        "RFI法广·2026-07-18 10:02 UTC：特朗普指责中方曾试图影响美选举结果后 白宫确认9月的特习会仍将按计划进行"
       ],
       "background": [
-        "加权研判净分=1.0(逐条:新鲜度加权·否定/辟谣降权·须过相关性闸)",
-        "合格5/抓12·剔除7条(源不合格/旧闻/不相关)"
+        "加权研判净分=2.0(逐条:新鲜度加权·否定/辟谣降权·须过相关性闸)",
+        "合格6/抓12·剔除6条(源不合格/旧闻/不相关)"
       ],
-      "source": "Google News RSS·中文源(zh-CN)·合格5/抓12条·源白名单+≤36h",
+      "source": "Google News RSS·中文源(zh-CN)·合格6/抓12条·源白名单+≤36h",
       "news_items": [
-        {
-          "title": "特朗普总统指控中国干预美国选举并公布相关细节 - 美国之音",
-          "source": "美国之音",
-          "url": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxOdHJfd3BxSUpMTzJScE9lX281WHlZR3NqbEF0VjFJMW04eDNpc3RlMm1LWHUxdTIyM01vNHZhVXhaY0Fhc2tQbUdhRU9sLXlweG05ZVI5RGstc3RNS3Y2X3NzUlcwNXp6QWUzcEJfY0ZOZGJQTHc2TDhDQ1NHYnJOU1hlZFlsVjE0WTAwUDNUS3VIZ3JTX1cwQ2dQbGVSZ2NYTzdFM0RfUVNYbDdra3NtQWRQcVdXQVZrWmhvYklMd0VCei1Sb0RVU2pCMnBoYkRaODJXSzZBREExNjB1VlowWUJjR0RqNFdnOGpJ0gHuAUFVX3lxTE5hWURCOUVNV1lwcUcxazEwcFFLbFBDVk4tUWRMalFLbi1vNHhwR2oyUkJVWnJHMlFybGxRb3o0dFlaWnE4d1FGMjVVZHdPVjQ5QWU4UUlFdzJSSjBfdzIzcGg3UlRjMFFHc1Jqa014dGtfX0Q0cGhBdzMyRWFZa2lZRDFkSDdGeXZGeU5xTEZ3N1B5YzFlOXNpUFdBVldzNUdZb0swUm5tWjIyTTFWNXBidHYxcndrWEJpUmlvdVA4R3puU2JmSC1NVkVZLW5KQ0hRTWdzUFJxNVNKWU1sMzlhMU5IcDhBczU0THBzRmc?oc=5",
-          "pub_date": "2026-07-17 23:20 UTC",
-          "lang": "zh",
-          "judge": "无明确方向(仅相关背景)",
-          "signal": 0.0
-        },
         {
           "title": "中期选举临近特朗普剑指中国 称美国选举安全存在“令人震惊的漏洞” - BBC",
           "source": "BBC",
@@ -64,28 +55,37 @@
           "signal": 0.0
         },
         {
-          "title": "特朗普指责加拿大野火殃及美国空气 威胁以关税追偿 - 新华网",
-          "source": "新华网",
-          "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTFBNdm55V2QxeFl2Uk5XQnlURFNXT1B3bHFtdldpbG13ZTlZYU5zeGZSRUxpSGd1clhzVWxkcld5M3RxODA4bG5NSWRRX3B4Y1Y1UzU3UWlUWW1DYTNXanE1UVoxOXFoQ1hjVnBhdC1KX1Jpb241c3BJeFlaZWR0NWc?oc=5",
-          "pub_date": "2026-07-18 02:19 UTC",
-          "lang": "zh",
-          "judge": "利多依据:关税·新鲜度4.7h",
-          "signal": 1.0
-        },
-        {
-          "title": "下周央行公开市场将有19635亿元逆回购到期 - 观点网",
-          "source": "观点网",
-          "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE91Ul9NOE1fNkhzVmVSd0c1cFpTdEJSazNQOWItcllsUXlKeVg0QTFfWHpLQjNwTl9BNGJLemFhUTNXeFVxbnppOF90QkpHUlNKdlQ4WERWNlFFaHBBUkJoMHFR?oc=5",
-          "pub_date": "2026-07-17 13:30 UTC",
+          "title": "特朗普总统指控中国干预美国选举并公布相关细节 - 美国之音",
+          "source": "美国之音",
+          "url": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxOYVlEQjlFTVdZcHFHMWsxMHBRS2xQQ1ZOLVFkTGpRS24tbzR4cEdqMlJCVVpyRzJRcmxsUW96NHRZWlpxOHdRRjI1VWR3T1Y0OUFlOFFJRXcyUkowX3cyM3BoN1JUYzBRR3NSamtNeHRrX19ENHBoQXczMkVhWWtpWUQxZEg3Rnl2RnlOcUxGdzdQeWMxZTlzaVBXQVZXczVHWW9LMFJubVoyMk0xVjVwYnR2MXJ3a1hCaVJpb3VQOEd6blNiZkgtTVZFWS1uSkNIUU1nc1BScTVTSllNbDM5YTFOSHA4QXM1NExwc0Zn0gHuAUFVX3lxTE5hWURCOUVNV1lwcUcxazEwcFFLbFBDVk4tUWRMalFLbi1vNHhwR2oyUkJVWnJHMlFybGxRb3o0dFlaWnE4d1FGMjVVZHdPVjQ5QWU4UUlFdzJSSjBfdzIzcGg3UlRjMFFHc1Jqa014dGtfX0Q0cGhBdzMyRWFZa2lZRDFkSDdGeXZGeU5xTEZ3N1B5YzFlOXNpUFdBVldzNUdZb0swUm5tWjIyTTFWNXBidHYxcndrWEJpUmlvdVA4R3puU2JmSC1NVkVZLW5KQ0hRTWdzUFJxNVNKWU1sMzlhMU5IcDhBczU0THBzRmc?oc=5",
+          "pub_date": "2026-07-17 23:20 UTC",
           "lang": "zh",
           "judge": "无明确方向(仅相关背景)",
           "signal": 0.0
         },
         {
-          "title": "特朗普定于今晚发表聚焦选举的全国讲话 - 新浪财经",
-          "source": "新浪财经",
-          "url": "https://news.google.com/rss/articles/CBMingJBVV95cUxNdUFDd2dnemRqUDVLVmRBRmNia2E0WEVqbTlpSUhFdTJ4X0tfUFN6Z2taMWd3UXNNSGJZSlNIUnk1ZFVIRkdya3lMaUZpXzZRd1FmTGV5YVNhbGZpUkRzMmpqdU9VR3lDTW1aQUpvdTk5Qzd3RHI5LTZzT1FBRG5ieC1yMEZaOF9jWUpvLWl5ekdvNElxOU54UV9KUm1WdTJKSlBxS3dxdzk4NGVMRFUtb21zTmRheVdubTloa1BKUEVDSl8ya0czN1NCTzFiY3F4Y1RwNXhyU250UHZUSVRjbjdKR3ZLQ2hEUTBqMVcwOEh5QXdmMHV2cGZqN3pMUVlLRmJtV0FqTjl6bHdjamhENXhxNTk1YVR1UHpFYU53?oc=5",
-          "pub_date": "2026-07-17 17:15 UTC",
+          "title": "特朗普指责中方曾试图影响美选举结果后 白宫确认9月的特习会仍将按计划进行 - RFI",
+          "source": "RFI法广",
+          "url": "https://news.google.com/rss/articles/CBMi-gNBVV95cUxNNGJnNm9WSV80TFRYZE5XWVJHU2RpQ3lxR0IxV3d2VHNpM0stRmJOcnFqTDBUbmZ6LVk0OWhqZTVfZUswQ2JHblhTYTFCQ2FIdUxXSEZoRk9mSGpuWmZqdFZ2UnhuRUQ0NEpfdHJidVVvYXZkZjdHUG9RU0hFd29TdFllNlRZVHh1MmduSU9OeHVsNHlaX2pUcEgxQTE4ak9vVmpXU29CWW1uWDJjdjItejJhUEdBVnJpdXBVanI4QUNOTkUxcHpLSUlwT1VDcmJ3X2Z4WXNkck50QWkyLU04WmJNWHFGQk1sVmV1cGFPYlJzZFJUYXE1STAyVjRzNDMtdWZ0eU5ObXZRMGJtbDZuLW5BYkF2RmhZc0VYMjBNOXlWZFczSmFSTl8zODRHeXJrOW1mUVZaYmN4b2tjYkU5T0pKWmNGMm5pakIxMktFLW5iNDN4ZFhsbTY4ZHlWMnJ4dVJza21GdEo3aHdkSzVSU0dubWhxTkZIX2RqZ20zd2NfZ080SzI1UE84QnphZ1RtRUtIZUNDSlpvczd5dVpYNC1ISGFQVU5XcFpKSFlWWUNHODhFQ0VYZXQ5RWlqdG1yZ2lRT29aZHVCS3Q1QURna1dIMnNfWXA1bGtfVVV0cTM0WGRqZURTaEhCaWdrUTM2TUtKMl83WlNDZw?oc=5",
+          "pub_date": "2026-07-18 10:02 UTC",
+          "lang": "zh",
+          "judge": "无明确方向(仅相关背景)",
+          "signal": 0.0
+        },
+        {
+          "title": "事实核查：特朗普指控中国干预美国2020大选 是否属实？ - DW.com",
+          "source": "德国之声",
+          "url": "https://news.google.com/rss/articles/CBMiywJBVV95cUxNbXdjNlFkbFloZjNQMzhwcEctdHp2ODlVYl95NDNPVmFJUlQ3YXhVNU5aWlVVN2JYaFljQTNZSmZNTVhlWE41eWdEUEtDT3JJekJ0ZkNGelhKMUN2cGhhWFF3V1QyOW9YWnJNTWdveXZXTS1GUFF0aGppN2hOMGUxbWZUSkFQa0FzQnNIOTlld1ByWnE0MVNkWDd6NlpwLUVqZlZMYndtbGhXV2U4Wlk1SXl1LTFGYW51dHpGWVRFODVDQklWNkVJeFZMV0lhakRrb0NyM19DOUhVaEQzeWRwSUptamlPMmdndjVjdXJXa2lEaWROU1ZLQ2pzd20tRmpoUS1FQ0ZIajZ5TVhoT2poeUxpTHdTOUNERGlFNFIwSFNFaV9xSTQyZFRtSjF0bUstODY0MElWYWZ0RGdhSDRuQ05yZGxRRDVlTWtR0gHLAkFVX3lxTE54QXNKcll2MHI3RWs2ZlZ2bXhEVTZZVy11clFNSE41bDAzVDJUMDFvMl81MHlWUHBFYlV4QVFQS2xEb3pnWFpqS2EzcTVEZlR4ejJNVGtHSDg4QkgyTjR4dE50dktfa1pGLUNsVUJPbGR0ZVRYcjZra24yYTlFNUFrcm5PeUtWS05FcDZNVkZfVlNZNV9EeGZ6dWxMWU9EZ0kxRl9tbFRmOG9ONlBRQzBCMGFLWUFIanJBMlo2OFhLVnNUMnNwM0QtQU10OTJ0b3ZTQy1IOXUzTW9GYlNxQzM5Zkc2QkdVWVBsSTNnV2xRZDFUZTIwckwzcm9JNjZYTnJ6RHJ0Z01qWnY4Z0pIeWV2dXp0V2VyZi1FY2RNTF9ST21kV2FHNGE1VXNlVmxzNWRycFFpaTViYVhoNWtVVzRqd2N0S21DNnJkWDg?oc=5",
+          "pub_date": "2026-07-18 11:00 UTC",
+          "lang": "zh",
+          "judge": "利多依据:核·新鲜度2.3h",
+          "signal": 1.0
+        },
+        {
+          "title": "梵蒂冈金融信息监管局与德国央行签署技术合作协议- 梵蒂冈新闻网 - Vatican News",
+          "source": "Vatican News",
+          "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxORGNrSFliRTM1dTFUNXdvbUdNaDNaY09NZVh6MEhlZERmRUJqYnFDX0F2N294dFdFNFZMemNmaDdYaXZKMjJwaVFnS0RqUW8tc3VRcV8ybnZtZ0VIVUZ6X1dYWlpLb2MwUnNHTmxRYUpNa0s3ZnROMldaUWI4c25uUzdfczFudjBpSE1ia1R6VjBsbVl1eTVLdVowUmN5NnotTEV2R2Rua2dfQ3Nva2pKLWo3MHF2VTN4NXBXRWhGai16azA?oc=5",
+          "pub_date": "2026-07-18 12:46 UTC",
           "lang": "zh",
           "judge": "无明确方向(仅相关背景)",
           "signal": 0.0
@@ -108,32 +108,32 @@
           "pub_date": "2026-07-18 06:38 UTC"
         },
         {
-          "title": "格雷厄姆生前力推对俄制裁法案有望落实 包含对俄油气五大买家征至多100％关税 - RFI",
-          "reason": "旧闻(发布于2026-07-15·距今67小时>36小时)",
-          "source": "RFI",
-          "url": "https://news.google.com/rss/articles/CBMiiARBVV95cUxQQW55RkhkV2RLQkY2NnRzX1pXNFlhdGZiRmlOc05NM2YtMlZsRnA3ZVBJeDhkY3lfUFE4eEpTRzlFRENBMm5WTnhreTZqMmFNekUyR2NtdmotWUxlZ25GejVIMDNnSnk0NWwzX254cmQ2Ym5HaWE5allIQ3pSc0JIcDlUVTVyZUJycGhCQy00ckFPX2NFTU0yUmk2Y0o4Q2ZFeGdBeDkwYTdxaWVFXzFVWEhMV1FQeFdrZXZReUNrVU1FWWd0RlFJOTJ6V3UwaG5manE5ZkQtcXdOZ1hpc2diU0tpVzY2RDZDaE9OTWgtV3ZRZnRkSm44RVgxdFl3Qkd2cTRjQ1ItVUJ1M09CSnhfUW1ER1c3T0tPUUV4bmRsWXc5cW5FbUFxODRPNWZ4M2U3Y0JGSGV6Rjc1NVQzQS1yUUFmWldZRVFLaFB5bFpHU0FFS3NyVGM4dDI1enp3dVF3SGk1UWlmRzIwWmhPam9XdHR4MWZDM2RiblVfNlR2b0d1ZTJ2SndHeG5yY1M4eVJnbHJwLWN6OW1HX0VfOEVCZnRmTEE0ekJTTDZSTzZDdUlDVVM1bzQ5ZDQtLVFVRElfSWppNnpIV1hrRDhXNVFCN0tEbWptci1qOG5JWW50NFB1TFo4Z24yVTk3V05yc3k3THU0YWhpUkllblFsZXM2LXoxZ3VIQ2V1?oc=5",
-          "pub_date": "2026-07-15 12:11 UTC"
+          "title": "【玉杰锐评】十四世达赖为“战争贩子”格雷厄姆招魂意在何为？_滚动图 - 中国西藏网",
+          "reason": "源不在权威名单、内容也够不上重大：中国西藏网",
+          "source": "中国西藏网",
+          "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE56M3BsaXp6TzkyUE5KYTdFQ2RqQTFYbk4tQ2RTMWpEX3loRlVXdjhOdzNndTdaeFVrczZ5ZFpwai1RSWthV1c1bllhdTU5X0VQRkhDRlgwSnNYSGJReTBOWVF6dkNsdmgw?oc=5",
+          "pub_date": "2026-07-18 08:20 UTC"
         },
         {
-          "title": "3万项制裁没击垮俄罗斯，我说了这句实话却被制裁 - 观察者",
-          "reason": "旧闻(发布于2026-07-15·距今68小时>36小时)",
-          "source": "观察者",
+          "title": "“意愿联盟”巴黎峰会聚焦援乌，将推动战局出现变化？ - 凤凰网",
+          "reason": "源不在权威名单、内容也够不上重大：凤凰网",
+          "source": "凤凰网",
+          "url": "https://news.google.com/rss/articles/CBMiS0FVX3lxTE96NmIycm41ZW56T3dBN3hySURrcDhFUV8zaG5SVWJtRHNpWV9ULWkxN1FGSFlTOHBLU3B3SVBPcVMyZkZxeURoS0tfcw?oc=5",
+          "pub_date": "2026-07-18 07:14 UTC"
+        },
+        {
+          "title": "3万项制裁没击垮俄罗斯，我说了这句实话却被制裁 - 观察者网",
+          "reason": "旧闻(发布于2026-07-15·距今74小时>36小时)",
+          "source": "观察者网",
           "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE4zZEd2ekV4cW1QNzNvc2RkZmdkQkNMRWM1Q2VpVXJvTFRfUW1kMjlhWFdWd0NiOFJZNFlJZFc0cHFydlZBbkJkaGZXUTFzYnRQVWY5YV9Vc3dYUE1KRHFwd0VtbFVqd3Z5dnc?oc=5",
           "pub_date": "2026-07-15 11:10 UTC"
         },
         {
           "title": "美国拟出台新制裁法案对俄能源买家征最高100%关税 中印在列 外交部回应 - 东方财富",
-          "reason": "旧闻(发布于2026-07-16·距今51小时>36小时)",
+          "reason": "旧闻(发布于2026-07-16·距今57小时>36小时)",
           "source": "东方财富",
           "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE4zZEpycHpSUU9GY0FNb0tFM3Z0N3VFOXZXXy1fa0FwVzFyRUZUXzFkVmNZZVRwRWgwcGZGOXNFNm5YbVJkWE44SjRLSUFrYlJOWlZWYlJYSFBEa3dZNnM3eg?oc=5",
           "pub_date": "2026-07-16 04:14 UTC"
-        },
-        {
-          "title": "【玉杰锐评】十四世达赖为“战争贩子”格雷厄姆招魂意在何为？ - 中国西藏网",
-          "reason": "源不在权威名单、内容也够不上重大：中国西藏网",
-          "source": "中国西藏网",
-          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE1DZW5LNUNaeTF3azNlVnBmN3U1dHZMQ0Q5Q25QUGpGTkc2SURTSW5JY0tmb3ZQdi1WaGFBeU9YYTQ0X1U1bDl6RkJqR1NqbFpwQ095eDRpanBxQk1fbGpET2UyVkk3RkliRFE?oc=5",
-          "pub_date": "2026-07-18 05:41 UTC"
         }
       ]
     },
@@ -154,12 +154,12 @@
     },
     "strategy": {
       "node": "战略指向·AI/安全/能源",
-      "evidence": "【新闻研判】战略产业面：抓12条 → 过源白名单+时效(36h)+相关性闸后合格 0 条 → 判「今日无重大新闻·维持基线」(不拿旧闻/杂源凑·不编)。今天读到但判为弱相关的有 11 条(见下·董事长可自己看)。剔除示例：台积电财报：AI需求比芯片抛售潮所暗示的更为强劲→旧闻(发布于2026-07-16·距今47小时>36小时)；台积电Q2净利润同比增长77.4%大超预期，毛利率达67.7%…→旧闻(发布于2026-07-16·距今49小时>36小时)；台积电第二季度净利润大增77.4%创纪录，AI芯片需求推动业绩超预期→旧闻(发布于2026-07-15·距今64小时>36小时)",
+      "evidence": "【新闻研判】战略产业面：抓12条 → 过源白名单+时效(36h)+相关性闸后合格 0 条 → 判「今日无重大新闻·维持基线」(不拿旧闻/杂源凑·不编)。今天读到但判为弱相关的有 10 条(见下·董事长可自己看)。剔除示例：台积电财报：AI需求比芯片抛售潮所暗示的更为强劲→旧闻(发布于2026-07-16·距今54小时>36小时)；台积电Q2净利润同比增长77.4%大超预期，毛利率达67.7%…→旧闻(发布于2026-07-16·距今55小时>36小时)；台积电第二季度净利润大增77.4%创纪录，AI芯片需求推动业绩超预期→旧闻(发布于2026-07-15·距今70小时>36小时)",
       "strength": "中",
       "direction": "AI(今日无重大新闻·维持基线)",
       "plain": "今天没有够格(权威源+当日)的 AI 产业新闻 → 维持基线：AI 主线沿用上次判断，核心仓照守、不因没新闻就动。",
       "today_events": [
-        "今天没有够格的战略产业面新闻（抓12条·合格0条）；但今天确实读到了这 11 条弱相关的，摆出来你自己判："
+        "今天没有够格的战略产业面新闻（抓12条·合格0条）；但今天确实读到了这 10 条弱相关的，摆出来你自己判："
       ],
       "background": [
         "源白名单=路透/彭博/CNBC/WSJ/FT/官方+财新/华尔街见闻/第一财经/证券时报；时效≤36h；已剔除大学页/智库博客/内容农场"
@@ -172,65 +172,65 @@
           "source": "Moomoo",
           "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQTmNIU0NCa2lIREtLQ3ZZTXlHVzg1eGZCbXRqZ25TaEpaRkpRYTJZZ0tvbTBZOTloWUNyWFpHaGRibi10M29OV2RXczJtTE9VamtYQmlnTDZIa2hGVE1fWjhkTmhTOE1va2tHaVVHV1lFbmRUZ29fMUdRWVl1WENINkpTNkFDRGdEanlOWWNPT2o5dmM2b1FKRE1KY25vZ1FiTkEzWHo0UEhnMVdpYVUwd1lXVTh6QQ?oc=5",
           "pub_date": "2026-07-16 07:38 UTC",
-          "judge": "旧闻(发布于2026-07-16·距今47小时>36小时)"
+          "judge": "旧闻(发布于2026-07-16·距今54小时>36小时)"
         },
         {
           "title": "台积电Q2净利润同比增长77.4%大超预期，毛利率达67.7%，AI芯片需求强劲势头持续| 财报见闻 - 华尔街见闻",
           "source": "华尔街见闻",
           "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFBKcEktM2pLcC05ck9udmx1WVFseDZWWHNNWlJQc0hSa21hdWpRdXBfME5pNHd1Wm04Z1RpTlhEY0tGSGxFZG4xQ0tBMnJySHVOV2o0?oc=5",
           "pub_date": "2026-07-16 05:50 UTC",
-          "judge": "旧闻(发布于2026-07-16·距今49小时>36小时)"
+          "judge": "旧闻(发布于2026-07-16·距今55小时>36小时)"
         },
         {
           "title": "台积电第二季度净利润大增77.4%创纪录，AI芯片需求推动业绩超预期 - TradingKey",
           "source": "TradingKey",
           "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOM2dRbE11M2ktdkhXeGFoR0tSMkRWOE9BR2VYbXFZOEVSRkUtX090eUZwUUl2NUV1TEdCQVd2dnhmRVpXYVFPNGRPRWt6d20xMGF0eEpkb29kcWNUc1dVZjI0YWMxZ3pxblk2VEVmVWc3dl9rTWNicjZDWmJjVUx3aUQxdWFhU0NtT093MEVwM0p1ODlZNzFIVU1WZjFUQnlZQzh6Q3Jrb0dDRkJERzFfbFRNalNxRXBE?oc=5",
           "pub_date": "2026-07-15 15:22 UTC",
-          "judge": "旧闻(发布于2026-07-15·距今64小时>36小时)"
+          "judge": "旧闻(发布于2026-07-15·距今70小时>36小时)"
         }
       ],
       "news_dropped": [
         {
           "title": "台积电财报：AI需求比芯片抛售潮所暗示的更为强劲 - Moomoo",
-          "reason": "旧闻(发布于2026-07-16·距今47小时>36小时)",
+          "reason": "旧闻(发布于2026-07-16·距今54小时>36小时)",
           "source": "Moomoo",
           "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQTmNIU0NCa2lIREtLQ3ZZTXlHVzg1eGZCbXRqZ25TaEpaRkpRYTJZZ0tvbTBZOTloWUNyWFpHaGRibi10M29OV2RXczJtTE9VamtYQmlnTDZIa2hGVE1fWjhkTmhTOE1va2tHaVVHV1lFbmRUZ29fMUdRWVl1WENINkpTNkFDRGdEanlOWWNPT2o5dmM2b1FKRE1KY25vZ1FiTkEzWHo0UEhnMVdpYVUwd1lXVTh6QQ?oc=5",
           "pub_date": "2026-07-16 07:38 UTC"
         },
         {
           "title": "台积电Q2净利润同比增长77.4%大超预期，毛利率达67.7%，AI芯片需求强劲势头持续| 财报见闻 - 华尔街见闻",
-          "reason": "旧闻(发布于2026-07-16·距今49小时>36小时)",
+          "reason": "旧闻(发布于2026-07-16·距今55小时>36小时)",
           "source": "华尔街见闻",
           "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFBKcEktM2pLcC05ck9udmx1WVFseDZWWHNNWlJQc0hSa21hdWpRdXBfME5pNHd1Wm04Z1RpTlhEY0tGSGxFZG4xQ0tBMnJySHVOV2o0?oc=5",
           "pub_date": "2026-07-16 05:50 UTC"
         },
         {
           "title": "台积电第二季度净利润大增77.4%创纪录，AI芯片需求推动业绩超预期 - TradingKey",
-          "reason": "旧闻(发布于2026-07-15·距今64小时>36小时)",
+          "reason": "旧闻(发布于2026-07-15·距今70小时>36小时)",
           "source": "TradingKey",
           "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOM2dRbE11M2ktdkhXeGFoR0tSMkRWOE9BR2VYbXFZOEVSRkUtX090eUZwUUl2NUV1TEdCQVd2dnhmRVpXYVFPNGRPRWt6d20xMGF0eEpkb29kcWNUc1dVZjI0YWMxZ3pxblk2VEVmVWc3dl9rTWNicjZDWmJjVUx3aUQxdWFhU0NtT093MEVwM0p1ODlZNzFIVU1WZjFUQnlZQzh6Q3Jrb0dDRkJERzFfbFRNalNxRXBE?oc=5",
           "pub_date": "2026-07-15 15:22 UTC"
         },
         {
-          "title": "AI 交易见顶了？从阿斯麦财报被抛售看 AI 下半场的扩散与分化 - 36Kr",
-          "reason": "旧闻(发布于2026-07-15·距今58小时>36小时)",
-          "source": "36Kr",
-          "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE9YMTd2TWhoU3ZpQ1NIRm83RmRscFYzTVhJMkxSRVNIUGd4MnpWUFZ3X01zMDM1XzhMUTR6NHFaUmgzckM2ckF6b2pUY1lDQQ?oc=5",
-          "pub_date": "2026-07-15 20:40 UTC"
-        },
-        {
           "title": "财报前瞻| 台积电Q2营收锁定超预期！毛利率或逼近70%，绩后股价波动如何部署期权？ 港美股资讯 - hstong.com",
-          "reason": "旧闻(发布于2026-07-14·距今93小时>36小时)",
+          "reason": "旧闻(发布于2026-07-14·距今99小时>36小时)",
           "source": "hstong.com",
           "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1lcm40bm15Wlk4cHFuZkFaM0cyVEJMcFJIaGxHVVJNbG1fTURrVHVCRDU3dGtqZDhJN2hveWx1bnBqQWoyNDJwOGdHLWdVLWRUQ3NpMDNkTlh4WEZqTDJLUGZB?oc=5",
           "pub_date": "2026-07-14 09:59 UTC"
         },
         {
           "title": "台积电Q2财报临近：AI需求、毛利率与资本开支成为市场核心关注点 - TradingKey",
-          "reason": "旧闻(发布于2026-07-14·距今85小时>36小时)",
+          "reason": "旧闻(发布于2026-07-14·距今91小时>36小时)",
           "source": "TradingKey",
           "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOd3dGUjJUYklWSzg2VlFqSkZwODF0RFJaaTlGUHFKbldmT2FoYUcxNWVwQ2tndUJYMnpLakx1Rk1UbDFyVVUwRGVqZE80THp4UzNBeU5IUnM2WlkzdUFReXdab2FtNVd4d0FmajkzOHJGd1pGRkZjeERJZFhpM200RFdYUTFvV25lOUZIb2NsbVQydmZBQ29qUnJsODVpSWF5Tkx5SFppakxQdDZOSzFENmlHOERzcHJoRDRpckcyX25JYmdxb3dJ?oc=5",
           "pub_date": "2026-07-14 18:28 UTC"
+        },
+        {
+          "title": "Einblicke von BIG巨鲸(@Square-Creator-20d49a64e9b3) - Binance",
+          "reason": "源不在权威名单、内容也够不上重大：Binance",
+          "source": "Binance",
+          "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE1uQmpxeEZWWk1EOXdVUnBSd3gyS1pxdVZqSGdncTZ6UDVpOHpGSjB6OWJiMktlbmxOSDBzMm80S2hjUVJBcjFPd0VydndZUk9SVjdsbUJnaXV4MkJHTGNNbkFnQUI?oc=5",
+          "pub_date": "2026-07-13 14:02 UTC"
         }
       ]
     },
@@ -329,8 +329,8 @@
       "symbol": "US.NVDA",
       "name": "英伟达",
       "quantity": 1020.0,
-      "price": 202.553,
-      "market_value": 206604.06,
+      "price": 202.81,
+      "market_value": 206866.2,
       "raw_holding_verdict": "符合",
       "matched_node_classes_raw": [
         "代工",

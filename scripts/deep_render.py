@@ -814,6 +814,12 @@ def _rel_grade(rel: str) -> tuple:
     return (not low, r)
 
 
+def _peak_cyclical(sym: str) -> bool:
+    """强周期(半导体设备/存储)/加密——这类"极贵"多是景气高点·中周期只作参考·不自动翻减。"""
+    r = _valfw(sym)
+    return bool(r and r[0] in ("半导体·强周期", "加密/金融"))
+
+
 def _valfw(sym: str):
     """估值五层框架(老雷法·按行业换尺)——返回该只的 行业标签+用哪把尺；失败→None。"""
     try:
@@ -1860,6 +1866,14 @@ def _action_of_raw(sym: str, name: str, dyn: dict, date: str) -> tuple:
         return tag("守", "暂无可信估值基础（缺真源）→ <b>现在不动手</b>，守着看")
     c, px, lo, hi, mid = st["cur"], st["px"], st["lo"], st["hi"], st["mid"]
     P = f"现在 <b>{c}{px:,.0f}</b>"
+    # 峰值周期股护栏(董事长standing rule:中周期/穿牛熊偏贵只作参考·不自动把守翻减)：
+    #   强周期(半导体设备/存储)/加密 在中周期或穿牛熊估值下"极贵"多因【景气高点·峰值定价】，
+    #   此时保持"守·不追高、留峰值风险安全垫"，不因这个数就自动减(峰值可能持续·此估值只作参考)。
+    if st["above_rich"] and _peak_cyclical(sym):
+        _mult = px / hi if hi else 0
+        return tag("守", f"{P}，中周期/穿牛熊算 <b>极贵（景气高点·峰值定价）</b>"
+                         f"（现价约合理上沿 {c}{hi:,.0f} 的 {_mult:.1f} 倍）→ <b>守·不追高、留峰值风险安全垫</b>；"
+                         f"<b>不因这个数就自动减</b>（峰值可能持续·中周期/穿牛熊只作参考·董事长尺）。")
     if st["above_rich"] and in_over:
         return tag("减", f"{P}，<b>已涨过贵位 {c}{hi:,.0f}、算贵</b>；"
                          f"而且「{cat}」这一类已经超上限 → <b>现在可以减</b>，优先从它减；"
@@ -2043,7 +2057,9 @@ def part0_cash(date: str, dyn: dict) -> str:
     # 可减清单 = 在超上限的类里、【且比中枢贵】的，按贵的程度排(先减最贵的)。
     # ⚠必须过滤 gap_mid>0：否则会把"比中枢还便宜9%"的微软也排进"先减最贵的"，
     #   而同一段又写着"核心不动:…微软" → 自打架。便宜的不该减，这是同一把尺。
-    cut = sorted([r for r in rows if _cat_of(r["sym"], date, dyn) in over_cats and r["gap_mid"] > 0],
+    # 只收【唯一决定表动作真=减】的(与顶部同一个答案·L28)：峰值周期股护栏后动作=守的不进减仓表
+    cut = sorted([r for r in rows if _cat_of(r["sym"], date, dyn) in over_cats and r["gap_mid"] > 0
+                  and _pure_act(r["sym"], r["name"], dyn, date) == "减"],
                  key=lambda r: -r["gap_mid"])[:3]
     cash_txt = (f'<b>${cash:,.0f}</b>' if isinstance(cash, (int, float)) else '<span class="need">待接</span>（账户现金数没接进来·不编）')
     o = []

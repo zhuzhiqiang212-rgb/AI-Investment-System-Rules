@@ -1,187 +1,248 @@
 {
-  "_说明": "分类型估值引擎输入位(尺=右栏_估值方法学.html)。理解岗(Cowork)只填【真财务输入】——模型由引擎按标的类型【自动选】(security_classifier分类→类型→模型)，不再手工填 method。缺真输入→引擎标'待接真源·不硬编'。类型登记见 security_types.json(行业事实·可迭代)。BTC/ETH不在此(资产口径·不做企业估值)。",
-  "_填写人": "工程师去method(改自动选模型)·growth三只+软银NAV已真值·其余待理解岗填真输入 · 2026-07-14",
-  "holdings": {
-    "US.NVDA": {
-      "name": "英伟达",
-      "currency": "$",
-      "eps0": 8.5,
-      "g_stage1": 0.2,
-      "years": 5,
-      "terminal_g": 0.04,
-      "wacc": 0.11,
-      "note": "eps0=FY27 non-GAAP EPS $8.5(valuation实例·真)；一阶段增速20%(较近期+85%大幅保守)、永续4%、折现11%。大仓·AI核心。"
+ "_说明": "分类型估值引擎输入位(尺=右栏_估值方法学.html)。理解岗(Cowork)只填【真财务输入】——模型由引擎按标的类型【自动选】(security_classifier分类→类型→模型)，不再手工填 method。缺真输入→引擎标'待接真源·不硬编'。类型登记见 security_types.json(行业事实·可迭代)。BTC/ETH不在此(资产口径·不做企业估值)。",
+ "_填写人": "工程师去method(改自动选模型)·growth三只+软银NAV已真值·其余待理解岗填真输入 · 2026-07-14",
+ "holdings": {
+  "US.NVDA": {
+   "name": "英伟达",
+   "currency": "$",
+   "eps0": 8.5,
+   "g_stage1": 0.2,
+   "years": 5,
+   "terminal_g": 0.04,
+   "wacc": 0.11,
+   "note": "eps0=FY27 non-GAAP EPS $8.5(valuation实例·真)；一阶段增速20%(较近期+85%大幅保守)、永续4%、折现11%。大仓·AI核心。"
+  },
+  "US.MSFT": {
+   "name": "微软",
+   "currency": "$",
+   "eps0": 19.09,
+   "g_stage1": 0.12,
+   "years": 5,
+   "terminal_g": 0.035,
+   "wacc": 0.1,
+   "note": "eps0=FY27 EPS $19.09(valuation实例·真)；一阶段12%、永续3.5%、折现10%(稳健)。大仓·软件AI核心。"
+  },
+  "JP.4568": {
+   "name": "第一三共",
+   "currency": "¥",
+   "eps0": 165,
+   "g_stage1": 0.08,
+   "years": 5,
+   "terminal_g": 0.025,
+   "wacc": 0.09,
+   "note": "eps0=base forward EPS ¥165(valuation实例·真)；医药成长·一阶段8%(计入专利到期风险)、永续2.5%、折现9%。内在≈¥3300、与管线DCF估值实例吻合·可信度A。"
+  },
+  "JP.9984": {
+   "name": "软银集团",
+   "currency": "¥",
+   "assets": [
+    {
+     "name": "Arm持股(扣保证金贷款后)",
+     "value": 19150
     },
-    "US.MSFT": {
-      "name": "微软",
-      "currency": "$",
-      "eps0": 19.09,
-      "g_stage1": 0.12,
-      "years": 5,
-      "terminal_g": 0.035,
-      "wacc": 0.1,
-      "note": "eps0=FY27 EPS $19.09(valuation实例·真)；一阶段12%、永续3.5%、折现10%(稳健)。大仓·软件AI核心。"
-    },
-    "JP.4568": {
-      "name": "第一三共",
-      "currency": "¥",
-      "eps0": 165,
-      "g_stage1": 0.08,
-      "years": 5,
-      "terminal_g": 0.025,
-      "wacc": 0.09,
-      "note": "eps0=base forward EPS ¥165(valuation实例·真)；医药成长·一阶段8%(计入专利到期风险)、永续2.5%、折现9%。内在≈¥3300、与管线DCF估值实例吻合·可信度A。"
-    },
-    "JP.9984": {
-      "name": "软银集团",
-      "currency": "¥",
-      "assets": [
-        {
-          "name": "Arm持股(扣保证金贷款后)",
-          "value": 19150
-        },
-        {
-          "name": "其余资产合计(愿景基金/OpenAI/日本电信/现金等)",
-          "value": 29110
-        }
-      ],
-      "net_debt": 8210,
-      "shares": 5.7,
-      "holding_discount": 0,
-      "note": "单位=十亿円(assets/net_debt)、十亿股(shares)。来源:软银官方IR·FY2025Q4(截至2026-03-31)：持有资产¥48.26万亿、净负债¥8.21万亿、NAV¥40.06万亿=每股¥7,029(当日股价¥3,555·约49%折价)；Arm约¥19.15万亿(扣保证金贷款)。算得NAV/股≈¥7,026、与现有合理区¥7150吻合。控股折价取0(现价已含市场折价·把NAV/股当合理锚·保守)。注:6月官方NAV曾升至¥13,000/股(Arm/OpenAI大涨)、本处取更保守的3月官方值。可信度A·NAV。"
-    },
-    "JP.6857": {
-      "name": "爱德万测试",
-      "currency": "¥",
-      "normal_eps": null,
-      "pe_mid": null,
-      "ebitda_normal": null,
-      "ev_ebitda": null,
-      "net_debt": null,
-      "shares": null,
-      "note": "待理解岗填(半导体测试设备·周期股·不用峰值EPS)：正常年景EPS+中周期PE，或中周期EBITDA+EV/EBITDA倍数+净负债+股本。缺→待接。"
-    },
-    "US.SNDK": {
-      "name": "闪迪(SanDisk)",
-      "currency": "$",
-      "normal_eps": null,
-      "pe_mid": null,
-      "ebitda_normal": null,
-      "ev_ebitda": null,
-      "net_debt": null,
-      "shares": null,
-      "note": "待理解岗填(存储·强周期·不用峰值)：正常年景EPS+中周期PE，或中周期EBITDA一套。缺→待接。"
-    },
-    "US.TSM": {
-      "name": "台积电",
-      "currency": "$",
-      "normal_eps": null,
-      "pe_mid": null,
-      "ebitda_normal": null,
-      "ev_ebitda": null,
-      "net_debt": null,
-      "shares": null,
-      "note": "待理解岗填(代工·周期成长·不用峰值)：正常年景EPS+中周期PE，或中周期EBITDA一套。缺→待接。"
-    },
-    "JP.8766": {
-      "name": "东京海上",
-      "currency": "¥",
-      "bvps": 4303,
-      "target_pb": 1.7,
-      "note": "保险·PB/内含价值法。bvps=IFRS每股净资产约¥4,303(IFRS净资产¥7.96兆÷约1.85bn股·IFRS自2026-03财年起为主口径;J-GAAP每股净资产¥2,885.44为另一口径·勿混)；目标PB=1.7倍(优质P&C·调整ROE低两位数·国际分散·较MS&AD/Sompo溢价但不过分)。得公允约¥7,315。真实市场参照:现价¥7,688、前瞻PE约16~17倍、前瞻股息率约3.2%(¥245)。"
-    },
-    "US.AVGO": {
-      "name": "博通",
-      "currency": "$",
-      "eps0": 11.62,
-      "g_stage1": 0.2,
-      "years": 5,
-      "terminal_g": 0.04,
-      "wacc": 0.11,
-      "note": "成长股·两段式DCF。eps0=FY2026非GAAP共识EPS $11.62(股票分拆后·stockanalysis 41家分析师·2026-07)；一阶段20%(较近期AI营收+65~70%大幅保守)、永续4%、折现11%。AI定制芯片+网络+VMware软件。"
-    },
-    "US.META": {
-      "name": "Meta",
-      "currency": "$",
-      "eps0": 28.0,
-      "g_stage1": 0.12,
-      "years": 5,
-      "terminal_g": 0.04,
-      "wacc": 0.11,
-      "note": "成长股·两段式DCF。eps0=规范化约$28：FY2026 GAAP共识EPS $32.81(stockanalysis 2026-07)剔除Q1 2026约$8B一次性税项收益(约$3/股)→规范化约$29、保守取$28；一阶段12%(自+33%保守减速·计入AI资本开支折旧)、永续4%、折现11%(beta约1.2)。缺非GAAP共识单一权威源→用规范化GAAP并标口径。"
-    },
-    "JP.6758": {
-      "name": "索尼",
-      "currency": "¥",
-      "eps0": 207,
-      "g_stage1": 0.06,
-      "years": 5,
-      "terminal_g": 0.025,
-      "wacc": 0.085,
-      "note": "成长股·两段式DCF。eps0=次年共识EPS ¥207(stockanalysis 2026-07)；一阶段6%(管理层约10% OI CAGR目标·计入周期保守)、永续2.5%、折现8.5%。娱乐IP+图像传感器综合体。"
-    },
-    "JP.7974": {
-      "name": "任天堂",
-      "currency": "¥",
-      "eps0": 271,
-      "g_stage1": 0.06,
-      "years": 5,
-      "terminal_g": 0.025,
-      "wacc": 0.085,
-      "note": "成长股(主机周期)·两段式DCF。eps0=FY2027公司指引隐含EPS约¥271(净利¥310億×10÷约11.45亿股·管理层惯例保守·市场共识约¥352)；一阶段6%(跨主机周期归一·勿外推FY26launch的+99%)、永续2.5%、折现8.5%。另:任天堂净现金约¥2.22兆(约占市值27%·约¥1,940/股)为DCF外的额外下方缓冲、引擎EPS-DCF未计入。"
-    },
-    "JP.7832": {
-      "name": "万代",
-      "currency": "¥",
-      "eps0": 202.69,
-      "g_stage1": 0.07,
-      "years": 5,
-      "terminal_g": 0.025,
-      "wacc": 0.085,
-      "note": "成长股·两段式DCF。eps0=FY至2027-03官方指引EPS ¥202.69(万代IR 2026-05·管理层惯例保守·市场共识约¥221)；一阶段7%(IP周期/海外Gunpla扩张)、永续2.5%、折现8.5%。IP驱动消费(高达/龙珠/海贼王/艾尔登法环)。"
-    },
-    "JP.7203": {
-      "name": "丰田",
-      "currency": "¥",
-      "normal_eps": 270,
-      "pe_mid": 10,
-      "note": "周期股·中周期盈利法。normal_eps=¥270:由4财年真净利(¥2.451/4.944/4.765/3.848兆·官方IR)÷约13B股得4年均EPS约¥300、剔除弱日元峰值(FY24~¥380/FY25~¥365)、并参考FY2027指引¥230→取中周期¥270(透明自算·非峰值)；中周期PE=10倍(全球车企历史9~12倍·龙头取中枢)。得中周期公允约¥2,700。"
-    },
-    "JP.8001": {
-      "name": "伊藤忠商事",
-      "currency": "¥",
-      "note": "待理解岗定方法(综合商社/NAV或PB?)+真输入。"
-    },
-    "US.IBKR": {
-      "name": "IBKR",
-      "currency": "$",
-      "normalized_eps": 2.4,
-      "pe_normal": 22,
-      "note": "券商·正常化PE法。normalized_eps=$2.40(FY2025 GAAP稀释EPS $2.22、2026共识约$2.46~2.49·拆分后·取中);正常化PE=22倍(优质高成长券商18~25倍取中枢)。得中枢约$52.8。⚠市场按约37倍前瞻定价(为30%+账户增长+77%税前利润率付成长溢价)、故现价约$93~96远高于正常化券商倍数中枢——正常化口径下偏贵。IBKR是高利率受益(NII·2023降息前+68%为证)。2024-06做过4拆1。"
-    },
-    "US.MSTR": {
-      "name": "MSTR",
-      "currency": "$",
-      "assets": [
-        {
-          "name": "比特币持仓 843,775 BTC × $64,728(2026-07-15)",
-          "value": 54.6
-        }
-      ],
-      "net_debt": 21.33,
-      "shares": 0.35642,
-      "holding_discount": 0,
-      "note": "比特币壳·mNAV/净资产法(不用PE·GAAP净利被BTC市价扰动为负)。单位=十亿美元(assets/net_debt)、十亿股(shares)。来源:Strategy 8-K EX-99.1(2026-05-26):843,738 BTC、可转债$6.7B、优先股$15.5B(senior于普通股)、现金$0.87B;BTC价$64,728(2026-07-15 Yahoo)。持币市值≈$54.6B;net_debt=债$6.7B+优先股$15.5B−现金$0.87B=$21.33B(优先股senior claim须减);股本356.42M。算得归普通股BTC净值/股≈$93(现价$97.47→mNAV约1.04倍·约4%溢价)。"
-    },
-    "US.COIN": {
-      "name": "Coinbase",
-      "currency": "$",
-      "note": "待理解岗定方法+真输入。"
-    },
-    "US.CRCL": {
-      "name": "Circle",
-      "currency": "$",
-      "note": "待理解岗定方法+真输入。"
+    {
+     "name": "其余资产合计(愿景基金/OpenAI/日本电信/现金等)",
+     "value": 29110
     }
+   ],
+   "net_debt": 8210,
+   "shares": 5.7,
+   "holding_discount": 0,
+   "note": "单位=十亿円(assets/net_debt)、十亿股(shares)。来源:软银官方IR·FY2025Q4(截至2026-03-31)：持有资产¥48.26万亿、净负债¥8.21万亿、NAV¥40.06万亿=每股¥7,029(当日股价¥3,555·约49%折价)；Arm约¥19.15万亿(扣保证金贷款)。算得NAV/股≈¥7,026、与现有合理区¥7150吻合。控股折价取0(现价已含市场折价·把NAV/股当合理锚·保守)。注:6月官方NAV曾升至¥13,000/股(Arm/OpenAI大涨)、本处取更保守的3月官方值。可信度A·NAV。"
+  },
+  "JP.6857": {
+   "name": "爱德万测试",
+   "currency": "¥",
+   "normal_eps": 147,
+   "pe_mid": 20,
+   "ebitda_normal": null,
+   "ev_ebitda": null,
+   "net_debt": null,
+   "shares": null,
+   "note": "穿周期中周期:FY22-25摊薄EPS[111.81,173.67,84.16,218.01]均值≈¥147(剔FY26峰值¥513.30)×半导体设备中周期PE20。可靠度:中高(真数·仅取到4年·FY19-21未取到→标注)。缺FY19-21→区间偏保守。",
+   "eps_path": {
+    "FY2022": 111.81,
+    "FY2023": 173.67,
+    "FY2024": 84.16,
+    "FY2025": 218.01,
+    "FY2026(峰值·剔除)": 513.3
+   },
+   "eps_path_unit": "JPY·摊薄EPS·财年Apr-Mar",
+   "sensitivity": {
+    "eps_pm20": [
+     118,
+     176
+    ],
+    "pe_pm20": [
+     16,
+     24
+    ],
+    "fair_low": 1882,
+    "fair_high": 4234
+   },
+   "forward_fair": {
+    "2026E": 2940,
+    "note": "中周期正常化·剔FY26峰值·穿周期均值×中周期PE20;FY26 EPS¥513是AI峰值·不当常态"
+   },
+   "source": "stockanalysis.com/quote/TYO/6857/financials · S&P Global Market Intelligence · JPY摊薄EPS · FY2022-FY2026(财年Apr-Mar)"
+  },
+  "US.SNDK": {
+   "name": "闪迪(SanDisk)",
+   "currency": "$",
+   "normal_eps": null,
+   "pe_mid": null,
+   "ebitda_normal": null,
+   "ev_ebitda": null,
+   "net_debt": null,
+   "shares": null,
+   "note": "待接·不编:SanDisk 2025-02 从西部数据(WDC)分拆·独立财报仅~1年且历史为carve-out亏损(SEC 10-K FY25三期EPS均为负[-14.78/-4.63/-11.32])→穿周期正常化无可靠基础。需:分拆后≥3年稳定NAND段营收/营业利润率或WDC时代NAND分部还原(SEC 10-K)。现价$1,354经二源核实为真价·守着看。"
+  },
+  "US.TSM": {
+   "name": "台积电",
+   "currency": "$",
+   "normal_eps": null,
+   "pe_mid": null,
+   "ebitda_normal": null,
+   "ev_ebitda": null,
+   "net_debt": null,
+   "shares": null,
+   "note": "待接·不编:按新框架(董事长2026-07-18)台积电=芯片·成熟成长→应用 P/E+PEG(前瞻)，不用中周期。中周期会低估成长代工(28 vs现价97→误判极贵并触发不当减仓)。已取真数据供架构师:per-ADR USD EPS(stockanalysis TWD/ADR÷USDTWD32.39)FY21-25={'FY2021': 3.53, 'FY2022': 5.91, 'FY2023': 5.07, 'FY2024': 6.9, 'FY2025': 10.11}。需:前瞻EPS(2026E/2027E)+净利增速%算PEG(架构师/分析岗vetted)。",
+   "source": "stockanalysis.com/stocks/TSM/financials(TWD/ADR摊薄EPS FY21-25) + USDTWD 32.39(2026-07-18·Wise/台银) · IFRS",
+   "_edgar_adr_eps_path": {
+    "FY2021": 3.53,
+    "FY2022": 5.91,
+    "FY2023": 5.07,
+    "FY2024": 6.9,
+    "FY2025": 10.11
+   },
+   "_edgar_path_unit": "USD/ADR(=5股)·IFRS摊薄·÷USDTWD 32.39"
+  },
+  "JP.8766": {
+   "name": "东京海上",
+   "currency": "¥",
+   "bvps": 4303,
+   "target_pb": 1.7,
+   "note": "保险·PB/内含价值法。bvps=IFRS每股净资产约¥4,303(IFRS净资产¥7.96兆÷约1.85bn股·IFRS自2026-03财年起为主口径;J-GAAP每股净资产¥2,885.44为另一口径·勿混)；目标PB=1.7倍(优质P&C·调整ROE低两位数·国际分散·较MS&AD/Sompo溢价但不过分)。得公允约¥7,315。真实市场参照:现价¥7,688、前瞻PE约16~17倍、前瞻股息率约3.2%(¥245)。"
+  },
+  "US.AVGO": {
+   "name": "博通",
+   "currency": "$",
+   "eps0": 11.62,
+   "g_stage1": 0.2,
+   "years": 5,
+   "terminal_g": 0.04,
+   "wacc": 0.11,
+   "note": "成长股·两段式DCF。eps0=FY2026非GAAP共识EPS $11.62(股票分拆后·stockanalysis 41家分析师·2026-07)；一阶段20%(较近期AI营收+65~70%大幅保守)、永续4%、折现11%。AI定制芯片+网络+VMware软件。"
+  },
+  "US.META": {
+   "name": "Meta",
+   "currency": "$",
+   "eps0": 28.0,
+   "g_stage1": 0.12,
+   "years": 5,
+   "terminal_g": 0.04,
+   "wacc": 0.11,
+   "note": "成长股·两段式DCF。eps0=规范化约$28：FY2026 GAAP共识EPS $32.81(stockanalysis 2026-07)剔除Q1 2026约$8B一次性税项收益(约$3/股)→规范化约$29、保守取$28；一阶段12%(自+33%保守减速·计入AI资本开支折旧)、永续4%、折现11%(beta约1.2)。缺非GAAP共识单一权威源→用规范化GAAP并标口径。"
+  },
+  "JP.6758": {
+   "name": "索尼",
+   "currency": "¥",
+   "eps0": 207,
+   "g_stage1": 0.06,
+   "years": 5,
+   "terminal_g": 0.025,
+   "wacc": 0.085,
+   "note": "成长股·两段式DCF。eps0=次年共识EPS ¥207(stockanalysis 2026-07)；一阶段6%(管理层约10% OI CAGR目标·计入周期保守)、永续2.5%、折现8.5%。娱乐IP+图像传感器综合体。"
+  },
+  "JP.7974": {
+   "name": "任天堂",
+   "currency": "¥",
+   "eps0": 271,
+   "g_stage1": 0.06,
+   "years": 5,
+   "terminal_g": 0.025,
+   "wacc": 0.085,
+   "note": "成长股(主机周期)·两段式DCF。eps0=FY2027公司指引隐含EPS约¥271(净利¥310億×10÷约11.45亿股·管理层惯例保守·市场共识约¥352)；一阶段6%(跨主机周期归一·勿外推FY26launch的+99%)、永续2.5%、折现8.5%。另:任天堂净现金约¥2.22兆(约占市值27%·约¥1,940/股)为DCF外的额外下方缓冲、引擎EPS-DCF未计入。"
+  },
+  "JP.7832": {
+   "name": "万代",
+   "currency": "¥",
+   "eps0": 202.69,
+   "g_stage1": 0.07,
+   "years": 5,
+   "terminal_g": 0.025,
+   "wacc": 0.085,
+   "note": "成长股·两段式DCF。eps0=FY至2027-03官方指引EPS ¥202.69(万代IR 2026-05·管理层惯例保守·市场共识约¥221)；一阶段7%(IP周期/海外Gunpla扩张)、永续2.5%、折现8.5%。IP驱动消费(高达/龙珠/海贼王/艾尔登法环)。"
+  },
+  "JP.7203": {
+   "name": "丰田",
+   "currency": "¥",
+   "normal_eps": 270,
+   "pe_mid": 10,
+   "note": "周期股·中周期盈利法。normal_eps=¥270:由4财年真净利(¥2.451/4.944/4.765/3.848兆·官方IR)÷约13B股得4年均EPS约¥300、剔除弱日元峰值(FY24~¥380/FY25~¥365)、并参考FY2027指引¥230→取中周期¥270(透明自算·非峰值)；中周期PE=10倍(全球车企历史9~12倍·龙头取中枢)。得中周期公允约¥2,700。"
+  },
+  "JP.8001": {
+   "name": "伊藤忠商事",
+   "currency": "¥",
+   "note": "待接·不编:商社NAV需各主业【分部资产真估值】+净负债+股本(还原1拆5)。日股不在SEC EDGAR·stockanalysis无分部NAV·需伊藤忠IR分部资产明细(有价证券/资源权益/非上市股权逐块估值)。EPS法可交叉但NAV是主口径→缺分部估值·不硬编。"
+  },
+  "US.IBKR": {
+   "name": "IBKR",
+   "currency": "$",
+   "normalized_eps": 2.4,
+   "pe_normal": 22,
+   "note": "券商·正常化PE法。normalized_eps=$2.40(FY2025 GAAP稀释EPS $2.22、2026共识约$2.46~2.49·拆分后·取中);正常化PE=22倍(优质高成长券商18~25倍取中枢)。得中枢约$52.8。⚠市场按约37倍前瞻定价(为30%+账户增长+77%税前利润率付成长溢价)、故现价约$93~96远高于正常化券商倍数中枢——正常化口径下偏贵。IBKR是高利率受益(NII·2023降息前+68%为证)。2024-06做过4拆1。"
+  },
+  "US.MSTR": {
+   "name": "MSTR",
+   "currency": "$",
+   "assets": [
+    {
+     "name": "比特币持仓 843,775 BTC × $64,728(2026-07-15)",
+     "value": 54.6
+    }
+   ],
+   "net_debt": 21.33,
+   "shares": 0.35642,
+   "holding_discount": 0,
+   "note": "比特币壳·mNAV/净资产法(不用PE·GAAP净利被BTC市价扰动为负)。单位=十亿美元(assets/net_debt)、十亿股(shares)。来源:Strategy 8-K EX-99.1(2026-05-26):843,738 BTC、可转债$6.7B、优先股$15.5B(senior于普通股)、现金$0.87B;BTC价$64,728(2026-07-15 Yahoo)。持币市值≈$54.6B;net_debt=债$6.7B+优先股$15.5B−现金$0.87B=$21.33B(优先股senior claim须减);股本356.42M。算得归普通股BTC净值/股≈$93(现价$97.47→mNAV约1.04倍·约4%溢价)。"
+  },
+  "US.COIN": {
+   "name": "Coinbase",
+   "currency": "$",
+   "note": "穿牛熊全周期正常化:5年GAAP摊薄EPS[14.5,-11.83,0.37,9.48,4.45]均值≈$3.39×交易所中周期PE22。牛市年不外推。可靠度:中(真SEC数·但周期极端·加权简单平均)。",
+   "normalized_eps": 3.39,
+   "pe_normal": 22,
+   "eps_path": {
+    "2021": 14.5,
+    "2022": -11.83,
+    "2023": 0.37,
+    "2024": 9.48,
+    "2025": 4.45
+   },
+   "eps_path_unit": "USD·GAAP摊薄EPS·按会计年末年份",
+   "sensitivity": {
+    "eps_pm20": [
+     2.71,
+     4.07
+    ],
+    "pe_pm20": [
+     18,
+     26
+    ],
+    "fair_low": 48.8,
+    "fair_high": 105.8
+   },
+   "forward_fair": {
+    "2026E": 74.6,
+    "note": "券商正常化·牛熊年均EPS×中周期PE22·前瞻按正常化盈利推(非牛市峰值)"
+   },
+   "source": "SEC EDGAR CIK 1679788 · us-gaap:EarningsPerShareDiluted · 10-K · FY2021-2025(会计年末2021-12-31~2025-12-31) · GAAP摊薄"
+  },
+  "US.CRCL": {
+   "name": "Circle",
+   "currency": "$",
+   "note": "待接·不编:Circle正常化净利=USDC储备规模×中性利率(约3%)。需:USDC流通量(月报)+储备构成+利率敏感(Circle IR/SEC S-1/10-Q)。EDGAR仅3期EPS[0.78/0.30/-0.44]·IPO 2025-06上市太短·且储备利息模型非现成EPS能代→缺储备规模真数·不编。"
   }
+ }
 }
