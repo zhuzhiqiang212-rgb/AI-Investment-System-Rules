@@ -810,11 +810,23 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
     e = _arch_est(sym)
     if not e:
         return ""
+    c = cur(sym)
+    # 撤销（董事长2026-07-18核价确认真价·撤掉不可靠normalized，如闪迪）→ 改显"待接·算不出·守着看"
+    if str(e.get("scale_status")) == "撤销" and e.get("retract_note"):
+        if mini:
+            return (f'<div style="font-size:10.5px;margin-top:4px;padding-top:3px;border-top:1px dashed #4a5a6a">'
+                    f'<span style="color:#8ea3b6">中周期估算</span> → <b style="color:#c9a86a">合理价待接·算不出</b>'
+                    f'（守着看）</div>')
+        return ('<div style="background:#1e2530;border:2px dashed #8a6d3b;border-radius:8px;padding:10px 13px;margin:8px 0">'
+                '<div style="font-size:13px;font-weight:700;color:#d8c68a">📐 中周期估算 · '
+                '<span style="color:#c9a86a">合理价待接·算不出（原估算已撤销）</span></div>'
+                f'<div style="font-size:12.5px;color:#d8d2c0;margin-top:5px">{esc(str(e.get("retract_note")))}</div>'
+                '<div style="font-size:11.5px;color:#8ea3b6;margin-top:5px;border-top:1px solid #2b4054;padding-top:4px">'
+                '价<b>非异常</b>·已二源人工核实为<b>真价</b>；问题在这套穿周期正常化口径在极端超级周期下失真，<b>已撤·不用它判贵贱</b>。</div></div>')
     fp = e.get("fair_price") or {}
     lo, mid, hi = fp.get("cheap"), fp.get("mid"), fp.get("rich")
     if lo is None or mid is None or hi is None:
         return ""
-    c = cur(sym)
     px = _price_of(sym, dyn)
     ok, rel = _rel_grade(e.get("reliability"))
     vd = str(e.get("verdict") or "")
@@ -824,14 +836,10 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
         _mag, _gap = _SG.mag_flag(px, mid, e.get("reliability", ""))
     except Exception:
         _mag, _gap = None, 0
-    if _mag == "red":
-        # 差到离谱(如24倍·无法用周期解释)→ 这只估值不可靠，改标待接、不用它判贵贱
-        vd = f"⚠ 估值不可靠·待人工核（现价约中枢 {_gap:.0f} 倍·无法用周期解释）"
-        vcol = "#ff5c5c"
-    elif _mag == "caution":
-        # 真价+周期顶导致的极贵(可解释)→ 正常显示，但注明倍数与"参考度低"
-        vd = f"极贵（景气高点·中周期算·现价约中枢 {_gap:.0f} 倍·估值参考度低）"
-        vcol = "#ff6b6b"
+    if _mag in ("red", "caution"):
+        # 现价 vs 估值中枢差 >6 倍 → 价多为真(已核)、问题在估值 → 标"待架构师复核·暂不用它判贵贱"
+        vd = f"⚠ 估值中枢与现价差约 {_gap:.0f} 倍·待架构师复核（暂不用它判贵贱）"
+        vcol = "#ff5c5c" if _mag == "red" else "#ffb454"
     else:
         vcol = "#ff6b6b" if "极贵" in vd else ("#ffb454" if "贵" in vd else "#7ee0a0")
     bd, bg = ("#6b7a8c", "#141c26") if ok else ("#c47a1e", "#241a10")
@@ -866,12 +874,13 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
                 f'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#c8d4de;margin-top:-8px">'
                 f'<span>便宜 {c}{lo:,.0f}</span><span>中枢 {c}{mid:,.0f}</span><span>贵 {c}{hi:,.0f}</span></div>')
     red_banner = ""
-    if _mag == "red":
-        red_banner = ('<div style="background:#3a1414;border:2px solid #ff5c5c;border-radius:6px;'
-                      'padding:7px 10px;margin:6px 0;font-size:12.5px;color:#ffd0d0">'
-                      f'<b style="color:#ff5c5c">⚠ 现价与这套估算差约 {_gap:.0f} 倍·疑价格异常或估值失真·待人工核</b>'
-                      f'——下面的「合理区 {c}{lo:,.0f}~{c}{hi:,.0f}·中枢 {c}{mid:,.0f}」<b>已不可靠·仅存档</b>，'
-                      f'<b>不用它判这只贵不贵</b>（这只的动作看本卡权威估值/加仓价，不看这套）。</div>')
+    if _mag in ("red", "caution"):
+        red_banner = ('<div style="background:#2a1f10;border:2px solid #c47a1e;border-radius:6px;'
+                      'padding:7px 10px;margin:6px 0;font-size:12.5px;color:#ffe0b0">'
+                      f'<b style="color:#ffb454">⚠ 现价与这套估算差约 {_gap:.0f} 倍·待架构师复核</b>'
+                      f'——现价多为真价(哨兵只提示差距·非说价错)，是这套穿周期估算在极端行情下参考度低；'
+                      f'下面的「合理区 {c}{lo:,.0f}~{c}{hi:,.0f}·中枢 {c}{mid:,.0f}」<b>暂不用它判这只贵不贵</b>'
+                      f'（动作看本卡权威估值/加仓价）。</div>')
     return ('<div style="background:%s;border:2px dashed %s;border-radius:8px;padding:10px 13px;margin:8px 0">' % (bg, bd)
             + '<div style="font-size:13px;font-weight:700;color:#b8c6d4">'
               '📐 架构师中周期估算　<span style="font-size:11px;color:#ffb454;font-weight:400">'
@@ -4074,7 +4083,8 @@ def cant_rely_block(date: str, dyn: dict) -> str:
         sg = rj(ROOT / "data" / "reports" / f"data_sanity_{date}.json")
         for x in (sg.get("issues") or []):
             if x.get("type") == "量级哨兵":
-                mk = "🔴" if x.get("level") == "红" else "🟡"
+                # 待架构师复核(差>6倍未定)→🔴标红；已撤销(核价确认真价·估值改待接)→🟡
+                mk = "🔴" if "待架构师复核" in str(x.get("detail")) else "🟡"
                 items.append(f'{mk} <b>{esc(str(x.get("name") or x.get("symbol")))}</b>：{esc(str(x.get("detail")))}')
     except Exception:
         pass

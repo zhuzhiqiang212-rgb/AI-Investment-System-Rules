@@ -67,17 +67,21 @@ def check(date: str) -> list:
     for h in [x for x in prod.get("holdings", []) if not str(x.get("symbol", "")).startswith("CC.")]:
         s = str(h.get("symbol")); px = h.get("price")
         e = arch.get(s) or {}
+        # 已撤销的估算(董事长核价确认真价·撤掉不可靠normalized，如闪迪)→ 列"估值已撤·待接"，不再算倍数报价格异常
+        if str(e.get("scale_status")) == "撤销":
+            issues.append({"level": "黄", "type": "量级哨兵", "symbol": s, "name": h.get("name"),
+                           "detail": (f"现价 {px} 经二源人工核实为真价；原架构师 normalized 估值已撤销"
+                                      f"（极端超级周期下正常化不可靠）→ 合理价待接·算不出，守着看，不用它判贵贱")})
+            continue
         mid = (e.get("fair_price") or {}).get("mid")
         lvl, gap = mag_flag(px, mid, e.get("reliability", ""))
-        if lvl == "red":
-            issues.append({"level": "红", "type": "量级哨兵", "symbol": s, "name": h.get("name"),
+        if lvl in ("red", "caution"):
+            # 价多为真(哨兵只提示差距)→ 问题在估值口径 → 待架构师复核
+            issues.append({"level": "红" if lvl == "red" else "黄", "type": "量级哨兵",
+                           "symbol": s, "name": h.get("name"),
                            "detail": (f"现价 {px} 与中周期估算中枢 {mid} 差约 {gap:.0f} 倍"
-                                      f"（可靠度：{e.get('reliability','?')}）→ 差到离谱·无法用周期解释，"
-                                      f"疑价格异常或估值失真·待人工核，别用它判贵贱")})
-        elif lvl == "caution":
-            issues.append({"level": "黄", "type": "量级哨兵", "symbol": s, "name": h.get("name"),
-                           "detail": (f"现价 {px} 是中周期中枢 {mid} 的约 {gap:.0f} 倍（真价·景气高点）"
-                                      f"→ 极贵(中周期算)可解释，但估值参考度已低")})
+                                      f"（可靠度：{e.get('reliability','?')}）→ 现价多为真价·"
+                                      f"这套穿周期估算参考度低，待架构师复核·暂不用它判贵贱")})
     holds = [h for h in prod.get("holdings", []) if not str(h.get("symbol", "")).startswith("CC.")]
     valr = {r["symbol"]: r for r in (_rj(ROOT / "data" / "valuation" / f"valuation_results_{date}.json")
                                      .get("results") or []) if r.get("symbol")}
