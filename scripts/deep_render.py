@@ -1130,8 +1130,20 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
     out.append('<div class="blk">⑧ 风险——不光列出来，还称一称多重</div>'
                '<table class="dt"><tr><th>风险</th><th>有多重(人话)</th><th>出现的信号</th></tr>' + krows + '</table>')
     # ⑨ 决策链
+    # 第一档1[验收整改·治本]：深研⑨的结论不许自写一个"今天动作=X"——那会与顶部动作表打架
+    #   (博通顶部'减'、这里旧文写'守'；META、第一三共同类)。
+    #   做法：剥掉 JSON 里自带的"所以今天动作=…"整段旧结论，只留前半推导链，
+    #   结论一律从【唯一决定表 decision_of】生成，动作+理由与顶部完全同一个。
+    _chain_raw = str(deep.get("block9_decision_chain", "") or "")
+    _chain_body = re.split(r"(?:所以)?今天(?:的)?动作\s*[=＝'『「]", _chain_raw)[0].rstrip("　 ；;。→ ->")
+    _act_badge, _act_why, _pure = decision_of(sym, name, dyn, dyn.get("date", ""))
+    _concl = (f'<div style="margin-top:6px;padding:7px 9px;background:#12203a;border-radius:6px">'
+              f'<b>→ 所以今天动作 = {_act_badge}</b>'
+              f'<span style="color:#8ea3b6;font-size:12px">（与顶部「今天可做的动作」表<b>同一个答案</b>，不是这里另写的）</span>'
+              f'<div style="font-size:12.5px;margin-top:3px">{_act_why}</div></div>')
     out.append('<div class="blk">⑨ 从大局怎么一步步推到决策（决策链）</div>'
-               f'<p style="font-size:13px">{_nd(deep.get("block9_decision_chain",""))}</p>')
+               + act_marker(sym, "深研⑨决策链", dyn, dyn.get("date", ""), name)
+               + f'<p style="font-size:13px">{_nd(_chain_body)}</p>' + _concl)
     # ⑩ 组合视角
     pf = deep.get("block10_portfolio", {})
     out.append('<div class="blk">⑩ 它在你整盘里是什么角色（组合视角）</div>'
@@ -1349,7 +1361,8 @@ def render_card(sym: str, name: str, dyn: dict) -> str:
     #   → 两根轴都叫"动作"，20只里13只打架(博通头守·实减；META头等·实减；索尼头等·实加)。
     #   治法：卡头一律显示【今日动作】(与结论同一算子)；账本档改名叫「账本」，不再叫"动作"。
     _today_act, _ = _action_of(sym, name, dyn, dyn.get("date", ""))
-    hd = (f'<div class="hd"><b>{esc(name)}</b> <span class="sym">{esc(sym)}</span> '
+    hd = (f'<div class="hd">' + act_marker(sym, "深研卡头", dyn, dyn.get("date", ""), name)
+          + f'<b>{esc(name)}</b> <span class="sym">{esc(sym)}</span> '
           f'<span class="conf">今日动作：{_today_act}</span> '
           f'<span class="q">账本：{f["quality"]}</span> <span class="v">估值：{f["valuation_short"]}（{f["valuation_grade"]}）</span></div>')
     conf_grade = _conf_grade(f)   # R10②:账本档→高/中/低把握(显式)
@@ -1656,6 +1669,27 @@ def _action_of(sym: str, name: str, dyn: dict, date: str) -> tuple:
     return a, w
 
 
+def _pure_act(sym: str, name: str, dyn: dict, date: str) -> str:
+    """从唯一决定表取纯动作字(加/买/守/等/减)——所有渲染点都用它，别再各写各的。"""
+    _a, _w, p = decision_of(sym, name, dyn, date)
+    return p
+
+
+def act_marker(sym: str, loc: str, dyn: dict, date: str, name: str = "") -> str:
+    """CI校验锚（第一档1·验收整改）：在每个出现动作的地方埋一个隐藏锚，
+    记下 [这只是谁|在哪处|动作取值=从唯一决定表读的那个]。
+    出厂 lint L28 扫全部锚：同一只在任何两处取值不等 → 拦下不出品，并报是哪只哪两处。
+    因为取值一律来自 _pure_act(唯一决定表)，正常必全等；人为改坏某处即被 L28 抓住。"""
+    a = _pure_act(sym, name or sym, dyn, date)
+    return f'<span class="actck" data-actck="{esc(sym)}|{esc(loc)}|{esc(a)}" style="display:none"></span>'
+
+
+def act_marker_lit(sym: str, loc: str, act: str) -> str:
+    """埋锚·直传本地主张的动作(不重读主表)——用于现金等【自己决定要买/减谁】的地方，
+    这样该处逻辑一旦与唯一决定表分家，L28 立刻抓到(真独立核，不是自我循环)。"""
+    return f'<span class="actck" data-actck="{esc(sym)}|{esc(loc)}|{esc(act)}" style="display:none"></span>'
+
+
 def decisions_table(date: str, dyn: dict) -> dict:
     """全持仓的决定字典 {sym: {action, name}}，供落盘+CI核。"""
     out = {}
@@ -1744,7 +1778,7 @@ def part_actions_table(date: str, dyn: dict) -> str:
     for r in todo:
         chg = (f'<span style="color:{"#ff9a9a" if (r["chg"] or 0) < 0 else "#7ee0a0"};font-size:11px">'
                f'今天{r["chg"]:+.1f}%</span>' if r["chg"] is not None else '')
-        trs += (f'<tr><td style="white-space:nowrap">{r["tag"]}</td>'
+        trs += (f'<tr><td style="white-space:nowrap">{act_marker(r["sym"], "动作表", dyn, date, r["name"])}{r["tag"]}</td>'
                 f'<td style="white-space:nowrap">{_a("#stock-" + r["sym"], esc(r["name"]))}</td>'
                 f'<td style="text-align:right;white-space:nowrap"><b>{esc(r["cur"])}{r["px"]:,.0f}</b>'
                 f'<br>{chg}</td><td style="font-size:12.5px">{r["why"]}</td></tr>')
@@ -1753,7 +1787,7 @@ def part_actions_table(date: str, dyn: dict) -> str:
                '<b>今天没有该动的</b>——按你的估值尺，没有一只到了该加或该减的价。</td></tr>')
     fold = ""
     for r in hold:
-        fold += (f'<tr><td style="white-space:nowrap">{r["tag"]}</td>'
+        fold += (f'<tr><td style="white-space:nowrap">{act_marker(r["sym"], "动作表", dyn, date, r["name"])}{r["tag"]}</td>'
                  f'<td style="white-space:nowrap">{_a("#stock-" + r["sym"], esc(r["name"]))}</td>'
                  f'<td style="text-align:right;white-space:nowrap">{esc(r["cur"])}{r["px"]:,.0f}</td>'
                  f'<td style="font-size:12px;color:#8ea3b6">{r["why"]}</td></tr>')
@@ -1833,7 +1867,8 @@ def part0_cash(date: str, dyn: dict) -> str:
         for r in addable:
             c = r["cur"]
             li += (f'<div style="padding:6px 0;border-top:1px solid #2b4054">'
-                   f'· <b>{esc(r["name"])}</b>　现价 <b>{c}{r["px"]:,.0f}</b>'
+                   + act_marker_lit(r["sym"], "现金建议·买", "加")
+                   + f'· <b>{esc(r["name"])}</b>　现价 <b>{c}{r["px"]:,.0f}</b>'
                    f'（已比加仓价 {c}{r["lo"]:,.0f} 低 {abs(r["gap_lo"]):.1f}%）'
                    f'　今天 {r["chg"]:+.2f}%' if r["chg"] is not None else ''
                    ) + (f'<div style="font-size:12px;color:#8ea3b6">分批买、别一次买满；'
@@ -1874,7 +1909,9 @@ def part0_cash(date: str, dyn: dict) -> str:
         for r in cut:
             c = r["cur"]
             pos = ("比贵位还贵" if r["above_rich"] else ("在合理区偏上" if r["gap_mid"] > 0 else "在合理区偏下"))
-            li += (f'<div style="padding:6px 0;border-top:1px solid #2b4054">· <b>{esc(r["name"])}</b>　'
+            li += (f'<div style="padding:6px 0;border-top:1px solid #2b4054">'
+                   + act_marker_lit(r["sym"], "现金建议·减", "减")
+                   + f'· <b>{esc(r["name"])}</b>　'
                    f'现价 <b>{c}{r["px"]:,.0f}</b>（比中间值 {r["gap_mid"]:+.0f}%·{pos}）'
                    f'　贵位 {c}{r["hi"]:,.0f}'
                    # 丙：这是【停手价】，不能说成"减到X"(会被读成"要在X这个价减")
@@ -2140,7 +2177,7 @@ def part0_jp(date: str, dyn: dict) -> str:
         trs += (f'<tr><td>{_a(L2(date, "stock-" + r["sym"]), esc(r["name"]))}</td>'
                 f'<td style="text-align:right">{px}</td><td style="text-align:right">{chg}</td>'
                 # why 是 _action_of 生成的安全HTML(内含<b>)→不能再 esc(否则标签变字面量)
-                f'<td>{trig}</td><td>{r["act"]}<div style="font-size:11.5px;color:#8ea3b6">{r["why"]}</div></td></tr>')
+                f'<td>{trig}</td><td>{act_marker(r["sym"], "日股专项", dyn, date, r["name"])}{r["act"]}<div style="font-size:11.5px;color:#8ea3b6">{r["why"]}</div></td></tr>')
     lead = (f'<b>今天日股不是全崩，是「只崩 AI 那几只」。</b>你的 {len(rows)} 只日股里：'
             f'<b style="color:#ff9a9a">{n_down} 只跌</b>、<b style="color:#7ee0a0">{n_up} 只涨</b>；'
             + (f'跌超 5% 的只有 <b style="color:#ff9a9a">'

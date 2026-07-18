@@ -321,6 +321,34 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 fails.append(f"L27 三态越界：{fn} 出现「{w}」——系统只读不下单，拍板前只能是「系统建议·尚未执行」")
                 break
 
+    # ── L28 同股一个答案·真覆盖(第一档1·验收整改·治本) ──
+    #     渲染层在【每个出现动作的地方】都埋了隐藏锚 data-actck="只|哪处|动作"：
+    #       深研卡头 / 深研⑨决策链 / 动作表 / 日股专项 / 现金建议·买 / 现金建议·减。
+    #     这里把每只在所有出现处的取值收齐：
+    #       (a) 同一只在任何两处取值不等 → 拦，并报是哪只、哪两处各是什么；
+    #       (b) 若有唯一决定表 decisions_{date}.json，任何一处 ≠ 主表 → 拦，报哪只哪处。
+    #     因为渲染取值都来自唯一决定表，正常必全等；人为改坏任一处即在此被抓。
+    for fn, h in vols.items():
+        seen: dict[str, dict[str, str]] = {}   # sym -> {loc: act}
+        for m in re.finditer(r'data-actck="([^"|]+)\|([^"|]+)\|([^"|]+)"', h):
+            sym, loc, act = m.group(1), m.group(2), m.group(3)
+            seen.setdefault(sym, {})[loc] = act   # 同一处多次出现取值必同，覆盖即可
+        for sym, locs in seen.items():
+            vals = set(locs.values())
+            if len(vals) > 1:
+                pair = "、".join(f"{lc}={ac}" for lc, ac in locs.items())
+                fails.append(f"L28 同股两动作：{fn} 的 {sym} 各处动作不一致 → {pair}"
+                             f"——每只当天只能有一个动作，不许某处自写")
+                continue
+            want = str((dec.get(sym) or {}).get("action", ""))
+            only = next(iter(vals)) if vals else ""
+            if want and only and only != want:
+                bad_loc = "、".join(lc for lc, ac in locs.items() if ac != want)
+                fails.append(f"L28 与决定表不符：{fn} 的 {sym} 在「{bad_loc}」={only} ≠ 唯一决定表「{want}」")
+        # 锚一个都没有 = 埋点被删/渲染没跑 → 也要报，别让它静默失覆盖
+        if not seen and dec:
+            fails.append(f"L28 校验锚缺失：{fn} 找不到任何 data-actck 锚——同股一致性关形同虚设，拒绝出品")
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:
