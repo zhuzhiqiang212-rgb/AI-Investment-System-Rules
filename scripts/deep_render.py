@@ -3041,9 +3041,13 @@ def _funnel_compute_raw(date: str, daily: dict, dyn: dict) -> dict:
             if _val.get("verdict"):
                 _f = _val.get("fair", {})
                 _cur = "¥" if tk.startswith("JP.") else ("HK$" if tk.startswith("HK.") else "$")
-                _auth = "（架构师估算·非权威·可靠度%s）" % _val.get("reliability", "?") if not _val.get("authoritative", True) else "（候选级·机械算·非精调）"
-                g3 = (f'现价 {_cur}{_cv.get("price")}｜合理 {_cur}{_f.get("cheap")}~{_cur}{_f.get("rich")}'
-                      f'·中枢 {_cur}{_f.get("mid")} → <b>{esc(str(_val["verdict"]))}</b>{_auth}')
+                _mm = str(_val.get("method", ""))
+                _msuf = f'（尺：{esc(_mm)}）' if _mm else ""
+                if _f.get("cheap") is not None:
+                    g3 = (f'现价 {_cur}{_cv.get("price")}｜合理 {_cur}{_f.get("cheap")}~{_cur}{_f.get("rich")}'
+                          f'·中枢 {_cur}{_f.get("mid")} → <b>{esc(str(_val["verdict"]))}</b>{_msuf}')
+                else:
+                    g3 = f'现价 {_cur}{_cv.get("price")} → <b>{esc(str(_val["verdict"]))}</b>{_msuf}'
             elif _val.get("status") == "待接":
                 g3 = f'仍待接：{esc(str(_val.get("reason", "缺真源·不编"))[:44])}'
             else:
@@ -3123,8 +3127,10 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
         _val = (_cv.get("valuation") or {}) if _cv else {}
         if _val.get("verdict"):
             _f = _val.get("fair", {}); _cc = "¥" if r["ticker"].startswith("JP.") else ("HK$" if r["ticker"].startswith("HK.") else "$")
-            _vcell = (f'现价 {_cc}{_cv.get("price")}｜合理 {_cc}{_f.get("cheap")}~{_cc}{_f.get("rich")}·中枢 {_cc}{_f.get("mid")}'
-                      f' → <b>{esc(str(_val["verdict"]))}</b>'
+            _mm = str(_val.get("method", "")); _msuf = f'（尺：{esc(_mm)}）' if _mm else ""
+            _prow = (f'现价 {_cc}{_cv.get("price")}｜合理 {_cc}{_f.get("cheap")}~{_cc}{_f.get("rich")}·中枢 {_cc}{_f.get("mid")}'
+                     if _f.get("cheap") is not None else f'现价 {_cc}{_cv.get("price")}')
+            _vcell = (_prow + f' → <b>{esc(str(_val["verdict"]))}</b>{_msuf}'
                       + ('' if _val.get("authoritative", True) else f'（架构师估算·非权威·可靠度{esc(str(_val.get("reliability","?")))}）'))
         elif _val.get("status") == "待接":
             _vcell = f'<span class="need">仍待接</span>：{esc(str(_val.get("reason", ""))[:50])}'
@@ -3168,16 +3174,23 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
     for tk, v in sorted(cv_all.items(), key=lambda kv: kv[0]):
         val = v.get("valuation") or {}
         cc = "¥" if tk.startswith("JP.") else ("HK$" if tk.startswith("HK.") else "$")
+        # 每只标"用的哪把尺"(董事长2026-07-18)：正常化中周期 / 看明年利润的市盈率
+        _m = str(val.get("method", ""))
+        mlabel = (f'<br><span style="color:#8ea3b6;font-size:10px">尺：{esc(_m)}</span>' if _m else "")
         if val.get("verdict"):
             n_val += 1
             f = val.get("fair", {})
-            vcol = "#ff6b6b" if "极贵" in str(val["verdict"]) else ("#ffb454" if "贵" in str(val["verdict"]) else ("#7ee0a0" if "便宜" in str(val["verdict"]) else "#7cc4ff"))
+            vcol = "#ff6b6b" if "极贵" in str(val["verdict"]) else ("#ffb454" if "贵" in str(val["verdict"]) else ("#7ee0a0" if ("便宜" in str(val["verdict"]) or "合理" in str(val["verdict"])) else "#7cc4ff"))
             auth = ('' if val.get("authoritative", True) else f'<br><span style="color:#ffb454;font-size:10.5px">架构师估算·非权威·可靠度{esc(str(val.get("reliability","?")))}</span>')
-            valcell = (f'现价 {cc}{v.get("price")}｜合理 {cc}{f.get("cheap")}~{cc}{f.get("rich")}'
-                       f'<br><b style="color:{vcol}">{esc(str(val["verdict"]))}</b>{auth}')
+            # forward P/E 类无机械 cheap~rich 区间 → 只显判定+口径说明，不硬凑数轴
+            if f.get("cheap") is not None:
+                pricerow = f'现价 {cc}{v.get("price")}｜合理 {cc}{f.get("cheap")}~{cc}{f.get("rich")}'
+            else:
+                pricerow = f'现价 {cc}{v.get("price")}'
+            valcell = (pricerow + f'<br><b style="color:{vcol}">{esc(str(val["verdict"]))}</b>{mlabel}{auth}')
         else:
             n_wait += 1
-            valcell = f'<span class="need">仍待接</span><br><span style="color:#8ea3b6;font-size:10.5px">{esc(str(val.get("reason", "缺真源·不编"))[:46])}</span>'
+            valcell = f'<span class="need">仍待接</span>{mlabel}<br><span style="color:#8ea3b6;font-size:10.5px">{esc(str(val.get("reason", "缺真源·不编"))[:60])}</span>'
         rz = str(v.get("research", ""))
         ct += (f'<tr><td style="white-space:nowrap"><b>{esc(str(v.get("name")))}</b>'
                f'<br><span style="color:#8ea3b6;font-size:10.5px">{esc(tk)}</span></td>'

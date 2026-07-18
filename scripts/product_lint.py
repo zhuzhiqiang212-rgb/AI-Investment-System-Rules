@@ -370,6 +370,30 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         if not seen and dec:
             fails.append(f"L28 校验锚缺失：{fn} 找不到任何 data-actck 锚——同股一致性关形同虚设，拒绝出品")
 
+    # ── L30 估值口径一致(董事长2026-07-18)：同一只在【板块推荐语/机会池估值表】的贵贱结论必须一致 ──
+    #     被推荐(合理)的票，估值表里不能显"偏贵/极贵"；两处打架→拦、报是哪只。
+    #     数据源：候选估值 candidate_valuation_{date}.json(表结论) × sector_deep 架构师判定(推荐语)。
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str((ROOT / "scripts")))
+        cv = json.loads((ROOT / "data" / "valuation" / f"candidate_valuation_{date}.json").read_text(encoding="utf-8")).get("candidates", {})
+        import sector_deep as _SD
+        av = _SD.arch_verdict_map()
+    except Exception:
+        cv, av = {}, {}
+    for tk, rec in (cv or {}).items():
+        base = tk.split(".")[-1]
+        a = (av.get(base) or {})
+        a_verd = str(a.get("verdict") or "")
+        t_verd = str((rec.get("valuation") or {}).get("verdict") or "")
+        if not a_verd or not t_verd:
+            continue
+        a_cheap = ("合理" in a_verd or "便宜" in a_verd) and "贵" not in a_verd
+        t_expensive = ("极贵" in t_verd or "偏贵" in t_verd)
+        if a_cheap and t_expensive:
+            fails.append(f"L30 估值口径打架：{base} 板块推荐语判「{a_verd}」，但机会池估值表却显「{t_verd}」"
+                         f"——推荐合理却算极贵=两把尺打架，成长/电力股该走 forward P/E、别套正常化")
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:

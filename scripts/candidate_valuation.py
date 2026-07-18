@@ -52,17 +52,40 @@ RESEARCH = {
 # 板块中枢PE(穿周期·保守·不锚景气高点)——机械参数、可迭代
 SECTOR_PE = {"算力": 22, "半导体设备": 20, "代工": 15, "存储": 12, "电力核电": 18}
 
-# 修3[董事长2026-07-18定]：成长/电力股估值以 forward P/E(看明年预计利润的市盈率)为【主口径】，
-#   【不】套"中周期正常化盈利"——那把尺是给强周期(半导体设备/存储/代工)用的，
-#   对成长/电力会误判"偏贵/极贵"，与架构师研究(VST~17、CEG~21-24=合理)打架。
-#   这类只标"以 forward P/E 为准·见架构师板块研究"，不产出 偏贵/极贵 结论。
-FWD_PE_NODES = {"电力核电节点", "电力核电"}
-FWD_PE_TICKERS = {"US.VST", "US.CEG", "US.GEV", "US.CCJ",   # 电力/能源
-                  "US.VEEV", "US.NOW", "US.PLTR", "US.ANET", "US.VRT"}  # 成长软件/网络
+# 估值方法按【股票类型】分派(董事长2026-07-18定·写进 val 引擎)：
+#   1 周期·商品型(存储/成熟代工) → 正常化中周期盈利(景气高点显"极贵"是对的·保持)
+#   2 成长·设备/芯片龙头(半导体设备 ASML/AMAT/LRCX/KLAC + 算力芯片 AMD/Marvell 等) → forward P/E
+#   3 公用·电力(VST/CEG/GEV/Cameco) → forward P/E 或 EV/EBITDA
+#   2、3 类【不要】套正常化中周期(会算出假极贵)；算不出 forward → 老实待接·不编、不硬凑。
+NORMALIZED_NODES = {"存储", "代工", "存储节点", "代工节点"}          # → 正常化中周期
+FWD_PE_NODES = {"半导体设备", "算力", "电力核电",                    # → forward P/E
+                "半导体设备节点", "算力节点", "电力核电节点"}
+# 个股兜底(节点归类不到时)：这些无论如何走 forward P/E
+FWD_PE_TICKERS = {"US.VST", "US.CEG", "US.GEV", "US.CCJ",
+                  "US.VEEV", "US.NOW", "US.PLTR", "US.ANET", "US.VRT",
+                  "US.AMD", "US.MRVL", "US.ASML", "US.AMAT", "US.LRCX", "US.KLAC", "US.AVGO"}
+NORMALIZED_TICKERS = {"US.MU", "US.SNDK", "JP.285A",   # 存储·纯商品→始终正常化
+                      "US.UMC", "US.GFS", "HK.00981"}  # 成熟制程代工·周期商品→正常化
+
+METHOD_NORM = "正常化中周期（穿周期均值盈利×板块PE）"
+METHOD_FWD = "看明年预计利润的市盈率（forward P/E）"
 
 
-def _is_forward_pe(tk: str, node: str) -> bool:
-    return tk in FWD_PE_TICKERS or str(node) in FWD_PE_NODES
+def _method_of(tk: str, node: str) -> str:
+    """返回该只该用哪把尺：'norm'(正常化中周期) / 'fwd'(forward P/E)。"""
+    if tk in NORMALIZED_TICKERS or str(node) in NORMALIZED_NODES:
+        return "norm"
+    if tk in FWD_PE_TICKERS or str(node) in FWD_PE_NODES:
+        return "fwd"
+    return "norm"   # 未知类型默认周期正常化(保守·景气高点不至于误判便宜)
+
+
+def _arch_verdicts() -> dict:
+    try:
+        import sector_deep as SD
+        return SD.arch_verdict_map()
+    except Exception:
+        return {}
 
 
 def _edgar():
@@ -133,6 +156,7 @@ def build(date: str) -> dict:
     prices = _prices(list(cands))
     E = _edgar()
     cikmap = E.cik_map() if E else {}
+    archv = _arch_verdicts()
     out = {}
     for tk, meta in cands.items():
         node = meta["node"]
@@ -146,19 +170,30 @@ def build(date: str) -> dict:
             rec["valuation"] = {"source": "架构师估算", "authoritative": False, **arch[tk]}
             out[tk] = rec
             continue
-        # ②′ 成长/电力股 → 以 forward P/E 为主口径，不套中周期正常化(修3·董事长2026-07-18)
-        if _is_forward_pe(tk, node):
-            rec["valuation"] = {
-                "source": "候选估值·成长/电力股口径(forward P/E)", "authoritative": True,
-                "reliability": "候选级·口径说明",
-                "method": "看明年预计利润的市盈率(forward P/E)为主口径",
-                "verdict": "以 forward P/E 为准（见架构师板块研究）",
-                "note": ("这类是成长/电力股，估值以 forward P/E(明年预计利润的市盈率)为主口径——"
-                         "【不】套中周期正常化盈利那把尺(那是给强周期半导体/存储用的，"
-                         "拿来量成长/电力会误判『偏贵/极贵』)。现价合不合理见架构师板块深度研究的 forward P/E。")}
+        # ②′ 成长/设备/公用股 → forward P/E 口径，不套中周期正常化(修·董事长2026-07-18)
+        if _method_of(tk, node) == "fwd":
+            av = archv.get(tk.split(".")[-1]) or {}
+            averd = str(av.get("verdict") or "")
+            if averd:
+                # 架构师 forward P/E 已有判定 → 直接用它当估值表结论(与板块推荐语同源·不会打架)
+                rec["valuation"] = {
+                    "source": "候选估值·forward P/E(架构师研究)", "authoritative": True,
+                    "reliability": "架构师研究·非机械", "method": METHOD_FWD,
+                    "verdict": averd,
+                    "note": (f"用『{METHOD_FWD}』：{av.get('pe_text','')}"
+                             f"（架构师板块研究·{av.get('sector','')}）。"
+                             f"【不】套中周期正常化——那把尺给强周期存储/成熟代工用，量成长/设备/电力会误判假极贵。")}
+            else:
+                # forward 数据不足 → 老实待接，不硬套正常化凑数
+                rec["valuation"] = {
+                    "source": "候选估值·forward P/E", "authoritative": True, "status": "待接",
+                    "method": METHOD_FWD,
+                    "reason": (f"这只该用『{METHOD_FWD}』，但本单没有可靠的明年预计利润(forward EPS)"
+                               f"/架构师也未给该只 forward 判定 → 老实标待接·不编，"
+                               f"【不】改套中周期正常化(那会算出假极贵)。")}
             out[tk] = rec
             continue
-        # ② 美股(强周期：半导体/存储/代工) → EDGAR 真历史EPS 算中周期候选区间
+        # ② 强周期(存储/成熟代工) → EDGAR 真历史EPS 算中周期正常化候选区间
         base = tk.split(".")[-1]
         cik = cikmap.get(base.upper())
         if E and cik:
@@ -196,6 +231,7 @@ def build(date: str) -> dict:
                                      "中周期正常化这把尺会显得极贵；要不要换它、别只看这个数，等架构师中周期精调") % (px / norm)
                     rec["valuation"] = {
                         "source": f"候选估值·机械算(中周期正常化EPS×板块PE)·EDGAR {tag}",
+                        "method": METHOD_NORM,
                         "authoritative": True, "reliability": "候选级(机械·非精调)",
                         "normalized_eps": round(norm, 2), "pe_mid": pe,
                         "fair": {"cheap": round(lo, 1), "mid": round(mid, 1), "rich": round(hi, 1)},
@@ -215,6 +251,12 @@ def build(date: str) -> dict:
             rec["valuation"] = {"source": "候选估值", "authoritative": True, "status": "待接",
                                 "reason": f"{mkt}股不在 SEC EDGAR(需 EDINET/公司IR 或架构师估算)·本单未接·不编"}
         out[tk] = rec
+    # 后处理：确保每只估值都带「用的哪把尺」标签(待接分支也要有·让人知道口径)
+    for tk, rec in out.items():
+        v = rec.get("valuation") or {}
+        if "method" not in v:
+            v["method"] = METHOD_NORM if _method_of(tk, rec.get("node", "")) == "norm" else METHOD_FWD
+            rec["valuation"] = v
     return {"error": "", "candidates": out, "arch_count": len(arch)}
 
 

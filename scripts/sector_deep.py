@@ -229,6 +229,54 @@ def pool_picks() -> list:
     return picks
 
 
+_TK_STOP = {"PE", "AI", "US", "EPS", "PS", "ACV", "ADC", "RNA", "DOE", "SEC", "IR",
+            "GAAP", "TTM", "EV", "EBITDA", "DRAM", "NAND", "HBM", "EUV", "MAC", "IT",
+            "PJM", "SMR", "PPA", "GPU", "CPU", "Q1", "Q2", "Q3", "Q4", "FY", "YOY"}
+
+
+def _tickers_in(text: str) -> list:
+    # ASCII-only 边界(中文在 Python 里算 \w，\b 在"RTX前"处不断词→漏抽)：用 negative lookaround
+    import re
+    got = re.findall(r"\(([A-Z]{1,5})\)", text or "")
+    got += re.findall(r"(?<![A-Za-z])([A-Z]{2,5})(?![A-Za-z])", text or "")
+    return [t for t in got if t not in _TK_STOP]
+
+
+def arch_verdict_map() -> dict:
+    """架构师对各龙头的【forward P/E 贵贱判定】查询表（供估值引擎/CI用）。
+    返回 {ticker: {"verdict":"合理"|"合理偏上"|"贵·等回调"|"", "pe_text":..., "sector":...}}
+    判定来源(权威·非机械)：
+      · power 龙头的 forward_class 字段(可推荐→合理·好公司但贵→贵)
+      · health/defense 的『前瞻分两类』(合理的_可推荐→合理·贵的_等好价→贵·等回调)
+    只覆盖架构师研究里出现过的票；没出现的→不在表里(估值引擎据此标待接·不硬套正常化)。"""
+    subs = load()
+    out = {}
+    for s in subs:
+        for L in s["leaders"]:
+            tk = L.get("ticker")
+            if not tk:
+                continue
+            cls = str(L.get("cls") or "")
+            verdict = ""
+            if cls.startswith("可推荐"):
+                verdict = "合理"
+            elif "贵" in cls or "等回调" in cls:
+                verdict = "贵·等回调"
+            out[tk] = {"verdict": verdict, "pe_text": L.get("v", ""), "sector": s["name"]}
+        f = s.get("forward") or {}
+        for line in f.get("rec", []):
+            for tk in set(_tickers_in(line)):
+                out.setdefault(tk, {"verdict": "", "pe_text": line, "sector": s["name"]})
+                if not out[tk].get("verdict"):
+                    out[tk]["verdict"] = "合理"
+        for line in f.get("wait", []):
+            for tk in set(_tickers_in(line)):
+                out.setdefault(tk, {"verdict": "", "pe_text": line, "sector": s["name"]})
+                if not out[tk].get("verdict"):
+                    out[tk]["verdict"] = "贵·等回调"
+    return out
+
+
 if __name__ == "__main__":
     import sys
     if hasattr(sys.stdout, "reconfigure"):
