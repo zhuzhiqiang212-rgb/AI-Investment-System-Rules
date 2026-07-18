@@ -814,6 +814,27 @@ def _rel_grade(rel: str) -> tuple:
     return (not low, r)
 
 
+def _valfw(sym: str):
+    """估值五层框架(老雷法·按行业换尺)——返回该只的 行业标签+用哪把尺；失败→None。"""
+    try:
+        import valuation_framework as VFW
+        return VFW.industry_of(sym), VFW.ruler_of(sym)
+    except Exception:
+        return None
+
+
+def _valfw_line(sym: str) -> str:
+    """每卡⑤块顶：行业标签 + 用哪把尺（董事长2026-07-18改尺·按行业换尺·不再一把尺套所有）。"""
+    r = _valfw(sym)
+    if not r:
+        return ""
+    ind, ruler = r
+    return (f'<div style="font-size:12px;color:#9ed8ff;margin:2px 0 5px;padding:3px 8px;'
+            f'background:#0e1c2e;border-radius:5px">📐 <b>行业</b>：{esc(ind)}　'
+            f'<b>用哪把尺</b>：{esc(ruler)}<span style="color:#8ea3b6;font-size:11px">'
+            f'（估值只回答"贵不贵"·按行业换尺·有增速的先看 PEG）</span></div>')
+
+
 def arch_val_display(sym: str, dyn: dict) -> dict | None:
     """董事长2026-07-18：权威估值待接、但架构师有中周期估算的持仓 → 三处(深研卡估值栏/决策条/
     「今天你怎么办」第3行)一律显【值+尺+可靠度+怎么办】，不再显光秃秃"待接真源/算不出"。
@@ -1196,6 +1217,7 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
     else:
         _axis = _val_wait_reason(sym, dyn)
     out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
+               + _valfw_line(sym)
                + _axis
                + f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
                '<table class="dt"><tr><th>要填的输入</th><th>大白话</th></tr>' + inrows + '</table>' + inval

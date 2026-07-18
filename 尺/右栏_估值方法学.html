@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>右栏 · 估值方法学（尺）· 类型自动选模型 + PDCA改善依据</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--soft:#9db0c2;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;--bad:#ff9a9a;}
+*{box-sizing:border-box;}body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.75;font-size:15px;}
+.wrap{max-width:960px;margin:0 auto;padding:22px 16px 90px;}
+.hdr{padding:18px 22px;background:linear-gradient(135deg,#1c2e40,#132030);border:1px solid #2a3d4f;border-radius:16px;margin-bottom:14px;}
+.hdr h1{font-size:22px;margin:0 0 6px;color:#9ed8ff;}.hdr .sub{color:var(--soft);font-size:12.5px;}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:13px 0;padding:15px 19px;}
+.sec h2{font-size:17px;margin:0 0 10px;color:#ffe4a8;}
+.sec h2 .n{display:inline-block;background:#2a3d4f;color:#8fd6ff;border-radius:8px;padding:1px 9px;margin-right:8px;font-size:14px;}
+.sec p,.sec li,td,th{font-size:13.8px;}b{color:#fff;}.hl{color:var(--hi);font-weight:700;}.good{color:var(--good);}.key{color:var(--key);}.bad{color:var(--bad);}
+ul,ol{margin:6px 0;padding-left:22px;}li{margin:6px 0;}
+table{width:100%;border-collapse:collapse;margin:8px 0;}th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}th{background:#13202d;color:#bcd0e2;}
+.iron{background:#2a1a12;border:1px solid #5a3a20;border-radius:10px;padding:11px 14px;margin:9px 0;font-size:13.3px;color:#ffcf6b;}
+code{background:#0b141d;border:1px solid #24384a;border-radius:5px;padding:1px 6px;color:#8fd6ff;font-size:12.5px;}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hdr">
+  <h1>右栏 · 估值方法学（尺）</h1>
+  <div class="sub">Cowork(理解岗) 起草 ｜ 2026-07-14 ｜ 董事长定：估值方法记右栏供 PDCA 改善、按类型自动选模型（不手工每只指定） ｜ 属右栏"尺"·慢变·改本尺走董事长 ｜ 对应右栏⑤过滤·第3关估值</div>
+</div>
+
+<div class="sec" style="border:2px solid #ffcf6b">
+  <h2><span class="n">★</span>老雷五层框架 · 按行业换尺（董事长 2026-07-18 拍板改尺·正式底子）</h2>
+  <p><b>原则</b>：① 估值是<b>最后一层</b>——前四层(宏观/行业/公司/财务)先筛"好生意"，估值只回答"贵不贵"。
+  ② <b>按行业换尺</b>；有盈利有增速的<b>一律先算 PEG＝市盈率÷净利增速%</b>（PEG&lt;1 便宜·0.8~1.2 合理·&gt;1.5 偏贵）。
+  ③ 用<b>相对倍数</b>(现价倍数 vs 行业合理区间)判贵贱，不追一个 DCF 死数。
+  ④ <b>缺关键输入→标"该尺待接·缺X·不编"，绝不改套别的尺凑数</b>。</p>
+  <table style="width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px">
+    <tr style="background:#0e1c2e"><th style="text-align:left;padding:4px 6px">行业</th><th style="text-align:left;padding:4px 6px">用哪把尺</th><th style="text-align:left;padding:4px 6px">合理区间</th></tr>
+    <tr><td>芯片·成熟盈利（博通/台积电）</td><td>P/E + PEG + FCF收益率</td><td>龙头合理 P/E 约 20~30</td></tr>
+    <tr><td>芯片·高增长（英伟达/AMD/Marvell）</td><td>PEG + EV/Sales</td><td>增速快则高 P/E 可合理·PEG&lt;1 便宜</td></tr>
+    <tr><td>半导体·设备/存储·强周期（爱德万/闪迪/美光/ASML/AMAT/LRCX/KLAC）</td><td>中周期正常化 EPS × 中周期 PE（不用峰值）</td><td>现价按峰值定→标"贵·别把峰值当常态"</td></tr>
+    <tr><td>电力/能源（VST/CEG/GEV/Cameco/中海油）</td><td>EV/EBITDA + FCF收益率 + NAV</td><td>一体化 5~7×·电力AI运营商 8~12×·FCF&gt;5~6%=现金牛</td></tr>
+    <tr><td>消费/IP（任天堂/万代/索尼）</td><td>P/E + PEG + 股息率（净现金多先扣）</td><td>任天堂先扣净现金</td></tr>
+    <tr><td>医疗/药（第一三共）</td><td>P/E + PEG（创新药管线用 rNPV）</td><td>利润率是命门·PEG 0.8~1.2 合理</td></tr>
+    <tr><td>商社（伊藤忠）/ 控股·科技投资（软银）</td><td>NAV/PB(分部估值 SOTP) + 正常化 P/E 交叉验证</td><td>P/B 对净资产；充分定价≈P/B 近 1</td></tr>
+    <tr><td>软件/SaaS（Veeva/ServiceNow/Palantir）</td><td>EV/Sales + Rule of 40 + forward P/E</td><td>增速%+FCF利润率%≥40 达标→高 EV/Sales 可合理</td></tr>
+    <tr><td>加密/金融（MSTR/COIN/CRCL/IBKR）</td><td>MSTR=mNAV(持币净值倍数)；COIN/CRCL=穿牛熊/中性利率正常化·低置信；IBKR=P/E+PEG</td><td>加密低置信·框架参考</td></tr>
+  </table>
+  <p style="color:#9db0c2;font-size:12.5px;margin-top:5px">落地：估值引擎 <code>valuation_framework.py</code> 先给每只打行业标签→选对应模型→取输入(SEC EDGAR/公司IR/架构师vetted值)→算关键倍数(PEG/EV·EBITDA/EV·Sales等)+现价vs合理区间→便宜/合理/贵+可靠度。产品各处(持仓卡/机会池/日股/现金)估值口径全走它、同股一个答案。低置信也必显数值；真缺输入才"待接·缺X·不编"。</p>
+</div>
+
+<div class="sec">
+  <h2><span class="n">0</span>这块是什么</h2>
+  <p>这是估值的"<b>方法学尺</b>"：定义<b>哪类标的用哪个估值模型、什么假设、可信度怎么标</b>。作用两条：① 让估值<b>可审、可改</b>——复盘(PDCA)时对照它，才知道估错没、错在假设还是选错模型；② 让估值<b>按类型自动选模型</b>——候选池标的变了也自动适配，不靠人一只只指定。</p>
+</div>
+
+<div class="sec">
+  <h2><span class="n">1</span>类型 → 模型（系统按类型自动选·不手工每只）</h2>
+  <p>系统先按"生意模式"把标的自动归类，再<b>自动套</b>对应模型；新进候选池的标的一样自动分类。人只供真财务输入、不指定模型。</p>
+  <table>
+    <tr><th>类型（怎么认）</th><th>用哪个模型</th><th>真输入</th></tr>
+    <tr><td><b>成长股</b>：盈利稳定增长、EPS≈可分配现金（如英伟达/微软/第一三共/多数应用软件）</td><td>两段式 <b>EPS-DCF</b></td><td>forward EPS + 增长/年限/永续/折现（假设明标）</td></tr>
+    <tr><td><b>控股/投资公司</b>：价值＝手里一堆资产（如软银）</td><td>净资产法 <b>NAV</b></td><td>各资产真估值合计 − 净负债 ÷ 股本（±控股折价）</td></tr>
+    <tr><td><b>周期股</b>：盈利大起大落（半导体设备/存储/代工，如爱德万/闪迪/台积电）</td><td><b>中周期盈利法</b>（不用峰值）</td><td>正常年景 EPS × 中周期 PE，或 中周期 EBITDA × EV/EBITDA</td></tr>
+    <tr><td><b>保险</b>：利润≠可分配现金（如东京海上）</td><td><b>PB / 内含价值法</b></td><td>每股净资产 × 目标 PB，或 内含价值/股 × 倍数</td></tr>
+    <tr><td><b>资产</b>：无财报的资产（BTC/ETH）</td><td><b>不做企业估值</b></td><td>只按仓位纪律(≤12%)＋币价管，不给公司估值区间</td></tr>
+    <tr><td><b>其它</b>：券商→正常化 PE；综合商社→NAV/PB（按主业归类）</td><td>按主业映射到上面某法</td><td>对应真输入</td></tr>
+  </table>
+  <div class="iron">铁律：模型由<b>类型自动定</b>，不手工每只指定；<b>硬套错模型会给错价</b>（例：给周期股爱德万套成长DCF，会算出¥1万 vs 现价¥2.9万的荒谬值）——故必须按类型分派。缺真输入的标"待接真源"、不硬编。</div>
+</div>
+
+<div class="sec">
+  <h2><span class="n">2</span>假设与可信度（怎么标）</h2>
+  <ul>
+    <li><b>假设明标可审</b>：增长率/折现率/中周期年景/控股折价等假设，<b>逐条写出、标来源</b>（DCF/NAV 本就需要假设、这不是编造）；取值偏保守。</li>
+    <li><b>可信度分级</b>：<b>A·精算</b>（DCF/NAV/中周期·真输入算出）｜ <b>B·相对估值</b>（拿现价跟历史/同行比）｜ <b>待接真源</b>（缺真输入，不硬编）。</li>
+    <li>产品每只卡的"贵不贵/买卖价"要<b>标清用了哪个模型＋可信度</b>，并可点回本尺。</li>
+  </ul>
+</div>
+
+<div class="sec">
+  <h2><span class="n">3</span>PDCA 挂钩（为改善做依据·董事长第1点）</h2>
+  <ul>
+    <li>每只<b>记录一条</b>：用了哪个模型 ＋ 关键假设 ＋ 当时价 vs 估值区间。</li>
+    <li>复盘时对照：<b>估值准不准</b>（后来价格证明合理区对不对）→ 若偏差大，判断是"<b>假设该改</b>"还是"<b>选错模型/该换法</b>"→ 沉淀回本尺（改假设口径或类型映射）。</li>
+    <li>这样估值方法本身<b>随证据迭代、可回溯</b>（呼应总则第五/十二条），不是一拍脑袋定死。</li>
+  </ul>
+</div>
+
+<div class="sec">
+  <p style="color:#9db0c2;font-size:12.5px;">本尺属右栏"估值(第3关)"方法学，慢变；改本尺（增删类型/换模型/改假设口径）＝改尺，走董事长。左栏每日估值由引擎<b>按本尺自动分类选模型</b>、算出精算价填进持仓卡与机会池。</p>
+</div>
+</div></body></html>

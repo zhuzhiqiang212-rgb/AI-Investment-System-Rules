@@ -427,6 +427,18 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 fails.append(f"L32 三处估值不一致：{fn} 的 {sym} 卡内出现多个「中枢」取值 {sorted(mids)}"
                              f"——深研栏/决策条/今天你怎么办 必须同一个数")
 
+    # ── L33 按行业换尺(董事长2026-07-18改尺·老雷五层框架)：每张有⑤估值块的持仓卡必须显"用哪把尺" ──
+    #     治"一把尺(穿周期正常化)套所有"——每只须带 行业标签+用哪把尺；缺→拦(那是没按行业换尺)。
+    for fn, h in vols.items():
+        for m in re.finditer(r'id="stock-([A-Z]{1,3}\.[0-9A-Z]+)"', h):
+            sym = m.group(1)
+            nxt = h.find('id="stock-', m.end())
+            seg = h[m.start(): nxt if nxt > 0 else len(h)]
+            if "它到底值多少钱" in seg and "用哪把尺" not in seg:
+                fails.append(f"L33 未按行业换尺：{fn} 的 {sym} 卡有⑤估值块但没显「用哪把尺」"
+                             f"——按行业换尺(老雷法)要求每只标 行业标签+用哪把尺，不许一把尺套所有")
+                break
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:
