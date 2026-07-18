@@ -45,7 +45,9 @@
     "https://www.macrotrends.net/stocks/charts/ATEYY/advantest/net-income"
    ],
    "scale_status": "已复核·峰值定价",
-   "resolved_note": "现价¥27,505按持续峰值定价(峰值EPS¥513·峰值PE约54)·中周期公允¥3,000远在其下——数据真实、是真·景气高点的正常极贵，别把超级景气当常态 → 守·不追高、留峰值风险安全垫"
+   "resolved_note": "现价¥27,505按持续峰值定价(峰值EPS¥513·峰值PE约54)·中周期公允¥3,000远在其下——数据真实、是真·景气高点的正常极贵，别把超级景气当常态 → 守·不追高、留峰值风险安全垫",
+   "ruler_short": "中周期(峰值定价对照)",
+   "howto_short": "守·不追高、留峰值风险安全垫"
   },
   {
    "name": "闪迪 SanDisk",
@@ -65,9 +67,13 @@
     13
    ],
    "pb_mid": null,
-   "fair_price": null,
+   "fair_price": {
+    "cheap": 40,
+    "mid": 55,
+    "rich": 80
+   },
    "current_price": 1615,
-   "verdict": "合理价待接·不编",
+   "verdict": "极贵（峰值定价）",
    "verdict_note": "现价约为正常化EPS的320倍;前瞻PE仅约8x是因为对着约$200+的峰值EPS。经典周期陷阱:对峰值盈利看着不贵,对穿周期盈利极贵。",
    "reliability": "勉强",
    "reliability_note": "原normalized $40-80已撤(存档 archived_fair_price)：极端超级周期下正常化不可靠。价非异常·经二源人工核实为真价，问题在这套估值口径。",
@@ -84,8 +90,10 @@
     "mid": 55,
     "rich": 80
    },
-   "scale_status": "撤销",
-   "retract_note": "合理价待接·不编——NAND存储处极端超级周期(现价$1,354·市盈率46·景气高点)，穿周期正常化盈利在此极端下算不可靠；现价已确认为真价(董事长2026-07-18富途截图核实:$1,354.82收盘·市值$2006亿·PE_TTM 46.3)。动作：守着看(不主动加减)。"
+   "scale_status": "已复核·峰值定价",
+   "ruler_short": "中周期(峰值定价对照)",
+   "howto_short": "守·不追高、留峰值风险安全垫",
+   "resolved_note": "现价$1,350按持续峰值定价·中周期公允$40~$80(中枢$55)远在其下——NAND极端超级周期(GAAP毛利78%·景气顶),这套穿周期正常化【低置信·仅作框架参考】;现价已二源核实为真价 → 守·不追高、留峰值风险安全垫"
   },
   {
    "name": "台积电 TSMC",
@@ -122,7 +130,9 @@
     "https://investor.tsmc.com/english/encrypt/files/encrypt_file/reports/2025-01/2d8b2bb6fc3b5887d24ae0635f639c1cdca834f3/4Q24ManagementReport.pdf",
     "https://www.sec.gov/Archives/edgar/data/1046179/000156459022001132/tsm-ex991_6.htm",
     "https://www.gurufocus.com/term/forward-pe-ratio/TSM"
-   ]
+   ],
+   "ruler_short": "穿周期正常化",
+   "howto_short": "守·不追高"
   },
   {
    "name": "伊藤忠 Itochu",
@@ -162,7 +172,9 @@
     "https://www.itochu.co.jp/en/ir/financial_statements/2026/index.html",
     "https://www.itochu.co.jp/en/ir/download/__icsFiles/afieldfile/2026/06/12/FIR2026E.pdf",
     "https://www.morningstar.com/stocks/why-buffetts-japanese-trading-house-picks-have-room-rise-20-or-more"
-   ]
+   ],
+   "ruler_short": "商社NAV/PB",
+   "howto_short": "守（已充分定价）"
   },
   {
    "name": "Coinbase",
@@ -198,7 +210,9 @@
     "https://www.sec.gov/Archives/edgar/data/1679788/000167978823000031/coin-20221231.htm",
     "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000015/coin-20251231.htm",
     "https://www.macrotrends.net/stocks/charts/COIN/coinbase-global/eps-earnings-per-share-diluted"
-   ]
+   ],
+   "ruler_short": "牛熊加权EPS×交易所倍数",
+   "howto_short": "守着看（低置信）"
   },
   {
    "name": "Circle Internet Group",
@@ -236,7 +250,9 @@
     "https://www.circle.com/pressroom/circle-reports-first-quarter-2026-results",
     "https://decrypt.co/312757/coinbase-circles-residual-usdc-reserve-revenue-filing",
     "https://streetstats.finance/rates/treasuries/"
-   ]
+   ],
+   "ruler_short": "储备利息正常化",
+   "howto_short": "守着看（低置信）"
   }
  ]
 }

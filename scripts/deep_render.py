@@ -848,12 +848,17 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
     else:
         vcol = "#ff6b6b" if "极贵" in vd else ("#ffb454" if "贵" in vd else "#7ee0a0")
     bd, bg = ("#6b7a8c", "#141c26") if ok else ("#c47a1e", "#241a10")
+    ruler = str(e.get("ruler_short") or "")
+    howto = str(e.get("howto_short") or "")
     if mini:
+        pxbit = f' → 现价{c}{px:,.0f}' if px is not None else ''
         return (f'<div style="font-size:10.5px;margin-top:4px;padding-top:3px;border-top:1px dashed #4a5a6a">'
-                f'<span style="color:#8ea3b6">架构师中周期估算（非权威）</span>'
-                f'<br>{c}{lo:,.0f}~{c}{hi:,.0f}·中枢{c}{mid:,.0f} → '
-                f'<b style="color:{vcol}">{esc(vd)}</b>'
-                + ('' if ok else '<br><span style="color:#ffb454">低置信·仅作框架参考</span>') + '</div>')
+                f'<span style="color:#8ea3b6">架构师估算（非权威）</span>'
+                f'<br>{c}{lo:,.0f}~{c}{hi:,.0f}·中枢{c}{mid:,.0f}'
+                + (f'（尺：{esc(ruler)}）' if ruler else '')
+                + pxbit + f' → <b style="color:{vcol}">{esc(vd)}</b>'
+                + (f'<br><span style="color:#8cf5be">怎么办：{esc(howto)}</span>' if howto else '')
+                + ('' if ok else '<br><span style="color:#ffb454">低置信·仅作框架参考·守着看</span>') + '</div>')
     # 大块：数轴(低置信画虚线+问号)
     axis = ""
     if px is not None and hi > lo:
@@ -897,7 +902,9 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
               '📐 架构师中周期估算　<span style="font-size:11px;color:#ffb454;font-weight:400">'
               '非权威 · 非当日实时 · 仅供参考</span></div>'
             + red_banner
-            + f'<div style="font-size:11.5px;color:#8ea3b6;margin-top:2px">可靠度：{esc(rel)}</div>'
+            + f'<div style="font-size:11.5px;color:#8ea3b6;margin-top:2px">'
+              + (f'尺：<b style="color:#b8c6d4">{esc(ruler)}</b>　' if ruler else '')
+              + f'可靠度：{esc(rel)}</div>'
             + axis
             # ⚠架构师文件里的 current_price 是他写卡时的价(截至7月中旬)、不是今天的实时价 →
             #   这里一律用【今日实时价】比，且不重复印他那个旧价(否则同卡两个现价打架·L9 会拦)
@@ -905,6 +912,7 @@ def arch_est_block(sym: str, dyn: dict, mini: bool = False) -> str:
                f'·中枢 <b>{c}{mid:,.0f}</b>'
                + (f'　→　今日实时价 <b>{c}{px:,.2f}</b>' if px is not None else '')
                + f'　→　<b style="color:{vcol};font-size:15px">{esc(vd)}</b></div>')
+            + (f'<div style="font-size:13px;margin-top:4px;color:#8cf5be"><b>怎么办</b>：{esc(howto)}</div>' if howto else '')
             + f'<div style="font-size:12px;color:#c8d4de;margin-top:4px">'
               f'<b>怎么算的</b>：{esc(str(e.get("method") or ""))}</div>'
             # verdict_note 里也夹着架构师写卡时的旧价 → 同步成今日实时价(单卡现价唯一·L9)
@@ -2472,11 +2480,23 @@ def sector_deep_block(date: str) -> str:
                 + (f'<span style="font-size:11px;color:{AMB}">{esc(tail)}</span>' if tail else "")
                 + f'</summary><div style="padding:2px 4px">' + "".join(rows) + src + '</div></details>')
 
+    def _buyback(line: str) -> str:
+        """等回调龙头的『可上车价』一句(董事长2026-07-18)：能解析出当前 forward PE→给规则+目标待接；否则纯待接。
+        不再只写"等回调"三字。绝对价多为 A股/未订阅→标待 OpenD 实时。"""
+        m = re.search(r"(?:forward\s*)?P/?E\s*[~约]*\s*(\d+)", str(line))
+        if m:
+            cur_pe = m.group(1)
+            return (f'<div style="font-size:11.5px;color:#8cf5be;margin-top:1px">🎯 可上车价：'
+                    f'当前 forward P/E 约 {esc(cur_pe)} 倍，等回落到该只合理区才可考虑；'
+                    f'<span class="need">合理倍数目标待架构师定·具体价待 OpenD 实时·不编</span>。</div>')
+        return ('<div style="font-size:11.5px;color:#8cf5be;margin-top:1px">🎯 可上车价：'
+                '<span class="need">待接·缺 forward EPS/PE目标·不编</span>（同属好公司但贵·等回调）。</div>')
+
     def fwd_block(f: dict) -> str:
         if not f.get("rec") and not f.get("wait"):
             return ""
         rec = "".join(f'<div style="padding:3px 0">· {esc(x)}</div>' for x in f.get("rec", []))
-        wait = "".join(f'<div style="padding:3px 0">· {esc(x)}</div>' for x in f.get("wait", []))
+        wait = "".join(f'<div style="padding:3px 0">· {esc(x)}{_buyback(x)}</div>' for x in f.get("wait", []))
         out = '<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">'
         if rec:
             out += ('<div style="flex:1;min-width:230px;background:#0f2e1c;border:1px solid #4fbf87;border-radius:6px;padding:6px 8px">'
@@ -2548,17 +2568,20 @@ def _optical_stub_card(date: str, amb: str) -> str:
          "f": "2025营收382亿（+60%）、2026E净利约300亿（近翻三倍）。",
          "v": "按明年利润的市盈率约40~45倍（2026E）/22~25（2027E）——增长快但当前处历史高位·偏贵。",
          "vs": "英伟达GPU服务器的配套下游，跟英伟达/博通同涨同跌——买它=加重AI，不是分散。",
-         "rec": "好公司但偏贵 + 不分散你已超配的AI → 等回调、别追。"},
+         "rec": "好公司但偏贵 + 不分散你已超配的AI → 等回调、别追。",
+         "buy": "回调约 <b>38%</b>（看明年利润的市盈率从约 42 倍回到约 26~28 倍的合理区）才算便宜、可考虑；没到就等。"
+                "具体绝对价待 OpenD 深圳实时价（A股未订阅·现价没接进来）。"},
         {"title": "新易盛（300502）",
          "w": "拿英伟达约25%订单、与博通关系密切、LPO 独家过英伟达 1.6T 认证（Blackwell配套）、中短距。",
          "f": "2025营收248亿（+187%）、净利95亿（+236%）。",
          "v": "贵。",
          "vs": "同英伟达涨跌·不分散。",
-         "rec": "等回调。"},
+         "rec": "等回调。",
+         "buy": ""},
         {"title": "天孚通信（300394）",
-         "w": "上游光器件、绑龙头供应链。", "f": "", "v": "", "vs": "跟随光模块龙头景气。", "rec": "随板块·等回调。"},
+         "w": "上游光器件、绑龙头供应链。", "f": "", "v": "", "vs": "跟随光模块龙头景气。", "rec": "随板块·等回调。", "buy": ""},
         {"title": "海外：Coherent（COHR）/ Lumentum（LITE）",
-         "w": "英伟达硅光合作方。", "f": "", "v": "", "vs": "同AI互联链景气。", "rec": "同属好公司但贵一档·等回调。"},
+         "w": "英伟达硅光合作方。", "f": "", "v": "", "vs": "同AI互联链景气。", "rec": "同属好公司但贵一档·等回调。", "buy": ""},
     ]
     ld = ""
     for L in leaders:
@@ -2570,6 +2593,12 @@ def _optical_stub_card(date: str, amb: str) -> str:
             cell = esc(val) if val else '<span class="need">待接·不编</span>'
             rows += (f'<div style="margin-top:3px"><span class="k" style="color:{col}">{lab}</span>'
                      f'<span style="font-size:12.5px">{cell}</span></div>')
+        # 可上车价（等回调龙头必带·董事长2026-07-18）：有 forward PE 目标→具体回调；没有→待接
+        buy = L.get("buy") or ""
+        buy_html = buy if buy else '可上车价<span class="need">待接·缺 forward EPS/PE目标·不编</span>（同属好公司但贵·等回调）'
+        rows += (f'<div style="margin-top:4px;padding-top:3px;border-top:1px dashed #2f5540">'
+                 f'<span class="k" style="color:#8cf5be">🎯 可上车价</span>'
+                 f'<span style="font-size:12.5px">{buy_html}</span></div>')
         ld += (f'<details class="sub" style="margin-top:5px;background:#141c26"><summary><b>{esc(L["title"])}</b></summary>'
                f'<div style="padding:2px 4px">{rows}</div></details>')
     fwd = ('<div style="margin-top:6px;background:#2a1f10;border:1px solid #7a5a20;border-radius:6px;padding:6px 8px">'
