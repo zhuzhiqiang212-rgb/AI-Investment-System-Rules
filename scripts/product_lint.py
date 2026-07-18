@@ -294,6 +294,33 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         if bad:
             fails.append(f"L25 坏锚点：{fn} 有 {len(bad)} 个 #锚点跳不到 → {bad[:3]}")
 
+    # ── L26 同股两动作(第一档1·验收整改)：产品里同一只出现两个不同动作→拦 ──
+    #     以 decisions_{date}.json 为唯一真相，核产品里各处徽章是否都一致。
+    try:
+        dec = json.loads((ROOT / "data" / "pdca" / f"decisions_{date}.json").read_text(encoding="utf-8")).get("decisions", {})
+    except Exception:
+        dec = {}
+    for fn, h in vols.items():
+        for sym, d in dec.items():
+            want = str(d.get("action", ""))
+            # 找该只卡内所有动作徽章
+            for m in re.finditer(r'id="stock-' + re.escape(sym) + r'"', h):
+                nxt = h.find('id="stock-', m.end())
+                seg = h[m.start(): nxt if nxt > 0 else len(h)]
+                acts = set(re.findall(r'border-radius:9px[^>]*>([加买守等减])</b>', seg))
+                if len(acts) > 1 or (acts and want and want not in acts):
+                    fails.append(f"L26 同股两动作：{fn} 的 {sym} 卡内动作 {sorted(acts)} ≠ 决定表「{want}」"
+                                 f"——每只当天只能有一个动作")
+                    break
+
+    # ── L27 未批准写成可执行(第一档2·三态)：拍板前不许出现"已批准/可执行/去下单"类词 ──
+    for fn, h in vols.items():
+        t = _txt(h)
+        for w in ("已批准可执行", "可以执行", "已执行", "去下单", "帮你下单", "自动下单"):
+            if w in t:
+                fails.append(f"L27 三态越界：{fn} 出现「{w}」——系统只读不下单，拍板前只能是「系统建议·尚未执行」")
+                break
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:

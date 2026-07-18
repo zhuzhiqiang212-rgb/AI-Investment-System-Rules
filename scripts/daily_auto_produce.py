@@ -45,6 +45,7 @@ STEPS = [
     ("⑤ 均线(趋势参考)", "holdings_ma_levels.py", False),
     ("⑥ 估值分派", "valuation_dispatcher.py", False),
     ("⑦ 当日涨跌", "day_change_scan.py", False),
+    ("⑦b 数据异常检查关", "data_sanity_gate.py", False),
     ("⑧ 当日新闻+证据链", "evidence_autobuild.py", True, ["--with-macro-news"]),
     ("⑨ 研报佐证(湖水资讯)", "research_corpus_ingest.py", False),
     ("⑨b 财报官方数(SEC EDGAR)", "edgar_financials.py", False),

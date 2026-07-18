@@ -1578,7 +1578,97 @@ _ACT_STYLE = {"加": ("#8cf5be", "#0f2e1c"), "买": ("#8cf5be", "#0f2e1c"), "减
               "守": ("#7cc4ff", "#12203a"), "等": ("#ffd479", "#2a1f10")}
 
 
+# ══ 第一档1[验收整改2026-07-18]：唯一决定表 decisions ══
+#   每只当天【只有一个】动作(加/减/守/等)。顶部动作表/20只总表/日股专项/现金/深研卡结论
+#   全部从这里读，禁止各处各写。→ 治"第一三共加/等、博通减/守、META减/等"的同股两动作。
+_DECISIONS: dict = {}
+
+
+def _profit_take_days(sym: str, dyn: dict, date: str) -> int:
+    """第三档9[止盈尺]：往回数——连续多少个交易日"涨过合理价上沿30%以上"。缺历史→只算今天。"""
+    n = 0
+    d = date
+    for _ in range(15):
+        p = ROOT / "data" / "reports" / f"production_{d}.json"
+        if not p.exists():
+            break
+        try:
+            pr = rj(p)
+            px = next((h.get("price") for h in pr.get("holdings", []) if str(h.get("symbol")) == sym), None)
+            vr = rj(ROOT / "data" / "valuation" / f"valuation_results_{d}.json")
+            hi = next((r.get("reasonable_high") for r in (vr.get("results") or []) if r.get("symbol") == sym), None)
+        except Exception:
+            break
+        if px and hi and hi > 0 and (px - hi) / hi > 0.30:
+            n += 1
+        else:
+            break
+        pv = _prev_date(d)
+        if not pv:
+            break
+        d = pv
+    return n
+
+
+def profit_take_alerts(date: str, dyn: dict) -> list:
+    """止盈尺：单只涨过合理价上沿30% 且连续≥10交易日 → 进拍板收件箱"要不要减一点止盈"(不自动减)。
+    核心仓(英伟达/台积电/微软)门槛更高(40%)。"""
+    CORE = {"US.NVDA", "US.TSM", "US.MSFT"}
+    out = []
+    for h in dyn.get("prod", {}).get("holdings", []):
+        s = str(h.get("symbol"))
+        if s.startswith("CC."):
+            continue
+        st = val_state(s, dyn)
+        if not (st.get("ok") and st.get("above_rich")):
+            continue
+        over = (st["px"] - st["hi"]) / st["hi"] * 100
+        thr = 40 if s in CORE else 30
+        if over < thr:
+            continue
+        days = _profit_take_days(s, dyn, date)
+        c = st["cur"]
+        out.append({"sym": s, "name": str(h.get("name") or s), "over": over, "days": days,
+                    "core": s in CORE, "thr": thr, "px": st["px"], "hi": st["hi"],
+                    "ripe": days >= 10,
+                    "text": (f"{h.get('name')}：现价 {c}{st['px']:,.0f}、已涨过合理价上沿 {c}{st['hi']:,.0f} "
+                             f"约 {over:.0f}%（{'核心仓·门槛40%' if s in CORE else '门槛30%'}）"
+                             f"，已连续 {days} 个交易日在这条线以上"
+                             + ("→ <b>够格进拍板收件箱：要不要减一点止盈？</b>（系统不自动减·只请示你）"
+                                if days >= 10 else "→ 还没满 10 个交易日，先盯着，够 10 天再请示"))})
+    return out
+
+
+def decision_of(sym: str, name: str, dyn: dict, date: str) -> tuple:
+    """单一决定源：算一次、缓存、所有调用点读它。返回 (动作徽章HTML, 理由HTML, 纯动作字)。"""
+    key = (date, sym)
+    if key in _DECISIONS:
+        return _DECISIONS[key]
+    act_html, why = _action_of_raw(sym, name, dyn, date)
+    pure = re.sub(r"<[^>]+>", "", act_html).strip()
+    _DECISIONS[key] = (act_html, why, pure)
+    return _DECISIONS[key]
+
+
 def _action_of(sym: str, name: str, dyn: dict, date: str) -> tuple:
+    """兼容旧调用点：返回 (徽章, 理由)——但都走 decision_of 的缓存(保证同股一个答案)。"""
+    a, w, _p = decision_of(sym, name, dyn, date)
+    return a, w
+
+
+def decisions_table(date: str, dyn: dict) -> dict:
+    """全持仓的决定字典 {sym: {action, name}}，供落盘+CI核。"""
+    out = {}
+    for h in dyn.get("prod", {}).get("holdings", []):
+        s = str(h.get("symbol"))
+        if s.startswith("CC."):
+            continue
+        _a, _w, p = decision_of(s, str(h.get("name") or s), dyn, date)
+        out[s] = {"action": p, "name": str(h.get("name") or s)}
+    return out
+
+
+def _action_of_raw(sym: str, name: str, dyn: dict, date: str) -> tuple:
     """五[动作升级]：把"守/等"扩成 加/买/守/等/减 五种，并给【具体路径】。
     唯一的尺(董事长2026-07-17拍板)：买卖只看估值便宜位/偏贵位；均线只作趋势参考。
     超上限的类 → 必须给"减谁·减到多少·什么价"；跌到便宜位 → 给"可加·大概价"。
@@ -2151,6 +2241,9 @@ def part0_diff(date: str, dyn: dict) -> str:
             + '<div class="blk">② 触发了哪个阈值</div>'
             + f'<div class="card">{"".join(f"<div>{x}</div>" for x in thr) if thr else "<div>· 无阈值触发</div>"}</div>'
             + f'<div class="blk" id="pending-inbox">③ 今日待拍板事项（{n_pend} 件·拍板收件箱）</div>'
+            + '<div class="meta" style="color:#8ea3b6;font-size:11.5px">第一档2[三态]：这里每件的<b>默认建议方向与上面「动作表」一致</b>'
+              '（都从同一个决定源出）；没拍板前一律是「系统建议·尚未执行」，你回 A/B/C 才算你批准。</div>'
+            + _profit_take_block(date)
             + (pend_rows or '<div class="card">今日无待拍板事项</div>'))
 
 def _news_list(items: list, weak: bool = False) -> str:
@@ -2885,6 +2978,33 @@ def track_days(date: str) -> tuple[int, str]:
     return (len(ds), ds[0]) if ds else (0, "?")
 
 
+def _profit_take_block(date: str) -> str:
+    """止盈尺渲染：读 build 落的 profit_take_{date}.json。够格的醒目、没够格的也列出盯着。"""
+    try:
+        pt = rj(ROOT / "data" / "pdca" / f"profit_take_{date}.json").get("alerts") or []
+    except Exception:
+        pt = []
+    if not pt:
+        return ('<div class="card" style="background:#101a26"><b>止盈尺</b>（第三档9·董事长已拍板）：'
+                '今天没有一只涨过合理价上沿 30%（核心仓 40%）→ <b>没有要止盈的</b>。'
+                '<span style="color:#8ea3b6">规则：单只涨过贵位 30%+ 且连续 10 个交易日 → 进这里请示"要不要减一点"，系统不自动减。</span></div>')
+    ripe = [a for a in pt if a.get("ripe")]
+    watch = [a for a in pt if not a.get("ripe")]
+    body = ('<div class="card" style="background:#2a1f10;border:2px solid #c47a1e"><b style="color:#ffb454">'
+            '止盈尺（第三档9·董事长已拍板）</b>'
+            '<div style="font-size:11.5px;color:#8ea3b6">单只涨过合理价上沿 30%（核心仓英伟达/台积电/微软 40%）'
+            '且连续 10 个交易日 → 请示"要不要减一点止盈"。<b>系统不自动减·只请示，你拍板。</b></div>')
+    if ripe:
+        body += '<div style="font-size:13px;margin-top:5px;color:#8cf5be"><b>够格请示的：</b></div>'
+        body += "".join(f'<div style="padding:5px 0;border-top:1px solid #2b4054;font-size:12.5px">· {a["text"]}</div>' for a in ripe)
+    if watch:
+        body += ('<details class="sub" style="margin-top:5px"><summary>还在盯着（涨过30%但没满10天）：'
+                 + str(len(watch)) + ' 只</summary>'
+                 + "".join(f'<div style="padding:4px 0;font-size:12px;color:#c8d4de">· {a["text"]}</div>' for a in watch)
+                 + '</details>')
+    return body + '</div>'
+
+
 def part7_pdca(date: str, daily: dict | None = None) -> str:
     pd = rj(ROOT / "data" / "pdca" / f"pdca_daily_{date}.json")
     rv = rj(ROOT / "data" / "pdca" / f"pdca_review_{date}.json")
@@ -3164,6 +3284,23 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     dyn = load_dynamic(date)
     _CORRO_AGE["d"] = _corro_age(date)[0]      # 甲5：佐证料天数当日现算·供各佐证栏尾注引用
     _snapshot_guard(date, dyn, only)   # R3 快照单调性闸
+    # 第一档3/第三档9：数据异常关 + 止盈告警【先落盘】——它们的渲染块要读这两个文件
+    if not only:
+        try:
+            _pt = profit_take_alerts(date, dyn)
+            (ROOT / "data" / "pdca" / f"profit_take_{date}.json").write_text(
+                json.dumps({"date": date, "alerts": _pt}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        except Exception:
+            pass
+        try:
+            from data_sanity_gate import check as _sanity
+            _iss = _sanity(date)
+            (ROOT / "data" / "reports" / f"data_sanity_{date}.json").write_text(
+                json.dumps({"date": date, "n_red": sum(1 for x in _iss if x["level"] == "红"),
+                            "n_yellow": sum(1 for x in _iss if x["level"] == "黄"), "issues": _iss},
+                           ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        except Exception:
+            pass
     holds = dyn["prod"].get("holdings", [])
     stocks = [h for h in holds if not str(h.get("symbol","")).startswith("CC.")]
     if only:
@@ -3185,7 +3322,9 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
         run_id = "R-" + _dt.astimezone(JST).strftime("%Y%m%d-%H%M%S")
     except Exception:
         scan_jst = "待接"; run_id = "R-" + date + "-nots"
-    md_note = str((dyn["daily"].get("rule_engine", {}) or {}).get("inputs_used", {}).get("snapshot_data_date", ""))[:19]
+    # 第一档4[验货戳每次重取]：行情快照戳=本次 production 的 generated_at(每次生产就是这次扫描的)，
+    #   不再沿用 daily 里可能是旧的 snapshot_data_date。取不到就写"取不到"，绝不沿用昨天。
+    md_note = str(dyn["prod"].get("generated_at") or "")[:19] or "取不到（本次未取到行情快照戳·不沿用昨天）"
     head = ('<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
             '<title>完整产品·机器版(实时自动生成)</title><style>'
@@ -3269,6 +3408,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     single = (head + title
               # ── 第一层：今天的决定(置顶·最简·不写解释) ──
               + part_decision_top(date, dyn, daily, oneline)
+              + cant_rely_block(date, dyn)
               # ── 第二层：扫一遍 ──
               + part_actions_table(date, dyn)
               + _summary_tables(date, dyn, stats)
@@ -3294,6 +3434,19 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     #   单文件里既有持仓卡又有机会池 → is_pool=False，候选专用措辞由 part4 自己带
     volumes = {k: _scrub_leaks(v, is_pool=False) for k, v in volumes.items()}
     stats["volumes"] = volumes
+    # 第一档1：把唯一决定表落盘(供机器验货核"同股一个答案"·数据版)
+    try:
+        _dec = decisions_table(date, dyn)
+        _dp = ROOT / "data" / "pdca" / f"decisions_{date}.json"
+        _dp.parent.mkdir(parents=True, exist_ok=True)
+        _dp.write_text(json.dumps(
+            {"_说明": "唯一决定表：每只当天只有一个动作。产品里顶部动作表/20只总表/日股/现金/深研卡结论"
+                      "全部从这里读；CI 核'同股任何位置动作不一致'即拦。",
+             "date": date, "run_id": run_id, "generated_at": scan_ts,
+             "decisions": _dec}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        stats["decisions"] = _dec
+    except Exception:
+        pass
     stats["run_id"] = run_id          # 丙2/丙3：出厂后登记指纹+回写主控要用
     stats["scan_jst"] = scan_jst
     return volumes[ONEFILE(date)], stats
@@ -3580,10 +3733,11 @@ def _loop_map(date: str) -> str:
     """硬链3：七层逻辑闭环图(每节点点进对应册/锚点)。"""
     # 乙[组合层升格·董事长2026-07-17拍板]：集中度/共同风险穿透/替换引擎 立为正式一层「⑥组合层」，
     #   位置在【持仓与复盘之间】——先看单只(⑤持仓)，再看整体押得偏不偏(⑥组合)，最后复盘(⑦)。
-    nodes = [("①世界观", L1(date, "layer-world")), ("②国家战略", L1(date, "layer-strategy")),
-             ("③资金流动", L1(date, "layer-capital")), ("④板块轮动", L1(date, "layer-sector")),
-             ("⑤机会池", VOL(date, 3)), ("⑥持仓", VOL2(date, "2a")),
-             ("⑦组合层", L1(date, "layer-portfolio")), ("⑧复盘记分卡", VOL(date, 4))]
+    # 第三档10[蓝图统一8层·董事长已定]：全产品编号一致
+    nodes = [("①世界怎么了", L1(date, "layer-world")), ("②美国把钱推向哪", L1(date, "layer-strategy")),
+             ("③钱松还是紧", L1(date, "layer-capital")), ("④哪些行业变强弱", L1(date, "layer-sector")),
+             ("⑤有哪些新机会", "#opp"), ("⑥现有持仓怎么办", "#deep-cards"),
+             ("⑦整体押得偏不偏", L1(date, "layer-portfolio")), ("⑧昨天判断对不对", "#score")]
     chain = ' <span style="color:#ffd479">→</span> '.join(
         f'<a href="{h}" style="display:inline-block;background:#12203a;border:1px solid #3a5a8a;'
         f'border-radius:8px;padding:6px 10px;color:#8fd6ff;text-decoration:none;margin:3px 0">{esc(t)}</a>'
@@ -3594,6 +3748,44 @@ def _loop_map(date: str) -> str:
             '证据链自上而下：世界观定大势 → 国家战略定钱往哪条线 → 资金流动定松紧 → 板块轮动定哪个群热 → '
             '机会池按五关筛候选 → 持仓按单一源决策 → 复盘记分卡回评每层判断（判断ID回链）。'
             '<b>闭环</b>：⑦记分卡的判对/判错 → 明日回改①-④的确定性档位（见④册魂①支柱累积表）。</div></div>')
+
+
+def cant_rely_block(date: str, dyn: dict) -> str:
+    """第二档5[验收整改]：首页集中列「今天哪些不能依赖」——一次说清·别让董事长误以为都是准的。"""
+    items = []
+    # 机会池后三关未接
+    items.append("<b>机会池的估值/护城河/个股关</b>：候选只做到「节点激活+均线」，估值只对能取到财报的美股机械算(非精调)；日/港/韩候选待架构师估算。")
+    # 机构vs散户资金
+    items.append("<b>机构 vs 散户资金流向</b>：这块还没接真数据源，产品里没有——不是判断，是缺料。")
+    # 无估值标的
+    try:
+        n_wait = 0
+        vr = rj(ROOT / "data" / "valuation" / f"valuation_results_{date}.json")
+        for r in (vr.get("results") or []):
+            if str(r.get("status")) == "待接真源":
+                n_wait += 1
+        if n_wait:
+            items.append(f"<b>{n_wait} 只持仓没有权威估值</b>（周期股/商社/上市太短）：只有架构师中周期估算(非权威)可参考，别当精确结论。")
+    except Exception:
+        pass
+    # SpaceX 无判断包
+    if any(str(h.get("symbol")) == "US.SPCX" for h in dyn.get("prod", {}).get("holdings", [])):
+        items.append("<b>SpaceX</b>：未上市、无公开财报，没有估值也没有10块深研判断包——它的加仓价/深研是空的，如实标了待补。")
+    # 财报待接
+    items.append("<b>部分财报数待接</b>：EDGAR/公司IR 没取到的季度数会标「待接」，不拿旧数顶。")
+    # 坏PDF
+    try:
+        rc = rj(ROOT / "data" / "analysis" / "research_corpus.json")
+        errs = rc.get("parse_errors") or []
+        if errs:
+            items.append(f"<b>{len(errs)} 份研报PDF解析失败</b>（如 {esc(str(errs[0].get('file'))[:28])}…·文件损坏）→ 那几份的观点没进佐证，不是漏读。")
+    except Exception:
+        pass
+    lis = "".join(f'<div style="padding:5px 0;border-top:1px solid #2b4054;font-size:12.5px">· {x}</div>' for x in items)
+    return ('<details class="sub" id="cant-rely"><summary>⚠ 今天哪些【不能依赖】（点开·一次说清）</summary>'
+            '<div style="padding:4px 6px 8px"><div style="font-size:12px;color:#8ea3b6;margin-bottom:2px">'
+            '这些是今天<b>数据不全或还没接</b>的地方——不是判断错，是提醒你别把它们当准数用。</div>'
+            + lis + '</div></details>')
 
 
 def part_decision_top(date: str, dyn: dict, daily: dict, oneline: str) -> str:
@@ -3621,9 +3813,33 @@ def part_decision_top(date: str, dyn: dict, daily: dict, oneline: str) -> str:
                if n_add else '<span style="color:#8ea3b6">加 0</span>')
     cut_txt = (f'<b style="color:#ff9a9a">减 {n_cut}</b>（{esc("、".join(acts.get("减", [])))}）'
                if n_cut else '<span style="color:#8ea3b6">减 0</span>')
-    return ('<div class="card" style="background:#152238;border:3px solid #ffd479;border-radius:10px">'
-            '<div style="font-size:21px;font-weight:900;color:#ffd479;letter-spacing:.5px;margin-bottom:6px">'
-            '今天的决定</div>'
+    # 第一档3[数据异常关]：有红/黄异常→顶部标红警条，请董事长先核数据、别据此买卖
+    sanity = ""
+    try:
+        sd = rj(ROOT / "data" / "reports" / f"data_sanity_{date}.json")
+        red = [x for x in (sd.get("issues") or []) if x.get("level") == "红"]
+        yel = [x for x in (sd.get("issues") or []) if x.get("level") == "黄"]
+        if red or yel:
+            bg, bd, ti = (("#3a1414", "#d24b4b", f"⚠ 数据可能有异常（{len(red)} 处严重）——先核对，别急着按下面的建议动手")
+                          if red else ("#2a1f10", "#c47a1e", f"提示：{len(yel)} 处数据要你确认一下"))
+            items = "".join(f'<div>· <b>{esc(str(x.get("type")))}</b> {esc(str(x.get("name") or x.get("symbol")))}：'
+                            f'{esc(str(x.get("detail")))}</div>' for x in (red + yel)[:6])
+            sanity = (f'<div class="card" style="background:{bg};border:2px solid {bd}">'
+                      f'<div style="font-size:15px;font-weight:800;color:#ff9a9a">{ti}</div>'
+                      f'<div style="font-size:12.5px;color:#e6eef5;margin-top:3px">{items}</div>'
+                      + ('<div style="font-size:12px;color:#ff9a9a;margin-top:3px">'
+                         '<b>有严重异常时，下面的买卖建议请先当参考、别执行，等数据核准。</b></div>' if red else '')
+                      + '</div>')
+    except Exception:
+        pass
+    # 第一档2[验收整改]：三态分清——没拍板前顶部只能写"系统建议·尚未执行"，不许写成"决定/可执行"
+    return (sanity
+            + '<div class="card" style="background:#152238;border:3px solid #ffd479;border-radius:10px">'
+            '<div style="font-size:21px;font-weight:900;color:#ffd479;letter-spacing:.5px;margin-bottom:2px">'
+            '今天的建议</div>'
+            '<div style="font-size:12px;color:#ffb454;font-weight:700;margin-bottom:6px">'
+            '⚠ 这是<b>系统建议 · 尚未执行</b>——系统只读不下单，任何加/减都要<b>你拍板</b>后自己去操作；'
+            '拍板前一律停在"建议"这一态。</div>'
             f'<div style="font-size:16px;font-weight:700;margin:4px 0">{oneline}</div>'
             f'<div style="font-size:15px;margin:6px 0">今天可做：{add_txt}　｜　{cut_txt}　｜　'
             f'<span style="color:#8ea3b6">其余 {n_rest} 只守/等</span>　'
