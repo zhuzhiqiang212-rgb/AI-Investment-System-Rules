@@ -402,16 +402,30 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                      if (e.get("fair_price") or {}).get("mid") is not None} if ap else set()
     except Exception:
         arch_syms = set()
+    _NAKED = ("待接真源", "算不出它该值多少钱", "算不出该值多少钱")
     for fn, h in vols.items():
         for sym in arch_syms:
             for m in re.finditer(r'id="stock-' + re.escape(sym) + r'"', h):
                 nxt = h.find('id="stock-', m.end())
                 seg = _txt(h[m.start(): nxt if nxt > 0 else len(h)])
-                if "待接真源" in seg or "算不出它该值多少钱" in seg:
-                    bad = "待接真源" if "待接真源" in seg else "算不出它该值多少钱"
+                bad = next((w for w in _NAKED if w in seg), None)
+                if bad:
                     fails.append(f"L32 架构师估算未显值：{fn} 的 {sym} 卡内仍出现「{bad}」"
-                                 f"——这只有架构师中周期估算，三处应显 值+尺+可靠度+怎么办，不许光秃秃待接")
+                                 f"——这只有架构师中周期估算，三处(深研栏/决策条/今天你怎么办)应显 值+尺+可靠度+怎么办，不许光秃秃")
                     break
+    # 全文兜底：6只之外别处若整只被判"待接真源"也要抓(scale 之外的口径漏网)——只报，不误伤 SpaceX 等无估算的
+    # 三处一致：6只的中枢值应全卡唯一(深研栏/决策条/今天你怎么办同一个数)
+    for fn, h in vols.items():
+        for sym in arch_syms:
+            i = h.find('id="stock-' + sym + '"')
+            if i < 0:
+                continue
+            nxt = h.find('id="stock-', i + 10)
+            seg = _txt(h[i: nxt if nxt > 0 else len(h)])
+            mids = set(re.findall(r"中枢\s*[¥$]?\s*([\d,]+)", seg))
+            if len(mids) > 1:
+                fails.append(f"L32 三处估值不一致：{fn} 的 {sym} 卡内出现多个「中枢」取值 {sorted(mids)}"
+                             f"——深研栏/决策条/今天你怎么办 必须同一个数")
 
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())

@@ -561,9 +561,11 @@ def build_final(sym: str, name: str, dyn: dict) -> dict:
             valuation_short = _av["short"]
             valuation_grade = _av["grade"]
         else:
-            _reason = esc(v.get("reason") or "待接真源")
-            valuation_text = f'{esc(v.get("model_disp","按类型"))}·待接（{_reason}）'
-            valuation_short = "待接真源"
+            _reason = esc(v.get("reason") or "缺可信真源")
+            if _reason == "待接真源":
+                _reason = "缺可信真源"
+            valuation_text = f'{esc(v.get("model_disp","按类型"))}·暂无可估值基础（{_reason}）'
+            valuation_short = "暂无可估值基础（缺真源）"
             valuation_grade = "待接"
     return {
         "symbol": sym, "name": name,
@@ -980,7 +982,7 @@ def _val_wait_reason(sym: str, dyn: dict) -> str:
     if not why:
         why = "这类生意还没有可信的估值输入（缺真源），硬算出来的数会误导你"
     return ('<div style="background:#2a1f10;border:1px solid #7a5a20;border-radius:8px;padding:9px 13px;margin:8px 0">'
-            '<div style="font-size:13px;color:#ffb454;font-weight:700">这只算不出该值多少钱——所以不画贵便宜轴</div>'
+            '<div style="font-size:13px;color:#ffb454;font-weight:700">这只暂无可估值基础——所以不画贵便宜轴</div>'
             f'<div style="font-size:12.5px;color:#e6eef5;margin-top:3px">{esc(why)}。'
             '<b>缺真源就不编数</b>，这是规矩。所以今天对它只能“守着看”，不主动加减。</div></div>')
 
@@ -1185,8 +1187,14 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
     rng = (f'合理区 <b>{esc(ccy)}{esc(fnum(low))} ~ {esc(ccy)}{esc(fnum(high))}</b>，中枢 <b>{esc(ccy)}{esc(fnum(mid))}</b>'
            if low is not None and mid is not None else '<span class="need">合理区/中枢待接</span>（估值引擎缺真输入·不硬编）')
     # 乙6：大估值数轴顶在⑤块最前——替代"四个数挤一句话"；待接的不画轴、写人话原因(丙10:轴上标时间跨度)
-    # 权威估值有→画权威轴；没有→写人话原因，并【并列】挂上架构师中周期估算(非权威·不覆盖)
-    _axis = _val_axis(sym, dyn) or (_val_wait_reason(sym, dyn) + arch_est_block(sym, dyn))
+    # 权威估值有→画权威轴；没有→若架构师有中周期估算(6只)则只画架构师值轴(不再显"算不出")，否则写人话原因
+    _arch_axis = arch_est_block(sym, dyn)
+    if _val_axis(sym, dyn):
+        _axis = _val_axis(sym, dyn)
+    elif _arch_axis:
+        _axis = _arch_axis   # 有架构师值→直接画它，不再挂"这只算不出该值多少钱"的原因块
+    else:
+        _axis = _val_wait_reason(sym, dyn)
     out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
                + _axis
                + f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
@@ -1270,7 +1278,7 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
         why_tail = "——权威估值待接，看架构师中周期估算（下方·非权威）"
     elif not has_val:
         concl = "算不清·只能守着看"
-        why_tail = "——因为算不出它该值多少钱，不知道贵还是便宜，就不主动加减"
+        why_tail = "——因为暂无可信估值基础，不知道贵还是便宜，就不主动加减"
     elif base:
         concl = base
         why_tail = ""
@@ -1314,7 +1322,7 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
     if not has_val and _archv:
         bits2.append(f'权威估值待接·架构师中周期估算 {_archv["short"]}')
     elif not has_val:
-        bits2.append("但算不出它该值多少钱，所以不主动加减")
+        bits2.append("但暂无可信估值基础，所以不主动加减")
     elif px is not None:
         try:
             if float(px) < float(low):
@@ -1355,9 +1363,13 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
             else:
                 line3 += (f'<div style="margin-top:4px;color:#ffb454">提醒：现价比算出来的中间值差约{gap:+.0f}%，'
                           f'差距不小——这套算法只按“它未来能赚多少钱”折算，未必涵盖它的全部价值，请结合本卡⑤看。</div>')
+    elif _archv:
+        # 权威估值待接但架构师有中周期估算(6只)→ line3 显架构师值+尺+怎么办，不再"算不出"
+        why = _NOVAL_WHY.get(sym, "")
+        line3 = (_archv["why"] + (f'<div style="margin-top:3px;color:#8ea3b6">{esc(why)}</div>' if why else ''))
     else:
         why = _NOVAL_WHY.get(sym, "这只的赚钱方式没法用常规办法算出一个可信的合理价")
-        line3 = f'<span style="color:#ffb454">这只算不出该值多少钱</span>——{esc(why)}。所以只能守着看、不主动加减；等它跌到明显便宜或基本面变坏再说。'
+        line3 = f'<span style="color:#ffb454">这只暂无可估值基础</span>——{esc(why)}。所以只能守着看、不主动加减；等它跌到明显便宜或基本面变坏再说。'
     # 4) 什么信号才变卦(董事长盯得住的)
     sig = None
     if deep:
@@ -1823,7 +1835,7 @@ def _action_of_raw(sym: str, name: str, dyn: dict, date: str) -> tuple:
         _av = arch_val_display(sym, dyn)
         if _av:
             return tag("守", _av["why"])
-        return tag("守", "算不出它该值多少钱（缺可信估值输入）→ <b>现在不动手</b>，守着看")
+        return tag("守", "暂无可信估值基础（缺真源）→ <b>现在不动手</b>，守着看")
     c, px, lo, hi, mid = st["cur"], st["px"], st["lo"], st["hi"], st["mid"]
     P = f"现在 <b>{c}{px:,.0f}</b>"
     if st["above_rich"] and in_over:
@@ -3934,8 +3946,8 @@ _LEAK_PATS = [
     # ⚠必须吃到结尾标记"·不硬编"为止：原写法 [^（(<]{0,120} 遇到半角括号(如 shares(任一整套))就停，
     # 把 "(任一整套)（该用 …EV/EBITDA）" 这截内部话原样漏给董事长看(台积电/爱德万/闪迪/伊藤忠/COIN/CRCL 六只)。
     (re.compile(r"缺真输入[：:].{0,240}?(?:·不硬编|・不硬编)"),
-     "算不出该值多少钱的原因见本卡「今天你怎么办」第3行"),
-    (re.compile(r"缺真输入[：:][^<]{0,240}"), "算不出该值多少钱的原因见本卡「今天你怎么办」第3行"),
+     "估值口径见本卡「今天你怎么办」第3行"),
+    (re.compile(r"缺真输入[：:][^<]{0,240}"), "估值口径见本卡「今天你怎么办」第3行"),
     # 残留的"缺真输入/不硬编"内部话→人话(判断口径不变·只改措辞)
     (re.compile(r"（估值引擎缺真输入·不硬编）"), "（算不出可信的合理价·原因见本卡「今天你怎么办」第3行）"),
     (re.compile(r"缺真输入"), "缺可信的估值输入"),
@@ -4149,7 +4161,7 @@ def _scrub_leaks(html_txt: str, is_pool: bool = False) -> str:
         # 甲3：替换文本【不许自带括号】——它常被塞进外层"（…）"里(如"待接（<此处>）")，
         # 内层再来一对就成了"（A（B）"少一个右括号、句子也断在半截。
         html_txt = html_txt.replace(
-            "算不出该值多少钱的原因见本卡「今天你怎么办」第3行",
+            "估值口径见本卡「今天你怎么办」第3行",
             "这只候选还没做估值——它不在你持仓里，没跑估值模型")
         html_txt = html_txt.replace(
             "算不出可信的合理价·原因见本卡「今天你怎么办」第3行",
