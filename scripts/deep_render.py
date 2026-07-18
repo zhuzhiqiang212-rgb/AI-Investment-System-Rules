@@ -2302,6 +2302,129 @@ def _news_list(items: list, weak: bool = False) -> str:
     return "".join(out)
 
 
+def sector_deep_block(date: str) -> str:
+    """板块深度尺（工单2026-07-18）：读架构师3份子板块深度研究，渲成
+    静(是什么/在AI链哪环/长期逻辑) + 动(过去/现在/未来带数字) + 每龙头五维小研报(折叠) + 前瞻分两类。
+    硬边界：整块【架构师研究·非权威·非富途实时价】，视觉与权威估值/持仓决策区分(琥珀色边框)；
+    不改任何持仓动作；待接处照实标。挂在大环境「板块层」下、概览可见、龙头小研报可折叠。"""
+    try:
+        import sector_deep as SD
+    except Exception as e:
+        return f'<div class="card">板块深度尺加载失败·待接（{esc(e)}）</div>'
+    subs = SD.load()
+    if not subs:
+        return ('<div class="card" id="sector-deep">板块深度尺：架构师3份研究未读到 → '
+                '<span class="need">待接·不编</span>（data/valuation/sector_research_*.json）</div>')
+    AMB = "#caa24a"  # 非权威·琥珀色（与权威估值的青绿区分）
+
+    def leader_card(L: dict) -> str:
+        rows = []
+        for lab, key, col in (("① 为什么是他（业务＋技术）", "w", "#ffd479"),
+                              ("② 财报真数据", "f", "#9ed8ff"),
+                              ("③ 估值贵不贵", "v", "#ffb454"),
+                              ("④ 跟你持仓比", "vs", "#c8d4de"),
+                              ("⑤ 决策建议", "rec", "#8cf5be")):
+            val = L.get(key) or ""
+            if not val:
+                rows.append(f'<div style="margin-top:3px"><span class="k" style="color:{col}">{lab}</span>'
+                            f'<span class="need">待接·不编</span></div>')
+            else:
+                rows.append(f'<div style="margin-top:3px"><span class="k" style="color:{col}">{lab}</span>'
+                            f'<span style="font-size:12.5px">{esc(val)}</span></div>')
+        tail = ""
+        if L.get("cls"):
+            tail += f'　前瞻：{esc(L["cls"])}'
+        if L.get("rel"):
+            tail += f'　可靠度：{esc(L["rel"])}'
+        src = ""
+        if L.get("sources"):
+            links = "".join(_a(str(u), f"来源{i+1}") + " " for i, u in enumerate(L["sources"][:4]) if str(u).startswith("http"))
+            if links:
+                src = f'<div class="meta" style="font-size:11px;margin-top:3px">{links}</div>'
+        return (f'<details class="sub" style="margin-top:5px;background:#141c26">'
+                f'<summary><b>{esc(L["title"])}</b>'
+                + (f'<span style="font-size:11px;color:{AMB}">{esc(tail)}</span>' if tail else "")
+                + f'</summary><div style="padding:2px 4px">' + "".join(rows) + src + '</div></details>')
+
+    def fwd_block(f: dict) -> str:
+        if not f.get("rec") and not f.get("wait"):
+            return ""
+        rec = "".join(f'<div style="padding:3px 0">· {esc(x)}</div>' for x in f.get("rec", []))
+        wait = "".join(f'<div style="padding:3px 0">· {esc(x)}</div>' for x in f.get("wait", []))
+        out = '<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">'
+        if rec:
+            out += ('<div style="flex:1;min-width:230px;background:#0f2e1c;border:1px solid #4fbf87;border-radius:6px;padding:6px 8px">'
+                    '<div style="font-weight:800;color:#8cf5be;font-size:12.5px">✅ 可推荐（下轮主线·现价还合理·跟你AI芯片仓不重叠）</div>'
+                    + rec + '</div>')
+        if wait:
+            out += ('<div style="flex:1;min-width:230px;background:#2a1f10;border:1px solid #7a5a20;border-radius:6px;padding:6px 8px">'
+                    '<div style="font-weight:800;color:#ffb454;font-size:12.5px">⏳ 好公司但贵·等回调（含低PE陷阱/周期顶）</div>'
+                    + wait + '</div>')
+        return out + '</div>'
+
+    cards = []
+    for s in subs:
+        st, dy = s["static"], s["dynamic"]
+        leaders = "".join(leader_card(L) for L in s["leaders"])
+        drivers = ""
+        if isinstance(dy.get("drivers"), dict):
+            drivers = "　".join(f"{k} {v}" for k, v in dy["drivers"].items() if v)
+        cards.append(
+            f'<div class="card" style="border-left:4px solid {AMB}">'
+            f'<div style="font-size:15px;font-weight:800">{esc(s["name"])}'
+            f'<span style="font-size:11px;color:{AMB};font-weight:600">　{esc(s["tag"])}</span></div>'
+            # 静
+            f'<div style="font-size:12.5px;margin-top:4px"><span class="k">是什么</span>{esc(st["what"])}</div>'
+            f'<div style="font-size:12.5px"><span class="k">在AI链哪一环</span>{esc(st["chain"])}</div>'
+            f'<div style="font-size:12.5px"><span class="k">长期逻辑</span>{esc(st["long"])}</div>'
+            # 动
+            f'<div style="margin-top:5px;background:#0e1621;border-radius:6px;padding:5px 7px;font-size:12.5px">'
+            f'<span class="k" style="color:#9ed8ff">过去近一季</span>{esc(dy["past"])}<br>'
+            f'<span class="k" style="color:#7ee0a0">现在本周</span>{esc(dy["now"])}<br>'
+            f'<span class="k" style="color:#ffd479">未来一季·驱动</span>{esc(dy["next"])}'
+            + (f'<br><span class="k" style="color:#8ea3b6">关键数字</span>{esc(drivers)}' if drivers else "")
+            + '</div>'
+            # 前瞻两类
+            + fwd_block(s["forward"])
+            # 龙头小研报（折叠）
+            + f'<div style="margin-top:6px;font-size:12px;color:#8ea3b6">龙头小研报（{len(s["leaders"])} 只·点开看五维·名单季度级更新）：</div>'
+            + leaders
+            + '</div>')
+
+    # 光模块单列（架构师未出深度研究→用已有 sub_driver 口径起头·五维标待接）
+    opt = _optical_stub_card(date, AMB)
+    dd = next((s["data_date"] for s in subs if s.get("data_date")), "")
+    head = (f'<div class="card" id="sector-deep" style="border:2px solid {AMB};background:#1c1608">'
+            f'<div style="font-size:15px;font-weight:800;color:{AMB}">板块深度尺 · 6 个子板块 + 光模块（架构师研究）</div>'
+            f'<div style="font-size:12px;color:#d8c68a;margin-top:3px">⚠ 这一整块是<b>架构师研究·非权威·非富途实时价</b>'
+            f'（快照 {esc(dd)}）——只作"下一轮往哪轮动"的地图，<b>不改你任何持仓动作</b>；'
+            f'股价/估值以 OpenD 实时为准。龙头名单<b>季度级更新</b>，不是死名单、也不日变。</div></div>')
+    return head + "".join(cards) + opt
+
+
+def _optical_stub_card(date: str, amb: str) -> str:
+    """光模块单列：架构师暂未出深度研究，用已有板块卡 sub_driver 的 OPTICAL 口径起头，
+    五维/动部分照实标『待架构师深度研究』，不编。"""
+    line = ""
+    try:
+        import glob as _glob
+        cands = sorted(_glob.glob(str(ROOT / "data" / "evidence_chain" / "gen_sector_*.json")))
+        if cands:
+            gs = rj(Path(cands[-1]))
+            line = str((gs.get("sub_drivers") or {}).get("OPTICAL") or "")
+    except Exception:
+        pass
+    if not line:
+        line = "算力集群要高速互联，光模块／光网络需求随 AI 集群规模升温（博通在互联侧也有份）。"
+    return (f'<div class="card" style="border-left:4px solid {amb}">'
+            f'<div style="font-size:15px;font-weight:800">光模块／光互联'
+            f'<span style="font-size:11px;color:{amb};font-weight:600">　AI 集群互联（单列）</span></div>'
+            f'<div style="font-size:12.5px;margin-top:4px"><span class="k">是什么</span>{esc(line)}</div>'
+            f'<div style="font-size:12px;color:#ffb454;margin-top:4px">动（过去/现在/未来）+ 龙头小研报（中际旭创/Coherent/Lumentum 等）：'
+            f'<b>待架构师深度研究</b>——本轮只把它从板块地图的"次要驱动"里单列出来占位，真研究进来前不编数字。</div>'
+            f'</div>')
+
+
 def part1_layers(daily: dict, dyn: dict) -> str:
     links = daily.get("links") or []
     rows = []
@@ -2357,6 +2480,9 @@ def part1_layers(daily: dict, dyn: dict) -> str:
             + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px;margin-top:4px">'
               f'对应尺：{_a(L5(_dt, "ruler-" + str(_rnum)), esc(ruler))}（点跳右栏6尺册）</div>'
             '</div>')
+        # 板块层下面直接挂「板块深度尺」——一眼可见概览、龙头小研报可折叠（工单2026-07-18·2）
+        if layer_slug(node) == "sector":
+            rows.append(sector_deep_block(dyn.get("date", "")))
     if not rows:
         rows.append('<div class="card">五层数据待接（daily_{date}.json 无 links·不编）</div>')
     # E2：标题按实际环数(世界观/总闸/战略/手段/资金/板块=六层)，不再写死"五层"
@@ -2567,7 +2693,41 @@ def part4_opportunity(daily: dict, dyn: dict) -> str:
             f'<div class="meta" style="color:#8ea3b6;font-size:12px">本节展开的是候选宇宙里已预配「换谁」方案的重点 {len(wl)} 只'
             f'（其中 {in_pool} 只节点今日激活）——它们是上面那{esc(str(n_uni_of(dyn["date"], daily, dyn)))}只的子集、不是另一套池子。'
             '候选是否进池由「节点是否在当日激活承接节点」现算·改当日证据→候选集变（6b替换引擎）</div></div>')
-    return head + "".join(rows)
+    return head + "".join(rows) + _arch_pool_block()
+
+
+def _arch_pool_block() -> str:
+    """机会池收架构师『下轮可推荐』候选（工单2026-07-18·4）：VST/CEG/LHX/RTX/VEEV。
+    硬边界：架构师估算·非权威·下单价以OpenD实时核；不改任何持仓动作；未定位到/缺价→照实标待接。"""
+    try:
+        import sector_deep as SD
+        picks = SD.pool_picks()
+    except Exception as e:
+        return f'<div class="card">下轮可推荐候选加载失败·待接（{esc(e)}）</div>'
+    if not picks:
+        return ""
+    AMB = "#caa24a"
+    cards = []
+    for p in picks:
+        if not p.get("found"):
+            cards.append(f'<div style="padding:6px 0;border-top:1px solid #2b4054">· <b>{esc(p["ticker"])}</b>'
+                         f'　<span class="need">{esc(p.get("note",""))}</span></div>')
+            continue
+        src = ""
+        if p.get("sources"):
+            links = "".join(_a(str(u), f"来源{i+1}") + " " for i, u in enumerate(p["sources"][:3]) if str(u).startswith("http"))
+            src = f'<div class="meta" style="font-size:11px;margin-top:2px">{links}</div>'
+        cards.append(
+            f'<div style="padding:7px 0;border-top:1px solid #2b4054">'
+            f'· <b>{esc(p["title"])}</b>　<span style="font-size:11px;color:{AMB}">{esc(p["sector"])}</span>'
+            f'<div style="font-size:12px;color:#c8d4de;margin-top:2px"><b>估值</b>{esc(p["v"])}</div>'
+            f'<div style="font-size:12px;color:#c8d4de"><b>跟你持仓</b>{esc(p["vs"])}</div>'
+            f'<div style="font-size:12px;color:#8cf5be"><b>建议</b>{esc(p["rec"])}</div>' + src + '</div>')
+    return (f'<div class="card" style="border:2px solid {AMB};background:#1c1608">'
+            f'<div style="font-size:14px;font-weight:800;color:{AMB}">下一轮·现在还能上车的候选（架构师研究·非权威）</div>'
+            f'<div style="font-size:12px;color:#d8c68a;margin-top:2px">这 5 只来自架构师板块深度研究，标准是<b>下轮主线＋现价还合理＋跟你AI芯片仓不重叠（真分散）</b>。'
+            f'⚠ <b>架构师估算·非权威·下单价以 OpenD 实时核</b>；系统<b>不改你任何持仓动作</b>，只是把"下轮往哪看"的候选摆出来。</div>'
+            + "".join(cards) + '</div>')
 
 
 def n_uni_of(date: str, daily: dict | None = None, dyn: dict | None = None) -> int:

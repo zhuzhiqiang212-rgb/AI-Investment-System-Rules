@@ -1,0 +1,159 @@
+{
+  "_meta": {
+    "title": "AI子板块深度研究 · AI医疗健康 + AI软件应用",
+    "role": "投研分析师(Chat侧研究件·非机器侧实时扫描件)",
+    "data_date": "2026-07-18",
+    "run_id": "sector_research_20260718",
+    "作用": "为董事长找『分散AI敞口·下一轮尚未炒贵』的候选；对比现有持仓(AI已超配65.8%)。",
+    "免责声明": "本文所有股价/财报/估值均为公开网络检索所得(截至2026-07中旬)，非富途实时价、非精算模型，仅供研究参考，不构成下单建议。凡未查到的字段一律标『待接·不编』，绝不编造。最终下单价以富途OpenD实时价为准，决策由董事长定。",
+    "数据说明": "股价与估值倍数来自各财经站(Yahoo/StockAnalysis/Macrotrends/GuruFocus/SimplyWallSt等)，同一标的不同站口径可能有差(如P/S用TTM还是预期)，已在文中并列标注。",
+    "口径提醒": "ServiceNow(NOW)来源标价约$107，与其历史四位数股价差异大，疑似已拆股，需以富途实时价与股数核对后再用；此处照录来源数字不做修正。"
+  },
+
+  "板块一_AI医疗健康": {
+    "静_是什么": "用AI(蛋白结构预测/分子生成/虚拟筛选/多模态病理)去『做药、找生物标志物、优化临床』。代表事件=英伟达×礼来2026-01-12在摩根大通医疗大会宣布5年10亿美元共建AI创新实验室(旧金山)，扩展英伟达BioNeMo生物大模型(新增RNA结构、分子合成、毒性预测)。",
+    "静_在AI链哪一环": "『AI落地到生命科学』的应用层——上游吃英伟达的算力/BioNeMo(董事长已持英伟达=卖铲子的)，中游是AI制药平台(Schrodinger/Recursion)与AI诊断数据(Tempus)，下游是掏钱买AI的大药企(礼来/默克/第一三共)。跟董事长AI主线(算力)是上下游关系，不是重复。",
+    "静_长期逻辑": "药是刚需大市场；AI能把『发现-筛选』这段做快做便宜(有分子更快进临床的实例)。但铁律级的现实是:AI不缩短Phase2/Phase3、不改变药效与安全的生物学本质，截至2026-07『尚无一款AI设计的药获批』。业内估约60%概率首个AI设计药2027年获批——即长期真、短期还在兑现前夜。",
+
+    "动_过去近一季": "①礼来Q1 2026炸裂:营收+56%到198亿美元，non-GAAP EPS 8.55美元(+156%)，Mounjaro+Zepbound合计128亿美元；口服GLP-1 orforglipron(商品名Foundayo)4月上市、$149/月。②Tempus Q1营收3.481亿(+36.1%)、诊断2.611亿、数据与应用0.87亿(+40.5%)，全年指引上调至~25%增长。③Schrodinger Q1营收5860万(超预期)，药物发现收入翻倍到2290万。④Recursion Q1营收仅650万(大幅不及预期，Roche项目做完致协作收入掉)，净亏收窄、现金6.65亿撑到2028。",
+    "动_现在本周": "板块催化:2026-03-25 Tempus与第一三共(董事长持仓)达成合作——用多模态AI+真实世界数据(PRISM2模型:病理影像×临床数据)加速一款ADC的临床开发；第一三共另与Nvidia/Imagene/Waiv多方合AI病理与生物标志物。=董事长的第一三共ADC故事，正在被AI放大。",
+    "动_未来一季驱动": "①礼来2026全年指引已上调至820-850亿营收、调整后EPS 35.50-37美元，看orforglipron放量与英伟达实验室早期产出。②Tempus看与Merck/第一三共合作落地、能否收窄GAAP亏损(Q1 GAAP净亏1.259亿，含股权激励5630万)。③AI制药平台(Schrodinger/Recursion)看管线里程碑，短期仍是『烧钱换数据』阶段。",
+
+    "龙头小研报": [
+      {
+        "标的": "礼来 Eli Lilly (LLY)",
+        "①业务与技术": "全球减肥药/糖尿病龙头(Mounjaro/Zepbound/口服orforglipron)。AI角色=掏钱方，与英伟达5年10亿美元共建AI实验室，把BioNeMo用进发现-临床-制造全链。它是『AI买家』不是『AI卖家』。",
+        "②财报真数据": "Q1 2026营收198亿(+56%)、non-GAAP EPS 8.55(+156%)、GLP-1合计128亿(+56%)；2026全年指引营收820-850亿、调整后EPS 35.50-37。",
+        "③估值贵不贵": "trailing P/E约42、forward P/E约31.85(来源StockAnalysis)；相对医药板块中位数溢价约65%。不便宜，但成长兑现极强。",
+        "④对比董事长持仓": "属性=药(防御类)，与董事长已持的第一三共(药·防御)同赛道，分散度低；且它是英伟达的AI客户，与已持英伟达算力形成上下游而非新敞口。",
+        "⑤决策建议": "不作为『新分散AI』推荐——它太贵、且药的防御位第一三共已占。可作为『AI医疗真在花钱』的行业锚点观察，不新建仓。"
+      },
+      {
+        "标的": "Tempus AI (TEM)",
+        "①业务与技术": "AI精准医疗数据平台:肿瘤基因诊断+把病理影像/临床做成多模态基础模型(PRISM2)，卖诊断也卖数据与应用给药企。是AI医疗里最纯的『数据×AI』标的。",
+        "②财报真数据": "Q1 2026营收3.481亿(+36.1%)，诊断2.611亿(+34.7%)、数据与应用0.87亿(+40.5%)；全年指引15.9-16.0亿(~25%)、调整后EBITDA约6500万；但GAAP净亏1.259亿(含SBC 5630万+证券未实现亏损)。2025营收12.7亿(+83%)。",
+        "③估值贵不贵": "股价约53.59美元，P/S约8.1x(SimplyWallSt估公允P/S约7.9x)——即接近公允、非极端泡沫；分析师均价目标65.77美元(约+23%)，共识Buy。",
+        "④对比董事长持仓": "与所有现有持仓都不重叠(董事长无AI诊断/医疗数据)，且2026-03与第一三共直接合作=能作为第一三共ADC故事的『AI放大器』联动持仓。分散度好。",
+        "⑤决策建议": "『合理·可推荐(小仓试)』一类，但注意仍GAAP亏损、SBC高、波动大，属进攻性分散，建议小仓、分批。"
+      },
+      {
+        "标的": "Schrodinger (SDGR) [AI制药平台代表]",
+        "①业务与技术": "物理基础的分子模拟软件龙头(FEP+自由能微扰/Glide对接/Maestro设计)，全球前20大药企有18家在用，并把ML叠加在物理方法上；同时自建药物发现管线。行业里差异化最强的『工具即软件』模式。",
+        "②财报真数据": "Q1 2026营收5860万(超预期4900万)，软件3560万、药物发现2290万(翻倍)；净亏6000万，EPS -0.81(逊于预期-0.64)；Q1营收增约12%。股价约12.8美元。",
+        "③估值贵不贵": "仍亏损、按营收看不便宜，属『高波动小盘AI制药』；具体P/S待接·不编(未取到确切当日倍数)。",
+        "④对比董事长持仓": "与持仓完全不重叠，但小盘、亏损、催化靠管线里程碑，风险显著高于董事长现有大盘AI主线。",
+        "⑤决策建议": "『贵/高风险·观察』一类，不作近期推荐；若要沾AI制药平台，宁选商业化更实(软件占比高)的它，也需极小仓位、当期权式配置。同类Recursion(RXRX,股价约3.2、Q1营收仅650万大幅miss)风险更高，暂不推荐。"
+      }
+    ],
+
+    "前瞻分两类": {
+      "贵的_等好价": [
+        "礼来(LLY):forward P/E约32，成长强但估值高且属防御药、与第一三共重叠——回调再看，不急。",
+        "AI制药小盘(SDGR/RXRX):普遍亏损、靠里程碑，估值经不起证伪——等有确定性临床/商业化催化再说。"
+      ],
+      "合理的_可推荐": [
+        "Tempus(TEM):P/S约8.1接近公允、增长36%、与第一三共联动——小仓可推荐(进攻性分散)。"
+      ]
+    }
+  },
+
+  "板块二_AI软件应用": {
+    "静_是什么": "把AI真正落地成企业能付费用的软件——数据分析决策(Palantir)、企业工作流+AI助手(ServiceNow Now Assist)、数据云+AI(Snowflake)、行业垂直SaaS+AI(Veeva生命科学)。代表=Palantir这类『AI落地软件』。",
+    "静_在AI链哪一环": "AI链最下游的『应用/变现层』。上游是算力(英伟达)与大模型，这一层是把模型变成客户ROI、直接向企业收钱的一环。2026年市场叙事正从『基础设施层』轮动到『应用层』——谁真在把AI卖成钱，钱往谁流。",
+    "静_长期逻辑": "算力总要落到应用才赚钱；能把AI做成『高毛利增值付费(add-on)』而非自我蚕食核心业务的软件公司，最能持续变现(ServiceNow把Now Assist当溢价加购、Salesforce做Agentforce都是此逻辑)。长期看应用层是AI资本开支的最终收租口。",
+
+    "动_过去近一季": "①Palantir Q1 2026营收16.33亿(+85% Y/Y)，美国营收12.82亿(+104%)、美国商业+133%；全年指引上调到76.5-76.62亿(+71%)、美国商业>32.24亿(+120%)、调整后FCF 42-44亿——大超预期。②Snowflake Q1 FY2027营收13.9亿(+33%)、产品13.3亿(+34%)，NRR 126%、RPO 92.1亿(+38%)，全年产品收入指引上调至58.4亿(+31%)，并收购Natoma(给AI智能体的MCP平台)。③Veeva FY2026营收31.95亿(+16%)、订阅26.84亿(+17%)。",
+    "动_现在本周": "①Palantir 7月涨超11%，从6月板块轮动杀跌中反弹；7-2 DA Davidson升Buy、目标175美元；市场盯8-3的Q2财报当『试金石』(冲4000亿市值)。②ServiceNow定7-22发Q2财报，Q2营收预期约39.2亿(+22%)，看Now Assist进度与cRPO(预期+19~19.5%)。",
+    "动_未来一季驱动": "①Palantir 8-3 Q2财报(指引Q2营收17.97-18.01亿)——估值极高，全靠财报兑现。②ServiceNow把Now Assist内部目标从10亿上调到约15亿ACV，$100万+ACV客户同比+130%——AI变现最清晰的看点。③Snowflake看AI产品(Cortex/智能体)拉动消费量能否持续加速。④Veeva的Veeva AI/Falcon计划2026-11早期客户可用，看生命科学垂直AI能否变现。",
+
+    "龙头小研报": [
+      {
+        "标的": "Palantir (PLTR)",
+        "①业务与技术": "数据决策操作系统(Gotham政府/Foundry商业/AIP人工智能平台)，把大模型接进企业真实工作流做决策。AI应用层最亮的名字，美国商业AIP放量最猛。",
+        "②财报真数据": "Q1 2026营收16.33亿(+85%)，美国营收12.82亿(+104%)、美国商业+133%；全年指引76.5-76.62亿(+71%)、调整后营业利润44.4亿、调整后FCF 42-44亿；Q2指引17.97-18.01亿。",
+        "③估值贵不贵": "很贵。股价约133.76美元(7-15)、市值约3173亿；P/S约65.86(一说TTM口径约30.1)、trailing P/E约151、forward P/E约84.6。GuruFocus给GF Value约140.69(称接近公允)，但绝对倍数是全市场最贵之一。",
+        "④对比董事长持仓": "与现有持仓不重叠(董事长无纯AI软件应用)，是最正宗的『应用层分散』标的；但估值远超董事长偏好的合理位，属『已炒贵』。",
+        "⑤决策建议": "『贵·等好价』一类。基本面是应用层最强，但价格已把多年增长price in，8-3财报稍不及预期就大波动。不追高，回调或财报后错杀再看。"
+      },
+      {
+        "标的": "ServiceNow (NOW)",
+        "①业务与技术": "企业数字工作流平台(IT/HR/客服)，把AI助手Now Assist作为溢价加购卖给存量大客户——不蚕食核心、反而加价，是AI变现最健康的模式之一。",
+        "②财报真数据": "定7-22发Q2 2026财报，Q2营收预期约39.2亿(+22%)；Now Assist内部目标从10亿上调至约15亿ACV，$100万+ACV客户同比+130%；cRPO预期+19~19.5%。(注:Q2实数以7-22财报为准，此为预期)",
+        "③估值贵不贵": "来源标价约107.78美元(7-8，疑似拆股后，需富途核)，trailing P/E约62、forward P/E约24.14——forward明显低于12个月均值86，较同业溢价但已从高位回落。相对Palantir理性很多。",
+        "④对比董事长持仓": "与持仓不重叠，纯AI应用层分散；大盘、盈利、现金流稳，风险低于Palantir。",
+        "⑤决策建议": "『合理偏可推荐』一类。forward P/E约24对一家+22%增长、AI变现清晰的龙头算合理。可作为应用层首选之一，建议7-22财报后确认Now Assist进度再定量。"
+      },
+      {
+        "标的": "Snowflake (SNOW)",
+        "①业务与技术": "数据云平台，企业把数据放上来做分析，正把AI(Cortex/智能体)叠加成新消费增长点；5月收购Natoma补AI智能体连接能力。",
+        "②财报真数据": "Q1 FY2027营收13.9亿(+33%)、产品13.3亿(+34%)，NRR 126%、RPO 92.1亿(+38%)，全年产品收入指引上调至58.4亿(+31%)；FY2026营收46.8亿(+29%)。",
+        "③估值贵不贵": "股价约270.02美元(7-16)，GAAP仍亏损(P/E约-74)，按销售看倍数高(具体当日P/S待接·不编)；分析师均价目标约293、共识Strong Buy、KeyBanc上调至325。",
+        "④对比董事长持仓": "不重叠，属数据云+AI分散；但未盈利+高销售倍数，属成长股波动。",
+        "⑤决策建议": "『贵/成长·等价』一类。增长强、故事好，但未盈利且估值不低，回调再介入更稳，不作首推。"
+      },
+      {
+        "标的": "Veeva Systems (VEEV) [医疗×软件交叉·重点]",
+        "①业务与技术": "生命科学垂直SaaS龙头(药企的CRM/临床/监管/质量系统)，坐拥行业最关键数据与系统，正推行业专用AI(Veeva AI/Falcon，2026-11早期客户可用)。既是AI软件、又落在医疗——同时命中董事长两个想分散的方向。",
+        "②财报真数据": "FY2026营收31.95亿(+16%)、订阅26.84亿(+17%)；FY2027指引35.85-36.0亿、Q1 FY2027指引8.55-8.58亿。",
+        "③估值贵不贵": "股价约193.67美元(7-16)，trailing P/E约32、forward P/E约19.7——明显低于其5年P/E中位约59.6；52周区间148-310；分析师均价目标约244.59(约+27%)。是本次候选里估值最『不贵』的优质龙头之一。",
+        "④对比董事长持仓": "与现有持仓完全不重叠，且横跨医疗+软件两个分散方向；盈利、现金流稳、增长16%，风险明显低于Palantir/Snowflake。",
+        "⑤决策建议": "『合理·可推荐』一类，且是本轮最顺董事长诉求(分散AI+下一轮+价格合理)的标的。forward P/E约20对一家有护城河的行业龙头很合理，回撤至历史低位。建议列为首选之一。"
+      }
+    ],
+
+    "前瞻分两类": {
+      "贵的_等好价": [
+        "Palantir(PLTR):P/S约66、P/E约151，全市场最贵之一，8-3财报是考验——不追高，等回调/错杀。",
+        "Snowflake(SNOW):未盈利+高销售倍数，增长强但估值贵——回调再介入。"
+      ],
+      "合理的_可推荐": [
+        "Veeva(VEEV):forward P/E约20(远低于历史中位)、医疗×软件双分散、盈利稳增16%——首选。",
+        "ServiceNow(NOW):forward P/E约24、AI变现最清晰(Now Assist~15亿ACV目标)、大盘稳——次选，7-22财报后确认。"
+      ]
+    }
+  },
+
+  "总结_给董事长": {
+    "最值得推荐_下轮且价格合理": [
+      "①Veeva(VEEV)——医疗+软件双料分散，forward P/E约20(低于5年中位59.6)，盈利稳增16%，与全部持仓不重叠，风险低。本轮最贴合『分散AI+没炒贵』的一个。",
+      "②ServiceNow(NOW)——应用层AI变现最清晰(Now Assist目标~15亿ACV)，forward P/E约24合理，正踩中『AI从基础设施轮动到应用层』的钱流；7-22财报确认后可定量。",
+      "③Tempus(TEM)——AI医疗纯标的，P/S约8.1接近公允、增长36%，且与董事长持仓第一三共2026-03直接合作，能当第一三共ADC故事的AI放大器；但仍GAAP亏损，属进攻性小仓分散。"
+    ],
+    "先别追_太贵等好价": [
+      "Palantir(PLTR):基本面应用层最强但P/S约66估值封顶，8-3财报见分晓，回调再说。",
+      "Eli Lilly(LLY):成长炸裂但P/E约42且属防御药、与第一三共重叠，非新分散。",
+      "Snowflake(SNOW):未盈利+高倍数，等回调。",
+      "AI制药小盘(Schrodinger/Recursion):普遍亏损靠里程碑，高风险，暂不推荐。"
+    ],
+    "一句话": "想分散AI又不想接盘高位——Veeva最稳(医疗×软件、估值低)、ServiceNow次之(应用层变现清晰)、Tempus做进攻性小仓(联动第一三共)；Palantir/Snowflake/礼来都太贵，等回调。"
+  },
+
+  "sources": [
+    {"name": "NVIDIA×Lilly co-innovation AI lab (Lilly IR)", "url": "https://investor.lilly.com/news-releases/news-release-details/nvidia-and-lilly-announce-co-innovation-ai-lab-reinvent-drug"},
+    {"name": "NVIDIA $1B Eli Lilly partnership (Bio-IT World)", "url": "https://www.bio-itworld.com/news/2026/01/12/nvidia-bets-big-on-ai-driven-drug-discovery--physical-ai--and-a--1-billion-eli-lilly-partnership"},
+    {"name": "Lilly Q1 2026 results (PRNewswire)", "url": "https://www.prnewswire.com/news-releases/lilly-reports-first-quarter-2026-financial-results-raises-full-year-guidance-and-highlights-momentum-of-new-medicines-302758113.html"},
+    {"name": "Eli Lilly Q1 revenue $19.8B GLP-1 +56% (TIKR)", "url": "https://www.tikr.com/blog/eli-lilly-reports-19-8b-q1-revenue-as-glp-1-sales-surge-56-year-over-year"},
+    {"name": "Eli Lilly valuation & statistics (StockAnalysis)", "url": "https://stockanalysis.com/stocks/lly/statistics/"},
+    {"name": "Tempus Q1 2026 results (BusinessWire)", "url": "https://www.businesswire.com/news/home/20260505411869/en/Tempus-Reports-First-Quarter-2026-Results"},
+    {"name": "Tempus 2026 guidance & Merck (Seeking Alpha)", "url": "https://seekingalpha.com/news/4586528-tempus-ai-targets-1_59b-1_6b-revenue-and-about-65m-adjusted-ebitda-in-2026-backed-by-merck"},
+    {"name": "Tempus AI valuation P/S (SimplyWallSt)", "url": "https://simplywall.st/stocks/us/pharmaceuticals-biotech/nasdaq-tem/tempus-ai"},
+    {"name": "Daiichi Sankyo × Tempus AI ADC collaboration (SimplyWallSt / BioPharm)", "url": "https://www.biopharminternational.com/view/daiichi-sankyo-leverages-ai-to-strengthen-adc-clinical-strategy"},
+    {"name": "AI drug discovery platforms 2026 (pdpspectra)", "url": "https://pdpspectra.com/blog/drug-discovery-ai-platforms-2026/"},
+    {"name": "Recursion vs Schrodinger 2026 (Motley Fool)", "url": "https://www.fool.com/coverage/better-buy/2026/06/02/recursion-pharmaceuticals-vs-schrodinger-which-healthcare-stock-is-a-better-buy-in-2026/"},
+    {"name": "Recursion Q1 2026 (StockTitan)", "url": "https://www.stocktitan.net/sec-filings/RXRX/10-q-recursion-pharmaceuticals-inc-quarterly-earnings-report-72c8e78e5b8f.html"},
+    {"name": "Schrodinger Q1 2026 (ChartMill)", "url": "https://www.chartmill.com/news/SDGR/Chartmill-47157-Schrdinger-Inc-NASDAQSDGR-Q1-2026-Earnings-Revenue-Beat-Fails-to-Offset-Loss-Miss-Stock-Slides"},
+    {"name": "Palantir Q1 2026 results (BusinessWire)", "url": "https://www.businesswire.com/news/home/20260503338048/en/Palantir-Reports-Q1-2026-U.S.-Revenue-Growth-of-104-YY-and-Revenue-Growth-of-85-YY-Raises-FY-2026-Revenue-Guidance-to-71-YY-Growth-and-U.S.-Comm-Revenue-Guidance-to-120-YY-Crushing-Consensus-Expectations"},
+    {"name": "Palantir Q1 earnings (CNBC)", "url": "https://www.cnbc.com/2026/05/04/palantir-pltr-q1-earnings-report-2026.html"},
+    {"name": "Palantir P/S & valuation (GuruFocus)", "url": "https://www.gurufocus.com/term/ps-ratio/PLTR"},
+    {"name": "Palantir July 2026 rally & Aug 3 earnings (NAI500)", "url": "https://nai500.com/blog/2026/07/palantir-rallies-over-11-in-july-has-the-ai-software-stock-found-a-floor/"},
+    {"name": "Snowflake Q1 FY2027 earnings (SEC 8-K)", "url": "https://www.sec.gov/Archives/edgar/data/0001640147/000164014726000027/fy2027q1earnings.htm"},
+    {"name": "Snowflake Q1 FY2027 AI (Futurum)", "url": "https://futurumgroup.com/insights/snowflake-q1-fy-2027-ai-products-drive-faster-consumption-growth/"},
+    {"name": "Snowflake stock & valuation (StockAnalysis)", "url": "https://stockanalysis.com/stocks/snow/statistics/"},
+    {"name": "ServiceNow Q2 2026 preview & Now Assist (Yahoo Finance)", "url": "https://finance.yahoo.com/markets/stocks/articles/servicenow-set-report-q2-earnings-151900170.html"},
+    {"name": "ServiceNow Now Assist $1B ACV push (io-fund)", "url": "https://io-fund.com/ai-stocks/servicenow-q2-ai-push-1b-acv-target-2026"},
+    {"name": "ServiceNow P/E valuation (StockAnalysis)", "url": "https://stockanalysis.com/stocks/now/statistics/"},
+    {"name": "Veeva FY2026 results (StockTitan)", "url": "https://www.stocktitan.net/news/VEEV/veeva-announces-fourth-quarter-and-fiscal-year-2026-kwbdlmtqle3t.html"},
+    {"name": "Veeva valuation & price (StockAnalysis)", "url": "https://stockanalysis.com/stocks/veev/statistics/"},
+    {"name": "Daiichi Sankyo AI partnerships (BioPharm/Waiv/Imagene)", "url": "https://simplywall.st/stocks/jp/pharmaceuticals-biotech/tse-4568/daiichi-sankyo-shares/news/daiichi-sankyo-waiv-alliance-ties-ai-pathology-to-adc-valuat"}
+  ]
+}

@@ -1,0 +1,314 @@
+{
+  "_meta": {
+    "title": "下轮AI主线子板块研究 · AI电力/能源 + AI基础设施外延",
+    "author": "架构师(投研分析师)研究稿",
+    "data_date": "2026-07-18",
+    "as_of_note": "财报数据取自各公司2026年Q1(或最近季度)实时公开披露；股价/估值倍数为2026-07-中旬网络抓取快照",
+    "disclaimer": "架构师研究·估值为估算非权威。本文所有市盈率/目标价/市场规模为公开来源整理与估算，非机器侧OpenD实时扫描产品，不作下单依据，仅供董事长判断。拿不到的字段标『待接·不编』。",
+    "chairman_holdings_ref": ["英伟达NVDA", "微软MSFT", "软银", "爱德万Advantest", "博通AVGO", "闪迪SanDisk", "台积电TSM", "META"],
+    "chairman_context": "AI仓已超配65.8%，诉求=分散AI敞口、找『下轮还没被炒贵』的标的",
+    "key_takeaway": "真正能分散的是『电力/能源』这一环——它的驱动是电力需求，与芯片资本开支周期相关度较低；基础设施外延(液冷/网络/服务器)虽是好生意，但和现有NVDA/博通/台积电吃的是同一波超大规模厂资本开支，属『同涨同跌』，分散效果弱。价格还合理且属下轮的推荐序：VST(福特P/E~17) > SMCI(福特P/E~9-10,但低毛利+历史瑕疵) > CEG(福特P/E~21-24,质地最硬)。贵但好、等回调：GEV/ANET/VRT。纯主题高风险(不能按P/E估)：Oklo/NuScale。"
+  },
+  "estimates": {
+    "subsector_power_energy": {
+      "name_cn": "AI电力/能源(数据中心供电·核电·电网·燃气)",
+      "static": {
+        "what": "给数据中心『供电』的一整条链：发电(核电/燃气)、卖电合同(PPA)、电网/发电设备、上游铀燃料。AI越猛，耗电越狠。",
+        "chain_position": "在AI链的『地基』环——不造芯片、不训模型，但没有它芯片跑不起来。属于AI资本开支的『卖水人』，且离芯片周期一层，独立驱动。",
+        "long_logic": "AI数据中心是『用电黑洞』，需要7×24小时不断电的『稳定基荷电力』，核电和燃气是首选；旧电网/发电产能不够，逼出十年级的新建与扩容需求。这是慢变量、能见度高。"
+      },
+      "dynamic": {
+        "past_quarter": "2026 Q1普遍强劲：Constellation并购Calpine后营收利润跳升；Vistra营收同比+43%；GE Vernova订单同比+71%、燃气轮机在手订单冲到100GW；Cameco净利同比+87%。数据中心PPA(长期购电协议)成主线叙事。",
+        "this_week": "2026-07中旬：核电/电力股仍是市场热点；Oklo拿到DOE(能源部)对其Groves同位素试验堆的安全分析批准(7月1日)，主题情绪升温。板块整体今年已涨不少。",
+        "next_quarter": "催化=更多『超大规模厂×发电商』的长期PPA落地(微软/Meta/亚马逊等)；SMR(小堆)审批与最终投资决定进度；燃气轮机交付与涨价延续。风险=估值已不低、部分订单兑现慢。",
+        "drivers_numbers": {
+          "us_datacenter_power_2026": "美国数据中心用电2026约41GW级(口径不一,IT+冷却口径更高)",
+          "us_datacenter_power_2030": "多家机构预测2030年翻倍至近3倍；用电量区间约325-580 TWh(占全美电力约6.7%-12%,LBNL)",
+          "gev_gas_backlog": "GE Vernova燃气轮机在手订单100GW(2025年底83GW),年底目标≥110GW",
+          "uranium_price": "Cameco 2026实现铀价指引85-89美元/磅(Q1已实现65.45)"
+        }
+      },
+      "companies": [
+        {
+          "name": "Constellation Energy",
+          "ticker": "CEG",
+          "business": "美国最大核电运营商，147百万MWh/年核电产能，约93%在PJM电网区；2026年1月完成并购Calpine(燃气)，从纯核变『核+气』的稳定基荷供应商。手握数据中心最想要的『干净、稳定、7×24』电力。",
+          "tech": "现役核电机组=已建成的稀缺资产(新建核电要十年),护城河是牌照+区位+并网权;Calpine补上燃气调峰能力。",
+          "financials": {
+            "q1_2026_eps_adj": "2.74美元(超预期2.59)",
+            "q1_2026_revenue": "111.2亿美元(远超预期88.1亿)",
+            "q1_2026_net_income": "15.9亿美元(GAAP EPS 4.49)",
+            "fy2026_guidance_eps": "11.00-12.00美元",
+            "growth_target": "2029年基础EPS 11.40-11.90美元,较2026约20%复合增长"
+          },
+          "valuation": {
+            "price_jul2026": "约250美元",
+            "market_cap": "约903亿美元",
+            "pe_trailing": "约21-22倍",
+            "pe_forward": "约21-24倍(不同源口径)",
+            "assessment": "对一家利润20%复合增长的公用事业股,福特P/E约21-24不算贵、也不算白菜价——合理偏上。质地是板块里最硬的。"
+          },
+          "vs_holdings": "与董事长现有持仓(芯片/软件/平台)基本不重叠，驱动是电力需求而非芯片出货，是『真分散』——但同属AI主题，市场情绪差时会跟跌，只是基本面独立。上下游上,它是英伟达/微软这类数据中心的『上游供电方』,间接受益于同一波AI扩张。",
+          "recommendation": "『下轮+质地硬』的核心候选。当前估值合理偏上,可作为分散AI、押注电力刚需的压舱石型配置;若想更好价格,等大盘回调时分批。",
+          "forward_class": "可推荐(合理估值·质地最硬)",
+          "reliability": "高(Q1财报+指引为公司实时披露;股价/估值为7月中旬网络快照,有小幅口径差异)",
+          "sources": [
+            "https://www.investing.com/news/company-news/constellation-energy-q1-2026-slides-earnings-beat-20-growth-target-93CH-4677255",
+            "https://www.stocktitan.net/sec-filings/CEG/8-k-constellation-energy-corp-reports-material-event-111d3b4cfb03.html",
+            "https://stockanalysis.com/stocks/ceg/statistics/",
+            "https://www.macrotrends.net/stocks/charts/CEG/constellation-energy/pe-ratio"
+          ]
+        },
+        {
+          "name": "Vistra",
+          "ticker": "VST",
+          "business": "美国大型独立发电商(核+气+可再生+储能),在PJM有核电站;已与Meta签长期购电协议(PPA)供其数据中心。既卖电也做零售,现金流强。",
+          "tech": "综合发电组合+核电基荷,长期20年PPA锁定需求;并购Energy Harbor后核电敞口增强。",
+          "financials": {
+            "q1_2026_revenue": "56.3亿美元(同比+43.4%)",
+            "q1_2026_ebitda_adj": "同比+20%",
+            "fy2026_ebitda_guidance": "68-76亿美元",
+            "fy2026_fcf_guidance": "增长前自由现金流39.25-47.25亿美元",
+            "next_earnings": "8月7日,市场预期EPS同比+约140%"
+          },
+          "valuation": {
+            "price_jul2026": "约155.67美元",
+            "market_cap": "待接·不编(未直接抓到,约500-600亿美元量级)",
+            "pe_trailing": "约26倍(部分源20.9)",
+            "pe_forward": "约17.4倍",
+            "analyst_target": "中位约232美元(13家Buy共识)",
+            "assessment": "福特P/E约17.4、配上预期约140%的EPS跳增,在电力板块里属『相对便宜+高增长』;市盈率较12个月均值(47.7)大幅压缩,估值有修复空间。"
+          },
+          "vs_holdings": "同样与现有持仓不重叠,驱动=电力需求,分散效果好。与CEG同属核电供电方,二者会同涨同跌(同一板块),但相对芯片仓是独立驱动。上游供电方角色。",
+          "recommendation": "板块内『价格最合理+高增长』的进攻选择。福特P/E~17低于CEG,弹性更大;适合想在电力主线里要一点上行弹性、又不想追高的配置。风险=独立发电商盈利受电价波动影响大于纯监管公用事业。",
+          "forward_class": "可推荐(价格合理·高增长弹性)",
+          "reliability": "中高(财报为公司披露;市值字段未直接抓到已标待接;P/E多源有口径差)",
+          "sources": [
+            "https://www.tikr.com/blog/vistra-q1-2026-earnings-beat-hides-a-bigger-story-the-power-demand-case-has-not-been-priced-in",
+            "https://www.quiverquant.com/news/Vistra+gains+as+investors+focus+on+reaffirmed+2026+outlook+and+data-center-linked+nuclear+contracts",
+            "https://fullratio.com/stocks/nyse-vst/pe-ratio",
+            "https://public.com/stocks/vst/forecast-price-target"
+          ]
+        },
+        {
+          "name": "GE Vernova",
+          "ticker": "GEV",
+          "business": "GE分拆出的电力设备巨头:燃气轮机、电网设备、风电。AI要电,先要发电设备和电网——它是『卖铲子』的。燃气轮机订单爆满。",
+          "tech": "重型燃气轮机全球寡头之一,技术壁垒高、产能是瓶颈(所以能涨价);电网设备受益于并网扩容。",
+          "financials": {
+            "q1_2026_orders": "183亿美元(有机同比+71%)",
+            "q1_2026_revenue": "93亿美元(同比+16%)",
+            "backlog_total": "1630亿美元",
+            "gas_turbine_backlog": "100GW(年底目标≥110GW)",
+            "fy2026_revenue_guidance": "445-455亿美元",
+            "fy2026_fcf_guidance": "65-75亿美元"
+          },
+          "valuation": {
+            "price_jul2026": "约1062-1091美元",
+            "pe_trailing": "约32倍",
+            "pe_forward": "约60-70倍",
+            "ytd": "年内约+56%,过去一年约+146%",
+            "assessment": "基本面极强(订单+71%、订单簿1630亿),但股价一年翻倍多,福特P/E 60-70倍远高于工业设备中位约20倍——好公司,价已炒到很贵。"
+          },
+          "vs_holdings": "与持仓不重叠,驱动=发电设备资本开支,分散性好。但股价已高度反映AI叙事,情绪回落时回撤风险大。",
+          "recommendation": "好公司但贵。建议标『等回调』,不追高;若非要现在进,只宜小仓试探。基本面无瑕,问题纯在价格。",
+          "forward_class": "好公司但贵·等回调",
+          "reliability": "高(Q1为8-K/新闻稿数据;福特P/E多源60-70有差异但一致偏贵)",
+          "sources": [
+            "https://www.gevernova.com/sites/default/files/gev_webcast_pressrelease_04222026.pdf",
+            "https://www.utilitydive.com/news/ge-vernova-gas-turbine-backlog-hits-100-gw-as-prices-rise/818332/",
+            "https://www.gurufocus.com/term/forward-pe-ratio/GEV",
+            "https://stockanalysis.com/stocks/gev/statistics/"
+          ]
+        },
+        {
+          "name": "Cameco",
+          "ticker": "CCJ",
+          "business": "全球头部铀矿商+持有西屋电气(Westinghouse)权益。核电要复兴,先要铀燃料——它是核电产业链最上游『卖燃料』的,兼享西屋的核电服务/新建红利。",
+          "tech": "世界级低成本铀矿(McArthur River等)+西屋AP1000反应堆技术平台,燃料+技术双卡位。",
+          "financials": {
+            "q1_2026_revenue": "8.45亿美元(同比+7%)",
+            "q1_2026_net_income": "1.31亿美元(同比+87%)",
+            "q1_2026_ebitda_adj": "5.09亿美元(同比+44%)",
+            "uranium_realized_price": "Q1为65.45美元/磅;全年指引85-89美元/磅",
+            "fy2026_revenue_guidance": "31.3-33.7亿美元",
+            "westinghouse_ebitda_share": "全年3.70-4.30亿美元(Cameco份额)"
+          },
+          "valuation": {
+            "price_jul2026": "约120美元",
+            "market_cap": "约523亿美元",
+            "pe": "待接·不编(未直接抓到P/E;矿业+权益法利润使P/E参考性弱)",
+            "assessment": "驱动是铀价与核电新建,与发电商、设备商又是另一条独立子链。铀价上行(全年指引85-89美元/磅)是核心看点;估值倍数未直接取得,标待接。"
+          },
+          "vs_holdings": "与持仓完全不重叠,且与CEG/VST/GEV也只是同主题、不同环节(它在最上游燃料端),板块内分散性也好。属『核电复兴』的上游总龙头。",
+          "recommendation": "作为核电主线的上游燃料卡位,可作分散配置的一员。铀价周期性强、波动大,建议作卫星仓而非核心;P/E待补齐后再定量判断贵贱。",
+          "forward_class": "可关注(独立子链·估值待补)",
+          "reliability": "中高(财报为6-K披露;P/E/市值倍数未直接抓到,已标待接)",
+          "sources": [
+            "https://www.stocktitan.net/sec-filings/CCJ/6-k-cameco-corp-current-report-foreign-issuer-62bdb4722cad.html",
+            "https://www.cameco.com/invest/financial-information/quarterly-reports/2026/q1",
+            "https://finance.yahoo.com/sectors/energy/articles/cameco-reports-first-quarter-2026-103500266.html"
+          ]
+        },
+        {
+          "name": "Oklo",
+          "ticker": "OKLO",
+          "business": "先进小型核反应堆(微堆/钠冷快堆)开发商,主打给数据中心供电。目前基本无营收,靠订单意向和里程碑推动。14GW客户管道(含与Switch的12GW数据中心供电意向、Meta 1.2GW约定)。",
+          "tech": "钠冷快堆+同位素业务;2026年7月已获DOE对Groves试验堆安全分析批准,目标2026年7月首次临界、2027年交付。技术未商业化验证是最大不确定。",
+          "financials": {
+            "revenue_2026e": "约116万美元(基本pre-revenue)",
+            "q1_2026_eps_adj": "-0.18美元(亏损)",
+            "status": "前收入期,靠里程碑和订单意向"
+          },
+          "valuation": {
+            "price_jul2026": "约49美元(52周区间44.80-193.84)",
+            "market_cap": "约83亿美元",
+            "pe": "不适用(无盈利)",
+            "analyst_target": "约84.10美元(Moderate Buy,隐含约+62%)",
+            "assessment": "无法用P/E估——83亿市值对应近乎零营收,纯粹是对2027+兑现的期权定价。高波动、高风险。"
+          },
+          "vs_holdings": "与持仓不重叠,但属高风险主题股,与稳健电力股不是一回事;情绪股,涨跌自成一体。",
+          "recommendation": "高风险主题标的,不是『价格合理的下轮价值』,而是『概念期权』。若配,只宜极小仓位、当彩票;不适合作为分散AI的稳健压舱。不推荐作为核心。",
+          "forward_class": "高风险主题·非估值可判(小仓试探性)",
+          "reliability": "中(pre-revenue公司,数字来自二手财经媒体整理;市值/价格为快照)",
+          "sources": [
+            "https://carboncredits.com/oklo-oklo-reports-q1-financial-results-stock-climbs-as-it-expands-ai-nuclear-push-with-nvidia-and-advances-reactor-licensing/",
+            "https://stockanalysis.com/stocks/oklo/",
+            "https://www.barchart.com/story/news/3144294/oklo-stock-just-got-a-major-win-2026-could-still-be-its-breakout-year"
+          ]
+        },
+        {
+          "name": "NuScale Power",
+          "ticker": "SMR",
+          "business": "小型模块化反应堆(SMR)开发商,首个获NRC设计批准(50MW/77MW)。仍处前商业化,营收极小;有与TVA(田纳西河谷管理局)经ENTRA1的6GW框架。",
+          "tech": "NRC已批设计是稀缺资质,但从设计到最终投资决定(FID)时间线长,商业化落地慢。",
+          "financials": {
+            "q1_2026_revenue": "56.5万美元(远不及预期1480万)",
+            "q1_2026_eps": "-0.14美元(季度净亏4402万)",
+            "fy2026_revenue_est": "约9571万美元(90天内从1.33亿下修)",
+            "fy2026_eps_est": "-0.97美元"
+          },
+          "valuation": {
+            "analyst_target": "约16.50美元(此前18.08,已下修)",
+            "pe": "不适用(亏损)",
+            "assessment": "营收远不及预期、目标价被下修,时间线拉长。同Oklo一样是主题期权,不能按P/E判贵贱,风险更高。"
+          },
+          "vs_holdings": "与持仓不重叠,属高波动主题股,独立涨跌。",
+          "recommendation": "比Oklo更早期、执行不确定更大。不推荐作为稳健分散;仅适合极小仓位主题博弈。不作核心。",
+          "forward_class": "高风险主题·执行不确定(不推荐作核心)",
+          "reliability": "中高(Q1数字来自8-K与财经媒体;为pre-commercial公司)",
+          "sources": [
+            "https://www.chartmill.com/news/SMR/Chartmill-47869-NuScale-Power-SMR-Shares-Slide-87-After-Q1-Revenue-and-Earnings-Miss-Estimates",
+            "https://stockanalysis.com/stocks/smr/",
+            "https://finance.yahoo.com/markets/stocks/articles/earnings-watch-nuscale-power-corp-132151807.html"
+          ]
+        }
+      ]
+    },
+    "subsector_ai_infrastructure": {
+      "name_cn": "AI基础设施外延(液冷/散热·数据中心·网络设备)",
+      "static": {
+        "what": "数据中心里除芯片之外的『硬装修』:给GPU降温的液冷、机柜/供配电、连接万卡集群的高速网络交换机、以及组装整机柜的服务器厂。",
+        "chain_position": "紧贴芯片的『中游配套』——在英伟达GPU的下游、数据中心的上游。芯片卖得多,它们就装得多。",
+        "long_logic": "GPU功率越来越高,风冷扛不住→液冷是刚需;万卡/十万卡集群→高速以太网/交换需求爆发;整机柜交付→服务器组装放量。逻辑硬,但与芯片资本开支高度绑定。"
+      },
+      "dynamic": {
+        "past_quarter": "2026 Q1普遍高增长:Vertiv营收+30%、在手订单翻倍破150亿;Arista营收+35%、AI目标上调到35亿;Super Micro第三财季营收同比+123%。液冷渗透加速。",
+        "this_week": "2026-07中旬:AI基础设施仍是资金主线;Supermicro扩液冷产品线(后门换热器10-120kW)、宣布支持英伟达下一代Vera Rubin;液冷主题热度不减。",
+        "next_quarter": "催化=英伟达新一代GPU(Rubin)放量带动整机柜与液冷升级、超大规模厂capex继续上修。风险=多数龙头估值已高;需求集中在少数超大客户,订单节奏波动(SMCI已现客户交付延迟)。",
+        "drivers_numbers": {
+          "liquid_cooling_market_2026": "数据中心液冷市场2026约40-82亿美元(各机构口径40.7/60/67.7/81.7亿不等)",
+          "liquid_cooling_cagr": "至2033年约275亿美元,CAGR约20-31%(各源不同)",
+          "hyperscaler_capex_ai_share": "2026年约6000亿美元资本开支中约75%与AI直接相关(Arista援引)"
+        }
+      },
+      "companies": [
+        {
+          "name": "Vertiv",
+          "ticker": "VRT",
+          "business": "数据中心关键基础设施龙头:液冷、供配电、机架热管理。AI机柜功率飙升→液冷从可选变必需,它是纯正受益者。在手订单破150亿(覆盖12-18个月)。",
+          "tech": "端到端热管理(风冷+液冷)+供配电系统,规模与集成能力领先,液冷能力持续扩张。",
+          "financials": {
+            "q1_2026_revenue": "26.5亿美元(同比+30%,有机+23%,美洲有机+44%)",
+            "q1_2026_eps_adj_growth": "调整后摊薄EPS同比+83%",
+            "backlog": "超150亿美元",
+            "adj_operating_margin": "20.8%(同比+430基点)",
+            "fy2026_guidance": "净销售135-140亿美元(隐含约30%有机增长、约51%盈利增长)"
+          },
+          "valuation": {
+            "market_cap": "约1207亿美元",
+            "pe_forward": "约46-48倍",
+            "peg": "约1.07(46倍福特P/E配约43%EPS增长)",
+            "assessment": "基本面极强,PEG约1.07在同类里不算离谱,但福特P/E 46-48绝对值高。属『优质高增长但已不便宜』。"
+          },
+          "vs_holdings": "关键提醒:与董事长的英伟达/博通/台积电吃的是『同一波超大规模厂资本开支』——同一批客户、同一个capex周期,属高度同涨同跌,分散效果弱。是现有AI仓的『同向加仓』而非真分散。",
+          "recommendation": "好公司但已贵,且与现有芯片仓同向。不建议作为『分散AI』的答案;若看好液冷,标『等回调』再进,且要意识到它放大而非对冲现有AI敞口。",
+          "forward_class": "好公司但贵·且与现仓同向(等回调)",
+          "reliability": "高(Q1为8-K/新闻稿;估值为网络快照)",
+          "sources": [
+            "https://investors.vertiv.com/news/news-details/2026/Vertiv-Reports-Strong-First-Quarter-with-Diluted-EPS-Growth-of-136-Adjusted-Diluted-EPS-Growth-of-83-Raises-Full-Year-Guidance/default.aspx",
+            "https://www.sec.gov/Archives/edgar/data/0001674101/000162828026026379/q12026exhibit991vrt04222026.htm",
+            "https://seekingalpha.com/article/4910216-vertiv-holdings-the-ai-data-center-cooling-leader-still-has-momentum"
+          ]
+        },
+        {
+          "name": "Arista Networks",
+          "ticker": "ANET",
+          "business": "高速数据中心交换机龙头,主打把万卡GPU集群连起来的以太网方案(挑战英伟达InfiniBand)。AI组网需求爆发的直接受益者。",
+          "tech": "高端以太网交换+EOS软件,已有100+客户部署800G以太网,第4家大客户从InfiniBand转以太网量产。技术+软件粘性强。",
+          "financials": {
+            "q1_2026_revenue": "27.09亿美元(同比+35.1%)",
+            "billings_growth": "同比+54%(上季+43%)",
+            "operating_margin": "47.8%(营业利润12.9亿)",
+            "net_income": "11.1亿美元(净利率40.9%)",
+            "fy2026_guidance": "约115亿美元(增速上调至约27.7%)",
+            "ai_target_2026": "AI收入目标35亿美元(翻倍以上)"
+          },
+          "valuation": {
+            "market_cap": "约1987亿美元",
+            "pe": "约54倍(通信行业均值约31.6)",
+            "assessment": "盈利质量极高(净利率41%),但P/E约54远高于行业,且Q1指引略低于分析师预期一度杀跌约9%。优质但估值高、预期饱满。"
+          },
+          "vs_holdings": "与博通(AVGO)在AI网络芯片/交换上部分正面竞争与重叠,与英伟达生态也在同一AI组网赛道。与现有仓同属超大规模厂capex受益,分散性弱。",
+          "recommendation": "好公司但贵、且与博通/英伟达同向。不作为分散答案;标『等回调』。若已重仓博通,再加ANET等于加倍押注同一AI组网主题。",
+          "forward_class": "好公司但贵·与现仓同向(等回调)",
+          "reliability": "高(Q1为8-K/新闻稿;P/E为多源快照)",
+          "sources": [
+            "https://investors.arista.com/Communications/Press-Releases-and-Events/Press-Release-Detail/2026/Arista-Networks-Inc--Reports-First-Quarter-2026-Financial-Results/default.aspx",
+            "https://finance.yahoo.com/markets/stocks/articles/arista-networks-q1-earnings-beat-212023344.html",
+            "https://public.com/stocks/anet/pe-ratio"
+          ]
+        },
+        {
+          "name": "Super Micro Computer",
+          "ticker": "SMCI",
+          "business": "AI服务器/整机柜组装厂,液冷整机方案强,深度绑定英伟达GPU(GPU相关平台占营收超80%)。营收爆发但毛利薄。",
+          "tech": "液冷整机柜(直接到芯片+后门换热器10-120kW)、快速部署能力,已宣布支持英伟达下一代Vera Rubin;技术上是集成/交付强而非独有壁垒。",
+          "financials": {
+            "q3_fy2026_revenue": "102亿美元(同比+123%,环比-19%,受客户交付延迟拖累)",
+            "q2_fy2026_revenue": "127亿美元",
+            "fy2026_revenue_guidance": "约389-404亿美元",
+            "net_margin": "约3.7%(TTM,去年5.3%,毛利率约9.9%)",
+            "note": "利润率薄是硬伤,且历史上有过会计/审计风波"
+          },
+          "valuation": {
+            "market_cap": "约199亿美元",
+            "pe_trailing": "约15-16倍",
+            "pe_forward": "约9-10倍",
+            "assessment": "板块内估值最低(福特P/E约9-10)——但便宜有便宜的理由:毛利仅约10%、净利约3.7%、订单季度波动大、历史合规瑕疵。是『便宜但脆』的价值型。"
+          },
+          "vs_holdings": "直接位于英伟达下游(卖英伟达GPU的整机),与NVDA持仓强相关、同一需求链,分散性弱;等于放大对英伟达出货的敞口。",
+          "recommendation": "板块里唯一『绝对估值便宜』的,福特P/E~9-10。但它薄利、周期波动、且与现有英伟达仓同向,不是干净的分散。适合能承受波动、看重低估值的进攻者小仓博弈;稳健分散诉求下不宜作核心。",
+          "forward_class": "价格便宜但脆·与现仓同向(小仓价值博弈)",
+          "reliability": "中高(财报为8-K;财季口径为FY非日历年,注意时点;P/E多源有差)",
+          "sources": [
+            "https://ir.supermicro.com/news/news-details/2026/Supermicro-Announces-Third-Quarter-Fiscal-Year-2026-Financial-Results/default.aspx",
+            "https://www.cnbc.com/2026/05/05/super-micro-smci-q3-earnings-report-2026.html",
+            "https://stockanalysis.com/stocks/smci/statistics/",
+            "https://www.gurufocus.com/term/forward-pe-ratio/SMCI"
+          ]
+        }
+      ]
+    }
+  }
+}
