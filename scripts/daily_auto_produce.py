@@ -152,10 +152,12 @@ def _sync_master_log(rec: dict) -> None:
               f'本块由 daily_auto_produce.py 每次自动回写。改跑的时间：'
               f'<code>schtasks /Change /TN "{TASK_NAME}" /ST 08:00</code></div></div>\n'
             f'<!--AUTO_RUN_LOG_END-->')
+    # ⚠ re.sub 的替换串会解释 \A \1 等转义 → body 里若含 Windows 路径(如 \AI_Investment_System)会 bad escape 崩。
+    #   用 lambda 返回 body(替换串不被转义解释)·修真bug。
     if "<!--AUTO_RUN_LOG_START-->" in s:
-        s = re.sub(r"<!--AUTO_RUN_LOG_START-->.*?<!--AUTO_RUN_LOG_END-->", body, s, flags=re.S)
+        s = re.sub(r"<!--AUTO_RUN_LOG_START-->.*?<!--AUTO_RUN_LOG_END-->", lambda _m: body, s, flags=re.S)
     else:
-        s = re.sub(r"(<!--PRODUCT_STATUS_END-->)", r"\1\n" + body, s, count=1)
+        s = re.sub(r"(<!--PRODUCT_STATUS_END-->)", lambda _m: _m.group(1) + "\n" + body, s, count=1)
     m.write_text(s, encoding="utf-8")
 
 

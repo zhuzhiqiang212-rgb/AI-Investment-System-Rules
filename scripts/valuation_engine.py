@@ -162,6 +162,22 @@ def value_one(sym, it):
     it = it or {}
     name = it.get("name", "")
     cur = it.get("currency", "$")
+    # 架构师锁定价值区(董事长提案·如台积电P/E+PEG今日价值区)→ 直填精算·不走中周期(避免误判成长股)
+    fl = it.get("fair_locked") or {}
+    if fl.get("low") is not None and fl.get("high") is not None and fl.get("mid") is not None:
+        clsf = classify(sym, name)
+        r = _pack(sym, name, cur, clsf, float(fl["mid"]), float(fl["mid"]),
+                  {"法": str(it.get("ruler_disp") or "P/E+PEG(架构师锁定·前瞻)"),
+                   "forward_eps": it.get("forward_eps"), "forward_pe": it.get("forward_pe"),
+                   "peg": it.get("peg"), "note": it.get("note", "")})
+        r["reasonable_low"] = float(fl["low"]); r["reasonable_high"] = float(fl["high"])
+        r["target"] = float(fl["mid"])
+        r["model_disp"] = str(it.get("ruler_disp") or "P/E+PEG(架构师锁定)")
+        r["method_disp"] = r["model_disp"]
+        r["target_future"] = it.get("target_future")   # 未来1~2年目标价(三段式④)
+        r["forward_eps"] = it.get("forward_eps"); r["forward_pe"] = it.get("forward_pe"); r["peg"] = it.get("peg")
+        r["source"] = it.get("source", "")
+        return r
     cls = classify(sym, name)                     # 类型自动分类→模型(尺)
     if cls["model"] == "asset_none":
         return _asset(sym, name, cls)

@@ -100,14 +100,12 @@
   "US.TSM": {
    "name": "台积电",
    "currency": "$",
-   "normal_eps": null,
-   "pe_mid": null,
    "ebitda_normal": null,
    "ev_ebitda": null,
    "net_debt": null,
    "shares": null,
-   "note": "待接·不编:按新框架(董事长2026-07-18)台积电=芯片·成熟成长→应用 P/E+PEG(前瞻)，不用中周期。中周期会低估成长代工(28 vs现价97→误判极贵并触发不当减仓)。已取真数据供架构师:per-ADR USD EPS(stockanalysis TWD/ADR÷USDTWD32.39)FY21-25={'FY2021': 3.53, 'FY2022': 5.91, 'FY2023': 5.07, 'FY2024': 6.9, 'FY2025': 10.11}。需:前瞻EPS(2026E/2027E)+净利增速%算PEG(架构师/分析岗vetted)。",
-   "source": "stockanalysis.com/stocks/TSM/financials(TWD/ADR摊薄EPS FY21-25) + USDTWD 32.39(2026-07-18·Wise/台银) · IFRS",
+   "note": "台积电=芯片成熟成长→P/E+PEG(非中周期)。架构师锁定:①今日价值区$325-360(今日EPS×保守倍数);②未来目标$475-500(前瞻EPS$18×合理倍数/券商目标);PEG≈0.6(成长便宜)。中周期会误判成长股故不用。",
+   "source": "架构师前瞻锁定(尺与呈现提案2026-07-19)·FY26E ADR EPS≈$18·前瞻PE≈23-24·PEG≈0.6·目标FY27E×22/高盛TWD3000",
    "_edgar_adr_eps_path": {
     "FY2021": 3.53,
     "FY2022": 5.91,
@@ -115,7 +113,20 @@
     "FY2024": 6.9,
     "FY2025": 10.11
    },
-   "_edgar_path_unit": "USD/ADR(=5股)·IFRS摊薄·÷USDTWD 32.39"
+   "_edgar_path_unit": "USD/ADR(=5股)·IFRS摊薄·÷USDTWD 32.39",
+   "fair_locked": {
+    "low": 325,
+    "mid": 342,
+    "high": 360
+   },
+   "target_future": {
+    "low": 475,
+    "high": 500
+   },
+   "forward_eps": 18,
+   "forward_pe": 23.5,
+   "peg": 0.6,
+   "ruler_disp": "P/E+PEG(成熟成长·非中周期)"
   },
   "JP.8766": {
    "name": "东京海上",

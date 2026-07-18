@@ -1,0 +1,524 @@
+{
+  "task_id": "AUTO-20260718-holdings_true_A8",
+  "mode": "TRUE_HOLDINGS_BASE_TABLE",
+  "date": "20260718",
+  "generated_at": "2026-07-19T01:04:16.364607+09:00",
+  "fingerprint": {
+    "share_count_source": "A8·股数沿用最近 confirmed 基表 holdings_true_20260716.json（非富途账户无交易则不变，未报新交易→沿用）",
+    "quote_source": "今日 OpenD 实时价(realtime_price)·20/20 取到；未取到者价=null 如实标、不伪造",
+    "built_by": "holdings_true_autobuild.py（机器自动·股数沿用+今日OpenD现价）",
+    "no_trade": true,
+    "no_publish": true,
+    "a8_note": "总则A8：3个非富途账户(SBI/IBKR/bitFlyer)无交易则股数不变；每天变的只是价格。有交易请补截图更正股数。",
+    "verify_note": "非伪造：股数=confirmed沿用可回溯到基表；价=今日OpenD可回溯到 data_date。"
+  },
+  "merge_check": {
+    "第一三共": "6500+3400=9900",
+    "英伟达": "830+190=1020",
+    "微软": "550+140=690",
+    "MSTR": "700+158=858",
+    "COIN": "200+45=245",
+    "软银": "4100+2500=6600",
+    "东京海上": "SBI1000+富途0=1000"
+  },
+  "price_connection_attempts": [
+    {
+      "attempt": 1,
+      "success": true,
+      "ret": 0,
+      "data": [
+        {
+          "market_sz": "STIB_AFTER_HOURS_END",
+          "market_us": "AFTER_HOURS_END",
+          "market_sh": "STIB_AFTER_HOURS_END",
+          "market_hk": "CLOSED",
+          "market_hkfuture": "NIGHT_END",
+          "market_usfuture": "FUTURE_CLOSE",
+          "market_sgfuture": "NIGHT_END",
+          "market_jpfuture": "FUTURE_DAY_BREAK",
+          "market_sg": "CLOSED",
+          "market_my": "CLOSED",
+          "market_jp": "CLOSED",
+          "server_ver": "1007",
+          "trd_logined": true,
+          "timestamp": "1784390634",
+          "qot_logined": true,
+          "local_timestamp": 1784390634.674244,
+          "program_status_type": "READY",
+          "program_status_desc": ""
+        }
+      ],
+      "time": "2026-07-19T01:03:54+09:00"
+    }
+  ],
+  "holdings": [
+    {
+      "symbol": "JP.4568",
+      "name": "第一三共",
+      "total_quantity": 9900.0,
+      "quantity_status": "confirmed·富途实时+其它账户待确认",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 6500.0,
+          "cost_price": 3140.3083,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        },
+        {
+          "account": "SBI",
+          "quantity": 3400,
+          "qty_source": "SBI 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 2791.0,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "CLOSED",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.NVDA",
+      "name": "英伟达",
+      "total_quantity": 1020.0,
+      "quantity_status": "confirmed·富途实时+其它账户待确认",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 830.0,
+          "cost_price": 180.759,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        },
+        {
+          "account": "IBKR",
+          "quantity": 190,
+          "qty_source": "IBKR 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 202.553,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "AFTER_HOURS_END",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.MSFT",
+      "name": "微软",
+      "total_quantity": 690.0,
+      "quantity_status": "confirmed·富途实时+其它账户待确认",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 550.0,
+          "cost_price": 406.665,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        },
+        {
+          "account": "IBKR",
+          "quantity": 140,
+          "qty_source": "IBKR 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 394.007,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "AFTER_HOURS_END",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.MSTR",
+      "name": "MSTR",
+      "total_quantity": 858.0,
+      "quantity_status": "confirmed·富途实时+其它账户待确认",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 700.0,
+          "cost_price": 181.267,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        },
+        {
+          "account": "IBKR",
+          "quantity": 158,
+          "qty_source": "IBKR 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 94.9511,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "AFTER_HOURS_END",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.COIN",
+      "name": "Coinbase",
+      "total_quantity": 245.0,
+      "quantity_status": "confirmed·富途实时+其它账户待确认",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 200.0,
+          "cost_price": 228.899,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        },
+        {
+          "account": "IBKR",
+          "quantity": 45,
+          "qty_source": "IBKR 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 157.0542,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "AFTER_HOURS_END",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "JP.9984",
+      "name": "软银",
+      "total_quantity": 6900.0,
+      "quantity_status": "confirmed·富途实时+其它账户待确认",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 4100.0,
+          "cost_price": 4457.5992,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        },
+        {
+          "account": "SBI",
+          "quantity": 2800,
+          "qty_source": "SBI 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 5424.0,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "CLOSED",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "JP.8766",
+      "name": "东京海上",
+      "total_quantity": 1000.0,
+      "quantity_status": "confirmed·富途实时",
+      "accounts": [
+        {
+          "account": "SBI",
+          "quantity": 1000,
+          "qty_source": "SBI 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 7526.0,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "CLOSED",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "JP.6758",
+      "name": "索尼",
+      "total_quantity": 1000.0,
+      "quantity_status": "沿用快照·需董事长手工确认",
+      "accounts": [
+        {
+          "account": "SBI",
+          "quantity": 1000,
+          "qty_source": "SBI 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 3470.0,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "CLOSED",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "JP.6857",
+      "name": "爱德万",
+      "total_quantity": 800.0,
+      "quantity_status": "沿用快照·需董事长手工确认",
+      "accounts": [
+        {
+          "account": "SBI",
+          "quantity": 800,
+          "qty_source": "SBI 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 27505.0,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "CLOSED",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "JP.7203",
+      "name": "丰田",
+      "total_quantity": 800.0,
+      "quantity_status": "沿用快照·需董事长手工确认",
+      "accounts": [
+        {
+          "account": "SBI",
+          "quantity": 800,
+          "qty_source": "SBI 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 2899.5,
+      "price_data_date": "2026-07-17",
+      "price_market_state": "CLOSED",
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "JP.8001",
+      "name": "伊藤忠",
+      "total_quantity": 900.0,
+      "quantity_status": "沿用快照·需董事长手工确认",
+      "accounts": [
+        {
+          "account": "SBI",
+          "quantity": 900,
+          "qty_source": "SBI 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 1902.5,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "JP.7832",
+      "name": "万代",
+      "total_quantity": 500.0,
+      "quantity_status": "confirmed·富途实时",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 500.0,
+          "cost_price": 4322.0,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 4189.0,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "JP.7974",
+      "name": "任天堂",
+      "total_quantity": 2000.0,
+      "quantity_status": "confirmed·富途实时",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 2000.0,
+          "cost_price": 8246.8,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        }
+      ],
+      "currency_hint": "JPY",
+      "realtime_price": 7294.0,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.AVGO",
+      "name": "博通",
+      "total_quantity": 150.0,
+      "quantity_status": "confirmed·富途实时",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 150.0,
+          "cost_price": 383.125,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 370.825,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.CRCL",
+      "name": "Circle",
+      "total_quantity": 400.0,
+      "quantity_status": "confirmed·富途实时",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 400.0,
+          "cost_price": 94.918,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 60.46,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.SNDK",
+      "name": "闪迪",
+      "total_quantity": 20.0,
+      "quantity_status": "confirmed·富途实时",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 20.0,
+          "cost_price": 1531.99,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 1354.82,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.TSM",
+      "name": "台积电",
+      "total_quantity": 1.0,
+      "quantity_status": "confirmed·富途实时",
+      "accounts": [
+        {
+          "account": "富通",
+          "quantity": 1.0,
+          "cost_price": 153.123,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 398.37,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.META",
+      "name": "META",
+      "total_quantity": 95.0,
+      "quantity_status": "沿用快照·需董事长手工确认",
+      "accounts": [
+        {
+          "account": "IBKR",
+          "quantity": 95,
+          "qty_source": "IBKR 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 646.01,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.IBKR",
+      "name": "IBKR",
+      "total_quantity": 14.0,
+      "quantity_status": "沿用快照·需董事长手工确认",
+      "accounts": [
+        {
+          "account": "IBKR",
+          "quantity": 14,
+          "qty_source": "IBKR 不接 OpenD → 沿用 2026-07-02 快照·需董事长手工确认",
+          "needs_owner_confirm": true
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 90.53,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    },
+    {
+      "symbol": "US.SPCX",
+      "name": "SpaceX",
+      "total_quantity": 10.0,
+      "quantity_status": "confirmed·富途实时(新持仓·系统此前没有这只)",
+      "accounts": [
+        {
+          "account": "富途",
+          "quantity": 10.0,
+          "cost_price": 138.0,
+          "cost_source": "OpenD average_cost(券商平均成本·A级)",
+          "cost_grade": "A",
+          "qty_source": "OpenD 实时持仓(当日·A级)"
+        }
+      ],
+      "currency_hint": "USD",
+      "realtime_price": 123.99,
+      "price_data_date": "2026-07-17",
+      "price_market_state": null,
+      "quote_status": "OK",
+      "price_source": "OpenD realtime (holdings_true_autobuild)"
+    }
+  ],
+  "safety": {
+    "read_only": true,
+    "place_order_called": false,
+    "openD_called": true,
+    "published": false
+  }
+}

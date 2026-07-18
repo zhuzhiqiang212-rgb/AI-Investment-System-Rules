@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-18T23:48:07.011971+09:00",
+  "generated_at": "2026-07-19T00:43:55.946067+09:00",
   "engine": "分类型估值引擎 v2·按类型自动选模型",
   "ruler": "00_请先看这里/右栏_估值方法学.html",
   "type_model_map": {
@@ -169,15 +169,36 @@
     {
       "symbol": "US.TSM",
       "name": "台积电",
-      "status": "待接真源",
+      "currency": "$",
+      "status": "OK",
       "type": "周期股",
       "type_reason": "晶圆代工·周期成长·不用峰值",
       "type_source": "登记表(行业事实)",
       "model": "mid_cycle",
-      "model_disp": "中周期盈利法(不用峰值)",
-      "method_disp": "中周期盈利法(不用峰值)",
-      "credibility": "待接真源",
-      "reason": "缺真输入：normal_eps+pe_mid 或 ebitda_normal+ev_ebitda+net_debt+shares(任一整套)（该用 中周期盈利法(不用峰值)·正常年景EPS×中周期PE，或 中周期EBITDA×EV/EBITDA）·不硬编"
+      "model_disp": "P/E+PEG(成熟成长·非中周期)",
+      "method_disp": "P/E+PEG(成熟成长·非中周期)",
+      "intrinsic": 342.0,
+      "reasonable_low": 325.0,
+      "reasonable_high": 360.0,
+      "target": 342.0,
+      "confidence": "A·mid_cycle",
+      "credibility": "A·精算",
+      "assumptions": {
+        "法": "P/E+PEG(成熟成长·非中周期)",
+        "forward_eps": 18,
+        "forward_pe": 23.5,
+        "peg": 0.6,
+        "note": "台积电=芯片成熟成长→P/E+PEG(非中周期)。架构师锁定:①今日价值区$325-360(今日EPS×保守倍数);②未来目标$475-500(前瞻EPS$18×合理倍数/券商目标);PEG≈0.6(成长便宜)。中周期会误判成长股故不用。"
+      },
+      "note": "",
+      "target_future": {
+        "low": 475,
+        "high": 500
+      },
+      "forward_eps": 18,
+      "forward_pe": 23.5,
+      "peg": 0.6,
+      "source": "架构师前瞻锁定(尺与呈现提案2026-07-19)·FY26E ADR EPS≈$18·前瞻PE≈23-24·PEG≈0.6·目标FY27E×22/高盛TWD3000"
     },
     {
       "symbol": "JP.8766",

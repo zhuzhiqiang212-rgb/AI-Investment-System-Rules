@@ -723,7 +723,7 @@ def _sync_card_prices(sym: str, blob: str, dyn: dict) -> str:
 
 # ══ 乙5/乙6：估值数轴（纯HTML/CSS·不引外部库·深浅色都清楚） ══
 # 「便宜─合理─贵」三段 + 现价 ▼ 落点。数字全部来自估值引擎单一源(R1)，本组件只负责【画】，不改口径。
-HORIZON_NOTE = "这是按公司未来约 1~2 年该值多少算出来的合理价，不是猜下个月的股价"
+HORIZON_NOTE = "这是【今日该值】：按当前/穿周期盈利×保守倍数算出的今日价值区·未来1~2年目标价另列·两者不合成一个数"
 
 
 def _val_axis(sym: str, dyn: dict, mini: bool = False) -> str:
@@ -814,6 +814,50 @@ def _rel_grade(rel: str) -> tuple:
     return (not low, r)
 
 
+_DEEPCARD_CACHE: dict = {}
+
+
+def _deep_card(sym: str) -> dict:
+    if sym not in _DEEPCARD_CACHE:
+        _DEEPCARD_CACHE[sym] = rj(ROOT / "data" / "analysis" / "deep_cards" / f"{sym}.json")
+    return _DEEPCARD_CACHE[sym] or {}
+
+
+def _catalyst_within(sym: str, date: str, days: int = 90) -> str:
+    """「加」闸·催化剂=近约90天内明确事件(财报/审批/指引上调/大单)。读深研卡⑦block7·列得出具体那条→返回该条;列不出→空串。"""
+    try:
+        d0 = datetime.strptime(date, "%Y%m%d").date()
+    except Exception:
+        return ""
+    lo, hi = d0 - timedelta(days=days), d0 + timedelta(days=days)
+    for ev in (_deep_card(sym).get("block7_catalysts") or []):
+        s = str(ev)
+        for m in re.finditer(r"(20\d\d)[-/年](\d{1,2})(?:[-/月](\d{1,2}))?", s):
+            y, mo, dd = int(m.group(1)), int(m.group(2)), int(m.group(3) or 15)
+            try:
+                dt = datetime(y, mo, min(dd, 28)).date()
+            except Exception:
+                continue
+            if lo <= dt <= hi:
+                return s[:60]
+        # "8月初/月中"等无精确日但含近月份的·且提到财报/批/指引/订单 → 视为有(保守:需含年内近月)
+    return ""
+
+
+def _stabilized(sym: str, dyn: dict) -> bool:
+    """「加」闸·已企稳=现价站上20日均值(客观过滤·非均线买卖线·仅决定"现在加还是再等")。缺ma→False(保守·当没企稳)。"""
+    try:
+        ma = rj(ROOT / "data" / "holdings" / f"ma_levels_{dyn.get('date','')}.json").get("holdings") or []
+        m = next((x for x in ma if str(x.get("symbol")) == sym), None)
+        px = _price_of(sym, dyn)
+        ma20 = (m or {}).get("ma20") or (m or {}).get("ma_20")
+        if px is not None and isinstance(ma20, (int, float)) and ma20 > 0:
+            return float(px) >= float(ma20) * 0.98
+    except Exception:
+        pass
+    return False
+
+
 def _peak_cyclical(sym: str) -> bool:
     """强周期(半导体设备/存储)/加密——这类"极贵"多是景气高点·中周期只作参考·不自动翻减。"""
     r = _valfw(sym)
@@ -839,6 +883,32 @@ def _valfw_line(sym: str) -> str:
             f'background:#0e1c2e;border-radius:5px">📐 <b>行业</b>：{esc(ind)}　'
             f'<b>用哪把尺</b>：{esc(ruler)}<span style="color:#8ea3b6;font-size:11px">'
             f'（估值只回答"贵不贵"·按行业换尺·有增速的先看 PEG）</span></div>')
+
+
+def _future_target_line(sym: str, dyn: dict) -> str:
+    """三段式④·目标价(未来1~2年)=前瞻EPS×合理倍数/券商目标(董事长2026-07-19)。永不与③今日价值区合成。"""
+    v = (dyn.get("valr", {}) or {}).get(sym, {}) or {}
+    tf = v.get("target_future")
+    c = cur(sym)
+    fwd = ""
+    if v.get("forward_eps") or v.get("peg"):
+        bits = []
+        if v.get("forward_eps"):
+            bits.append(f"前瞻EPS {c}{v['forward_eps']}")
+        if v.get("forward_pe"):
+            bits.append(f"前瞻PE {v['forward_pe']}")
+        if v.get("peg"):
+            bits.append(f"PEG {v['peg']}" + ("（&lt;1=成长便宜）" if float(v['peg']) < 1 else ""))
+        fwd = "　".join(bits)
+    if isinstance(tf, dict) and tf.get("low") is not None:
+        return (f'<p style="font-size:13px"><span class="k" style="color:#8cf5be">④ 目标价（未来1~2年）</span>'
+                f'<b style="color:#8cf5be">{c}{tf["low"]:,.0f} ~ {c}{tf["high"]:,.0f}</b>'
+                + (f'　<span style="color:#8ea3b6;font-size:12px">{fwd}</span>' if fwd else '')
+                + '　<span style="color:#8ea3b6;font-size:11px">(前瞻EPS×合理倍数/券商目标·与③今日价值区分列·不合成)</span></p>')
+    # 缺前瞻→待接(不与今日合成·不编)
+    return ('<p style="font-size:12.5px"><span class="k" style="color:#8ea3b6">④ 目标价（未来1~2年）</span>'
+            '<span class="need">待接·缺前瞻EPS（架构师/分析岗补）</span>'
+            + (f'　<span style="color:#8ea3b6;font-size:11px">{fwd}</span>' if fwd else '') + '</p>')
 
 
 def arch_val_display(sym: str, dyn: dict) -> dict | None:
@@ -1227,9 +1297,10 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
                + _axis
                + f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
                '<table class="dt"><tr><th>要填的输入</th><th>大白话</th></tr>' + inrows + '</table>' + inval
-               + f'<p style="font-size:13px"><span class="k">算出来</span>{rng}（与决策条同一源·R1）。'
+               + f'<p style="font-size:13px"><span class="k">③ 今日价值区（今日该值）</span>{rng}'
                + (f'<span style="color:#8ea3b6">（{esc(HORIZON_NOTE)}）</span>' if low is not None else '')
                + f'{_nd(v5.get("note",""))}</p>'
+               + _future_target_line(sym, dyn)
                + senstbl)
     # ⑥ 牛/基/熊三情景
     sc = deep.get("block6_scenarios", {})
@@ -1691,9 +1762,11 @@ def val_state(sym: str, dyn: dict) -> dict:
         return {"ok": False, "px": px}
     lo, mid, hi = float(v["reasonable_low"]), float(v["intrinsic"]), float(v["reasonable_high"])
     gap_lo = (px - lo) / lo * 100.0
+    _peg = v.get("peg")
     return {"ok": True, "px": float(px), "lo": lo, "mid": mid, "hi": hi,
             "gap_mid": (px - mid) / mid * 100.0, "gap_lo": gap_lo,
             "below_cheap": px < lo, "near_cheap": 0 <= gap_lo <= 5, "above_rich": px > hi,
+            "peg": float(_peg) if isinstance(_peg, (int, float)) else None,
             "cur": cur(sym)}
 
 
@@ -1874,6 +1947,11 @@ def _action_of_raw(sym: str, name: str, dyn: dict, date: str) -> tuple:
         return tag("守", f"{P}，中周期/穿牛熊算 <b>极贵（景气高点·峰值定价）</b>"
                          f"（现价约合理上沿 {c}{hi:,.0f} 的 {_mult:.1f} 倍）→ <b>守·不追高、留峰值风险安全垫</b>；"
                          f"<b>不因这个数就自动减</b>（峰值可能持续·中周期/穿牛熊只作参考·董事长尺）。")
+    # 成长便宜护栏(董事长提案·PEG尺):PEG<1=价高但增速更快·成长便宜→不因超过"今日价值区"就自动减
+    if st["above_rich"] and isinstance(st.get("peg"), (int, float)) and st["peg"] < 1.0:
+        return tag("守", f"{P}，虽略高于今日价值区 {c}{hi:,.0f}，但 <b>PEG≈{st['peg']:.2f}（&lt;1=成长便宜）</b>"
+                         f"——价高是因为增速更快、看明年利润其实不贵 → <b>守·不追高</b>"
+                         + ("；已超配这一类·不加" if in_over else "") + "（成长便宜不当贵杀·董事长PEG尺）。")
     if st["above_rich"] and in_over:
         return tag("减", f"{P}，<b>已涨过贵位 {c}{hi:,.0f}、算贵</b>；"
                          f"而且「{cat}」这一类已经超上限 → <b>现在可以减</b>，优先从它减；"
@@ -1886,7 +1964,15 @@ def _action_of_raw(sym: str, name: str, dyn: dict, date: str) -> tuple:
             return tag("守", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜</b>——本来可以加，"
                              f"但它属于已经超上限的「{cat}」→ <b>现在不加</b>（只换不加，别往最挤的地方再塞钱）；"
                              f"要动它只能是<b>拿它换掉同类里更贵的</b>。")
-        return tag("加", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜（低 {abs(st['gap_lo']):.1f}%）</b> → "
+        # 「加」闸(董事长提案2026-07-19):便宜 且(有催化剂 或 已企稳)才'加';否则降级'等'·别接飞刀
+        _cat_ev = _catalyst_within(sym, date)          # 近90天内明确事件(列得出具体那条)
+        _stab = _stabilized(sym, dyn)                  # 近约20日站上20日均值·企稳(客观过滤·非买卖线·仅决定现在加还是再等)
+        if not _cat_ev and not _stab:
+            return tag("等", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜（低 {abs(st['gap_lo']):.1f}%）</b>，"
+                             f"但<b>近90天列不出明确催化剂、也还没企稳</b> → <b>便宜但没催化·别接飞刀</b>；"
+                             f"先等出催化(财报/审批/指引上调/大单)或企稳(站稳20日均值)再加。")
+        _why_add = ("催化剂：" + esc(_cat_ev)) if _cat_ev else "已企稳（站稳20日均值·客观过滤）"
+        return tag("加", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜（低 {abs(st['gap_lo']):.1f}%）</b> 且 {_why_add} → "
                          f"<b>现在就可以加</b>"
                          + (f"（而且「{cat}」还不到下限，加它正好补缺口）" if in_short else "")
                          + f"；<b>分批买、别一次买满</b>；"
@@ -4435,6 +4521,12 @@ def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
         px = _price_of(s, dyn)
         v = (dyn.get("valr", {}) or {}).get(s, {}) or {}
         ok = str(v.get("status")) == "OK" and v.get("intrinsic") is not None
+        # 未来目标价(三段式④·董事长2026-07-19)：有前瞻目标显它,没有标待接·永不与今日价值区合成一个数
+        _tf = v.get("target_future") if isinstance(v, dict) else None
+        if isinstance(_tf, dict) and _tf.get("low") is not None:
+            future = f'<b style="color:#8cf5be">{c}{_tf["low"]:,.0f} ~ {c}{_tf["high"]:,.0f}</b>'
+        else:
+            future = '<span class="need" style="font-size:11px">待接·缺前瞻EPS</span>'
         if ok:
             fair = (f'{c}{v["reasonable_low"]:,.0f} ~ {c}{v["reasonable_high"]:,.0f}'
                     f'<br><span style="color:#8ea3b6;font-size:11px">中间值 {c}{v["intrinsic"]:,.0f}</span>')
@@ -4463,14 +4555,16 @@ def _summary_tables(date: str, dyn: dict, stats: dict) -> str:
                     f'<div style="font-size:11.5px;color:#c8d4de;margin-top:3px">{_why}</div></td>'
                     f'<td style="text-align:right;white-space:nowrap"><b>{esc(c)}{px:,.2f}</b></td>'
                     f'<td style="white-space:nowrap">{fair}</td>'
+                    f'<td style="white-space:nowrap;text-align:right">{future}</td>'
                     f'<td style="min-width:150px">{axis}</td></tr>')
     hold_tbl = ('<table class="dt"><tr><th>股票</th><th>今天怎么办</th><th style="text-align:right">现价</th>'
-                '<th>合理价<br><span style="font-weight:400;font-size:10.5px;color:#8ea3b6">未来1~2年该值多少</span></th>'
+                '<th>今日价值区<br><span style="font-weight:400;font-size:10.5px;color:#8ea3b6">今日该值(今日盈利×保守倍数)</span></th>'
+                '<th>未来目标价<br><span style="font-weight:400;font-size:10.5px;color:#8ea3b6">未来1~2年(前瞻EPS×合理倍数)</span></th>'
                 '<th>便宜 ─ 合理 ─ 贵（▼=今天的价）</th></tr>'
                 + "".join(rows) + '</table>'
                 + f'<div class="meta" style="color:#8ea3b6;font-size:11.5px">'
-                  f'「合理价」是<b>{esc(HORIZON_NOTE)}</b>。绿=便宜 / 黄=合理 / 红=贵；▼是今天的价落在哪。'
-                  f'点股票名进该只的10块深卡。</div>')
+                  f'<b>今日价值区=今日该值</b>(今日盈利×保守倍数)；<b>未来目标价=未来1~2年</b>(前瞻EPS×合理倍数/券商目标)。'
+                  f'两者分列·永不合成一个数(董事长2026-07-19尺)。绿=便宜/黄=合理/红=贵；▼是今天的价。点股票名进10块深卡。</div>')
     try:
         pd_ = rj(ROOT / "data" / "pdca" / "pending_decisions.json")
         n_pend = int(pd_.get("pending_count") or 0)
