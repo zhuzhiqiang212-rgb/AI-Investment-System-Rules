@@ -36,6 +36,38 @@ def _rj(p: Path) -> dict:
         return {}
 
 
+# ── 未来1~2年目标价:读架构师已落档的前瞻估值表(董事长2026-07-19 轮6接线1) ──
+#     数据源:持仓前瞻估值表_年底明年合理价_2026-07-18.html(方法=中枢×(1+g)^t)。
+#     下列6只确不可外推→保持待接并写明原因(不硬填)。
+_FWD_EXCLUDE = {
+    "9984": "软银NAV依Arm/OpenAI资产·不可简单外推", "MSTR": "依BTC币价·不可外推",
+    "6857": "景气峰值·外推即掉周期陷阱", "SNDK": "景气峰值·外推即掉周期陷阱",
+    "COIN": "低置信·不外推", "CRCL": "低置信·不外推",
+}
+_FWD_CACHE: dict = {}
+
+
+def _fwd_targets() -> dict:
+    """解析前瞻估值表→{代码大写: {今:..,y2026:..,y2027:..,g:..}}。只读架构师已落档值,不自算。"""
+    if _FWD_CACHE:
+        return _FWD_CACHE
+    p = ROOT / "00_请先看这里" / "持仓前瞻估值表_年底明年合理价_2026-07-18.html"
+    try:
+        t = p.read_text(encoding="utf-8")
+    except Exception:
+        return _FWD_CACHE
+    for r in re.findall(r"<tr[^>]*>(.*?)</tr>", t, re.S):
+        cells = [" ".join(re.sub(r"<[^>]+>", " ", c).split())
+                 for c in re.findall(r"<td[^>]*>(.*?)</td>", r, re.S)]
+        cells = [c for c in cells if c.strip()]
+        if len(cells) < 5 or "合理" in cells[1] or not re.search(r"[¥$]", cells[1]):
+            continue
+        code = cells[0].split()[-1].upper()               # "英伟达 NVDA"→NVDA / "第一三共 4568"→4568 / "Meta"→META
+        _FWD_CACHE[code] = {"今": cells[2], "y2026": cells[3], "y2027": cells[4],
+                            "g": cells[5] if len(cells) > 5 else ""}
+    return _FWD_CACHE
+
+
 # ── mini-mustache：{{#段}}..{{/段}} 循环/布尔 + {{标量}} ──────────────
 #   用 backref \1 精确匹配同名 close(否则嵌套段会被内层 close 截断)。
 _SEC = re.compile(r'\{\{#(\S+?)\}\}(.*?)\{\{/\1\}\}', re.S)
@@ -85,9 +117,16 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         fp = _e.get("fair_price") or _e.get("archived_fair_price") or {}
         lo, hi = fp.get("cheap"), fp.get("rich")
     tf = v.get("target_future")
-    if isinstance(tf, dict) and tf.get("low") is not None:
+    base_code = sym.split(".")[-1].upper()
+    fwd = _fwd_targets().get(base_code)
+    if isinstance(tf, dict) and tf.get("low") is not None:            # 引擎权威前瞻(如TSM)优先
         tgt = f'{c}{tf["low"]:,.0f} ~ {c}{tf["high"]:,.0f}'
         tgt_miss = ""
+    elif fwd:                                                        # 架构师前瞻估值表(2026底~2027底)
+        tgt = f'{fwd["y2026"]}（2026底）~ {fwd["y2027"]}（2027底）'
+        tgt_miss = f'（年增速 {fwd["g"]}·方法=中枢×(1+g)^t·架构师2026-07-18落档）' if fwd.get("g") else ""
+    elif base_code in _FWD_EXCLUDE:                                  # 确不可外推的6只:标待接+具体原因
+        tgt, tgt_miss = TBD, f'（{_FWD_EXCLUDE[base_code]}）'
     else:
         tgt, tgt_miss = TBD, "（缺前瞻EPS·待架构师补）"
     # 第一二档(便宜位/次批价)——只有"加/买"才有真档；其余标"—"
@@ -145,7 +184,7 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         "坏情况价": bad[0], "坏情况条件": bad[1],
         "同业": peers, "动作前占比": before, "动作后占比": _after_pct(pure, before),
         "上限": _cat_limit(conc, cat_name), "推导链简版": _chain_short(deep),
-        "图1结论": _fig1_concl(pure, px, lo, hi, c, v),
+        "图1结论": _fig1_concl(pure, px, lo, hi, c, v, fwd),
         "图2结论": f"好{good[0]}/中{base[0]}/坏{bad[0]}——三价分开看，别只盯一个数。",
         "图5结论": f"这一动后「{cat_name}」占比 {before}→{_after_pct(pure, before)}。",
         "图6结论": "同业倍数横比见表；缺的标待接不猜。",
@@ -249,11 +288,16 @@ def _peer_of(base):
     return P.get(base, [])
 
 
-def _fig1_concl(pure, px, lo, hi, c, v):
+def _fig1_concl(pure, px, lo, hi, c, v, fwd=None):
     if px is None or not lo:
         return "估值待接·只守着看。"
     tf = v.get("target_future")
-    ft = f"，未来目标 {c}{tf['low']:,.0f}~{c}{tf['high']:,.0f}" if isinstance(tf, dict) and tf.get("low") else ""
+    if isinstance(tf, dict) and tf.get("low"):
+        ft = f"，未来目标 {c}{tf['low']:,.0f}~{c}{tf['high']:,.0f}"
+    elif fwd:
+        ft = f"，未来目标 {fwd['y2026']}(2026底)~{fwd['y2027']}(2027底)"
+    else:
+        ft = ""
     return f"今日该值 {c}{lo:,.0f}~{c}{hi:,.0f}{ft}；现价 {c}{px:,.0f}，动作={pure}。今日价值区与未来目标分开看。"
 
 
@@ -475,10 +519,30 @@ def build(date: str) -> str:
              "超限": bool(val.get("over"))} for k, val in (conc.get("categories", {}) or {}).items()]
     # 风险三项
     risks = _top_risks(dyn, date)
-    # SBI 进攻仓
+    # SBI 进攻仓(董事长2026-07-19 轮6接线2:读快照真值·目标读批准记录·不写死·标数据日)
     sbi = _rj(ROOT / "data" / "accounts" / "sbi_sleeve_2026-07-18.json")
-    sbi_tot = (sbi.get("snapshot", {}) or {}).get("total_value_jpy") or sbi.get("total_value_jpy")
+    snap = sbi.get("snapshot", {}) or {}
+    base = ((sbi.get("sleeve_rules", {}) or {}).get("目标基准", {}) or {})
+    sbi_tot = snap.get("total_asset_jpy")                     # 快照真键(非 total_value_jpy)
+    sbi_baseline = base.get("基准值_jpy")
+    t40 = base.get("target_40pct_jpy")
+    t100 = base.get("target_100pct_jpy")
+    sbi_date = str(snap.get("data_date") or "2026-07-18")
+    stock_mv = snap.get("stock_market_value_jpy")
+    cash = snap.get("cash_jpy")
     sbi_asset = f"¥{sbi_tot:,.0f}" if isinstance(sbi_tot, (int, float)) else TBD
+    goal40 = f"¥{t40:,.0f}" if isinstance(t40, (int, float)) else _sbi_goal(sbi_tot, 0.4)
+    goal100 = f"¥{t100:,.0f}" if isinstance(t100, (int, float)) else _sbi_goal(sbi_tot, 1.0)
+    # 进度=总资产对基准值涨幅(快照日=基准日→0%起点)
+    if isinstance(sbi_tot, (int, float)) and isinstance(sbi_baseline, (int, float)) and sbi_baseline:
+        prog = (sbi_tot - sbi_baseline) / sbi_baseline * 100
+        sbi_prog = f"{prog:+.1f}%（对基准 ¥{sbi_baseline:,.0f}·{sbi_date}为建仓基准起点）"
+    else:
+        sbi_prog = TBD
+    sbi_mix = (f"含股票市值 ¥{stock_mv:,.0f} + 现金 ¥{cash:,.0f}"
+               if isinstance(stock_mv, (int, float)) and isinstance(cash, (int, float)) else "")
+    sbi_concl = (f"SBI独立进攻仓·数据日{sbi_date}(手工截图源·非当天实时)；{sbi_mix}；"
+                 f"目标+40%={goal40}/+100%={goal100}·读批准记录不写死。")
     # 新旧程度
     fresh = _freshness(date, prod)
     ctx = {
@@ -493,8 +557,8 @@ def build(date: str) -> str:
         "图4结论": f"AI供应链 {_cat_pct(conc,'AI供应链')} 超上限 {_cat_limit(conc,'AI供应链')}——最该盯的超配。",
         "来源": "持仓底表 + 组合集中度上下限(正式配置)",
         "样本天数": _shadow_days(), "图10结论": _fig10(), "图12结论": "越新越可信；缺 data_date 标红不可依赖。",
-        "SBI总资产": sbi_asset, "SBI数据日": "2026-07-18", "目标40": _sbi_goal(sbi_tot, 0.4),
-        "目标100": _sbi_goal(sbi_tot, 1.0), "进度": "待接·缺进攻仓已投入额", "图11结论": "SBI独立进攻仓·目标/进度读快照与批准记录。",
+        "SBI总资产": sbi_asset, "SBI数据日": sbi_date, "目标40": goal40,
+        "目标100": goal100, "进度": sbi_prog, "图11结论": sbi_concl,
         "图9结论": "世界观→行业→本股→动作一条链。",
     }
     raw = TPL.read_text(encoding="utf-8")
