@@ -1039,7 +1039,43 @@ _DUAL = {
     "JP.6758": ("到便宜位分批买·约用现金1/3", "约 +0.3~0.5pp",
                 "若游戏事业增益不及预期·回落约 −15%·对总组合影响约 −0.2%",
                 "分批买约现金2/3·偏重", "约 +0.6~1.0pp", "同情形亏约 −15%·仓位翻倍对总组合影响约 −0.4%·占用后续机会现金"),
+    "US.NVDA": ("加至约现金1/3（仍在单只20%内·风险配仓建议加至18%）", "约 +1.0~1.5pp",
+                "若 Rubin 出货延期/超大规模厂资本开支放缓·回调约 −25%·对总组合影响约 −0.9%",
+                "加至约现金2/3·偏重", "约 +2.0~3.0pp", "同情形回调 −25%·仓位翻倍：最坏损失约 −$68,000·对总组合影响约 −1.8%·并消耗现金错失他标机会"),
+    "JP.9984": ("到便宜位小幅加·约现金1/4（NAV折价49.4%·有OpenAI/Arm催化）", "约 +0.5~0.8pp",
+                "若 OpenAI IPO 推迟或估值下修·回落约 −25%·对总组合影响约 −0.6%",
+                "加至约现金1/2", "约 +1.0~1.6pp", "同情形回落 −25%·仓位翻倍：最坏损失约 −$45,000·对总组合影响约 −1.2%；且软银本身是盲区(NAV算不出到期上行)·激进加需自担不确定"),
+    "US.AVGO": ("风险配仓建议加至6%·约现金1/4（未来+23%·$73B订单·价值动作仍=等）", "约 +0.6~1.0pp",
+                "若大客户自研替代/订单转化下滑·回调约 −20%·对总组合影响约 −0.5%",
+                "加至约现金1/2·偏重", "约 +1.2~1.8pp", "同情形回调 −20%·仓位翻倍：最坏损失约 −$30,000·对总组合影响约 −0.8%（★价值闸今日=等·此为补缺口的偏激进建议·待拍板）"),
+    "US.TSM": ("建仓·第一档 $360 约现金1/4（PEG0.6便宜·分档不死等）", "约 +0.5~0.8pp",
+                "若 $18 EPS 假设失效(先进制程订单下修等)·跌破 $325·这笔亏约 −12%·对总组合影响约 −0.2%",
+                "建仓·第一档 $360 买约现金1/2·第二档 $325 再加", "约 +1.0~1.5pp", "同情形亏约 −12%·仓位翻倍：最坏损失约 −$18,000·对总组合影响约 −0.5%·占用后续机会现金"),
 }
+# [致命5]每只中性情形依据来源(三选一·标推测的醒目提示可信度低)
+_NEUTRAL_BASIS = {
+    "JP.4568": ("公司 FY2027 指引 + I-DXd PDUFA 官方审批", "高"), "JP.6758": ("公司 FY2026/3 已上调指引", "高"),
+    "US.MSFT": ("公司 FY26 Q4 指引 + 分析师共识", "高"), "US.NVDA": ("公司指引 + GTC 官方 + 分析师共识", "高"),
+    "US.TSM": ("公司月度营收 + FY2026 指引", "高"), "US.AVGO": ("公司 Q3 指引 + FY2027 目标", "高"),
+    "US.META": ("公司 Q2 指引 + 分析师共识", "高"), "US.IBKR": ("公司 Q2 指引 + 2026 共识", "中"),
+    "US.COIN": ("分析师共识（周期极端·穿牛熊试算）", "低"), "JP.6857": ("公司 FY2027/3 指引", "高"),
+    "JP.7974": ("公司 FY2027/3 指引", "高"), "JP.9984": ("架构师推测（NAV 依 Arm/OpenAI·算不出）", "低"),
+    "US.MSTR": ("架构师推测（依 BTC 币价·算不出）", "低"), "US.CRCL": ("架构师推测（低置信·待接）", "低"),
+    "US.SNDK": ("架构师推测（异常价·未核准）", "低"), "US.SPCX": ("无可信估值（只观察）", "低"),
+    "JP.8001": ("架构师推测（商社 NAV·待接）", "低"), "JP.7203": ("分析师共识", "中"),
+    "JP.7832": ("分析师共识", "中"), "JP.8766": ("分析师共识", "中"),
+}
+
+
+def _neutral_basis_line(sym):
+    b = _NEUTRAL_BASIS.get(sym, ("架构师推测", "低"))
+    src, conf = b
+    if conf == "低":
+        badge = '<span style="background:#FBEAEA;color:#A3231F;padding:1px 7px;border-radius:5px;font-weight:800">中性情形依据＝' + src + '·⚠可信度低</span>'
+    else:
+        col = "#1E7A45" if conf == "高" else "#7A5C00"
+        badge = f'<span style="background:#E4F4EA;color:{col};padding:1px 7px;border-radius:5px">中性情形依据＝{src}·可信度{conf}</span>'
+    return f'<div style="font-size:11.5px;margin:3px 0">{badge}</div>'
 
 
 def _target_gap_block():
@@ -1049,11 +1085,15 @@ def _target_gap_block():
         '<div id="target-gap" style="background:#FFFFFF;border:2px solid #5C4033;border-radius:10px;padding:11px 14px;margin:6px 0 12px">'
         '<div style="font-size:19px;font-weight:900;color:#5C4033">🎯 离目标还差多少（1年期·双档·主战场SBI+富途）</div>'
         '<div style="font-size:14px;color:#1A1A1A;line-height:1.9;margin-top:5px">'
-        f'主战场当前市值 <b>${c["主战场"]:,}</b>（SBI ${c["SBI"]:,} + 富途 ${c["富途"]:,}）｜预期年化 {c["预期年化"]}<br>'
-        f'<span style="background:#EAF2FA;padding:2px 8px;border-radius:6px">【中性档 +40%】一年需赚 <b>${c["need40"]:,}</b>·距目标缺口 <b>{c["缺40"]}</b></span>　'
+        f'主战场当前市值 <b>${c["主战场"]:,}</b>（SBI ${c["SBI"]:,} + 富途 ${c["富途"]:,}）<br>'
+        # [重要1]三个数同显并各注明含义,避免看着矛盾
+        '<span style="background:#F2F4F7;padding:2px 8px;border-radius:6px">综合好/中/坏概率后 <b>预计上升 +16.87%</b>（一次性总回报·非年化）</span>　'
+        f'<span style="background:#F2F4F7;padding:2px 8px;border-radius:6px">折成 <b>预期年化 {c["预期年化"]}</b>（每年平均）</span>　'
+        f'<span style="background:#F2F4F7;padding:2px 8px;border-radius:6px">距 <b>+40%</b> 还差 <b>{c["缺40"]}</b>（一年要多赚这么多格才够）</span><br>'
+        f'<span style="background:#EAF2FA;padding:2px 8px;border-radius:6px">【中性档 +40%】一年需赚 <b>${c["need40"]:,}</b></span>　'
         f'<span style="background:#F5EFE0;padding:2px 8px;border-radius:6px">【激进档 +100%】一年需赚 <b>${c["need100"]:,}</b>·距目标缺口 <b>{c["缺100"]}</b></span><br>'
         f'<span style="color:#8A3E00">⚠ 盲区占 <b>{c["盲区占比"]}</b>（软银/爱德万/MSTR/COIN/闪迪/CRCL/伊藤忠/SpaceX·算不出到期上行→限期接真数据）；'
-        '各只『对目标贡献pp』见其卡内四字段。两档并列·董事长自己选一档拍板·系统不替他选。</span></div></div>')
+        '各只『对目标贡献个百分点(收益率相差多少格)』见其卡内四字段。两档并列·董事长自己选一档拍板·系统不替他选。</span></div></div>')
 
 
 _GLOSSARY = [
@@ -1123,8 +1163,8 @@ def _risk_config_block():
     mv = _TARGET_CFG["主战场"]
     d30 = int(mv * 0.198); d50 = int(mv * 0.330)
     adj = [
-        ("减", "爱德万", "9.0% → 5.0%", "触规矩3(峰值定价类)·架构师上修:期望−29.7%(原−42.3%)·减仓幅度放宽到9→5"),
-        ("减", "闪迪", "1.8% → 1.0%", "触规矩3:25倍于常年水平·未来−33%"),
+        ("待核准·暂不建议动作", "爱德万", "维持9.0%（不动）", "★致命2更正:异常价专项核准前『不可据此买卖』与『建议减仓』自相矛盾→架构师撤回减仓建议·统一观察·待交易所公告/拆股前后价与股数/两独立行情源核对后再重算"),
+        ("待核准·暂不建议动作", "闪迪", "维持1.8%（不动）", "同上·专项核准前不出任何加/减建议·统一观察"),
         ("加", "英伟达", "13.8% → 18.0%", "未来+60%·仍在单只20%上限内"),
         ("加", "博通", "3.7% → 6.0%", "未来+23%·AI订单储备$73B"),
         ("建仓", "台积电", "0% → 4.0%", "PEG0.6便宜·董事长本就在等回调上车·分档买入"),
@@ -1145,8 +1185,8 @@ def _risk_config_block():
         '<div style="font-size:14px;font-weight:800;color:#12324E;margin-top:8px">📋 据四规矩产生的调整建议（系统建议·待董事长拍板·系统不自动执行）</div>'
         '<table class="dt" style="width:100%;font-size:13px;margin-top:4px"><tr><th>动作</th><th>标的</th><th>仓位</th><th>理由</th></tr>'
         + arows + '</table>'
-        '<div style="font-size:12.5px;color:#8A3E00;margin-top:5px">★ 减爱德万/闪迪 <b>不是因为不信AI，恰恰是因为信AI</b>——正因方向确定，才更该把钱放在还没被炒到顶的位置；爱德万现价需要「AI最好的情况一直持续」才撑得住。'
-        'AI 总仓位基本不变，对目标贡献由 +12.55 提升至 +18.70 个百分点（净改善 +6.15）。</div></div>')
+        '<div style="font-size:12.5px;color:#8A3E00;margin-top:5px">★ 爱德万/闪迪 <b>专项核准完成前统一「观察·不据此买卖」·不出加/减建议</b>（致命2更正：不能拿未核准的不可信价格提减仓）；'
+        '待交易所公告/拆股前后价与股数/两个独立行情源交叉核对后，再重算是否减仓。加英伟达/博通、建仓台积电为方向确定下的补缺口建议·均待董事长拍板。</div></div>')
 
 
 def _target_role_block(sym):
@@ -1255,11 +1295,19 @@ def build(date: str) -> str:
     # 第0节:三层重排版【构建戳】——区别于数据 run_id,每次重排都刷新,让"是不是重新生成过"一眼可辨(诚实:数据仍为原扫描)
     px_note += (f" ｜ 本次生产 run_id=<b>{run_id}</b>（三层重排版·反映本次真实运行）"
                 f"；底层数据扫描={data_ref}（价=最近交易日·重排版≠重扫数据）")
+    # [致命1]唯一正式决定表:总数统计【程序从动作表(each)统计得出】·不手写·三层同源(L51 校验一致)
+    _act = {}
+    for hc in each:
+        a = str(hc.get("今日动作", "")).strip()[:1]
+        _act[a] = _act.get(a, 0) + 1
+    _stance_txt = (f"程序统计（共 {len(each)} 只·由动作表现算）：加 {_act.get('加', 0) + _act.get('买', 0)}"
+                   f"·守 {_act.get('守', 0)}·等 {_act.get('等', 0)}·减 {_act.get('减', 0)}·观察 {_act.get('观', 0)}"
+                   f"（另有『风险配仓调整建议』是待拍板的仓位再平衡·与今日动作是两回事）")
     ctx = {
         "data_date": dd, "生产时间": gen or D.md_note(dyn) if hasattr(D, "md_note") else gen, "run_id": run_id or TBD,
         "各市场价时点说明": px_note,
         "当天项数": fresh["new"], "近期项数": fresh["mid"], "陈旧项数": fresh["old"], "待接项数": len(tbd_rows),
-        "总闸状态": _fed_state(dyn), "今日姿态": _stance(dec),
+        "总闸状态": _fed_state(dyn), "今日姿态": _stance_txt,
         "一句话总决定": _one_line(dyn, date),
         "每条": tbd_rows, "每只": each, "每类": cats, "风险1到3": risks,
         "新增数": fresh["chg_new"], "取消数": fresh["chg_cancel"], "升降级数": fresh["chg_grade"],
@@ -1309,13 +1357,13 @@ def build(date: str) -> str:
     # [P0]目标—缺口 模块 + 风险配仓四规矩模块 放第一层最顶部(①离目标还差多少·董事长第一眼看到)
     out = re.sub(r'(<details class="layer" id="L1"[^>]*>\s*<summary>[^<]*</summary>\s*<div class="body">)',
                  lambda m: m.group(1) + _target_gap_block() + _risk_config_block() + _glossary_block(), out, count=1)
-    # [L49]术语大白话:数字后的裸 pp/bp 就地补人话(高频·全文)
-    out = re.sub(r"(\d(?:\.\d+)?)\s*pp\b", r"\1个百分点", out)
-    out = re.sub(r"(\d+)\s*bp\b", r"\1个基点(bp)", out)
     # [P1]每只四字段(角色/意图/贡献pp/凭什么) + [P2]双档并列(加/减候选)→注入每只 why 卡开头
     for _sym in [hc.get("代码") for hc in each if hc.get("代码")]:
         out = out.replace(f'id="why-{_sym}">',
-                          f'id="why-{_sym}">{_target_role_block(_sym)}{_scenario_block(_sym)}{_dual_track_block(_sym)}', 1)
+                          f'id="why-{_sym}">{_target_role_block(_sym)}{_neutral_basis_line(_sym)}{_scenario_block(_sym)}{_dual_track_block(_sym)}', 1)
+    # [L49·致命6]术语大白话:数字后的裸 pp/bp 就地补人话(必须在所有注入之后·否则漏掉双档/四字段里的pp)
+    out = re.sub(r"(\d(?:\.\d+)?)\s*pp(?![A-Za-z])", r"\1个百分点", out)   # pp后可能是中文·不用\b
+    out = re.sub(r"(\d+)\s*bp(?![A-Za-z])", r"\1个基点(bp)", out)
     # L3 导航追加机构底稿锚 + 顶部导航
     out = out.replace('<a href="#L3">③ 完整研究底稿</a>',
                       '<a href="#L3">③ 完整研究底稿</a><a href="#inst-top">④ 完整机构底稿</a>', 1)
@@ -1373,13 +1421,19 @@ def build(date: str) -> str:
         out = out.replace(f'data-chart="{n}">', f'data-chart="{n}"><div style="font-size:11px;color:#A9761A">（本图画法待接·结论/数据已填真值或标待接）</div>', 1)
     # 公开【已知未完成清单·带数量】(L45·八.4:不只列图名·须给完成/待接数量)
     n_svg = out.count("<svg") + out.count("<canvas")
+    n_tbd_all = out.count("待接·不编") + out.count("待接·未查证")
     undone_rows = [
-        ("图形绘制(SVG/柱状/曲线)", f"0 张真图形 / 共约 105 张图位（图1-12）——当前均为『文字+一句结论』版，真图形{n_svg}张·全部待接"),
-        ("图6 同业倍数横比", "完成 0 / 共 20 张（每只1张·画法待接·倍数数据已填或标待接）"),
+        ("数据待接（全文）", f"约 {n_tbd_all} 处标『待接·不编/未查证』——含催化剂库待接8只、6只权威估值待接真源等，均如实标不编造"),
+        ("每只加仓闸·最低价发生日期", "缺 20 / 20 只（仅有20日最低价单值·无逐日轨迹→最低价日期无法定位）"),
+        ("每只加仓闸·最近一次创新低日期", "缺 20 / 20 只（同上·缺逐日价格序列）"),
+        ("每日价格逐日明细", "未入产品（OpenD K_DAY 日线序列未落盘·计数器/新低日均待它）"),
+        ("爱德万/闪迪 异常价专项核准", "未完成 2 / 2（缺交易所公告/拆股前后价与股数/两独立行情源→统一观察·不据此买卖）"),
+        ("图形绘制(SVG/柱状/曲线)", f"完成 0 / 共约 105 张图位——真图形{n_svg}张·均为『文字+一句结论』版"),
+        ("图6 同业倍数横比", "完成 0 / 共 20 张（画法待接）"),
         ("图9 决策链图", "完成 0 / 共 20 张（画法待接·文字链已在③第11项）"),
-        ("图10 照做vs不动 曲线", "完成 0 / 共 1 张（只有文字结论·曲线待接·样本不足）"),
-        ("图11 SBI进攻仓 柱状", "完成 0 / 共 1 张（只有数字·柱状图待接）"),
-        ("第七章 17项交付物", "完成 0 / 缺 17 项（迁移对账表/唯一决定检查表/各搜索结果/截图说明等·本轮未做·见节次表）"),
+        ("图10 照做vs不动 曲线", "完成 0 / 共 1 张（只有文字·曲线待接）"),
+        ("图11 SBI进攻仓 柱状", "完成 0 / 共 1 张（只有数字·柱状待接）"),
+        ("第七章 17项交付物", "完成 0 / 缺 17 项（迁移对账表已在content_manifest·其余截图说明等未做）"),
     ]
     lis = "".join(f'<li><b>{a}</b>：{b}</li>' for a, b in undone_rows)
     undone = ('<div style="background:#2a2412;border:1px solid #A9761A;border-radius:8px;padding:10px 14px;margin:10px 0">'
@@ -1390,6 +1444,7 @@ def build(date: str) -> str:
     out = out.replace('<details class="layer" id="L1"', undone + '<details class="layer" id="L1"', 1)
     # [收口·治本]:root 金色变量改深棕/白底 + .p-wait 待拍板徽章改实心(董事长2026-07-19【1】)
     out = out.replace("--L1-txt:#8A6100", "--L1-txt:#5C4033").replace("--L1-bg:#FDF6E3", "--L1-bg:#FFFFFF")
+    out = out.replace("--wait:#A9761A", "--wait:#7A5C00")   # [重要3]等待徽章白字底 3.97:1→白on#7A5C00 6.25:1(过AA)
     out = out.replace(".p-wait{border:2.5px solid var(--L1-txt);color:var(--L1-txt)}",
                       ".p-wait{background:#5C4033;color:#FFFFFF;border:none;padding:2px 10px}")
     # [收口·真凶]135处内联亮色 → 浅底可读色(CSS盖不住内联·全文替换·统一浅色主题)
@@ -1413,6 +1468,12 @@ def build(date: str) -> str:
         ("进一步抬高AI超配", "进一步抬高AI仓集中"),
     ):
         out = out.replace(a, b)
+    # [致命2]删『已复核·非算错』——与『未通过专项核准』并存即矛盾(二者只留一个·保留未核准)
+    out = out.replace("✔ 已复核·真·景气高点的正常极贵（非算错）", "⏳ 待专项核准（异常价·核准前不据此买卖）")
+    out = out.replace("已复核·真·景气高点的正常极贵（非算错）", "待专项核准·异常价·核准前不据此买卖")
+    out = re.sub(r"架构师已复核[·:：]?[^<。]{0,10}(非算错|真价)", "待专项核准(异常价·未核准前不据此买卖)", out)
+    # 更广:量级哨兵/深研里"架构师已复核…非算错。"整句→改待核准(致命2:不与未核准并存)
+    out = re.sub(r"架构师已复核[：:][^<]{0,60}?非算错。?", "待专项核准（异常价·核准前不据此买卖）。", out)
     # [更正1]任天堂不再是拖累/换出候选(架构师补净现金)——清残留旧表述
     for a, b in (("最大单一拖累", "含净现金后转正贡献(架构师更正)"), ("任天堂为最大拖累", "任天堂含净现金后转正贡献"),
                  ("拖累=任天堂／丰田／IBKR", "拖累=丰田／IBKR(任天堂含净现金已转正贡献)"),

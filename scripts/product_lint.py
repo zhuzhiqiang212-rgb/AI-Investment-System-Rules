@@ -693,6 +693,20 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 if k in cur and isinstance(base, int) and cur[k] < base:
                     fails.append(f"L9 内容缩水：{fn} 的『{k}』={cur[k]} < 基线 {base}——只增不减,不许删有效研究证据")
 
+    # ── L51 唯一决定表·总数统计一致(董事长2026-07-20 致命1)：页头『程序统计』必须等于动作表(决定摘要)逐只统计 ──
+    for fn, h in vols.items():
+        if 'id="L3"' not in h and "inst-top" not in h:
+            continue
+        acts = re.findall(r"今日动作 <b>([加买守等减观])", h)   # 决定摘要逐只动作(唯一源)
+        m = re.search(r"程序统计[^加]*加\s*(\d+)[^守]*守\s*(\d+)[^等]*等\s*(\d+)[^减]*减\s*(\d+)[^观]*观察\s*(\d+)", _txt(h))
+        if acts and m:
+            got = [acts.count("加") + acts.count("买"), acts.count("守"), acts.count("等"),
+                   acts.count("减"), acts.count("观")]
+            dec = [int(x) for x in m.groups()]
+            if got != dec:
+                fails.append(f"L51 统计不符：{fn} 页头『程序统计』加/守/等/减/观={dec} ≠ 动作表逐只统计={got}"
+                             f"——总数必须由动作表程序统计得出·不得手写另算")
+
     # ── L50 日期一致性(董事长2026-07-20)：文件名日期 = run_id 日期 = 页头 data_date，三者必须一致(跨午夜错位) ──
     for fn, h in vols.items():
         if 'id="L3"' not in h and "inst-top" not in h:

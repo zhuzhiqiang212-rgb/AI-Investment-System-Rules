@@ -66,6 +66,21 @@ def run(date: str) -> dict:
     cases.append({"name": "致命5·删版块块(演练L48版块完整性闸)", "expect": "FAIL·L48", "fails": f4,
                   "ok": len(f4) >= 1})
 
+    # ── 致命7:术语裸奔(删术语速查表)→ L49术语 必拦(董事长2026-07-20) ──
+    inj7 = h.replace("术语速查表", "术语X表").replace('id="glossary"', 'id="gX"')
+    f7 = [x for x in curated(PL.lint_volumes({prod.name: inj7}, date)) if x.startswith("L49术语")]
+    cases.append({"name": "致命7·删术语速查表(演练L49术语裸奔闸)", "expect": "FAIL·L49术语", "fails": f7, "ok": len(f7) >= 1})
+
+    # ── 致命8:日期错位(run_id 改成次日)→ L50 必拦 ──
+    inj8 = h.replace("run_id=R3-" + date, "run_id=R3-" + str(int(date) + 1))
+    f8 = [x for x in curated(PL.lint_volumes({prod.name: inj8}, date)) if x.startswith("L50")]
+    cases.append({"name": "致命8·日期错位(注入run_id改次日·演练L50)", "expect": "FAIL·L50", "fails": f8, "ok": len(f8) >= 1})
+
+    # ── 致命9:统计手改错(加99)→ L51 必拦 ──
+    inj9 = h.replace("程序统计（共 20 只", "程序统计（共 20 只·加99", 1)
+    f9 = [x for x in curated(PL.lint_volumes({prod.name: inj9}, date)) if x.startswith("L51")]
+    cases.append({"name": "致命9·统计手改错(演练L51唯一决定表一致)", "expect": "FAIL·L51", "fails": f9, "ok": len(f9) >= 1})
+
     # ── 致命6:删掉大量反面证据 → L9 不缩水闸必拦 ──
     import re as _re
     inj5 = _re.sub(r"不选减|不选加|反面|挑战|证伪|推翻", "", h)
