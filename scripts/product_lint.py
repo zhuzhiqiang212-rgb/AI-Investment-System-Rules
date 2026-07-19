@@ -439,6 +439,33 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                              f"——按行业换尺(老雷法)要求每只标 行业标签+用哪把尺，不许一把尺套所有")
                 break
 
+    # ── L34 同股多股数(硬检查第2项·董事长2026-07-19 P0)：全产品同一只出现两个不同总股数→拦 ──
+    #     治软银"6600（富通4100＋SBI2500）"与"6900（富通4100＋SBI2800）"并存。用回归可拦。
+    for fn, h in vols.items():
+        t = _txt(h)
+        qmap: dict[str, set] = {}
+        # 只认【档案头格式】"{sym} · N股（各账户）"(sym 紧跟·再跟总股数)——避开散文里名字靠近别只股数的误报。
+        for m in re.finditer(r"(JP\.\d+|US\.[A-Z]+|HK\.\d+)\s*·\s*([\d,]{3,})\s*股（", t):
+            qmap.setdefault(m.group(1), set()).add(m.group(2).replace(",", ""))
+        for sym, qs in qmap.items():
+            if len(qs) > 1:
+                fails.append(f"L34 同股多股数：{fn} 的 {sym} 全产品出现多个总股数 {sorted(qs)}"
+                             f"——必须全读同一持仓底表(右栏档案与动态卡一致)，不许某处走旧数")
+
+    # ── L35 估值口径自相矛盾(硬检查第7项·董事长2026-07-19 P0)：同一只同屏"疑似错/拆股"+"已复核·非算错"→拦 ──
+    try:
+        sg = json.loads((ROOT / "data" / "reports" / f"data_sanity_{date}.json").read_text(encoding="utf-8"))
+        by_sym: dict[str, set] = {}
+        for x in (sg.get("issues") or []):
+            by_sym.setdefault(str(x.get("symbol")), set()).add(str(x.get("type")))
+        for sym, types in by_sym.items():
+            det = " ".join(str(x.get("detail")) for x in (sg.get("issues") or []) if str(x.get("symbol")) == sym)
+            if ("价格异常" in types or "疑似" in det or "拆股" in det) and ("已复核" in det or "非算错" in det):
+                fails.append(f"L35 估值口径自相矛盾：{sym} 同时出现『疑似错误/拆股』与『已复核·非算错』两口径"
+                             f"——明令禁止并存;核准了就删疑似句,没核准就统一写『数据未通过·不可据此买卖』")
+    except Exception:
+        pass
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:

@@ -94,8 +94,12 @@ def check(date: str) -> list:
                                      .get("results") or []) if r.get("symbol")}
 
     # ① 价格异常：现价与估值区间差 5 倍以上(疑似拆股/口径没换算)
+    #   P0-2(董事长2026-07-19):【已核准·真价】的(架构师 scale_status=已复核·如爱德万)不得再报"疑似错误"——
+    #   否则同屏出现"疑似拆股"与"已复核无误"两口径(明令禁止)。核准股的差倍由⑤量级哨兵按"已复核·口径差非数据错"说清。
     for h in holds:
         s = str(h.get("symbol")); px = h.get("price")
+        if str((arch.get(s) or {}).get("scale_status", "")).startswith("已复核"):
+            continue                                   # 已核准真价→不报价格异常(避免与量级哨兵"已复核"矛盾)
         v = valr.get(s) or {}
         lo, hi = v.get("reasonable_low"), v.get("reasonable_high")
         if px and lo and hi and lo > 0:
@@ -103,7 +107,7 @@ def check(date: str) -> list:
                 issues.append({"level": "红", "type": "价格异常",
                                "symbol": s, "name": h.get("name"),
                                "detail": f"现价 {px} 与估值区间 {lo}~{hi} 差 5 倍以上"
-                                         f"→疑似拆股未换算/口径不符，别据此买卖"})
+                                         f"→疑似拆股未换算/口径不符，别据此买卖·待人工核准"})
 
     # ② 只数对不上：production vs 深研卡
     n_prod = len(holds)

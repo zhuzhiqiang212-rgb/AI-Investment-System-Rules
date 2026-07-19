@@ -3527,7 +3527,31 @@ def _ruler_body(fname: str) -> str:
     inner = re.sub(r'<script[^>]*>.*?</script>', '', inner, flags=re.S)
     return inner
 
-def part6_rulers() -> str:
+def _scrub_archive_qty(inner: str, dyn: dict) -> str:
+    """P0-1(董事长2026-07-19):右栏持仓档案静态文件里硬编码的股数会过期(如软银6600/SBI2500)→
+    嵌入时一律用【当日 holdings_true 底表】动态覆盖每只的"·N股（各账户）"，右栏与动态卡读同一底表·不再各写一份。"""
+    hts = {str(h.get("symbol")): h for h in dyn.get("prod", {}).get("holdings", [])}
+    # holdings_true 才有各账户拆分；production 只有总量→优先读 holdings_true
+    try:
+        ht_all = {str(h.get("symbol")): h for h in
+                  (rj(ROOT / "data" / "accounts" / f"holdings_true_{dyn.get('date','')}.json").get("holdings") or [])}
+    except Exception:
+        ht_all = {}
+    for sym, h in {**hts, **ht_all}.items():
+        htrow = ht_all.get(sym) or {}
+        qty = htrow.get("total_quantity") or h.get("quantity")
+        if not qty:
+            continue
+        accs = htrow.get("accounts") or []
+        parts = [f"{a.get('account','')}{a.get('quantity'):g}" for a in accs if a.get("quantity")]
+        newq = f"{qty:g}股" + (f"（{'＋'.join(parts)}）" if parts else "")
+        # 替换 "{sym}</span> · <旧>股（...）" 里的股数段（只动股数·保留标的名/节点等静态计划）
+        inner = re.sub(re.escape(sym) + r'(</span>\s*·\s*)[\d,]+\s*股(?:（[^）]*）)?',
+                       lambda m, nq=newq: sym + m.group(1) + nq, inner)
+    return inner
+
+
+def part6_rulers(dyn: dict | None = None) -> str:
     RULERS = [
         ("右栏① 世界观 · 完整底子", "右栏_完整世界观描述.html", True),
         # 去重:②与②补原嵌同一文件→整块重复两份；安全/能源线已并入②文件内、只留一条(内容各留一份)
@@ -3540,6 +3564,8 @@ def part6_rulers() -> str:
     folds = []
     for i, (title, fname, opened) in enumerate(RULERS, start=1):
         body = _ruler_body(fname)
+        if fname == "右栏_持仓完整档案.html" and dyn is not None:
+            body = _scrub_archive_qty(body, dyn)   # P0-1:股数动态覆盖·读同一底表
         # 硬链2：左栏各层"对应尺"→本册 #ruler-{i}
         folds.append(f'<details class="ruler-embed" id="ruler-{i}"{" open" if opened else ""}>'
                      f'<summary>{esc(title)}</summary>'
@@ -3987,7 +4013,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     p_6b = part4b_swap_engine(daily, dyn)
     p_funnel = part4_funnel(date, daily, dyn)
     p_close = part5_closeloop(daily)
-    p_rulers = part6_rulers()
+    p_rulers = part6_rulers(dyn)
     p_pdca = part7_pdca(date, daily)
 
     # ══ 甲[工单2026-07-17·A方案]：7文件合并成【一个】 ★每日产品_日期.html，三层排版 ══
