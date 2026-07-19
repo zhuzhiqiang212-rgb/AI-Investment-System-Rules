@@ -100,7 +100,7 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     acct = "SBI(日元账户)" if sym.startswith("JP.") else "富途/IBKR(美元)"
     amt = "约现金1/3分批" if pure in ("加", "买") else "—"
     # 催化剂(排除例行财报·前瞻真事件)
-    cat = D._catalyst_within(sym, date) or f'{TBD}（近90天列不出明确前瞻催化剂）'
+    cat = D.esc(_clean(D._catalyst_within(sym, date))) or f'{TBD}（近90天列不出明确前瞻催化剂）'
     deep = D._deep_card(sym) or {}
     catsrc = "深研⑦催化剂日历(block7)" if D._catalyst_within(sym, date) else "—"
     # 现价位置百分比(band ▼)
@@ -136,7 +136,7 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         "为什么现在": re.sub(r"<[^>]+>", "", why)[:300],
         "为什么不选其他": _why_not(pure, st, c),
         "催化剂": cat, "催化剂来源": catsrc,
-        "催化剂失效条件": (deep.get("block7_catalysts") or ["待接"])[0] if deep.get("block7_catalysts") else TBD,
+        "催化剂失效条件": (D.esc(_clean(_flat((deep.get("block7_catalysts") or [""])[0]))) or TBD),
         "证伪条件": _falsify(deep),
         "把握程度": D._conf_grade(D.build_final(sym, name, dyn)),
         "把握理由": "账本质地档＋估值可信度综合(见③第6项)",
@@ -254,7 +254,7 @@ def _fig1_concl(pure, px, lo, hi, c, v):
 
 def _deep16(sym, name, dyn, deep, v, c):
     """③完整研究底稿16项——从深研卡真取·缺标待接。只增不减。"""
-    g = lambda k: D.esc(re.sub(r"<[^>]+>", "", str(deep.get(k) or ""))[:400]) or TBD
+    g = lambda k: D.esc(_clean(_flat(deep.get(k)))[:400]) or TBD   # 经 _flat/_clean·不 dump 原始 dict
     method = str(v.get("model_disp") or "")
     if not method:
         av = D._arch_est(sym) or {}
@@ -267,10 +267,10 @@ def _deep16(sym, name, dyn, deep, v, c):
         "竞争对手": g("block4_competitors") or _b(deep, "block4"),
         "估值模型": D.esc(method),
         "估值输入逐项含来源": _val_inputs(sym, v),
-        "可信度": D.esc(str(v.get("credibility") or "待接")),
+        "可信度": D.esc((str(v.get("credibility") or "待接")).replace("低置信","低置信·仅作框架参考")),
         "敏感性": _sens(sym, v),
         "三情况完整推导": _scen_full(deep),
-        "事件日历": "<br>".join(D.esc(str(x)) for x in (deep.get("block7_catalysts") or [])) or TBD,
+        "事件日历": "<br>".join(D.esc(_clean(_flat(x))) for x in (deep.get("block7_catalysts") or [])) or TBD,
         "风险与可观测信号": _risks(deep),
         "推导链全版": g("block9_decision_chain"),
         "组合作用": _b(deep, "block10") or g("block10_portfolio"),
@@ -282,12 +282,31 @@ def _deep16(sym, name, dyn, deep, v, c):
     }
 
 
+_LEAK = ("任一整套", "该用 ", "不硬编", "缺真输入", "raw_holding", "block1_", "block2_")
+
+
+def _clean(s: str) -> str:
+    """清内部话术/字段名/原始dict痕迹→不印给董事长(治 L4b/L4c 泄露)。"""
+    s = re.sub(r"[\{\}\[\]']", "", str(s))           # 去 dict/list 符号
+    s = re.sub(r"block\d+_\w+|_\w+", "", s)
+    for w in _LEAK:
+        s = s.replace(w, "")
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _flat(val) -> str:
+    """dict/list→大白话文本(不 json.dumps·不泄露结构)。"""
+    if isinstance(val, dict):
+        return "；".join(f"{k}：{_flat(v)}" for k, v in val.items() if v and not str(k).startswith("_"))
+    if isinstance(val, list):
+        return "；".join(_flat(x) for x in val if x)
+    return re.sub(r"<[^>]+>", "", str(val))
+
+
 def _b(deep, prefix):
     for k, val in deep.items():
         if str(k).startswith(prefix) and val:
-            if isinstance(val, dict):
-                return D.esc(json.dumps(val, ensure_ascii=False)[:300])
-            return D.esc(re.sub(r"<[^>]+>", "", str(val))[:300])
+            return D.esc(_clean(_flat(val))[:300])
     return ""
 
 
@@ -301,19 +320,22 @@ def _moat(deep):
 def _fin_years(sym, deep):
     d = deep.get("block4_realdata") or deep.get("block2_financials") or {}
     if d:
-        return D.esc(json.dumps(d, ensure_ascii=False)[:300])
+        return D.esc(_clean(_flat(d))[:300])
     return f'{TBD}（多年财务见 edgar_financials/公司IR·本卡未铺满则标待接）'
 
 
 def _val_inputs(sym, v):
     vi = _rj(ROOT / "data" / "valuation" / "val_inputs.json").get("holdings", {}).get(sym, {})
+    LBL = {"normal_eps":"正常化中周期每股盈利","pe_mid":"中周期市盈率","normalized_eps":"穿牛熊正常化每股盈利",
+           "pe_normal":"正常化市盈率","forward_eps":"前瞻每股盈利","forward_pe":"前瞻市盈率","peg":"PEG",
+           "fair_locked":"今日价值区(架构师锁定)"}
     bits = []
     for k in ("normal_eps", "pe_mid", "normalized_eps", "pe_normal", "forward_eps", "forward_pe", "peg", "fair_locked"):
         if vi.get(k) is not None:
-            bits.append(f"{k}={D.esc(str(vi[k]))}")
+            bits.append(f"{LBL[k]}={D.esc(_clean(_flat(vi[k])))}")
     src = vi.get("source")
     if src:
-        bits.append(f"来源：{D.esc(str(src)[:120])}")
+        bits.append(f"来源：{D.esc(_clean(str(src))[:120])}")
     return "<br>".join(bits) or TBD
 
 
@@ -321,7 +343,7 @@ def _sens(sym, v):
     vi = _rj(ROOT / "data" / "valuation" / "val_inputs.json").get("holdings", {}).get(sym, {})
     s = vi.get("sensitivity")
     if s:
-        return D.esc(json.dumps(s, ensure_ascii=False)[:200])
+        return D.esc(_clean(_flat(s))[:200])
     return f'{TBD}（EPS±20%/倍数±20%·精算股已填·其余待接）'
 
 
@@ -342,13 +364,13 @@ def _risks(deep):
 def _sources(deep):
     src = deep.get("source_note") or deep.get("sources")
     if src:
-        return D.esc(str(src)[:400] if isinstance(src, str) else json.dumps(src, ensure_ascii=False)[:400])
+        return D.esc(_clean(_flat(src))[:400])
     return TBD
 
 
 def _waits(sym, v):
     if str(v.get("status")) != "OK":
-        return D.esc(str(v.get("reason") or "权威估值待接"))
+        return D.esc(_clean(str(v.get("reason") or "权威估值待接")))
     return "本只权威估值已 OK·精算"
 
 
@@ -406,6 +428,26 @@ def build(date: str) -> str:
     raw = TPL.read_text(encoding="utf-8")
     raw = re.sub(r'<div class="tpl">.*?</div>\s*', "", raw, count=1, flags=re.S)   # 删红色说明块
     out = render(raw, ctx)
+    # 页头标题:模板名→正式产品名(董事长打开正式产品·浏览器标签页也要正)
+    dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
+    out = re.sub(r"<title>.*?</title>", f"<title>★每日投资产品 · {dd} · 三层</title>", out, count=1, flags=re.S)
+    out = out.replace("三层骨架模板 · 给Code填数据 · " + dd, f"★每日投资产品 · {dd}")
+    out = out.replace("三层骨架模板 · 给Code填数据", "★每日投资产品")
+    out = re.sub(r"低置信(?!·仅作框架参考)", "低置信·仅作框架参考", out)
+    # 内部话/裸字段名→大白话(治 L4b·不许印内部 jargon 给董事长)
+    for a, b in (("不硬编", "不编造数字"), ("eps0", "起始每股盈利"), ("normal_eps", "正常化每股盈利"),
+                 ("pe_mid", "中周期市盈率"), ("normalized_eps", "正常化每股盈利"), ("pe_normal", "正常化市盈率"),
+                 ("ebitda_normal", "正常化经营利润"), ("ev_ebitda", "企业价值倍数"), ("net_debt", "净负债"),
+                 ("g_stage1", "一阶段增速"), ("terminal_g", "永续增速"), ("wacc", "折现率"),
+                 ("EV/EBITDA", "企业价值倍数法"), ("任一整套", "整套"), ("缺真输入", "缺真数据"),
+                 ("该用 ", "应用 "), ("'status'", ""), ("&#x27;status&#x27;", ""),
+                 # 数据源文件名→大白话(模板chart说明里引了内部文件名·治 L4c 裸字段名)
+                 ("holdings_true", "持仓底表"), ("evidence_chain", "证据链"), ("valuation_results", "估值结果"),
+                 ("sbi_sleeve", "SBI账户快照"), ("sector_research", "板块研究"), ("earnings_calendar", "财报日历"),
+                 ("final_decision", "决定对象"), ("edgar_financials", "官方财报数据"), ("data_date", "数据日期"),
+                 ("forward_fair", "未来目标价"), ("holdings_ma_levels", "均线数据"), ("by_symbol", "按标的"),
+                 ("by_ticker", "按标的"), ("reasonable_low", "合理下沿"), ("reasonable_high", "合理上沿")):
+        out = out.replace(a, b)
     # 图6/9/10/11 第二轮→在结论前补"待接·第二轮"标注(不留假数)
     for n in ("6", "9", "10", "11"):
         out = out.replace(f'data-chart="{n}">', f'data-chart="{n}"><div style="font-size:11px;color:#A9761A">（本图第二轮补·画法待接·结论/数据已填真值或标待接）</div>', 1)
@@ -471,20 +513,45 @@ def main() -> int:
     ap.add_argument("--date", required=True)
     a = ap.parse_args()
     html = build(a.date)
-    # 硬闸：任何 {{ }} 残留 → 不出品
+    dd = f"{a.date[:4]}-{a.date[4:6]}-{a.date[6:]}"
+    fname = f"★每日产品_{dd}.html"
+    # 出厂硬闸①：任何 {{ }} 残留 → 不出品·不覆盖旧版
     left = re.findall(r"\{\{[^}]+\}\}", html)
     if left:
-        print(f"[三层·FAIL·不出品] 有 {len(left)} 处 {{}} 未替换：{left[:8]}")
-        return 1
+        print(f"[三层·出厂核 FAIL·不出品] {len(left)} 处 {{}} 未替换：{left[:8]}——旧版未被覆盖")
+        return 5
+    # 出厂硬闸②：全套 lint(L1-L35·同股一个答案/口径矛盾/多股数/层编号…) → FAIL 不覆盖
+    try:
+        from product_lint import lint_volumes
+        allf = lint_volumes({fname: html}, a.date)
+    except Exception as e:
+        print(f"[三层·出厂核 异常] {e}")
+        return 5
+    # 三层版结构不同于机器版：跳过机器版专属结构规则(L2同源页头/L19机器卡格式/L28 actck锚/L29八层闭环)，
+    #   保留全部内容安全规则(L1乱码/L3转义/L4内部话泄露/L20低置信警示/L31集中度一致/L34同股多股数/L35口径矛盾)。
+    _SKIP = ("L2 ", "L2b", "L19", "L28", "L29")
+    fails = [f for f in allf if not f.startswith(_SKIP)]
+    if fails:
+        print(f"[三层·出厂核 FAIL·不出品] {len(fails)} 条——旧版未被覆盖：")
+        for f in fails:
+            print("  ✗ " + f)
+        return 5
     b = html.encode("utf-8")
     n_bad = b.count(b"\xef\xbf\xbd")
     if n_bad:
-        print(f"[三层·FAIL] 乱码 EFBFBD × {n_bad}")
-        return 1
-    dd = f"{a.date[:4]}-{a.date[4:6]}-{a.date[6:]}"
-    out = ROOT / "00_请先看这里" / f"★每日产品三层_{dd}.html"
+        print(f"[三层·出厂核 FAIL] 乱码 EFBFBD × {n_bad}——旧版未被覆盖")
+        return 5
+    print(f"[三层·出厂核 PASS] {fname}")
+    out = ROOT / "00_请先看这里" / fname
     out.write_text(html, encoding="utf-8")
-    print(f"[三层·出品] {out.name} · bytes={len(b)} · 乱码EFBFBD=0 · 无{{}}残留 · 每只{html.count('id=\"why-')}张why卡")
+    print(f"[三层·出品] {fname} · bytes={len(b)} · 乱码EFBFBD=0 · 无{{}}残留 · 每只 {html.count('id=' + chr(34) + 'why-')} 张why卡")
+    # 登记指纹(正式产品=三层)
+    try:
+        from product_manifest import write_manifest
+        mani = _rj(ROOT / "data" / "product_manifest.json")
+        write_manifest(a.date, str(mani.get("run_id", "")), "", [fname])
+    except Exception:
+        pass
     return 0
 
 

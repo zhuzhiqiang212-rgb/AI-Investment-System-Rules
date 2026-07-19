@@ -25,13 +25,19 @@ def run(date: str) -> dict:
     h = prod.read_text(encoding="utf-8")
     cases = []
 
-    # ── 基线:正式产品应【全过】 ──
-    base = PL.lint_volumes({prod.name: h}, date)
-    cases.append({"name": "基线(正式产品原样)", "expect": "PASS", "fails": base,
+    # 正式产品=三层:与 render_3layer 出厂闸同一套 curated lint(跳过机器册专属结构规则·保留全部内容安全规则)
+    _SKIP = ("L2 ", "L2b", "L19", "L28", "L29")
+    curated = lambda fails: [x for x in fails if not x.startswith(_SKIP)]
+
+    # ── 基线:正式产品应【全过】(curated·与出厂闸同口径) ──
+    base = curated(PL.lint_volumes({prod.name: h}, date))
+    cases.append({"name": "基线(正式产品原样·出厂闸同口径)", "expect": "PASS", "fails": base,
                   "ok": len(base) == 0})
 
-    # ── 致命1:注入软银第二个总股数 6600（档案头格式，会被 L34 抓） ──
-    inj1 = h.replace("</body>", "<div>软银 JP.9984 · 6600股（富通4100＋SBI2500）</div></body>", 1)
+    # ── 致命1:注入软银两个相互矛盾的总股数(6600 与 6900)→ L34 同股多股数必抓 ──
+    inj1 = h.replace("</body>",
+                     "<div>软银 JP.9984 · 6600股（富通4100＋SBI2500）</div>"
+                     "<div>软银 JP.9984 · 6900股（富通4100＋SBI2800）</div></body>", 1)
     f1 = [x for x in PL.lint_volumes({prod.name: inj1}, date) if x.startswith("L34")]
     cases.append({"name": "致命1·同股多股数(注入软银6600)", "expect": "FAIL·L34", "fails": f1,
                   "ok": len(f1) >= 1})
@@ -48,16 +54,35 @@ def run(date: str) -> dict:
     cases.append({"name": "致命2·估值口径矛盾(注入爱德万疑似拆股)", "expect": "FAIL·L35", "fails": f2,
                   "ok": len(f2) >= 1})
 
-    # ── 不覆盖机制:deep_render 出厂前跑 lint，FAIL 即 return(不写文件)·旧册保留 ──
-    #   证据=deep_render.build 内 "[出厂核 FAIL·不出品] … 旧册未被覆盖" 分支(已在多轮渲染日志出现)。
-    mech_ok = True
+    # ── 真实测:FAIL→正式产品不被覆盖·保留上一版(哈希前后比对·董事长2026-07-19补做) ──
+    #   做法:①记正式产品(★每日产品_·三层)当前哈希/mtime ②注入爱德万价格异常(制造 L35 FAIL)
+    #   ③真跑 render_3layer(出厂lint硬闸) ④比对哈希——FAIL 应 rc≠0 且哈希/mtime 不变(没被覆盖)。
+    import hashlib
+    import subprocess
+    h_before = hashlib.sha256(prod.read_bytes()).hexdigest()[:16] if prod.exists() else "(无·首次)"
+    mt_before = prod.stat().st_mtime if prod.exists() else 0
+    sd2 = json.loads(sp.read_text(encoding="utf-8"))
+    sd2_bak = json.dumps(sd2, ensure_ascii=False)
+    sd2["issues"].append({"level": "红", "type": "价格异常", "symbol": "JP.6857",
+                          "name": "爱德万", "detail": "疑似拆股未换算·口径不符"})
+    sp.write_text(json.dumps(sd2, ensure_ascii=False), encoding="utf-8")
     try:
-        src = (ROOT / "scripts" / "deep_render.py").read_text(encoding="utf-8")
-        mech_ok = ("出厂核 FAIL" in src and "不出品" in src)
-    except Exception:
-        mech_ok = False
-    cases.append({"name": "FAIL→不覆盖正式产品·保留上一版(deep_render出厂lint硬闸)",
-                  "expect": "机制在位", "fails": [], "ok": mech_ok})
+        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "render_3layer.py"), "--date", date],
+                           capture_output=True, text=True, encoding="utf-8", timeout=300)
+        rc = r.returncode
+        rc_out = (r.stdout or "").strip().splitlines()[:1]
+    finally:
+        sp.write_text(sd2_bak, encoding="utf-8")     # 还原
+    h_after = hashlib.sha256(prod.read_bytes()).hexdigest()[:16] if prod.exists() else "(无)"
+    mt_after = prod.stat().st_mtime if prod.exists() else 0
+    not_overwritten = (h_before == h_after) and (mt_before == mt_after)
+    cases.append({"name": "FAIL→正式产品不被覆盖·保留上一版(真实测·哈希前后比对)",
+                  "expect": "FAIL(rc≠0)且哈希不变",
+                  "fails": [f"注入L35后 rc={rc}（≠0=正确拦下）",
+                            f"哈希 前{h_before} → 后{h_after}（相同=没被覆盖）",
+                            f"mtime {'未变' if mt_before==mt_after else '变了!'}",
+                            f"渲染器输出：{rc_out}"],
+                  "ok": (rc != 0) and not_overwritten})
 
     return {"date": date, "product": prod.name, "cases": cases,
             "all_ok": all(c["ok"] for c in cases)}
