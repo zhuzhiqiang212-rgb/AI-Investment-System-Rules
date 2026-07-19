@@ -86,11 +86,13 @@ def archive_old(date: str) -> list:
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
     keep = f"★每日产品_{dd}.html"        # 甲[A方案]：合并后每天只留【这一个】文件
     moved = []
-    for p in d.glob("★每日产品_*.html"):
+    # 归档非当天的分册 + 【新1·董事长2026-07-19】旧渲染器的 legacy 完整产品_{date}.html(文件唯一性·每天只留一份正式版)
+    globs = list(d.glob("★每日产品_*.html")) + list(d.glob(f"完整产品_{date}.html")) + list(d.glob(f"完整产品_{date}_v*.html"))
+    for p in globs:
         if p.name == keep:
             continue                      # 旧的分册(★每日产品_日期_1_总览闭环.html 等)照样归档
         try:
-            tgt = arc / p.name
+            tgt = arc / (p.name if not p.name.startswith("完整产品") else p.stem + "_legacy归档.html")
             if tgt.exists():
                 tgt.unlink()
             p.rename(tgt)

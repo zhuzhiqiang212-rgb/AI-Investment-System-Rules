@@ -549,10 +549,12 @@ def build_final(sym: str, name: str, dyn: dict) -> dict:
     c = cur(sym)
     # 估值(单一源=valuation_results)：OK→区间+中枢+法+可信度；待接→标待接；退回production label仅作辅助词
     if v.get("status") == "OK":
+        # 新2(董事长2026-07-19):可信度必须与 valuation_results.credibility 自述一致·不许硬编 A 虚高
+        _cred = str(v.get("credibility") or "A·精算")
         valuation_text = (f'{esc(v.get("model_disp","精算"))}·合理区 {c}{fnum(v.get("reasonable_low"))}~{c}{fnum(v.get("reasonable_high"))}'
-                          f'·中枢 {c}{fnum(v.get("target"))}（可信度A）')
+                          f'·中枢 {c}{fnum(v.get("target"))}（可信度{esc(_cred)}）')
         valuation_short = f'合理区 {c}{fnum(v.get("reasonable_low"))}~{c}{fnum(v.get("reasonable_high"))}·中枢{c}{fnum(v.get("target"))}'
-        valuation_grade = "A·精算"
+        valuation_grade = _cred
     else:
         # 权威估值待接 → 若架构师有中周期估算(6只)，三处一律回退显【值+尺+可靠度+怎么办】·不再光秃秃"待接"
         _av = arch_val_display(sym, dyn)

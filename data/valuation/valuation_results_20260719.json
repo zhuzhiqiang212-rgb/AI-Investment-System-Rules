@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19T09:33:58.455815+09:00",
+  "generated_at": "2026-07-19T11:48:34.187801+09:00",
   "engine": "分类型估值引擎 v2·按类型自动选模型",
   "ruler": "00_请先看这里/右栏_估值方法学.html",
   "type_model_map": {
@@ -143,8 +143,8 @@
       "reasonable_low": 2646.0,
       "reasonable_high": 3234.0,
       "target": 2940.0,
-      "confidence": "A·mid_cycle",
-      "credibility": "A·精算",
+      "confidence": "中高·精算(真数·仅取到FY22-25共4年·FY19-21未取到→区间偏保守)",
+      "credibility": "中高·精算(真数·仅取到FY22-25共4年·FY19-21未取到→区间偏保守)",
       "assumptions": {
         "法": "正常年景EPS×中周期PE",
         "normal_eps": 147.0,
@@ -181,8 +181,8 @@
       "reasonable_low": 325.0,
       "reasonable_high": 360.0,
       "target": 342.0,
-      "confidence": "A·mid_cycle",
-      "credibility": "A·精算",
+      "confidence": "中高·架构师锁定前瞻(FY26E EPS/PE/PEG·非机械精算)",
+      "credibility": "中高·架构师锁定前瞻(FY26E EPS/PE/PEG·非机械精算)",
       "assumptions": {
         "法": "P/E+PEG(成熟成长·非中周期)",
         "forward_eps": 18,
@@ -470,8 +470,8 @@
       "reasonable_low": 67.12,
       "reasonable_high": 82.04,
       "target": 74.58,
-      "confidence": "A·normalized_pe",
-      "credibility": "A·精算",
+      "confidence": "中·精算(真SEC数·但周期极端·穿牛熊简单平均)",
+      "credibility": "中·精算(真SEC数·但周期极端·穿牛熊简单平均)",
       "assumptions": {
         "法": "正常化EPS×正常化PE",
         "normalized_eps": 3.39,

@@ -157,6 +157,16 @@ MODEL_FN = {"growth_dcf": m_growth_dcf, "nav": m_nav, "mid_cycle": m_mid_cycle,
             "pbv": m_pbv, "normalized_pe": m_normalized_pe}
 
 
+def _apply_credibility(result, it):
+    """新2(董事长2026-07-19):可信度标签必须与 note 自述一致·不许挂虚高A牌。
+    val_inputs 有 credibility 字段→用它覆盖(如爱德万→中高·COIN→中);没有→保持默认。"""
+    cr = (it or {}).get("credibility")
+    if cr and isinstance(result, dict) and result.get("status") == "OK":
+        result["credibility"] = str(cr)
+        result["confidence"] = str(cr)
+    return result
+
+
 def value_one(sym, it):
     """按类型自动选模型给一只标的估值(持仓或候选皆可)。it=真财务输入(可空)。"""
     it = it or {}
@@ -177,14 +187,14 @@ def value_one(sym, it):
         r["target_future"] = it.get("target_future")   # 未来1~2年目标价(三段式④)
         r["forward_eps"] = it.get("forward_eps"); r["forward_pe"] = it.get("forward_pe"); r["peg"] = it.get("peg")
         r["source"] = it.get("source", "")
-        return r
+        return _apply_credibility(r, it)
     cls = classify(sym, name)                     # 类型自动分类→模型(尺)
     if cls["model"] == "asset_none":
         return _asset(sym, name, cls)
     fn = MODEL_FN.get(cls["model"])
     if fn is None:                                # 理论不至·防御
         return _pending(sym, name, cls, [f"模型 {cls['model']} 未实现"])
-    return fn(sym, name, cur, cls, it)
+    return _apply_credibility(fn(sym, name, cur, cls, it), it)
 
 
 def compute(inputs: dict) -> dict:
