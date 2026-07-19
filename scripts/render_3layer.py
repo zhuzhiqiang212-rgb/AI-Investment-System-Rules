@@ -661,6 +661,10 @@ def _light_theme(out: str) -> str:
     for a, b in _INLINE_BG.items():
         out = out.replace(f"background:{a}", f"background:{b}").replace(f"background: {a}", f"background:{b}")
         out = out.replace(f"background-color:{a}", f"background-color:{b}")
+    # 边框/杂项残留亮金(非 color: 前缀·上单未清·第六节)→深色
+    out = out.replace("background:#ffb454;color:#0b1118", "background:#8A3E00;color:#FFFFFF")  # 亮金badge→深底白字
+    for a, b in (("#caa24a", "#6B5200"), ("#ffd479", "#7A5C00"), ("#ffb454", "#8A3E00")):
+        out = out.replace(a, b)     # 边框等一切残留(全局)
     return out
 
 
@@ -1011,6 +1015,86 @@ def _institutional(date, dyn):
     return header + html, present
 
 
+# ── [P0-P2]目标倒推模块(董事长2026-07-19定稿·1年双档·主战场SBI+富途) ──
+_TARGET_CFG = {
+    "期限": "1年", "SBI": 490779, "富途": 1029535, "主战场": 1520314,
+    "need40": 608126, "need100": 1520314, "预期年化": "约+12%~+17%",
+    "缺40": "23~28个百分点", "缺100": "83~88个百分点", "盲区占比": "36.6%",
+}
+_TARGET_ROLE = {   # 角色/持仓意图/对目标贡献pp/凭什么占这个仓位(定稿第五节·算不出标盲区不留空)
+    "US.NVDA": ("主攻", "核心持有（受45%上限挡·条件允许时加）", "+7.73pp", "AI算力龙头·Rubin下季贡献·上行最大的单一来源"),
+    "US.MSFT": ("主攻", "核心持有", "主攻组内（组合+16.8pp）", "Copilot变现+Azure+38%·现金流龙头"),
+    "JP.4568": ("主攻", "等回调上车→系统建议已转『加』", "主攻组内", "ADC龙头+I-DXd催化·便宜且有催化"),
+    "US.AVGO": ("压舱", "维持·不指望冲", "压舱组内（+1.0pp）", "定制AI芯片$73B订单·但AI供应链超配·只能压不能加"),
+    "JP.8766": ("压舱", "核心持有", "压舱组内", "保险压舱·低波动·稳"),
+    "JP.7832": ("压舱", "核心持有", "压舱组内", "IP护城河·稳"),
+    "JP.7974": ("拖累", "换出候选（最大单一拖累·另有净现金缓冲需一并计算）", "拖累组内（−1.20pp）", "答不上→换出候选；待架构师算『换掉能补多少缺口』"),
+    "JP.7203": ("拖累", "换出候选", "拖累组内", "低增速·占仓不贡献目标"),
+    "US.IBKR": ("拖累", "观察减仓（好公司涨太多·等回调）", "拖累组内", "极贵约1.6倍·占仓对缺口贡献有限"),
+    "US.META": ("低效占仓", "观察（资本开支上调是隐忧）", "+0.25pp", "贵+资本开支隐忧·观察"),
+    "JP.9984": ("盲区", "限期接真数据（最急·权重15.4%）", "盲区·算不出", "NAV折价但到期上行算不出→盲区"),
+    "JP.6857": ("盲区", "异常价专项核准前不动（次急·权重9.0%）", "盲区·算不出", "异常价未通过专项核准"),
+    "US.MSTR": ("盲区", "限期接真数据", "盲区·算不出", "依BTC币价·算不出到期上行"),
+    "US.COIN": ("盲区", "观察减仓（已现裂缝）", "盲区·算不出", "低置信·穿牛熊·算不出"),
+    "US.SNDK": ("盲区", "异常价专项核准前不动", "盲区·算不出", "异常价未通过专项核准"),
+    "US.CRCL": ("盲区", "限期接真数据", "盲区·算不出", "低置信·待接"),
+    "JP.8001": ("盲区", "限期接真数据", "盲区·算不出", "商社·NAV待接"),
+    "US.SPCX": ("盲区", "无操作意图（只观察·无可信估值）", "盲区·算不出", "暂无可信估值"),
+    "US.TSM": ("待建仓", "等回调上车：第一档$360／第二档$325（PEG0.6·分档不死等）", "待建仓·—", "董事长曾重仓·止盈卖出·现1股非零头·等回调再上"),
+}
+# P2 双档并列(定稿第三节·加/减候选各给中性+40%提醒/激进+100%执行·激进必带最坏情形)
+_DUAL = {
+    "JP.4568": ("第一档 ¥2,959 分批买入·约用现金1/3", "约 +0.4~0.6pp",
+                "若 I-DXd 审批被拒·回 ¥2,300 附近·这笔亏约 −20%·对总组合影响约 −0.3%",
+                "第一档 ¥2,959 买入约现金2/3·不等第二档", "约 +0.8~1.2pp",
+                "同情形亏约 −20%·因仓位翻倍对总组合影响约 −0.6%；且现金消耗后若他标出现更好机会将无钱可用"),
+    "JP.6758": ("到便宜位分批买·约用现金1/3", "约 +0.3~0.5pp",
+                "若游戏事业增益不及预期·回落约 −15%·对总组合影响约 −0.2%",
+                "分批买约现金2/3·偏重", "约 +0.6~1.0pp", "同情形亏约 −15%·仓位翻倍对总组合影响约 −0.4%·占用后续机会现金"),
+}
+
+
+def _target_gap_block():
+    """P0 目标—缺口 模块(放第一层最顶部)。"""
+    c = _TARGET_CFG
+    return (
+        '<div id="target-gap" style="background:#FFFFFF;border:2px solid #5C4033;border-radius:10px;padding:11px 14px;margin:6px 0 12px">'
+        '<div style="font-size:19px;font-weight:900;color:#5C4033">🎯 离目标还差多少（1年期·双档·主战场SBI+富途）</div>'
+        '<div style="font-size:14px;color:#1A1A1A;line-height:1.9;margin-top:5px">'
+        f'主战场当前市值 <b>${c["主战场"]:,}</b>（SBI ${c["SBI"]:,} + 富途 ${c["富途"]:,}）｜预期年化 {c["预期年化"]}<br>'
+        f'<span style="background:#EAF2FA;padding:2px 8px;border-radius:6px">【中性档 +40%】一年需赚 <b>${c["need40"]:,}</b>·距目标缺口 <b>{c["缺40"]}</b></span>　'
+        f'<span style="background:#F5EFE0;padding:2px 8px;border-radius:6px">【激进档 +100%】一年需赚 <b>${c["need100"]:,}</b>·距目标缺口 <b>{c["缺100"]}</b></span><br>'
+        f'<span style="color:#8A3E00">⚠ 盲区占 <b>{c["盲区占比"]}</b>（软银/爱德万/MSTR/COIN/闪迪/CRCL/伊藤忠/SpaceX·算不出到期上行→限期接真数据）；'
+        '各只『对目标贡献pp』见其卡内四字段。两档并列·董事长自己选一档拍板·系统不替他选。</span></div></div>')
+
+
+def _target_role_block(sym):
+    """P1 每只四字段:角色/持仓意图/对目标贡献pp/凭什么占这个仓位(算不出标盲区·不留空)。"""
+    r = _TARGET_ROLE.get(sym)
+    if not r:
+        r = ("盲区", "待接·未设定", "盲区·算不出", "待架构师/董事长补")
+    role, intent, pp, why = r
+    return (
+        '<div style="font-size:12px;color:#1A1A1A;background:#F2F4F7;border-left:3px solid #5C4033;'
+        'border-radius:0 6px 6px 0;padding:6px 10px;margin:5px 0">'
+        f'<b style="color:#5C4033">目标倒推·四字段</b>：角色 <b>{role}</b>｜持仓意图 {intent}｜对目标贡献 <b>{pp}</b>｜凭什么占这个仓位：{why}</div>')
+
+
+def _dual_track_block(sym):
+    """P2 双档并列(仅加/减候选):中性+40%提醒 / 激进+100%执行·各带补缺口与最坏情形。"""
+    d = _DUAL.get(sym)
+    if not d:
+        return ""
+    return (
+        '<div style="font-size:12px;color:#1A1A1A;background:#FFFFFF;border:1px solid #5C4033;'
+        'border-radius:7px;padding:7px 10px;margin:6px 0">'
+        '<b style="color:#5C4033">买卖建议·双档并列（董事长自己选一档·系统不替他选）</b><br>'
+        f'<span style="background:#EAF2FA;padding:1px 6px;border-radius:5px"><b>【中性档·+40%】提醒</b></span>：{d[0]}<br>'
+        f'　· 对缺口贡献：{d[1]}<br>　· 最坏会怎样：{d[2]}<br>'
+        f'<span style="background:#F5EFE0;padding:1px 6px;border-radius:5px"><b>【激进档·+100%】执行</b></span>：{d[3]}<br>'
+        f'　· 对缺口贡献：{d[4]}<br>　· <b>最坏会怎样（激进档必写）</b>：{d[5]}</div>')
+
+
 def build(date: str) -> str:
     dyn = D.load_dynamic(date)
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
@@ -1138,6 +1222,13 @@ def build(date: str) -> str:
     # [七.2]每只 L3 卡顶注入决定摘要(在 id="deep-SYM" 开头)
     for _sym, _summ in _summ_map.items():
         out = out.replace(f'id="deep-{_sym}">', f'id="deep-{_sym}">{_summ}', 1)
+    # [P0]目标—缺口 模块放第一层最顶部(①离目标还差多少·董事长第一眼看到)
+    out = re.sub(r'(<details class="layer" id="L1"[^>]*>\s*<summary>[^<]*</summary>\s*<div class="body">)',
+                 lambda m: m.group(1) + _target_gap_block(), out, count=1)
+    # [P1]每只四字段(角色/意图/贡献pp/凭什么) + [P2]双档并列(加/减候选)→注入每只 why 卡开头
+    for _sym in [hc.get("代码") for hc in each if hc.get("代码")]:
+        out = out.replace(f'id="why-{_sym}">',
+                          f'id="why-{_sym}">{_target_role_block(_sym)}{_dual_track_block(_sym)}', 1)
     # L3 导航追加机构底稿锚 + 顶部导航
     out = out.replace('<a href="#L3">③ 完整研究底稿</a>',
                       '<a href="#L3">③ 完整研究底稿</a><a href="#inst-top">④ 完整机构底稿</a>', 1)
