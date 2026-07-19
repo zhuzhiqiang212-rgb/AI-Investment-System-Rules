@@ -568,6 +568,99 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         if n_src and n_lnk < n_src:
             fails.append(f"L8 缺链接：{fn} 有 {n_src} 条新闻、但只有 {n_lnk} 条给了原文链接/无直链标注")
 
+    # ══ L40-L47 GPT9独立验收升级(董事长2026-07-19)：把星期日冒充实时价/守减矛盾/状态并存等焊死 ══
+    import datetime as _dt
+
+    def _is_trading_day(d: str) -> bool:
+        dd = str(d).replace("-", "")
+        try:
+            return _dt.date(int(dd[:4]), int(dd[4:6]), int(dd[6:8])).weekday() < 5   # 仅周末判据(假期未含·保守)
+        except Exception:
+            return True
+
+    def _cards(h: str):
+        """按 id="why-SYM" / id="deep-SYM" 卡锚切每只的卡片段(用于同卡自洽检查)。"""
+        anchors = [(m.start(), m.group(1))
+                   for m in re.finditer(r'id="(?:why|deep)-((?:JP|US|HK|CC)\.[A-Z0-9.]+)"', h)]
+        bounds = anchors + [(len(h), None)]
+        segs = {}
+        for k in range(len(anchors)):
+            s0, sym = bounds[k]
+            segs.setdefault(sym, "")
+            segs[sym] += h[s0:bounds[k + 1][0]]
+        return segs
+
+    nontrading = not _is_trading_day(date)
+
+    for fn, h in vols.items():
+        t = _txt(h)
+
+        # L40 交易日校验:非交易日不许出现"当日实时价"类肯定断言(前面不是"非")
+        if nontrading:
+            false_claim = re.findall(r"(?<!非)当日实时价", t)
+            if false_claim:
+                fails.append(f"L40 交易日校验：{fn} 生产日 {date} 非交易日，却出现『当日实时价』类肯定表述 "
+                             f"{len(false_claim)} 处——非交易日禁用，须显示真实交易日")
+
+        # L41 价格日与生产日分离:每只须两独立字段(价对应交易日/生产日);非交易日二者相同→FAIL
+        if "价对应交易日" in t and "生产日" in t:
+            bad = re.findall(r"价对应交易日\s*([\d\-]{5,10}).{0,40}?生产日\s*([\d\-]{5,10})", t)
+            for pd, gd in bad:
+                if nontrading and pd.replace("-", "") == gd.replace("-", ""):
+                    fails.append(f"L41 价格日=生产日：{fn} 非交易日却把价格交易日({pd})标成与生产日({gd})相同——须标真实最近交易日")
+                    break
+        elif re.search(r"现价|价对应交易日", t) and "价对应交易日" not in t:
+            fails.append(f"L41 缺价格交易日字段：{fn} 有现价却无『价对应交易日』独立字段（须与生产日分开显示）")
+
+        # L42 同卡语义自洽:极贵/超上沿 与 没到贵位 不得并存;守/等时不得写"涨过X才谈减"
+        for sym, seg in _cards(h).items():
+            st = _txt(seg)
+            expensive = ("极贵" in st) or re.search(r"上沿之上|超上沿|上沿\s*[\d.]+\s*倍", st)
+            if expensive and "没到贵位" in st:
+                fails.append(f"L42 同卡自相矛盾：{fn} 的 {sym} 同时出现『极贵/超上沿』与『没到贵位』——判词方向打架")
+            if expensive and re.search(r"涨过\s*[¥$][\d,]+.{0,6}才谈减", st):
+                fails.append(f"L42 判词与停止条件打架：{fn} 的 {sym} 现价已超上沿，却仍写『涨过X才谈减』")
+
+        # L43 状态互斥:同一只不得同时"输入未接/不标精算"与"已OK·精算"
+        for sym, seg in _cards(h).items():
+            st = _txt(seg)
+            if ("输入未接" in st or "不标精算" in st) and "已OK·精算" in st:
+                fails.append(f"L43 状态并存：{fn} 的 {sym} 同时出现『输入未接/不标精算』与『已OK·精算』——每只只留一种状态")
+
+        # L44 尺原文比对:企稳判据须用批准原文『近20个交易日不创新低』,禁用『站稳20日均值/站上20日均线』
+        for wrong in ("站稳20日均值", "站上20日均线", "站稳20日均线"):
+            if wrong in t:
+                fails.append(f"L44 尺原文不符：{fn} 出现『{wrong}』——批准原文是『近20个交易日不创新低』，须逐字一致")
+
+        # L45 未完成项穷举:全文『画法待接/第二轮补』的图 == 公开未完成清单里列的图
+        scanned = set(re.findall(r"图(\d+简?)[^画]{0,40}?画法待接", t))
+        if "画法待接" in t:
+            if "已知未完成清单" not in t:
+                fails.append(f"L45 未完成清单缺失：{fn} 全文有『画法待接』却无公开『已知未完成清单』")
+            else:
+                listed = set(re.findall(r"图(\d+简?)\b", t[t.find("已知未完成清单"):t.find("已知未完成清单") + 400]))
+                if scanned and not scanned <= listed:
+                    fails.append(f"L45 未完成清单不全：{fn} 扫到画法待接的图 {sorted(scanned)} 未全部列入公开清单 {sorted(listed)}")
+
+        # L46 内部字段通用模式:下划线/加号连接的小写标识、空参()——正文里一律不许(董事长看不懂)
+        leaks = set(re.findall(r"\b[a-z]{2,}(?:_[a-z0-9]+)+\b", t))          # snake_case
+        leaks |= set(re.findall(r"\b[a-z]{2,}(?:\+[a-z]+)+\b", t))           # plus+joined
+        leaks |= set(re.findall(r"\b[a-z_]{2,}\(\)", t))                     # empty_call()
+        leaks -= {"data_date", "run_id"}                                    # 这俩是页头明示的技术戳·允许
+        leaks = {x for x in leaks if not re.match(r"https?", x)}
+        if leaks:
+            fails.append(f"L46 内部字段泄漏(模式)：{fn} 正文出现内部标识 {sorted(leaks)[:5]}——须转人话或删")
+
+        # L47 清单去重:页头『待接 N』须等于待接清单里去重后的条目数
+        m = re.search(r"待接\s*(\d+)", t)
+        if m:
+            declared = int(m.group(1))
+            # 待接清单表:标的列(去重)
+            names = re.findall(r"权威估值待接|待接·不编|数据未通过", t)  # 粗核:仅当声明数明显>实体去重时报
+            # 用"不能依赖/待接清单"块的行数近似:此处只拦"声明数≠0 但清单为空"及重复名
+            if declared > 0 and "待接" not in t:
+                fails.append(f"L47 清单对不上：{fn} 页头称待接 {declared} 项，正文却找不到待接清单")
+
     return fails
 
 

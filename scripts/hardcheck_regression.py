@@ -65,33 +65,89 @@ def run(date: str) -> dict:
     #   ③真跑 render_3layer(出厂lint硬闸) ④比对哈希——FAIL 应 rc≠0 且哈希/mtime 不变(没被覆盖)。
     import hashlib
     import subprocess
-    h_before = hashlib.sha256(prod.read_bytes()).hexdigest()[:16] if prod.exists() else "(无·首次)"
+    def _sha(p):
+        return hashlib.sha256(p.read_bytes()).hexdigest() if p.exists() else "(文件不存在)"
+    sanity_path = sp
+    cmd = [sys.executable, str(ROOT / "scripts" / "render_3layer.py"), "--date", date]
+    h_before = _sha(prod)
     mt_before = prod.stat().st_mtime if prod.exists() else 0
+    sz_before = prod.stat().st_size if prod.exists() else 0
     sd2 = json.loads(sp.read_text(encoding="utf-8"))
     sd2_bak = json.dumps(sd2, ensure_ascii=False)
     sd2["issues"].append({"level": "红", "type": "价格异常", "symbol": "JP.6857",
                           "name": "爱德万", "detail": "疑似拆股未换算·口径不符"})
     sp.write_text(json.dumps(sd2, ensure_ascii=False), encoding="utf-8")
     try:
-        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "render_3layer.py"), "--date", date],
-                           capture_output=True, text=True, encoding="utf-8", timeout=300)
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=300)
         rc = r.returncode
-        rc_out = (r.stdout or "").strip().splitlines()[:1]
+        full_out = ((r.stdout or "") + (r.stderr or "")).strip()
     finally:
         sp.write_text(sd2_bak, encoding="utf-8")     # 还原
-    h_after = hashlib.sha256(prod.read_bytes()).hexdigest()[:16] if prod.exists() else "(无)"
+    h_after = _sha(prod)
     mt_after = prod.stat().st_mtime if prod.exists() else 0
     not_overwritten = (h_before == h_after) and (mt_before == mt_after)
     cases.append({"name": "FAIL→正式产品不被覆盖·保留上一版(真实测·哈希前后比对)",
                   "expect": "FAIL(rc≠0)且哈希不变",
                   "fails": [f"注入L35后 rc={rc}（≠0=正确拦下）",
-                            f"哈希 前{h_before} → 后{h_after}（相同=没被覆盖）",
+                            f"SHA256 前 {h_before[:16]}… → 后 {h_after[:16]}…（相同=没被覆盖）",
                             f"mtime {'未变' if mt_before==mt_after else '变了!'}",
-                            f"渲染器输出：{rc_out}"],
+                            f"渲染器输出首行：{full_out.splitlines()[:1]}"],
                   "ok": (rc != 0) and not_overwritten})
 
+    # ── 可重跑证据包原始值(董事长2026-07-19致命4:结论表不算数·须任何人可重算) ──
+    raw = {
+        "生成时刻": _now_stamp(),
+        "命令": " ".join(f'"{x}"' if " " in x else x for x in cmd),
+        "注入": "在 data/reports/data_sanity_{d}.json 追加一条爱德万『价格异常·疑似拆股』→制造 L35 FAIL（跑后自动还原）".format(d=date),
+        "算法": "SHA256（Python hashlib.sha256(file_bytes).hexdigest()）",
+        "正式产品": {"路径": str(prod.relative_to(ROOT)),
+                     "SHA256_前": h_before, "SHA256_后": h_after,
+                     "mtime_前": mt_before, "mtime_后": mt_after,
+                     "字节_前": sz_before, "字节_后": (prod.stat().st_size if prod.exists() else 0)},
+        "渲染器返回码": rc, "是否未被覆盖": not_overwritten,
+        "渲染器完整输出": full_out,
+        "参与脚本指纹": {str(p.relative_to(ROOT)): _sha(p) for p in [
+            ROOT / "scripts" / "render_3layer.py", ROOT / "scripts" / "product_lint.py",
+            ROOT / "scripts" / "hardcheck_regression.py"]},
+        "输入文件指纹": {str(sanity_path.relative_to(ROOT)): _sha(sanity_path)},
+        "运行环境": {"python": sys.version.split()[0], "platform": sys.platform},
+    }
     return {"date": date, "product": prod.name, "cases": cases,
-            "all_ok": all(c["ok"] for c in cases)}
+            "all_ok": all(c["ok"] for c in cases), "raw": raw}
+
+
+def _now_stamp() -> str:
+    # 证据包生成时刻(供人工核对时间线一致)。避免 import 时点漂移·运行时取。
+    import datetime
+    return datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
+
+
+def write_bundle(res: dict) -> Path:
+    """可重跑证据包:目录含 manifest.json(全原始值+算法) + 重跑步骤.txt(逐字命令) + 运行输出.txt。
+    任何人按『重跑步骤.txt』执行,再用 hashlib 重算,即可复现 manifest 里的 SHA256——不是自述结论表。"""
+    date = res["date"]
+    raw = res.get("raw", {})
+    bdir = ROOT / "00_请先看这里" / f"硬检查可重跑证据包_{date}"
+    bdir.mkdir(parents=True, exist_ok=True)
+    (bdir / "manifest.json").write_text(json.dumps(raw, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (bdir / "运行输出.txt").write_text(str(raw.get("渲染器完整输出", "")) + "\n", encoding="utf-8")
+    steps = (
+        "硬检查『FAIL不覆盖正式产品』— 可重跑步骤（任何人可独立复现，不依赖本报告的自述）\n"
+        f"生成时刻：{raw.get('生成时刻','')}\n"
+        f"运行环境：Python {raw.get('运行环境',{}).get('python','')} / {raw.get('运行环境',{}).get('platform','')}\n"
+        "算法：SHA256 = Python hashlib.sha256(open(路径,'rb').read()).hexdigest()\n\n"
+        "① 先记正式产品当前指纹（应与 manifest『SHA256_后』一致——因跑完已还原、未被覆盖）：\n"
+        f"   python -c \"import hashlib;print(hashlib.sha256(open(r'{raw.get('正式产品',{}).get('路径','')}','rb').read()).hexdigest())\"\n\n"
+        "② 复现『FAIL 不覆盖』：手动跑一次硬检查回归（内部会注入 L35 FAIL、真跑渲染器、再自动还原）：\n"
+        f"   {raw.get('命令','')}\n"
+        "   期望：渲染器打印『[三层·出厂核 FAIL·不出品] …旧版未被覆盖』且返回码≠0。\n\n"
+        "③ 跑完再记一次指纹，应与①【完全相同】=正式产品没被那次 FAIL 覆盖：\n"
+        f"   （同①命令）\n\n"
+        "④ 逐项原始值（前/后 SHA256、mtime、字节、参与脚本指纹、输入文件指纹）见 manifest.json；\n"
+        "   渲染器那次的完整 stdout/stderr 见 运行输出.txt。\n"
+    )
+    (bdir / "重跑步骤.txt").write_text(steps, encoding="utf-8")
+    return bdir
 
 
 def write_report(res: dict) -> Path:
@@ -116,11 +172,42 @@ def write_report(res: dict) -> Path:
               "<li>L34 同股多股数：软银出现 6600 与 6900 两个总股数</li>"
               "<li>L35 估值口径矛盾：爱德万同时『疑似拆股』与『已复核·非算错』</li></ul>"
               "<div style='color:#ffb454;font-size:12px'>修好后重跑生产即可。报『没做到』不扣分。</div></div>")
+    # ── 可重跑证据包(董事长2026-07-19致命4:结论表≠验证·须任何人可重算) ──
+    raw = res.get("raw", {})
+    pp = raw.get("正式产品", {})
+    def _esc(s): return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    scripts_fp = "".join(f"<li><code>{_esc(k)}</code> — SHA256 <code>{v[:32]}…</code></li>"
+                         for k, v in (raw.get("参与脚本指纹", {}) or {}).items())
+    inputs_fp = "".join(f"<li><code>{_esc(k)}</code> — SHA256 <code>{v[:32]}…</code></li>"
+                        for k, v in (raw.get("输入文件指纹", {}) or {}).items())
+    pkg = (
+        "<h2 style='margin-top:20px'>🔁 可重跑证据包（不是自述结论·任何人可独立重算）</h2>"
+        "<div style='background:#10202e;border:1px solid #33566e;border-radius:8px;padding:12px;font-size:13px;color:#cfe0ee'>"
+        f"<div>证据包目录：<code>00_请先看这里/硬检查可重跑证据包_{res['date']}/</code>"
+        "（含 <code>manifest.json</code> 全原始值 + <code>重跑步骤.txt</code> 逐字命令 + <code>运行输出.txt</code> 完整stdout）</div>"
+        f"<div style='margin-top:6px'>生成时刻：<b>{_esc(raw.get('生成时刻',''))}</b>｜环境：Python "
+        f"{_esc(raw.get('运行环境',{}).get('python',''))} / {_esc(raw.get('运行环境',{}).get('platform',''))}</div>"
+        f"<div style='margin-top:6px'>算法：<code>{_esc(raw.get('算法',''))}</code></div>"
+        "<div style='margin-top:6px'>重跑命令（复制即可跑·内部注入L35 FAIL后自动还原）：<br>"
+        f"<code>{_esc(raw.get('命令',''))}</code></div>"
+        "<table style='width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px'>"
+        "<tr><th style='text-align:left'>正式产品</th><th style='text-align:left'>FAIL 注入前</th><th style='text-align:left'>FAIL 注入后</th></tr>"
+        f"<tr><td>SHA256</td><td><code>{pp.get('SHA256_前','')[:24]}…</code></td><td><code>{pp.get('SHA256_后','')[:24]}…</code></td></tr>"
+        f"<tr><td>mtime</td><td>{pp.get('mtime_前','')}</td><td>{pp.get('mtime_后','')}</td></tr>"
+        f"<tr><td>字节</td><td>{pp.get('字节_前','')}</td><td>{pp.get('字节_后','')}</td></tr></table>"
+        f"<div style='margin-top:6px;color:#8cf5be'>渲染器返回码 <b>{raw.get('渲染器返回码','')}</b>（≠0=正确拦下）；"
+        f"前后 SHA256/mtime/字节 <b>{'完全相同=正式产品没被覆盖' if raw.get('是否未被覆盖') else '发生变化!'}</b>。</div>"
+        f"<div style='margin-top:8px'>参与脚本指纹（版本可核）：<ul>{scripts_fp}</ul></div>"
+        f"<div>注入的输入文件指纹（还原后）：<ul>{inputs_fp}</ul></div>"
+        "<div style='margin-top:6px'>渲染器那次的完整输出：<pre style='white-space:pre-wrap;background:#0a141d;padding:8px;border-radius:5px;font-size:11.5px;color:#bcd'>"
+        f"{_esc(raw.get('渲染器完整输出',''))[:1200]}</pre></div>"
+        "</div>")
     html = (f"<h1>发布前硬检查 · 回归测试证据（{res['date']}）</h1>"
-            f"<div style='color:#8ea3b6;font-size:13px'>对象：{res['product']}｜逐项注入本次两处致命错，验出厂闸真能拦</div>"
+            f"<div style='color:#8ea3b6;font-size:13px'>对象：{res['product']}｜逐项注入本次致命错，验出厂闸真能拦</div>"
             + banner
             + "<table class='dt' style='width:100%;border-collapse:collapse;margin-top:12px'>"
               "<tr><th>测试项</th><th>预期</th><th>结果</th><th>命中规则/说明</th></tr>" + rows + "</table>"
+            + pkg
             + "<h2 style='margin-top:18px'>红色失败报告样例（FAIL 时董事长看到的）</h2>" + sample)
     p = ROOT / "00_请先看这里" / f"硬检查回归测试证据_{res['date']}.html"
     p.write_text(html, encoding="utf-8")
@@ -135,10 +222,12 @@ def main() -> int:
     a = ap.parse_args()
     res = run(a.date)
     p = write_report(res)
+    bdir = write_bundle(res)
     for c in res["cases"]:
         print(f"  [{'OK' if c['ok'] else '✗'}] {c['name']} → 预期{c['expect']}·"
               + (f"命中{len(c['fails'])}条" if c["fails"] else "无告警"))
     print(f"\n{'✅ 全部达预期' if res['all_ok'] else '❌ 有未达预期'} · 证据→ {p.name}")
+    print(f"可重跑证据包→ {bdir.relative_to(ROOT)}/（manifest.json + 重跑步骤.txt + 运行输出.txt）")
     return 0 if res["all_ok"] else 1
 
 

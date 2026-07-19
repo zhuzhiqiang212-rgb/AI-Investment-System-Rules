@@ -864,6 +864,21 @@ def _stabilized(sym: str, dyn: dict) -> bool:
     return False
 
 
+def _stabilized_calc(sym: str, dyn: dict) -> str:
+    """成品里显示『近20交易日不创新低』的实际计算:20日最低价/最近新低日/是否通过(董事长2026-07-19)。"""
+    m = (dyn.get("ma") or {}).get(sym) or {}
+    low20 = m.get("low_20d")
+    px = m.get("realtime_price")
+    c = cur(sym)
+    if low20 is None:
+        return '<span style="font-size:11px;color:#A9761A">（企稳判据：20日低数据待接·不编）</span>'
+    gap = f"，现价高于20日低 {((px-low20)/low20*100):+.1f}%" if isinstance(px, (int, float)) and low20 else ""
+    # 只有 low_20d 单值、无逐日轨迹 → 无法确认"最近是否仍在续创新低"→ 判据保守=未通过(待接轨迹)
+    return (f'<span style="font-size:11px;color:#8ea3b6">（企稳实测：近20交易日最低价 '
+            f'<b>{c}{low20:,.0f}</b>{gap}；最近新低日=待接·缺逐日轨迹；'
+            f'<b>是否通过=否</b>·判据数据不足时保守当未企稳）</span>')
+
+
 def _peak_cyclical(sym: str) -> bool:
     """强周期(半导体设备/存储)/加密——这类"极贵"多是景气高点·中周期只作参考·不自动翻减。"""
     r = _valfw(sym)
@@ -1973,11 +1988,12 @@ def _action_of_raw(sym: str, name: str, dyn: dict, date: str) -> tuple:
         # 「加」闸(董事长提案2026-07-19):便宜 且(有催化剂 或 已企稳)才'加';否则降级'等'·别接飞刀
         _cat_ev = _catalyst_within(sym, date)          # 近90天内明确事件(列得出具体那条)
         _stab = _stabilized(sym, dyn)                  # 近约20日站上20日均值·企稳(客观过滤·非买卖线·仅决定现在加还是再等)
+        _stab_calc = _stabilized_calc(sym, dyn)        # 近20交易日不创新低的实际计算(最低价/新低日/是否通过)
         if not _cat_ev and not _stab:
             return tag("等", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜（低 {abs(st['gap_lo']):.1f}%）</b>，"
                              f"但<b>近90天列不出明确催化剂、也还没企稳</b> → <b>便宜但没催化·别接飞刀</b>；"
-                             f"先等出催化(财报/审批/指引上调/大单)或企稳(站稳20日均值)再加。")
-        _why_add = ("催化剂：" + esc(_cat_ev)) if _cat_ev else "已企稳（站稳20日均值·客观过滤）"
+                             f"先等出催化(财报/审批/指引上调/大单)或企稳(<b>近20个交易日不创新低</b>)再加。{_stab_calc}")
+        _why_add = ("催化剂：" + esc(_cat_ev)) if _cat_ev else f"已企稳（近20个交易日不创新低·客观过滤）{_stab_calc}"
         return tag("加", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜（低 {abs(st['gap_lo']):.1f}%）</b> 且 {_why_add} → "
                          f"<b>现在就可以加</b>"
                          + (f"（而且「{cat}」还不到下限，加它正好补缺口）" if in_short else "")

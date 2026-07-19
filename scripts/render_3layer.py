@@ -16,7 +16,7 @@ import argparse
 import json
 import re
 import sys
-from datetime import datetime
+from datetime import date as _date, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +27,55 @@ TPL = ROOT / "00_请先看这里" / "三层骨架模板_给Code填数据_2026071
 ACT_COLOR = {"加": "add", "买": "add", "减": "cut", "守": "hold", "等": "wait"}
 ACT_ICON = {"加": "▲", "买": "▲", "减": "▼", "守": "■", "等": "…"}
 TBD = '<span style="color:#6B4E8C">待接·不编</span>'
+_WK = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+_STATE_CN = {"CLOSED": "收盘", "AFTER_HOURS_END": "盘后", "AFTER_HOURS_BEGIN": "盘后",
+             "PRE_MARKET_BEGIN": "盘前", "PRE_MARKET_END": "盘前", "MORNING": "盘中",
+             "AFTERNOON": "盘中", "OVERNIGHT": "夜盘", "WAITING_OPEN": "开盘前"}
+
+
+def _iso(d: str) -> str:
+    d = str(d).replace("-", "")
+    return f"{d[:4]}-{d[4:6]}-{d[6:8]}" if len(d) >= 8 else str(d)
+
+
+def _wk(d: str) -> str:
+    dd = str(d).replace("-", "")
+    try:
+        return _WK[_date(int(dd[:4]), int(dd[4:6]), int(dd[6:8])).weekday()]
+    except Exception:
+        return ""
+
+
+def _is_weekend(d: str) -> bool:
+    dd = str(d).replace("-", "")
+    try:
+        return _date(int(dd[:4]), int(dd[4:6]), int(dd[6:8])).weekday() >= 5
+    except Exception:
+        return False
+
+
+def _daydiff(d1: str, d2: str) -> int:
+    """d1-d2 的自然日差(d1、d2 = iso 或 yyyymmdd)。"""
+    def g(x):
+        x = str(x).replace("-", "")
+        return _date(int(x[:4]), int(x[4:6]), int(x[6:8]))
+    try:
+        return (g(d1) - g(d2)).days
+    except Exception:
+        return 0
+
+
+def _price_meta(sym: str, date: str) -> dict:
+    """该只现价的真实交易日/时点/源(读 holdings_true.price_data_date·非生产日)。治致命1。"""
+    for h in (_rj(ROOT / "data" / "accounts" / f"holdings_true_{date}.json").get("holdings") or []):
+        if str(h.get("symbol")) == sym:
+            pdd = h.get("price_data_date")
+            st = _STATE_CN.get(str(h.get("price_market_state")), "")
+            # 源做大白话清洗(去内部名如"持仓底表_autobuild"·治L46泄漏)
+            src = str(h.get("price_source") or "")
+            src = "OpenD实时行情(富途)" if ("OpenD" in src or "realtime" in src or not src) else re.sub(r"[（(].*?[)）]|_\w+", "", src).strip()
+            return {"pdate": pdd, "state": st, "src": src or "OpenD实时行情(富途)"}
+    return {"pdate": None, "state": "", "src": "OpenD(富途)"}
 
 
 def _rj(p: Path) -> dict:
@@ -107,7 +156,23 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     parts = "＋".join(f"{a.get('account','')}{a.get('quantity'):g}" for a in accs if a.get("quantity"))
     qty = ht.get("total_quantity")
     mkt = sym.split(".")[0]
-    pdate = str((dyn.get("prod", {}) or {}).get("generated_at", ""))[:10] or date
+    mkt_cn = {"US": "美股", "JP": "日股", "HK": "港股", "CN": "A股", "CC": "加密"}.get(mkt, mkt)
+    # 致命1:价格真实交易日(非生产日)+ 生产日/来源/是否超时限,四项分别显示
+    prod_iso = _iso(date)
+    pm = _price_meta(sym, date)
+    price_iso = _iso(pm["pdate"]) if pm["pdate"] else None
+    if price_iso:
+        gap = _daydiff(prod_iso, price_iso)
+        overdue = "是" if gap > 4 else "否"       # 超4自然日(>一个周末)才算超时限
+        same_day = (price_iso == prod_iso)
+        pdate = (f'价对应交易日 <b>{price_iso[5:]}（{_wk(price_iso)}）{pm["state"] or "收盘"}</b>'
+                 f'｜生产日 {prod_iso[5:]}（{_wk(prod_iso)}）'
+                 f'{"·非交易日" if _is_weekend(prod_iso) else ""}'
+                 f'｜源 {D.esc(str(pm["src"]))}｜超时限:{overdue}'
+                 + ("" if same_day else "（<b>非当日实时价</b>）"))
+    else:
+        pdate = '价格交易日待接（未取到行情数据日·不编）'
+        same_day = False
     # 今日价值区 / 未来目标（权威 OK → valr；否则架构师）
     if st.get("ok"):
         lo, hi = st["lo"], st["hi"]
@@ -160,20 +225,32 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     before = _cat_pct(conc, cat_name)
     # 同业(sector peers·图6)
     peers = _peers(sym)
+    # 致命2:现价已超上沿=极贵。若仍守/等,须给"为何不减"的自洽理由(低置信/周期),且停止条件不写"涨过X才减"
+    expensive = bool(px is not None and hi and px > hi)
+    cred = str(v.get("credibility") or "")
+    if not st.get("ok") or "低置信" in cred or "框架" in cred:
+        hold_reason = "该只权威估值属低置信·仅作框架参考(穿牛熊/数据不足)，不据此不可靠读数杀"
+    else:
+        try:
+            peak = bool(D._peak_cyclical(sym, dyn))
+        except Exception:
+            peak = False
+        hold_reason = ("处景气/中周期高位·按周期尺看不因极贵就翻减" if peak
+                       else "综合账本质地与周期位置的权衡")
     # 深研16项
     d16 = _deep16(sym, name, dyn, deep, v, c)
     hc = {
         "代码": sym, "股票名": D.esc(name), "名": D.esc(name),
         "今日动作": pure, "动作色": ACT_COLOR.get(pure, "hold"), "动作图标": ACT_ICON.get(pure, "■"),
         "三态": "sys", "三态文字": "系统建议·尚未执行",
-        "现价": f"{c}{px:,.2f}" if px is not None else TBD, "市场": mkt, "价格日期": pdate,
+        "现价": f"{c}{px:,.2f}" if px is not None else TBD, "市场": mkt_cn, "价格日期": pdate,
         "价值区下沿": f"{c}{lo:,.0f}" if lo else TBD, "价值区上沿": f"{c}{hi:,.0f}" if hi else TBD,
         "目标价": tgt, "目标价缺则标 待接·不编": tgt_miss, "现价位置百分比": pos,
         "第一档价": d1p, "第一档量": d1q, "第二档价": d2p, "第二档量": d2q,
         "账户": acct, "币种": c, "股数": f"{qty:g}" if qty else TBD, "建议金额": amt,
-        "停止条件": _stop_of(pure, st, c),
+        "停止条件": _stop_of(pure, st, c, px, expensive, hold_reason),
         "为什么现在": re.sub(r"<[^>]+>", "", why)[:300],
-        "为什么不选其他": _why_not(pure, st, c),
+        "为什么不选其他": _why_not(pure, st, c, expensive, hold_reason),
         "催化剂": cat, "催化剂来源": catsrc,
         "催化剂失效条件": (D.esc(_clean(_flat((deep.get("block7_catalysts") or [""])[0]))) or TBD),
         "证伪条件": _falsify(deep),
@@ -236,9 +313,14 @@ def _after_pct(pure, before):
     return before  # 精确联动见图5说明；此处保守显同值(动作未执行·系统只读)
 
 
-def _stop_of(pure, st, c):
+def _stop_of(pure, st, c, px=None, expensive=False, hold_reason=""):
     if not st.get("ok"):
         return "权威估值待接→现在不动手·守着看"
+    # 致命2:现价已在上沿之上却守/等——不得再写"涨过X才谈减"(自相矛盾)
+    if expensive and pure in ("守", "等"):
+        return (f"现价已在上沿之上（{c}{px:,.0f} > 上沿 {c}{st['hi']:,.0f}）——"
+                f"因{hold_reason or '周期/估值可信度'}暂不据此设减线；"
+                f"待权威估值口径确认或趋势转弱再议减，跌回 {c}{st['lo']:,.0f} 便宜位才谈加。")
     if pure in ("加", "买"):
         return f"涨回 {c}{st['mid']:,.0f} 以上就别再追"
     if pure == "减":
@@ -246,7 +328,10 @@ def _stop_of(pure, st, c):
     return f"跌破 {c}{st['lo']:,.0f} 才谈加、涨过 {c}{st['hi']:,.0f} 才谈减"
 
 
-def _why_not(pure, st, c):
+def _why_not(pure, st, c, expensive=False, hold_reason=""):
+    if expensive and pure in ("守", "等"):     # 极贵却不减:如实说因低置信/周期不据此杀
+        return (f"不选减：现价虽已过上沿、显极贵，但{hold_reason or '估值可信度/周期原因'}——"
+                f"不因不可靠或周期性的极贵读数就杀；不选加：已远超便宜位，贵不该加。")
     if pure == "等":
         return "不选加：没到便宜位或没催化(别接飞刀)；不选减：没到贵位、也没超配触发。"
     if pure == "守":
@@ -308,13 +393,18 @@ def _deep16(sym, name, dyn, deep, v, c):
     if not method:
         av = D._arch_est(sym) or {}
         method = str(av.get("ruler_short") or "待接")
-    # 可信度随『估值输入』走:输入待接 → 不得标 A·精算(治轮5致命5·可信度牌与内容矛盾)
+    # 致命3:估值状态【单一真相】——可信度 与 待接项 必须同源，不得一处说输入未接、另一处说已OK精算。
+    #   精算成立 ⟺ 权威 status==OK 且 估值输入齐(val_inputs 有真值)。任一不满足 → 统一『待接·不标精算』。
     vin = _val_inputs(sym, v)
-    cred_raw = str(v.get("credibility") or "待接")
-    if vin == TBD or "待接" in vin:
-        cred = "待接·框架参考（输入未接·不标精算）"
+    has_inputs = (vin != TBD and "待接" not in vin)
+    is_精算 = (str(v.get("status")) == "OK") and has_inputs
+    if is_精算:
+        cred = str(v.get("credibility") or "中").replace("低置信", "低置信·仅作框架参考")
+        waits_txt = "本只权威估值已OK·精算（输入齐·可信度见左）"
     else:
-        cred = cred_raw.replace("低置信", "低置信·仅作框架参考")
+        cred = "待接·框架参考（输入未接·不标精算）"
+        why_wait = _clean(str(v.get("reason") or "")) or ("缺权威精算输入" if not has_inputs else "权威估值未OK")
+        waits_txt = f"估值输入未接齐→撤精算标签、统一待接。原因：{why_wait}"
     return {
         "赚钱模式": g("block1_business") or _b(deep, "block1"),
         "多年财务": _fin_years(sym, deep),
@@ -332,7 +422,7 @@ def _deep16(sym, name, dyn, deep, v, c):
         "组合作用": _b(deep, "block10") or g("block10_portfolio"),
         "可点链接列表含发布日": _sources(deep),
         "正反证据全量": _support_from(deep) + "<br>反面：见图8/未找到则已注明查哪些源",
-        "待接项与原因": _waits(sym, v),
+        "待接项与原因": waits_txt,
         "推翻条件": _falsify(deep),
         "图3结论": "多年真数看趋势；年数不足标仅N年。",
     }
@@ -500,16 +590,23 @@ def build(date: str) -> str:
     mani = _rj(ROOT / "data" / "product_manifest.json")
     run_id = str(mani.get("run_id", ""))
     gen = str(prod.get("generated_at", ""))[:19]
-    # 待接清单(不能依赖)
+    # 待接清单(不能依赖)——按标的【去重】,同一只多个原因合并成一条(治闪迪重复2次·页头待接计数虚高)
     sanity = _rj(ROOT / "data" / "reports" / f"data_sanity_{date}.json")
-    tbd_rows = [{"标的": D.esc(str(x.get("name") or x.get("symbol"))), "原因": D.esc(str(x.get("detail"))[:120])}
-                for x in (sanity.get("issues") or [])]
-    # 无权威估值的也进"不能依赖"
+    _tbd_map: dict = {}
+    def _add_tbd(name, reason):
+        key = re.sub(r"[（(].*", "", str(name)).strip()      # 归一(去括号别名)
+        if key not in _tbd_map:
+            _tbd_map[key] = {"标的": D.esc(str(name)), "原因": D.esc(str(reason)[:120]), "_r": {str(reason)[:120]}}
+        elif str(reason)[:120] not in _tbd_map[key]["_r"]:
+            _tbd_map[key]["_r"].add(str(reason)[:120])
+            _tbd_map[key]["原因"] += "；" + D.esc(str(reason)[:120])
+    for x in (sanity.get("issues") or []):
+        _add_tbd(x.get("name") or x.get("symbol"), x.get("detail"))
     for h in prod.get("holdings", []):
-        s = str(h.get("symbol"))
-        v = (dyn.get("valr", {}) or {}).get(s, {})
+        v = (dyn.get("valr", {}) or {}).get(str(h.get("symbol")), {})
         if str(v.get("status")) != "OK":
-            tbd_rows.append({"标的": D.esc(str(h.get("name"))), "原因": "权威估值待接·只有架构师非权威估算/框架参考"})
+            _add_tbd(h.get("name"), "权威估值待接·只有架构师非权威估算/框架参考")
+    tbd_rows = [{"标的": r["标的"], "原因": r["原因"]} for r in _tbd_map.values()]
     # 每只
     holds = [h for h in prod.get("holdings", []) if not str(h.get("symbol", "")).startswith("CC.")]
     each = [holding_ctx(str(h.get("symbol")), str(h.get("name") or h.get("symbol")), dyn, date, conc, set())
@@ -543,11 +640,19 @@ def build(date: str) -> str:
                if isinstance(stock_mv, (int, float)) and isinstance(cash, (int, float)) else "")
     sbi_concl = (f"SBI独立进攻仓·数据日{sbi_date}(手工截图源·非当天实时)；{sbi_mix}；"
                  f"目标+40%={goal40}/+100%={goal100}·读批准记录不写死。")
-    # 新旧程度
-    fresh = _freshness(date, prod)
+    # 新旧程度(致命1:按每只真实价格交易日算·非交易日如实说)
+    global _CUR_DATE
+    _CUR_DATE = date
+    fresh = _freshness(date, holds)
+    if fresh.get("market_closed"):
+        pd = fresh["price_date"]
+        px_note = (f"生产日 {_iso(date)}（{_wk(date)}·非交易日/市场休市）；"
+                   f"全部现价＝最近交易日 <b>{pd}（{_wk(pd)}）</b> 收盘/盘后价（源 OpenD·<b>非当日实时价</b>）。")
+    else:
+        px_note = "美股取昨夜收；日股取当日/最近交易日收；各只价格交易日见卡内标注。"
     ctx = {
         "data_date": dd, "生产时间": gen or D.md_note(dyn) if hasattr(D, "md_note") else gen, "run_id": run_id or TBD,
-        "各市场价时点说明": "美股取昨夜收；日股取当日/最近交易日收；周末休市→最近交易日(页头已标)",
+        "各市场价时点说明": px_note,
         "当天项数": fresh["new"], "近期项数": fresh["mid"], "陈旧项数": fresh["old"], "待接项数": len(tbd_rows),
         "总闸状态": _fed_state(dyn), "今日姿态": _stance(dec),
         "一句话总决定": _one_line(dyn, date),
@@ -564,6 +669,10 @@ def build(date: str) -> str:
     raw = TPL.read_text(encoding="utf-8")
     raw = re.sub(r'<div class="tpl">.*?</div>\s*', "", raw, count=1, flags=re.S)   # 删红色说明块
     out = render(raw, ctx)
+    # 致命1:整块换掉页头新鲜度条→非交易日禁用'当日实时价/旧·超3天 0'类表述
+    out = re.sub(r'<div class="freshbar">.*?</div>', _freshbar_html(fresh, len(tbd_rows)), out, count=1, flags=re.S)
+    if fresh.get("market_closed"):        # 非交易日:顶部"[今天的]"改如实标注(价非今天的)
+        out = out.replace("　[今天的]", f"　[生产日·价为最近交易日 {fresh['price_date']}]")
     # 页头标题:模板名→正式产品名(董事长打开正式产品·浏览器标签页也要正)
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
     out = re.sub(r"<title>.*?</title>", f"<title>★每日投资产品 · {dd} · 三层</title>", out, count=1, flags=re.S)
@@ -585,11 +694,31 @@ def build(date: str) -> str:
                  ("sbi_sleeve", "SBI账户快照"), ("sector_research", "板块研究"), ("earnings_calendar", "财报日历"),
                  ("final_decision", "决定对象"), ("edgar_financials", "官方财报数据"), ("data_date", "数据日期"),
                  ("forward_fair", "未来目标价"), ("holdings_ma_levels", "均线数据"), ("by_symbol", "按标的"),
-                 ("by_ticker", "按标的"), ("reasonable_low", "合理下沿"), ("reasonable_high", "合理上沿")):
+                 ("by_ticker", "按标的"), ("reasonable_low", "合理下沿"), ("reasonable_high", "合理上沿"),
+                 # 估值口径代码(加号连接/空参)→大白话(治重要项·内部计算字段泄漏·第1802/1825行)
+                 ("normalized+pe", "穿牛熊正常化每股盈利×正常市盈率"),
+                 ("normal+pe", "正常化每股盈利×正常市盈率"),
+                 ("ebitda+ev+net+shares()", "企业价值倍数法(经营利润×倍数−净负债÷股数)"),
+                 ("ebitda+ev+net+shares", "企业价值倍数法(经营利润×倍数−净负债÷股数)"),
+                 ("eps+pe", "每股盈利×市盈率"), ("peg+eps", "PEG×每股盈利"),
+                 ("mnav", "市值对净资产比"), ("mNAV", "市值对净资产比")):
         out = out.replace(a, b)
+    # 兜底:清残留的空参调用 xxx() 与仍加号连接的小写代码(L46 焊死后不应再出现·此处再保险)
+    out = re.sub(r"\b[a-z_]{2,}\(\)", "", out)
+    out = re.sub(r"\b[a-z][a-z_]*(?:\+[a-z_]+){1,}\b", "（估值口径·详见⑥估值模型）", out)
     # 图6/9/10/11 第二轮→在结论前补"待接·第二轮"标注(不留假数)
+    _UNDONE = [("图6", "同业倍数横比"), ("图9简", "决策链简图"),
+               ("图10", "照系统做 vs 完全不动 曲线"), ("图11", "SBI 进攻仓 柱状")]
     for n in ("6", "9", "10", "11"):
         out = out.replace(f'data-chart="{n}">', f'data-chart="{n}"><div style="font-size:11px;color:#A9761A">（本图第二轮补·画法待接·结论/数据已填真值或标待接）</div>', 1)
+    # 公开【已知未完成清单】(L45:由同一批标记生成→与全文扫描天然一致·不藏未完成)
+    lis = "".join(f'<li><b>{a}</b> {b} —— 画法待接·第二轮补（结论/数据已填真值或标待接）</li>' for a, b in _UNDONE)
+    undone = ('<div style="background:#2a2412;border:1px solid #A9761A;border-radius:8px;padding:10px 14px;margin:10px 0">'
+              '<div style="font-weight:800;color:#E0B24A">📋 已知未完成清单（公开·不藏）</div>'
+              f'<ul style="margin:5px 0 0;padding-left:20px;font-size:13px;color:#d8c89a">{lis}</ul>'
+              '<div style="font-size:11.5px;color:#a89968;margin-top:4px">以上为图形画法待第二轮补；'
+              '其余逐项数据缺口在各卡内就地标「待接·不编」。</div></div>')
+    out = out.replace('<details class="layer" id="L1"', undone + '<details class="layer" id="L1"', 1)
     return out
 
 
@@ -628,8 +757,50 @@ def _diff(date):
     return "详见各层；差分优先页以当日 vs 昨日 production/decisions 现算。"
 
 
-def _freshness(date, prod):
-    return {"new": "当日实时价", "mid": "SBI等沿用", "old": "0", "chg_new": "0", "chg_cancel": "0", "chg_grade": "见各卡"}
+def _freshness(date, holds):
+    """按每只 price_data_date 真算新鲜度桶(不再写死'当日实时价')。治致命1页头。"""
+    prod_iso = _iso(date)
+    today = near = old = tbd = 0
+    pdates = []
+    for h in holds:
+        pm = _price_meta(str(h.get("symbol")), date)
+        if not pm["pdate"]:
+            tbd += 1
+            continue
+        pi = _iso(pm["pdate"])
+        pdates.append(pi)
+        g = _daydiff(prod_iso, pi)
+        if g <= 0:
+            today += 1
+        elif g <= 3:
+            near += 1
+        else:
+            old += 1
+    price_date = max(pdates) if pdates else None
+    market_closed = bool(price_date and price_date != prod_iso)
+    return {"new": today, "mid": near, "old": old, "tbd": tbd,
+            "price_date": price_date, "market_closed": market_closed,
+            "chg_new": "0", "chg_cancel": "0", "chg_grade": "见各卡"}
+
+
+def _freshbar_html(fresh, n_tbd):
+    """页头新鲜度条:非交易日禁用'当日实时价/旧·超3天 0',改如实说'全部=最近交易日X收盘'。"""
+    if fresh.get("market_closed"):
+        pd = fresh["price_date"]
+        prod = _iso(_CUR_DATE)
+        return ('<div class="freshbar">'
+                f'<span class="fresh f-mid">● {_wk(prod)}·非交易日(市场休市)</span>'
+                f'<span class="fresh f-mid">● 全部现价＝最近交易日 {pd[5:]}（{_wk(pd)}）收盘/盘后</span>'
+                f'<span class="fresh f-old">● 非当日实时价</span>'
+                f'<span class="fresh f-tbd">● 待接 {n_tbd}</span></div>')
+    return ('<div class="freshbar">'
+            f'<span class="fresh f-new">● 当天实时 {fresh["new"]}</span>'
+            f'<span class="fresh f-mid">● 1~3天前 {fresh["mid"]}</span>'
+            f'<span class="fresh f-old">● 旧·超3天 {fresh["old"]}</span>'
+            f'<span class="fresh f-tbd">● 待接 {n_tbd}</span></div>')
+
+
+_CUR_DATE = ""
 
 
 def _shadow_days():
