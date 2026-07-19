@@ -162,6 +162,8 @@ def build_item(ctx: Any, symbol: str, name: str | None) -> dict[str, Any]:
     ma20 = compute_average(closes, 20)     # 派工单20260715:20日均线(短期)
     ma50 = compute_average(closes, 50)
     ma200 = compute_average(closes, 200)
+    # 「加」闸·企稳客观过滤(董事长2026-07-19·非均线买卖线)：近20交易日最低收盘价·供判"是否还在创新低"
+    low_20d = round(min(closes[-20:]), 4) if len(closes) >= 20 else None
     # 低吸价=回踩50日均线位、止损价=跌破200日年线位(工单口径·缺K线则None不编)
     low_buy = ma50
     stop_loss = ma200
@@ -189,6 +191,7 @@ def build_item(ctx: Any, symbol: str, name: str | None) -> dict[str, Any]:
         "price_field": price_field,
         "price_status": price_status,
         "price_reason": price_reason,
+        "low_20d": low_20d,
         "ma20": ma20,
         "ma50": ma50,
         "ma200": ma200,

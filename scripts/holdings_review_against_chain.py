@@ -175,9 +175,20 @@ def write_json_utf8(path: Path, payload: dict[str, Any]) -> None:
 
 def load_evidence(date_text: str) -> tuple[dict[str, Any], str]:
     path = EVIDENCE_DIR / f"daily_{date_text}.json"
-    if not path.exists():
-        raise FileNotFoundError(f"need daily evidence chain first: {path}")
-    return json.loads(path.read_text(encoding="utf-8")), str(path)
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8")), str(path)
+    # 当日证据链还没生成(周末/首跑·⑧在③之后)→ 回退到最近可用的一份(宏观/战略状态跨非交易日沿用)。
+    #   证据链=大环境状态·非价格·跨周末沿用合理;审持仓只用它取"激活节点"上下文·不冒充当日价。
+    cands = sorted(EVIDENCE_DIR.glob("daily_2*.json"))
+    cands = [p for p in cands if p.stem.replace("daily_", "") <= date_text]
+    if cands:
+        p = cands[-1]
+        used = p.stem.replace("daily_", "")
+        d = json.loads(p.read_text(encoding="utf-8"))
+        d["_evidence_carried_from"] = used
+        d["_evidence_note"] = f"当日({date_text})证据链未生成→沿用最近交易日{used}的大环境状态(非价格·跨非交易日沿用)"
+        return d, str(p)
+    raise FileNotFoundError(f"need daily evidence chain first: {path}（且无更早可沿用的）")
 
 
 def extract_chain_state(evidence: dict[str, Any]) -> tuple[str, list[str]]:

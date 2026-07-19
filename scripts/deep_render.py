@@ -823,38 +823,41 @@ def _deep_card(sym: str) -> dict:
     return _DEEPCARD_CACHE[sym] or {}
 
 
+_CAT_KW = ("获批", "审批", "批准", "FDA批", "欧盟批", "指引上调", "上调指引", "上调全年", "大单", "订单",
+           "中标", "读出", "里程碑", "达成合作", "分拆", "价值兑现", "发布日", "量产", "投产")
+
+
 def _catalyst_within(sym: str, date: str, days: int = 90) -> str:
-    """「加」闸·催化剂=近约90天内明确事件(财报/审批/指引上调/大单)。读深研卡⑦block7·列得出具体那条→返回该条;列不出→空串。"""
+    """「加」闸·催化剂=近约90天内【前瞻·真】催化事件(审批/指引上调/大单/临床读出/分拆兑现等)。
+    董事长2026-07-19:【普通下次财报日期不算有效催化剂】。读深研⑦block7·须①含真催化关键词 ②有前瞻日在[今日,+90天]内。
+    只写"下次财报:date"的常规项→跳过;过去已发生的事件(日期在今日之前)→不算前瞻催化。列得出具体那条→返回;否则空串。"""
     try:
         d0 = datetime.strptime(date, "%Y%m%d").date()
     except Exception:
         return ""
-    lo, hi = d0 - timedelta(days=days), d0 + timedelta(days=days)
+    hi = d0 + timedelta(days=days)
     for ev in (_deep_card(sym).get("block7_catalysts") or []):
         s = str(ev)
+        if s.strip().startswith("下次财报") or s.strip().startswith("财报"):
+            continue                                   # 常规财报日期·不算催化剂
+        if not any(k in s for k in _CAT_KW):
+            continue                                   # 无真催化关键词·不算
         for m in re.finditer(r"(20\d\d)[-/年](\d{1,2})(?:[-/月](\d{1,2}))?", s):
             y, mo, dd = int(m.group(1)), int(m.group(2)), int(m.group(3) or 15)
             try:
                 dt = datetime(y, mo, min(dd, 28)).date()
             except Exception:
                 continue
-            if lo <= dt <= hi:
+            if d0 <= dt <= hi:                          # 前瞻(今日~+90天)·过去的不算
                 return s[:60]
-        # "8月初/月中"等无精确日但含近月份的·且提到财报/批/指引/订单 → 视为有(保守:需含年内近月)
     return ""
 
 
 def _stabilized(sym: str, dyn: dict) -> bool:
-    """「加」闸·已企稳=现价站上20日均值(客观过滤·非均线买卖线·仅决定"现在加还是再等")。缺ma→False(保守·当没企稳)。"""
-    try:
-        ma = rj(ROOT / "data" / "holdings" / f"ma_levels_{dyn.get('date','')}.json").get("holdings") or []
-        m = next((x for x in ma if str(x.get("symbol")) == sym), None)
-        px = _price_of(sym, dyn)
-        ma20 = (m or {}).get("ma20") or (m or {}).get("ma_20")
-        if px is not None and isinstance(ma20, (int, float)) and ma20 > 0:
-            return float(px) >= float(ma20) * 0.98
-    except Exception:
-        pass
+    """「加」闸·已企稳=近20交易日【不创新低】(客观过滤·非均线买卖线·董事长2026-07-19)。
+    ★真"不创新低"要看【近期是否还在续创新低】(需20日低发生的时点/轨迹)——当前只取到 low_20d 单值、
+      不足以确认(离20日低10%也可能是反弹后又阴跌)→按铁律保守·企稳判据【待接】·返回False(不能确认企稳就当没企稳·别接飞刀)。
+      low_20d 仍存进 ma_levels 供未来接入轨迹后启用。"""
     return False
 
 
@@ -2138,7 +2141,9 @@ def part0_cash(date: str, dyn: dict) -> str:
     cats = conc.get("categories", {}) or {}
     # 可加清单 = 跌到便宜位 且 不在超上限的类里(否则只换不加)
     over_cats = {k for k, _p, _l in oc["over"]}
-    addable = [r for r in rows if r["below_cheap"] and _cat_of(r["sym"], date, dyn) not in over_cats]
+    # 只收【唯一决定表动作真=加/买】的(与顶部同一答案·L28)：加闸降级为"等"的便宜股不进买入表
+    addable = [r for r in rows if r["below_cheap"] and _cat_of(r["sym"], date, dyn) not in over_cats
+               and _pure_act(r["sym"], r["name"], dyn, date) in ("加", "买")]
     blocked = [r for r in rows if r["below_cheap"] and _cat_of(r["sym"], date, dyn) in over_cats]
     # 可减清单 = 在超上限的类里、【且比中枢贵】的，按贵的程度排(先减最贵的)。
     # ⚠必须过滤 gap_mid>0：否则会把"比中枢还便宜9%"的微软也排进"先减最贵的"，

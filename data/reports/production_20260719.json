@@ -1,0 +1,1596 @@
+{
+  "task_id": "TASK-2026-07-02-064",
+  "mode": "formal",
+  "generated_at": "2026-07-19T01:56:33.702305+00:00",
+  "fingerprint": {
+    "date": "20260719",
+    "framework_fixed": true,
+    "answers_from_daily": true,
+    "evidence_source": "G:\\我的云端硬盘\\AI_Investment_System\\data\\evidence_chain\\daily_20260719.json",
+    "holdings_source": "G:\\我的云端硬盘\\AI_Investment_System\\data\\holdings\\holdings_review_20260719.json",
+    "dual_channel_source": "G:\\我的云端硬盘\\AI_Investment_System\\data\\opportunities\\dual_channel_20260719.json",
+    "valuation_instances_dir": "G:\\我的云端硬盘\\AI_Investment_System\\data\\valuation\\model_instances",
+    "moat_analysis_source": "G:\\我的云端硬盘\\AI_Investment_System\\data\\moat\\moat_analysis_20260709.json",
+    "moat_carry_note": "护城河沿用自 20260709·待重评则更新（慢变跨天persist，不回待补）",
+    "moat_used_date": "20260709",
+    "moat_staleness_days": 10,
+    "moat_reeval_days_threshold": 10,
+    "moat_reeval_needed": false,
+    "moat_reeval_msg": null
+  },
+  "today_direction": "总闸(美联储)「维持·观察·中」(中)；战略AI「今日无重大新闻·维持基线·中」(中)；资金「中性·中」(VIX 较昨+1.08%、曲线未倒挂(10Y-3M=0.857·2年待接))；板块半导体「走弱·弱」(SOXX 较昨-2.23%)。今天整体：总闸中档→守核心、不追高、控AI集中。激活承接节点：算力、半导体设备、代工、存储、盟友链",
+  "today_direction_short": "今天：总闸维持·观察、板块半导体走弱→守核心、不追高、控AI集中",
+  "activated_nodes": [
+    "算力",
+    "半导体设备",
+    "代工",
+    "存储",
+    "盟友链"
+  ],
+  "evidence_summary": {
+    "world": {
+      "node": "总命题·世界是否真变",
+      "evidence": "【新闻研判】世界观级：抓12条→合格8条(权威源+36h内+过相关性闸)，逐条方向研判加权净分=2.6 → 判「地缘/秩序信号增多·需盯(未到regime反转)·中」(非关键词计数)。样本：特朗普指责中方曾试图影响美选举结果后 白宫确认9月的特习会仍将按计划进行（RFI法广·2026-07-18 10:02 UTC·无明确方向(仅相关背景)）；中国卡车涌入增加墨西哥豁免美国关税难度（联合早报·2026-07-19 00:30 UTC·利多依据:关税·新鲜度1.2h）；日央行本月底货币政策会议或维持现行利率（共同网·2026-07-18 19:41 UTC·无明确方向(仅相关背景)）",
+      "strength": "中",
+      "direction": "没变·但要盯(地缘/秩序信号增多·需盯(未到regime反转))",
+      "plain": "地缘/秩序上的紧张信号今天多了一些，但还没到掀翻大格局的程度 → 对你：投资大方向暂时不变，多留个心眼、盯着点。",
+      "today_events": [
+        "RFI法广·2026-07-18 10:02 UTC：特朗普指责中方曾试图影响美选举结果后 白宫确认9月的特习会仍将按计划进行",
+        "联合早报·2026-07-19 00:30 UTC：中国卡车涌入增加墨西哥豁免美国关税难度",
+        "共同网·2026-07-18 19:41 UTC：日央行本月底货币政策会议或维持现行利率"
+      ],
+      "background": [
+        "加权研判净分=2.6(逐条:新鲜度加权·否定/辟谣降权·须过相关性闸)",
+        "合格8/抓12·剔除4条(源不合格/旧闻/不相关)"
+      ],
+      "source": "Google News RSS·中文源(zh-CN)·合格8/抓12条·源白名单+≤36h",
+      "news_items": [
+        {
+          "title": "特朗普指责中方曾试图影响美选举结果后 白宫确认9月的特习会仍将按计划进行 - RFI",
+          "source": "RFI法广",
+          "url": "https://news.google.com/rss/articles/CBMi-gNBVV95cUxNNGJnNm9WSV80TFRYZE5XWVJHU2RpQ3lxR0IxV3d2VHNpM0stRmJOcnFqTDBUbmZ6LVk0OWhqZTVfZUswQ2JHblhTYTFCQ2FIdUxXSEZoRk9mSGpuWmZqdFZ2UnhuRUQ0NEpfdHJidVVvYXZkZjdHUG9RU0hFd29TdFllNlRZVHh1MmduSU9OeHVsNHlaX2pUcEgxQTE4ak9vVmpXU29CWW1uWDJjdjItejJhUEdBVnJpdXBVanI4QUNOTkUxcHpLSUlwT1VDcmJ3X2Z4WXNkck50QWkyLU04WmJNWHFGQk1sVmV1cGFPYlJzZFJUYXE1STAyVjRzNDMtdWZ0eU5ObXZRMGJtbDZuLW5BYkF2RmhZc0VYMjBNOXlWZFczSmFSTl8zODRHeXJrOW1mUVZaYmN4b2tjYkU5T0pKWmNGMm5pakIxMktFLW5iNDN4ZFhsbTY4ZHlWMnJ4dVJza21GdEo3aHdkSzVSU0dubWhxTkZIX2RqZ20zd2NfZ080SzI1UE84QnphZ1RtRUtIZUNDSlpvczd5dVpYNC1ISGFQVU5XcFpKSFlWWUNHODhFQ0VYZXQ5RWlqdG1yZ2lRT29aZHVCS3Q1QURna1dIMnNfWXA1bGtfVVV0cTM0WGRqZURTaEhCaWdrUTM2TUtKMl83WlNDZw?oc=5",
+          "pub_date": "2026-07-18 10:02 UTC",
+          "lang": "zh",
+          "judge": "无明确方向(仅相关背景)",
+          "signal": 0.0
+        },
+        {
+          "title": "中国卡车涌入增加墨西哥豁免美国关税难度 - 联合早报",
+          "source": "联合早报",
+          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE9QSDZ3UnJZbXExbEhsOWp1OWQtN1RkLXFnbzhGeVVBakVZdVJicTEtZnhyNi1mMWZyVUtLZUhLZEhoQV9wVHJWTnNsQmU4SGg4RDhBSDJkRl8zYmV3ak1NdW93U29MVlA2MlE?oc=5",
+          "pub_date": "2026-07-19 00:30 UTC",
+          "lang": "zh",
+          "judge": "利多依据:关税·新鲜度1.2h",
+          "signal": 1.0
+        },
+        {
+          "title": "日央行本月底货币政策会议或维持现行利率 - 共同网",
+          "source": "共同网",
+          "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE1QSzVqRmNKeDlMblA2YUo1eTJtc0ROZHZJejFWNXdLUGlZbjJRSkF1SEtwU2IwZlEycFJ0S3JTeDhfQXJFS2gxcTlLbi1kc3JtUTRDYVpqWQ?oc=5",
+          "pub_date": "2026-07-18 19:41 UTC",
+          "lang": "zh",
+          "judge": "无明确方向(仅相关背景)",
+          "signal": 0.0
+        },
+        {
+          "title": "特朗普总统指控中国干预美国选举并公布相关细节 - 美国之音",
+          "source": "美国之音",
+          "url": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxOdHJfd3BxSUpMTzJScE9lX281WHlZR3NqbEF0VjFJMW04eDNpc3RlMm1LWHUxdTIyM01vNHZhVXhaY0Fhc2tQbUdhRU9sLXlweG05ZVI5RGstc3RNS3Y2X3NzUlcwNXp6QWUzcEJfY0ZOZGJQTHc2TDhDQ1NHYnJOU1hlZFlsVjE0WTAwUDNUS3VIZ3JTX1cwQ2dQbGVSZ2NYTzdFM0RfUVNYbDdra3NtQWRQcVdXQVZrWmhvYklMd0VCei1Sb0RVU2pCMnBoYkRaODJXSzZBREExNjB1VlowWUJjR0RqNFdnOGpJ0gHuAUFVX3lxTE5hWURCOUVNV1lwcUcxazEwcFFLbFBDVk4tUWRMalFLbi1vNHhwR2oyUkJVWnJHMlFybGxRb3o0dFlaWnE4d1FGMjVVZHdPVjQ5QWU4UUlFdzJSSjBfdzIzcGg3UlRjMFFHc1Jqa014dGtfX0Q0cGhBdzMyRWFZa2lZRDFkSDdGeXZGeU5xTEZ3N1B5YzFlOXNpUFdBVldzNUdZb0swUm5tWjIyTTFWNXBidHYxcndrWEJpUmlvdVA4R3puU2JmSC1NVkVZLW5KQ0hRTWdzUFJxNVNKWU1sMzlhMU5IcDhBczU0THBzRmc?oc=5",
+          "pub_date": "2026-07-17 23:20 UTC",
+          "lang": "zh",
+          "judge": "无明确方向(仅相关背景)",
+          "signal": 0.0
+        },
+        {
+          "title": "事实核查：特朗普指控中国干预美国2020大选 是否属实？ - DW.com",
+          "source": "德国之声",
+          "url": "https://news.google.com/rss/articles/CBMiywJBVV95cUxNbXdjNlFkbFloZjNQMzhwcEctdHp2ODlVYl95NDNPVmFJUlQ3YXhVNU5aWlVVN2JYaFljQTNZSmZNTVhlWE41eWdEUEtDT3JJekJ0ZkNGelhKMUN2cGhhWFF3V1QyOW9YWnJNTWdveXZXTS1GUFF0aGppN2hOMGUxbWZUSkFQa0FzQnNIOTlld1ByWnE0MVNkWDd6NlpwLUVqZlZMYndtbGhXV2U4Wlk1SXl1LTFGYW51dHpGWVRFODVDQklWNkVJeFZMV0lhakRrb0NyM19DOUhVaEQzeWRwSUptamlPMmdndjVjdXJXa2lEaWROU1ZLQ2pzd20tRmpoUS1FQ0ZIajZ5TVhoT2poeUxpTHdTOUNERGlFNFIwSFNFaV9xSTQyZFRtSjF0bUstODY0MElWYWZ0RGdhSDRuQ05yZGxRRDVlTWtR0gHLAkFVX3lxTE54QXNKcll2MHI3RWs2ZlZ2bXhEVTZZVy11clFNSE41bDAzVDJUMDFvMl81MHlWUHBFYlV4QVFQS2xEb3pnWFpqS2EzcTVEZlR4ejJNVGtHSDg4QkgyTjR4dE50dktfa1pGLUNsVUJPbGR0ZVRYcjZra24yYTlFNUFrcm5PeUtWS05FcDZNVkZfVlNZNV9EeGZ6dWxMWU9EZ0kxRl9tbFRmOG9ONlBRQzBCMGFLWUFIanJBMlo2OFhLVnNUMnNwM0QtQU10OTJ0b3ZTQy1IOXUzTW9GYlNxQzM5Zkc2QkdVWVBsSTNnV2xRZDFUZTIwckwzcm9JNjZYTnJ6RHJ0Z01qWnY4Z0pIeWV2dXp0V2VyZi1FY2RNTF9ST21kV2FHNGE1VXNlVmxzNWRycFFpaTViYVhoNWtVVzRqd2N0S21DNnJkWDg?oc=5",
+          "pub_date": "2026-07-18 11:01 UTC",
+          "lang": "zh",
+          "judge": "利多依据:核·新鲜度14.7h",
+          "signal": 0.6
+        }
+      ],
+      "weak_items": [],
+      "news_dropped": [
+        {
+          "title": "中期选举临近特朗普剑指中国 称美国选举安全存在“令人震惊的漏洞” - BBC",
+          "reason": "旧闻(发布于2026-07-17·距今42小时>36小时)",
+          "source": "BBC",
+          "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5RZFFEWGlmb3p1VjhKbWRsNGdSQm4tcDZsVUpzMzZ4ZkpjTHZzY0tXNTF2R3MtRFI2ZWg1bWZGM2pJWnFicXpwa0g5VHhkVE1ubDhwcWFlSWxFVmxFbl9BWFRzZkkzQdIBa0FVX3lxTE5KSVpmdWlzQllid05MUGk0YTFQMUhnRHA5TF9pSUtWNDVXVkgtQlJHT2ZIQ3NWcFlzVVVLLXJnTEhqdkJlTGpHSlVkZ0RUMUxEQ0lzdEZnTWk3VlZDdjFsNHl6TFNLcjFJR1kw?oc=5",
+          "pub_date": "2026-07-17 07:34 UTC"
+        },
+        {
+          "title": "美国拟出台新制裁法案对俄能源买家征最高100%关税 中印在列 外交部回应 - 东方财富网",
+          "reason": "旧闻(发布于2026-07-16·距今69小时>36小时)",
+          "source": "东方财富网",
+          "url": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE4zZEpycHpSUU9GY0FNb0tFM3Z0N3VFOXZXXy1fa0FwVzFyRUZUXzFkVmNZZVRwRWgwcGZGOXNFNm5YbVJkWE44SjRLSUFrYlJOWlZWYlJYSFBEa3dZNnM3eg?oc=5",
+          "pub_date": "2026-07-16 04:14 UTC"
+        },
+        {
+          "title": "3万项制裁没击垮俄罗斯，我说了这句实话却被制裁 - 观察者",
+          "reason": "旧闻(发布于2026-07-15·距今87小时>36小时)",
+          "source": "观察者",
+          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE4zZEd2ekV4cW1QNzNvc2RkZmdkQkNMRWM1Q2VpVXJvTFRfUW1kMjlhWFdWd0NiOFJZNFlJZFc0cHFydlZBbkJkaGZXUTFzYnRQVWY5YV9Vc3dYUE1KRHFwd0VtbFVqd3Z5dnc?oc=5",
+          "pub_date": "2026-07-15 11:10 UTC"
+        },
+        {
+          "title": "AI治理焦虑解药怎么开 - 手机新浪网",
+          "reason": "源不在权威名单、内容也够不上重大：手机新浪网",
+          "source": "手机新浪网",
+          "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE5PQnZab0ZqcnRHMFRTQVlWSjlianZiMmNsdFgyRkcwdHRhZlFFM2xULVRhcWpzRDczN2JNNG12N3FmbzN3ZFhIYlJoSjlBN2FvSWpIS1VqckR2T2E3amU3MzhoLXhaZVg2UXljdV9aSUxnVmU2MzF3Y0h4NTBYdw?oc=5",
+          "pub_date": "2026-07-19 01:09 UTC"
+        }
+      ]
+    },
+    "fed_gate": {
+      "node": "总闸·美联储是否美国优先",
+      "evidence": "【状态机·事件驱动】总闸=维持·观察（无新Fed事件·沿用第9天）·据美联储事件(FEDFUNDS/决议)，非单日行情噪声(治B2)。边际注脚(仅参考·不翻闸)：US10Y=4.545、较昨-0.87%。上次事件=2026-06-01",
+      "strength": "中",
+      "direction": "总闸维持(无新Fed事件·基线)",
+      "plain": "美联储姿态今天维持·观察（无新Fed事件·沿用第9天）——按'有Fed事件才翻、没事件就沿用'判，不被国债利率一天涨跌牵着走 → 对你：总闸维持，不因单日行情调仓。",
+      "today_events": [
+        "总闸状态机=维持·观察（无新Fed事件·沿用第9天）",
+        "边际注脚(仅参考·不翻闸)：US10Y=4.545、较昨-0.87%"
+      ],
+      "background": [
+        "data_date=2026-07-15"
+      ],
+      "source": "latest_market_snapshot.json·US10Y.change_percent=-0.87% + FRED经济日历"
+    },
+    "strategy": {
+      "node": "战略指向·AI/安全/能源",
+      "evidence": "【新闻研判】战略产业面：抓12条 → 过源白名单+时效(36h)+相关性闸后合格 0 条 → 判「今日无重大新闻·维持基线」(不拿旧闻/杂源凑·不编)。今天读到但判为弱相关的有 10 条(见下·董事长可自己看)。剔除示例：没等来 “吊炸天”！“还凑合” 台积电扛不起 AI 大叙事了？→旧闻(发布于2026-07-16·距今62小时>36小时)；台积电财报：AI需求比芯片抛售潮所暗示的更为强劲→旧闻(发布于2026-07-16·距今66小时>36小时)；台积电第二季度净利润大增77.4%创纪录，AI芯片需求推动业绩超预期→旧闻(发布于2026-07-15·距今82小时>36小时)",
+      "strength": "中",
+      "direction": "AI(今日无重大新闻·维持基线)",
+      "plain": "今天没有够格(权威源+当日)的 AI 产业新闻 → 维持基线：AI 主线沿用上次判断，核心仓照守、不因没新闻就动。",
+      "today_events": [
+        "今天没有够格的战略产业面新闻（抓12条·合格0条）；但今天确实读到了这 10 条弱相关的，摆出来你自己判："
+      ],
+      "background": [
+        "源白名单=路透/彭博/CNBC/WSJ/FT/官方+财新/华尔街见闻/第一财经/证券时报；时效≤36h；已剔除大学页/智库博客/内容农场"
+      ],
+      "source": "Google News RSS·中文源(zh-CN)·合格0/抓12条·源白名单+≤36h",
+      "news_items": [],
+      "weak_items": [
+        {
+          "title": "没等来 “吊炸天”！“还凑合” 台积电扛不起 AI 大叙事了？ - 华尔街见闻",
+          "source": "华尔街见闻",
+          "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFBFXzJrNmVLeXRxekpwQ2s3X3NjSnYxVzlMM1JyZXJDbi14bXZKNTFTUGsyc3QyclFNWGpXNEs0Yk52cVowOS1peG1RR0hKNXhfbW84?oc=5",
+          "pub_date": "2026-07-16 12:04 UTC",
+          "judge": "旧闻(发布于2026-07-16·距今62小时>36小时)"
+        },
+        {
+          "title": "台积电财报：AI需求比芯片抛售潮所暗示的更为强劲 - Moomoo",
+          "source": "Moomoo",
+          "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQTmNIU0NCa2lIREtLQ3ZZTXlHVzg1eGZCbXRqZ25TaEpaRkpRYTJZZ0tvbTBZOTloWUNyWFpHaGRibi10M29OV2RXczJtTE9VamtYQmlnTDZIa2hGVE1fWjhkTmhTOE1va2tHaVVHV1lFbmRUZ29fMUdRWVl1WENINkpTNkFDRGdEanlOWWNPT2o5dmM2b1FKRE1KY25vZ1FiTkEzWHo0UEhnMVdpYVUwd1lXVTh6QQ?oc=5",
+          "pub_date": "2026-07-16 07:38 UTC",
+          "judge": "旧闻(发布于2026-07-16·距今66小时>36小时)"
+        },
+        {
+          "title": "台积电第二季度净利润大增77.4%创纪录，AI芯片需求推动业绩超预期 - TradingKey",
+          "source": "TradingKey",
+          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOM2dRbE11M2ktdkhXeGFoR0tSMkRWOE9BR2VYbXFZOEVSRkUtX090eUZwUUl2NUV1TEdCQVd2dnhmRVpXYVFPNGRPRWt6d20xMGF0eEpkb29kcWNUc1dVZjI0YWMxZ3pxblk2VEVmVWc3dl9rTWNicjZDWmJjVUx3aUQxdWFhU0NtT093MEVwM0p1ODlZNzFIVU1WZjFUQnlZQzh6Q3Jrb0dDRkJERzFfbFRNalNxRXBE?oc=5",
+          "pub_date": "2026-07-15 15:22 UTC",
+          "judge": "旧闻(发布于2026-07-15·距今82小时>36小时)"
+        }
+      ],
+      "news_dropped": [
+        {
+          "title": "没等来 “吊炸天”！“还凑合” 台积电扛不起 AI 大叙事了？ - 华尔街见闻",
+          "reason": "旧闻(发布于2026-07-16·距今62小时>36小时)",
+          "source": "华尔街见闻",
+          "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFBFXzJrNmVLeXRxekpwQ2s3X3NjSnYxVzlMM1JyZXJDbi14bXZKNTFTUGsyc3QyclFNWGpXNEs0Yk52cVowOS1peG1RR0hKNXhfbW84?oc=5",
+          "pub_date": "2026-07-16 12:04 UTC"
+        },
+        {
+          "title": "台积电财报：AI需求比芯片抛售潮所暗示的更为强劲 - Moomoo",
+          "reason": "旧闻(发布于2026-07-16·距今66小时>36小时)",
+          "source": "Moomoo",
+          "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQTmNIU0NCa2lIREtLQ3ZZTXlHVzg1eGZCbXRqZ25TaEpaRkpRYTJZZ0tvbTBZOTloWUNyWFpHaGRibi10M29OV2RXczJtTE9VamtYQmlnTDZIa2hGVE1fWjhkTmhTOE1va2tHaVVHV1lFbmRUZ29fMUdRWVl1WENINkpTNkFDRGdEanlOWWNPT2o5dmM2b1FKRE1KY25vZ1FiTkEzWHo0UEhnMVdpYVUwd1lXVTh6QQ?oc=5",
+          "pub_date": "2026-07-16 07:38 UTC"
+        },
+        {
+          "title": "台积电第二季度净利润大增77.4%创纪录，AI芯片需求推动业绩超预期 - TradingKey",
+          "reason": "旧闻(发布于2026-07-15·距今82小时>36小时)",
+          "source": "TradingKey",
+          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOM2dRbE11M2ktdkhXeGFoR0tSMkRWOE9BR2VYbXFZOEVSRkUtX090eUZwUUl2NUV1TEdCQVd2dnhmRVpXYVFPNGRPRWt6d20xMGF0eEpkb29kcWNUc1dVZjI0YWMxZ3pxblk2VEVmVWc3dl9rTWNicjZDWmJjVUx3aUQxdWFhU0NtT093MEVwM0p1ODlZNzFIVU1WZjFUQnlZQzh6Q3Jrb0dDRkJERzFfbFRNalNxRXBE?oc=5",
+          "pub_date": "2026-07-15 15:22 UTC"
+        },
+        {
+          "title": "AI 交易见顶了？从阿斯麦财报被抛售看 AI 下半场的扩散与分化 - 36 Kr",
+          "reason": "旧闻(发布于2026-07-15·距今77小时>36小时)",
+          "source": "36 Kr",
+          "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE9YMTd2TWhoU3ZpQ1NIRm83RmRscFYzTVhJMkxSRVNIUGd4MnpWUFZ3X01zMDM1XzhMUTR6NHFaUmgzckM2ckF6b2pUY1lDQQ?oc=5",
+          "pub_date": "2026-07-15 20:40 UTC"
+        },
+        {
+          "title": "财报前瞻| 台积电Q2营收锁定超预期！毛利率或逼近70%，绩后股价波动如何部署期权？ 港美股资讯 - hstong.com",
+          "reason": "旧闻(发布于2026-07-14·距今112小时>36小时)",
+          "source": "hstong.com",
+          "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1lcm40bm15Wlk4cHFuZkFaM0cyVEJMcFJIaGxHVVJNbG1fTURrVHVCRDU3dGtqZDhJN2hveWx1bnBqQWoyNDJwOGdHLWdVLWRUQ3NpMDNkTlh4WEZqTDJLUGZB?oc=5",
+          "pub_date": "2026-07-14 09:59 UTC"
+        },
+        {
+          "title": "台积电Q2净利润同比增长77.4%大超预期，毛利率达67.7%，AI芯片需求强劲势头持续| 财报见闻 - 华尔街见闻",
+          "reason": "旧闻(发布于2026-07-16·距今68小时>36小时)",
+          "source": "华尔街见闻",
+          "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFBKcEktM2pLcC05ck9udmx1WVFseDZWWHNNWlJQc0hSa21hdWpRdXBfME5pNHd1Wm04Z1RpTlhEY0tGSGxFZG4xQ0tBMnJySHVOV2o0?oc=5",
+          "pub_date": "2026-07-16 05:50 UTC"
+        }
+      ]
+    },
+    "flow": {
+      "node": "资金轮动",
+      "evidence": "【行情·主】VIX 较昨+1.08%、曲线未倒挂(10Y-3M=0.857·2年待接)（阈值 VIX>+5.0%或倒挂→避险）→ 规则判「中性」。【阻尼】与上一状态一致（中性）→ 不涉及翻不翻",
+      "strength": "中",
+      "direction": "中性",
+      "plain": "市场情绪今天不温不火（VIX +1.08%）→ 对你：按原计划，不因情绪调仓。",
+      "today_events": [
+        "行情：VIX 较昨+1.08%、曲线未倒挂(10Y-3M=0.857·2年待接) → 规则判「中性」"
+      ],
+      "background": [
+        "VIX data_date=2026-07-16",
+        "层间阻尼：不涉及翻转",
+        "读数：VIX + 曲线 + 高收益利差<待接·无HYG真源·不编>"
+      ],
+      "source": "latest_market_snapshot.json·^VIX + yield_curve_20260715.json(最近可得 20260715·非当日)"
+    }
+  },
+  "holding_summary": {
+    "符合": 5,
+    "受检": 15,
+    "待补": 0
+  },
+  "holdings": [
+    {
+      "symbol": "JP.4568",
+      "name": "第一三共",
+      "quantity": 9900.0,
+      "price": 2791.0,
+      "market_value": 27630900.0,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "②",
+        "tier_label": "趋势观察·不杀",
+        "industry_bucket": "制造软件品牌",
+        "type": "成长股",
+        "missing": [],
+        "why": "FCF(为负但改善/有转正路径)",
+        "flags": [
+          "防误杀②:未达标但趋势改善·不杀"
+        ],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.90；现价/60高=0.93；现价/60低=1.17"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.85；便宜线=2520；偏贵线=3800",
+        "model_type": "医药管线DCF",
+        "source_file": "第一三共.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "肿瘤ADC专利平台+Enhertu重磅药+阿斯利康合作分销。深研6·较宽,五维核为7。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "宽",
+            "score": 2
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=宽护城河"
+    },
+    {
+      "symbol": "US.NVDA",
+      "name": "英伟达",
+      "quantity": 1020.0,
+      "price": 202.81,
+      "market_value": 206866.2,
+      "raw_holding_verdict": "符合",
+      "matched_node_classes_raw": [
+        "代工",
+        "半导体设备",
+        "算力"
+      ],
+      "matched_node_classes_effective": [
+        "代工",
+        "半导体设备",
+        "算力"
+      ],
+      "hard_filter": "符合",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "制造软件品牌",
+        "type": "成长股",
+        "missing": [],
+        "why": "核心达标无硬伤：毛利率75%≥门槛45%、自由现金流为正、资产负债表、订价权强、订单可见度",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": true
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=1.06；现价/60高=0.86；现价/60低=1.07"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.92；便宜线=175；偏贵线=260",
+        "model_type": "成长情景PE",
+        "source_file": "英伟达.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 8,
+        "confidence": "B",
+        "basis": "CUDA软件生态转换成本极高+芯片代际领先+系统级方案。深研8·宽。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "宽",
+            "score": 2
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "宽",
+            "score": 2
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "守",
+      "one_line_reason": "硬性=符合方向+软性=位置好+估值=合理偏便宜+护城河=宽护城河→优质，重点"
+    },
+    {
+      "symbol": "US.MSFT",
+      "name": "微软",
+      "quantity": 690.0,
+      "price": 393.82,
+      "market_value": 271735.8,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "制造软件品牌",
+        "type": "成长股",
+        "missing": [],
+        "why": "核心达标无硬伤：毛利率68%≥门槛45%、自由现金流为正、资产负债表、订价权强、订单可见度",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.90；现价/60高=0.84；现价/60低=1.13"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.94；便宜线=360；偏贵线=460",
+        "model_type": "成长情景PE",
+        "source_file": "微软.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "企业生态锁定(Office/Azure换掉成本极高)+网络效应+规模。深研7·宽。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "宽",
+            "score": 2
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "宽",
+            "score": 2
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=宽护城河"
+    },
+    {
+      "symbol": "US.MSTR",
+      "name": "MSTR",
+      "quantity": 858.0,
+      "price": 94.85,
+      "market_value": 81381.3,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "②",
+        "tier_label": "趋势观察·不杀",
+        "industry_bucket": "金融",
+        "type": "控股公司",
+        "missing": [],
+        "why": "ROE为负(-31%)·留观察不杀(不硬③)；本行业毛利/FCF豁免·暂无核心硬账指标可证优质(账本待接金融口径:净利率/ROE/资本充足)",
+        "flags": [
+          "防误杀②:未达标但趋势改善·不杀"
+        ],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.56；现价/60高=0.48；现价/60低=1.16"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=1.00；便宜线=78；偏贵线=118",
+        "model_type": "加密mNAV",
+        "source_file": "MSTR.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "无护城河",
+        "total_score": 2,
+        "confidence": "B",
+        "basis": "加杠杆的比特币壳·无真业务壁垒·价值≈手里的币。深研3·弱,五维核为2。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "无",
+            "score": 0
+          },
+          "成本优势": {
+            "label": "无",
+            "score": 0
+          },
+          "转换成本": {
+            "label": "无",
+            "score": 0
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=无护城河"
+    },
+    {
+      "symbol": "US.COIN",
+      "name": "Coinbase",
+      "quantity": 245.0,
+      "price": 157.12,
+      "market_value": 38494.4,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "②",
+        "tier_label": "趋势观察·不杀",
+        "industry_bucket": "金融",
+        "type": "券商",
+        "missing": [],
+        "why": "ROE为负(-12%)·留观察不杀(不硬③)；本行业毛利/FCF豁免·暂无核心硬账指标可证优质(账本待接金融口径:净利率/ROE/资本充足)",
+        "flags": [
+          "防误杀②:未达标但趋势改善·不杀"
+        ],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.71；现价/60高=0.71；现价/60低=1.13"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.96；便宜线=134.94；偏贵线=214.31",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "US.COIN.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "窄护城河",
+        "total_score": 5,
+        "confidence": "B",
+        "basis": "美国最大合规加密交易所·品牌+牌照;随加密行情起伏。深研5·中。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "宽",
+            "score": 2
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "无",
+            "score": 0
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=窄护城河"
+    },
+    {
+      "symbol": "JP.9984",
+      "name": "软银",
+      "quantity": 6900.0,
+      "price": 5424.0,
+      "market_value": 37425600.0,
+      "raw_holding_verdict": "符合",
+      "matched_node_classes_raw": [
+        "半导体设备"
+      ],
+      "matched_node_classes_effective": [
+        "半导体设备"
+      ],
+      "hard_filter": "符合",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "金融",
+        "type": "控股公司",
+        "missing": [],
+        "why": "核心达标无硬伤：ROE34%≥门槛10%、资产负债表、订价权NA(控股投资公司·无产品定价权)",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": true
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=1.07；现价/60高=0.60；现价/60低=1.11"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "便宜",
+        "reason": "现价/基准=0.76；便宜线=5850；偏贵线=8000",
+        "model_type": "NAV折价",
+        "source_file": "软银.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "无护城河",
+        "total_score": 2,
+        "confidence": "B",
+        "basis": "控股投资公司·自身无经营护城河;壁垒在旗下Arm。深研2·几乎没。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "无",
+            "score": 0
+          },
+          "成本优势": {
+            "label": "无",
+            "score": 0
+          },
+          "转换成本": {
+            "label": "无",
+            "score": 0
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "守",
+      "one_line_reason": "硬性=符合方向+软性=位置好+估值=便宜+护城河=无护城河→守"
+    },
+    {
+      "symbol": "JP.8766",
+      "name": "东京海上",
+      "quantity": 1000.0,
+      "price": 7526.0,
+      "market_value": 7526000.0,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "金融",
+        "type": "保险",
+        "missing": [],
+        "why": "核心达标无硬伤：ROE21%≥门槛10%、资产负债表、订价权强",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置中性",
+        "reason": "现价/MA200=1.16；现价/60高=0.94；现价/60低=1.11"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "贵",
+        "reason": "现价/基准=1.10；便宜线=6200；偏贵线=7500",
+        "model_type": "保险内含价值EV",
+        "source_file": "东京海上.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "窄护城河",
+        "total_score": 5,
+        "confidence": "B",
+        "basis": "财险品牌+规模+长年承保数据(定价准)+牌照。深研5·中。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "宽",
+            "score": 2
+          },
+          "网络效应": {
+            "label": "无",
+            "score": 0
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=窄护城河"
+    },
+    {
+      "symbol": "JP.6758",
+      "name": "索尼",
+      "quantity": 1000.0,
+      "price": 3470.0,
+      "market_value": 3470000.0,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "低毛利制造",
+        "type": "成长股",
+        "missing": [],
+        "why": "核心达标无硬伤：毛利率31%≥门槛12%、自由现金流为正、资产负债表、订价权中",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.93；现价/60高=0.93；现价/60低=1.14"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理",
+        "reason": "现价/基准=1.09；便宜线=2687.2；偏贵线=4366.7",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "JP.6758.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "影像传感器近垄断+游戏主机生态+海量娱乐IP。深研6·较宽,五维核为7。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "宽",
+            "score": 2
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=宽护城河"
+    },
+    {
+      "symbol": "JP.6857",
+      "name": "爱德万",
+      "quantity": 800.0,
+      "price": 27505.0,
+      "market_value": 22004000.0,
+      "raw_holding_verdict": "符合",
+      "matched_node_classes_raw": [
+        "半导体设备"
+      ],
+      "matched_node_classes_effective": [
+        "半导体设备"
+      ],
+      "hard_filter": "符合",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "半导体设备",
+        "type": "周期股",
+        "missing": [],
+        "why": "核心达标无硬伤：自由现金流为正、资产负债表、订价权强、订单可见度",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": true
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置中性",
+        "reason": "现价/MA200=1.16；现价/60高=0.77；现价/60低=1.14"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.99；便宜线=23000；偏贵线=30000",
+        "model_type": "周期PE",
+        "source_file": "爱德万.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "半导体测试机近双寡头(+泰瑞达)+客户认证壁垒。深研7·宽。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "宽",
+            "score": 2
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "守",
+      "one_line_reason": "硬性=符合方向+软性=位置中性+估值=合理偏便宜+护城河=宽护城河→优质，重点"
+    },
+    {
+      "symbol": "JP.7203",
+      "name": "丰田",
+      "quantity": 800.0,
+      "price": 2899.5,
+      "market_value": 2319600.0,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "低毛利制造",
+        "type": "周期股",
+        "missing": [],
+        "why": "核心达标无硬伤：毛利率17%≥门槛12%、自由现金流为正、资产负债表、订价权中",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.91；现价/60高=0.86；现价/60低=1.08"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=1.00；便宜线=2399.55；偏贵线=3669.9",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "JP.7203.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "规模+混动技术领先+可靠性品牌+全球经销网。深研6·较宽,五维核为7。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "宽",
+            "score": 2
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "宽",
+            "score": 2
+          },
+          "转换成本": {
+            "label": "无",
+            "score": 0
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=宽护城河"
+    },
+    {
+      "symbol": "JP.8001",
+      "name": "伊藤忠",
+      "quantity": 900.0,
+      "price": 1902.5,
+      "market_value": 1712250.0,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "金融",
+        "type": "综合商社",
+        "missing": [],
+        "why": "核心达标无硬伤：ROE15%≥门槛10%、资产负债表、订价权中",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.98；现价/60高=0.90；现价/60低=1.06"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理",
+        "reason": "现价/基准=1.06；便宜线=1507.2；偏贵线=2355",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "JP.8001.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "窄护城河",
+        "total_score": 5,
+        "confidence": "B",
+        "basis": "多元综合商社·分散经营+长期资产网络;巴菲特持股背书。深研5·中。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=窄护城河"
+    },
+    {
+      "symbol": "JP.7832",
+      "name": "万代",
+      "quantity": 500.0,
+      "price": 4189.0,
+      "market_value": 2094500.0,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "低毛利制造",
+        "type": "成长股",
+        "missing": [],
+        "why": "核心达标无硬伤：毛利率39%≥门槛12%、自由现金流为正、资产负债表、订价权强",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=1.01；现价/60高=0.98；现价/60低=1.19"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理",
+        "reason": "现价/基准=1.10；便宜线=3213.6；偏贵线=5222.1",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "JP.7832.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "动漫IP组合(高达/龙珠)+玩具模型变现+游戏。深研6·较宽,五维核为7。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "宽",
+            "score": 2
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=宽护城河"
+    },
+    {
+      "symbol": "JP.7974",
+      "name": "任天堂",
+      "quantity": 2000.0,
+      "price": 7294.0,
+      "market_value": 14588000.0,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "②",
+        "tier_label": "趋势观察·不杀",
+        "industry_bucket": "制造软件品牌",
+        "type": "成长股",
+        "missing": [],
+        "why": "毛利率(未达门槛·趋势未知·试行从宽按观察)",
+        "flags": [
+          "防误杀②:未达标但趋势改善·不杀"
+        ],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.75；现价/60高=0.86；现价/60低=1.11"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理",
+        "reason": "现价/基准=1.09；便宜线=5624；偏贵线=9139",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "JP.7974.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 8,
+        "confidence": "B",
+        "basis": "独家超级IP(马力欧/塞尔达/宝可梦)+主机生态·几十年难复制。深研7·宽。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "宽",
+            "score": 2
+          },
+          "网络效应": {
+            "label": "宽",
+            "score": 2
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=宽护城河"
+    },
+    {
+      "symbol": "US.AVGO",
+      "name": "博通",
+      "quantity": 150.0,
+      "price": 369.99,
+      "market_value": 55498.5,
+      "raw_holding_verdict": "符合",
+      "matched_node_classes_raw": [
+        "代工",
+        "半导体设备",
+        "算力"
+      ],
+      "matched_node_classes_effective": [
+        "代工",
+        "半导体设备",
+        "算力"
+      ],
+      "hard_filter": "符合",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "制造软件品牌",
+        "type": "成长股",
+        "missing": [],
+        "why": "核心达标无硬伤：毛利率76%≥门槛45%、自由现金流为正、资产负债表、订价权强、订单可见度",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": true
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=1.02；现价/60高=0.75；现价/60低=1.04"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.90；便宜线=340.93；偏贵线=521.42",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "US.AVGO.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "定制AI芯片(ASIC)市占60-80%+客户深绑+VMware软件黏性。深研7·宽。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "宽",
+            "score": 2
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "守",
+      "one_line_reason": "硬性=符合方向+软性=位置好+估值=合理偏便宜+护城河=宽护城河→优质，重点"
+    },
+    {
+      "symbol": "US.CRCL",
+      "name": "Circle",
+      "quantity": 400.0,
+      "price": 60.3858,
+      "market_value": 24154.32,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "②",
+        "tier_label": "趋势观察·不杀",
+        "industry_bucket": "金融",
+        "type": "券商",
+        "missing": [],
+        "why": "ROE6%未达门槛10%·观察；本行业毛利/FCF豁免·暂无核心硬账指标可证优质(账本待接金融口径:净利率/ROE/资本充足)",
+        "flags": [
+          "防误杀②:未达标但趋势改善·不杀"
+        ],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=0.65；现价/60高=0.43；现价/60低=1.03"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理",
+        "reason": "现价/基准=1.01；便宜线=50.53；偏贵线=82.12",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "US.CRCL.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "窄护城河",
+        "total_score": 5,
+        "confidence": "B",
+        "basis": "USDC第二大稳定币+GENIUS法案合规红利;高度依赖利率。深研5·中。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "无",
+            "score": 0
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=窄护城河"
+    },
+    {
+      "symbol": "US.SNDK",
+      "name": "闪迪",
+      "quantity": 20.0,
+      "price": 1350.034,
+      "market_value": 27000.68,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "半导体设备",
+        "type": "周期股",
+        "missing": [],
+        "why": "核心达标无硬伤：自由现金流为正、资产负债表、订价权中、订单可见度",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置偏高",
+        "reason": "现价/MA200=1.73；现价/60高=0.57；现价/60低=1.51"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.89；便宜线=1132.8；偏贵线=1736.96",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "US.SNDK.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "窄护城河",
+        "total_score": 5,
+        "confidence": "B",
+        "basis": "NAND闪存寡头之一(2025从西数分拆);闪存强周期。深研5·中。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "无",
+            "score": 0
+          },
+          "成本优势": {
+            "label": "宽",
+            "score": 2
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=窄护城河"
+    },
+    {
+      "symbol": "US.TSM",
+      "name": "台积电",
+      "quantity": 1.0,
+      "price": 397.75,
+      "market_value": 397.75,
+      "raw_holding_verdict": "符合",
+      "matched_node_classes_raw": [
+        "代工",
+        "半导体设备",
+        "算力"
+      ],
+      "matched_node_classes_effective": [
+        "代工",
+        "半导体设备",
+        "算力"
+      ],
+      "hard_filter": "符合",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "半导体设备",
+        "type": "周期股",
+        "missing": [],
+        "why": "核心达标无硬伤：自由现金流为正、资产负债表、订价权强、订单可见度",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": true
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置中性",
+        "reason": "现价/MA200=1.14；现价/60高=0.83；现价/60低=1.08"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.95；便宜线=351.5；偏贵线=571.2",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "US_TSM_relative.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 8,
+        "confidence": "B",
+        "basis": "先进制程近乎垄断+CoWoS先进封装+资本壁垒天文。深研8·极宽。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "宽",
+            "score": 2
+          },
+          "转换成本": {
+            "label": "宽",
+            "score": 2
+          },
+          "专利技术": {
+            "label": "宽",
+            "score": 2
+          }
+        }
+      },
+      "action": "守",
+      "one_line_reason": "硬性=符合方向+软性=位置中性+估值=合理偏便宜+护城河=宽护城河→优质，重点"
+    },
+    {
+      "symbol": "US.META",
+      "name": "META",
+      "quantity": 95.0,
+      "price": 640.25,
+      "market_value": 60823.75,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "制造软件品牌",
+        "type": "成长股",
+        "missing": [],
+        "why": "核心达标无硬伤：毛利率82%≥门槛45%、自由现金流为正、资产负债表、订价权强、订单可见度",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置好",
+        "reason": "现价/MA200=1.00；现价/60高=0.93；现价/60低=1.19"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理",
+        "reason": "现价/基准=1.05；便宜线=511.49；偏贵线=799.2",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "US.META.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "社交网络效应(用户+广告主)+海量数据+广告生态。深研7·宽。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "宽",
+            "score": 2
+          },
+          "网络效应": {
+            "label": "宽",
+            "score": 2
+          },
+          "成本优势": {
+            "label": "窄",
+            "score": 1
+          },
+          "转换成本": {
+            "label": "窄",
+            "score": 1
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=宽护城河"
+    },
+    {
+      "symbol": "US.IBKR",
+      "name": "IBKR",
+      "quantity": 14.0,
+      "price": 90.78,
+      "market_value": 1270.92,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "①",
+        "tier_label": "优质·通过",
+        "industry_bucket": "金融",
+        "type": "券商",
+        "missing": [],
+        "why": "核心达标无硬伤：ROE20%≥门槛10%、资产负债表、订价权强",
+        "flags": [],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置中性",
+        "reason": "现价/MA200=1.21；现价/60高=0.93；现价/60低=1.22"
+      },
+      "valuation": {
+        "status": "OK",
+        "label": "合理偏便宜",
+        "reason": "现价/基准=0.99；便宜线=78.2；偏贵线=119.2",
+        "model_type": "相对估值·财报锚·非精算·可信度C",
+        "source_file": "US.IBKR.json"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "宽护城河",
+        "total_score": 7,
+        "confidence": "B",
+        "basis": "低成本自动化券商·技术平台+账户黏性+规模;受益高利率。深研6·较宽,五维核为7。",
+        "source_file": null,
+        "dimensions": {
+          "品牌": {
+            "label": "窄",
+            "score": 1
+          },
+          "网络效应": {
+            "label": "窄",
+            "score": 1
+          },
+          "成本优势": {
+            "label": "宽",
+            "score": 2
+          },
+          "转换成本": {
+            "label": "宽",
+            "score": 2
+          },
+          "专利技术": {
+            "label": "窄",
+            "score": 1
+          }
+        }
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=宽护城河"
+    },
+    {
+      "symbol": "US.SPCX",
+      "name": "SpaceX",
+      "quantity": 10.0,
+      "price": 124.1415,
+      "market_value": 1241.415,
+      "raw_holding_verdict": "今日不在激活节点上",
+      "matched_node_classes_raw": [],
+      "matched_node_classes_effective": [],
+      "hard_filter": "受检",
+      "quality_gate": {
+        "tier": "②",
+        "tier_label": "趋势观察·不杀",
+        "industry_bucket": "制造软件品牌",
+        "type": "成长股",
+        "missing": [
+          "毛利率",
+          "自由现金流",
+          "资产负债表·待接",
+          "订价权·待评",
+          "订单可见度·待接"
+        ],
+        "why": "缺核心(待接)：毛利率、自由现金流；辅助(待评/待接)：资产负债表·待接、订价权·待评、订单可见度·待接",
+        "flags": [
+          "试行从宽:缺核心真数据·标待接·按②观察不杀"
+        ],
+        "rule_source": "00_请先看这里/基本面质量关框架.html",
+        "is_active_node": false
+      },
+      "soft_filter": {
+        "status": "OK",
+        "label": "位置中性",
+        "reason": "技术位可用"
+      },
+      "valuation": {
+        "status": "待补",
+        "label": "估值待补",
+        "reason": "无模型实例"
+      },
+      "moat": {
+        "status": "待理解岗打分",
+        "moat_grade": "待补护城河",
+        "total_score": null,
+        "confidence": "待补",
+        "basis": "无护城河实例"
+      },
+      "action": "等",
+      "one_line_reason": "硬性=受检→受检，不做主动动作；护城河=待补护城河"
+    }
+  ],
+  "opportunity_pool": {
+    "channel_1_swap_comparisons": [],
+    "channel_2_new_opportunities": []
+  }
+}

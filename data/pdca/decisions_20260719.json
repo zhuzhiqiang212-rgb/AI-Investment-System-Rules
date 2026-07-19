@@ -1,0 +1,88 @@
+{
+  "_说明": "唯一决定表：每只当天只有一个动作。产品里顶部动作表/20只总表/日股/现金/深研卡结论全部从这里读；CI 核'同股任何位置动作不一致'即拦。",
+  "date": "20260719",
+  "run_id": "R-20260719-105633",
+  "generated_at": "2026-07-19T01:56:33",
+  "decisions": {
+    "JP.4568": {
+      "action": "等",
+      "name": "第一三共"
+    },
+    "US.NVDA": {
+      "action": "守",
+      "name": "英伟达"
+    },
+    "US.MSFT": {
+      "action": "等",
+      "name": "微软"
+    },
+    "US.MSTR": {
+      "action": "守",
+      "name": "MSTR"
+    },
+    "US.COIN": {
+      "action": "守",
+      "name": "Coinbase"
+    },
+    "JP.9984": {
+      "action": "守",
+      "name": "软银"
+    },
+    "JP.8766": {
+      "action": "守",
+      "name": "东京海上"
+    },
+    "JP.6758": {
+      "action": "等",
+      "name": "索尼"
+    },
+    "JP.6857": {
+      "action": "守",
+      "name": "爱德万"
+    },
+    "JP.7203": {
+      "action": "守",
+      "name": "丰田"
+    },
+    "JP.8001": {
+      "action": "守",
+      "name": "伊藤忠"
+    },
+    "JP.7832": {
+      "action": "守",
+      "name": "万代"
+    },
+    "JP.7974": {
+      "action": "等",
+      "name": "任天堂"
+    },
+    "US.AVGO": {
+      "action": "减",
+      "name": "博通"
+    },
+    "US.CRCL": {
+      "action": "守",
+      "name": "Circle"
+    },
+    "US.SNDK": {
+      "action": "守",
+      "name": "闪迪"
+    },
+    "US.TSM": {
+      "action": "守",
+      "name": "台积电"
+    },
+    "US.META": {
+      "action": "减",
+      "name": "META"
+    },
+    "US.IBKR": {
+      "action": "守",
+      "name": "IBKR"
+    },
+    "US.SPCX": {
+      "action": "守",
+      "name": "SpaceX"
+    }
+  }
+}
