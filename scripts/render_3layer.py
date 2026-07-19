@@ -739,21 +739,28 @@ def _stab_calc_of(sym, dyn, date):
         return ""
 
 
-# ── [A组]第一层可读性(董事长2026-07-19 实测·最高优先·只作用 #L1·不动 L2/L3·不改任何决定/数字) ──
+# ── [A组]第一层可读性(董事长2026-07-19实测『根本看不清』·★彻底弃用金色文字·架构师已验算对比度) ──
+#   所有文字对比度≥4.5:1(大字粗体≥3:1);金色只留边框/图标·不做正文。同原则应用到 L2(蓝)/L3(绿):标题条深底白字·正文近黑。
 _A_CSS = (
-    # A1 字号层级:最重要的动作徽章/主决定放大到 GPT9 标准(≥14-16px·主决定≥16px)
-    "#L1>summary{font-size:20px;background:#6B4A00;color:#fff}"                       # A2 标题条反白 8.06:1(过AAA)
-    "#L1 .body{background:#fff;border-left:4px solid #B8860B;color:#12324E}"          # A2 区块纯白+左边框+深蓝正文 13.19:1
-    "#L1 .chip{font-size:18px;font-weight:800;padding:3px 14px;border-radius:6px}"    # 动作徽章:全页最重要→最大
+    # ── A2 配色·第一层彻底弃金(深棕标题条9.39:1 + 纯白底 + 近黑正文17.40:1 + 中性隔行15.80:1) ──
+    "#L1>summary{background:#5C4033;color:#FFFFFF;font-size:20px}"                     # 标题条深棕白字 9.39:1(过AAA)
+    "#L1 .body{background:#FFFFFF;border-left:5px solid #5C4033}"
+    "#L1 .body,#L1 .blk div,#L1 td,#L1 .blk h3,#L1 .body td,#L1 .body th{color:#1A1A1A}"  # 正文近黑 17.40:1
+    "#L1 table th{background:#12324E;color:#FFFFFF}"                                   # 表头深蓝白字(保持)
+    "#L1 table tr:nth-child(odd) td,#L1 table tbody tr:nth-child(odd) td{background:#FFFFFF}"
+    "#L1 table tr:nth-child(even) td,#L1 table tbody tr:nth-child(even) td{background:#F2F4F7}"  # 中性灰隔行 15.80:1
+    # ── A1 字号(上轮已对·保持):动作徽章/主决定最大 ──
+    "#L1 .chip{font-size:18px;font-weight:800;padding:3px 14px;border-radius:6px}"
     "#L1 .pill{font-size:14px;font-weight:700;padding:2px 12px}"
     "#L1 table{font-size:15px}#L1 th,#L1 td{padding:9px 10px}"
-    '#L1 td[data-l="现价"],#L1 td[data-l="第一档"],#L1 td[data-l="第二档"]{font-size:16px;font-weight:700}'  # 主决定数字≥16px
-    "#L1 .blk h3{font-size:17px;color:#6B4A00}#L1 .blk div{font-size:15px;line-height:1.8;color:#12324E}"
-    # A2 配色:表头深底白字 + 隔行交替底色(每行读成整体) + 金色只留标题/边框/重点词
-    "#L1 table th{background:#12324E;color:#fff}"
-    "#L1 table tbody tr:nth-child(even) td,#L1 table tr:nth-child(even) td{background:#FBF3E0}"
-    "#L1 table tbody tr:nth-child(odd) td,#L1 table tr:nth-child(odd) td{background:#fff}"
-    # 手机端再放大一档(验收:亮度50%手机也能读出动作/价格)
+    '#L1 td[data-l="现价"],#L1 td[data-l="第一档"],#L1 td[data-l="第二档"]{font-size:16px;font-weight:700}'
+    "#L1 .blk h3{font-size:17px}#L1 .blk div{font-size:15px;line-height:1.8}"
+    "#L1>summary{font-size:20px}"
+    # ── L2/L3 同原则(标题条深底白字·正文近黑·行底中性)——治『浅底+同色系浅字』 ──
+    "#L2>summary{background:#123A6B;color:#FFFFFF}#L2 .body,#L2 .body td,#L2 .body th,#L2 .stock,#L2 .nm{color:#14243A}"
+    "#L3>summary{background:#123D2E;color:#FFFFFF}#L3 .body,#L3 .body td,#L3 .body th,#L3 .stock,#L3 .nm{color:#12261D}"
+    "#L2 table th{background:#123A6B;color:#fff}#L3 table th{background:#123D2E;color:#fff}"
+    # 手机端再放大一档(验收:亮度50%手机也读得出)
     "@media(max-width:640px){#L1 .chip{font-size:20px;padding:4px 16px}#L1 td{font-size:15px}"
     '#L1 td[data-l="现价"],#L1 td[data-l="第一档"],#L1 td[data-l="第二档"]{font-size:18px}#L1>summary{font-size:18px}}'
 )
@@ -820,8 +827,20 @@ def _add_nav(out: str, order: list, names: dict) -> str:
                           _l2bar(last) + '<div class="blockend">— 本块结束：② 为什么这么做 —</div><details class="layer" id="L3">', 1)
         out = out.replace('<h2 class="main" id="inst-top"',
                           _l3bar(last) + '<div class="blockend">— 本块结束：③ 完整研究底稿 —</div><h2 class="main" id="inst-top"', 1)
-    # B1 机构底稿各块之间加"本块结束"分隔
-    out = out.replace('<details class="sub" id="sec-', '<div class="blockend">— 上一机构块结束 —</div><details class="sub" id="sec-')
+    # [D1]B1 每个大块结尾都加"本块结束"分隔(统一措辞·覆盖机会池/板块/记分卡/右栏/承接/新闻等机构块)
+    _SEC_NAME = {"sec-opp": "机会池", "sec-sector": "板块深研", "sec-macro": "大环境六层", "sec-conc": "组合集中度",
+                 "sec-risk": "风险因子", "sec-score": "记分卡三件魂", "sec-rulers": "规则附件6把尺",
+                 "sec-triggers": "承接节点", "sec-diff": "差分+新闻", "sec-loop": "逻辑闭环"}
+    for aid, nm in _SEC_NAME.items():
+        # 在每个机构块开头前，插上一块的"本块结束"(第一块 sec-opp 前不插)
+        if aid != "sec-opp":
+            out = out.replace(f'<details class="sub" id="{aid}"',
+                              f'<div class="blockend">— 本块结束 —</div><details class="sub" id="{aid}"', 1)
+        # 块标题条改成"含名字"的醒目条(独立标题条·B1)
+        out = out.replace(f'<details class="sub" id="{aid}"><summary>',
+                          f'<details class="sub" id="{aid}"><summary>【{nm}】', 1)
+    # 最后一个机构块(sec-loop)之后补一条"本块结束"
+    out = out.replace('<script>\nfunction allOpen', '<div class="blockend">— 本块结束：④ 完整机构底稿 —</div>\n<script>\nfunction allOpen', 1)
     return out
 
 

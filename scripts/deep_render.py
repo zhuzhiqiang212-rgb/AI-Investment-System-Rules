@@ -830,10 +830,23 @@ _CAT_KW = ("获批", "审批", "批准", "FDA批", "欧盟批", "指引上调", 
            "中标", "读出", "里程碑", "达成合作", "分拆", "价值兑现", "发布日", "量产", "投产")
 
 
+_CATLIB_CACHE = {}
+
+
+def _catalyst_lib(date: str) -> dict:
+    """架构师催化剂库(已查实·前瞻真事件)。命中即为已核实催化·喂加仓闸。"""
+    if date not in _CATLIB_CACHE:
+        _CATLIB_CACHE[date] = (rj(ROOT / "data" / "catalysts" / f"catalyst_library_{date}.json").get("holdings") or {})
+    return _CATLIB_CACHE[date]
+
+
 def _catalyst_within(sym: str, date: str, days: int = 90) -> str:
     """「加」闸·催化剂=近约90天内【前瞻·真】催化事件(审批/指引上调/大单/临床读出/分拆兑现等)。
-    董事长2026-07-19:【普通下次财报日期不算有效催化剂】。读深研⑦block7·须①含真催化关键词 ②有前瞻日在[今日,+90天]内。
-    只写"下次财报:date"的常规项→跳过;过去已发生的事件(日期在今日之前)→不算前瞻催化。列得出具体那条→返回;否则空串。"""
+    董事长2026-07-19:【普通下次财报日期不算有效催化剂】。
+    先查【架构师催化剂库】(已查实·GPT9第六节)——命中且『是否仍有效』=有效即算催化;否则读深研⑦block7兜底。"""
+    e = _catalyst_lib(date).get(sym)
+    if e and str(e.get("是否仍有效", "")).startswith("有效"):
+        return f'{e.get("事情", "")}（{e.get("预计日期", "")}）'[:90]
     try:
         d0 = datetime.strptime(date, "%Y%m%d").date()
     except Exception:
@@ -874,6 +887,10 @@ def _stabilized_calc(sym: str, dyn: dict, date: str = "") -> str:
     c = cur(sym)
     date = date or dyn.get("date", "")
     cat = _catalyst_within(sym, date) if date else ""
+    if cat:                                    # 截断后括号平衡(治 L13):去掉末尾未闭合的括号段
+        for op, cl in (("（", "）"), ("(", ")")):
+            while cat.count(op) > cat.count(cl) and op in cat:
+                cat = cat[:cat.rfind(op)].rstrip("·;,、 ")
     low_txt = f"{c}{low20:,.0f}" if isinstance(low20, (int, float)) else "待接（未取到20日低）"
     gap = (f"（现价高于20日低约 {((px-low20)/low20*100):+.1f}%）"      # 不印现价数值·避免与卡内唯一现价口径打架
            if isinstance(px, (int, float)) and isinstance(low20, (int, float)) and low20 else "")
@@ -888,8 +905,8 @@ def _stabilized_calc(sym: str, dyn: dict, date: str = "") -> str:
         f'· 最近一次创新低日期：<b>待接</b>（同上·缺逐日轨迹）<br>'
         f'· 是否满足「20日不创新低」：<b>无法确认→保守判否</b><br>'
         f'· 所用每日价格序列：源 OpenD K_DAY 日线（{kn if kn else "待接"} 根）·逐日序列未落盘·待接<br>'
-        f'· 推动股价的事情（名称·日期·来源）：{esc(_cut(str(cat), 90)) if cat else "近90天列不出明确前瞻事件·待接"}<br>'
-        f'· 最终是否通过：<b style="color:#ffb454">否</b>——因{miss}，按铁律保守不当企稳（不接飞刀）。'
+        f'· 推动股价的事情（名称·日期·来源）：{esc(str(cat)[:90]) if cat else "近90天列不出明确前瞻事件·待接"}<br>'
+        f'· 最终是否通过：{"<b style=" + chr(34) + "color:#7ee0a0" + chr(34) + ">是（有已查实催化剂）</b>" if cat else "<b style=" + chr(34) + "color:#ffb454" + chr(34) + ">否</b>——因" + miss + "，按铁律保守不当企稳（不接飞刀）"}。'
         '</div>')
 
 
