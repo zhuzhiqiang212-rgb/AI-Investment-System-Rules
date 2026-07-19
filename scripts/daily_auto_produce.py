@@ -223,6 +223,12 @@ def main() -> int:
         print(f"\n[当天未出品] 出厂lint/渲染未过：{tail[:150]}")
         return 5
     print(f"  ✔ ⑬ 渲五册 rc=0 {tail[:90]}")
+    # ⑬b 三层产品(架构师骨架填数据·董事长2026-07-19)——{{}}残留/乱码即 FAIL·不出品
+    rc2, tail2 = run_step("⑬b 三层产品(骨架填数据)", "render_3layer.py", date)
+    if rc2 == 0:
+        print(f"  ✔ ⑬b 三层产品 rc=0 {tail2[:90]}")
+    else:
+        print(f"  △ ⑬b 三层产品 rc={rc2}(非关键·五册已出) {tail2[:90]}")
     run_id = ""
     try:
         run_id = json.loads((ROOT / "data" / "product_manifest.json").read_text(encoding="utf-8")).get("run_id", "")

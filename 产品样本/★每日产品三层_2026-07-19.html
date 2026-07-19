@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>三层骨架模板 · 给Code填数据 · 2026-07-19</title>
+<style>
+:root{
+  --L1-txt:#8A6100; --L1-bg:#FDF6E3; --L1-bd:#E0C07A;
+  --L2-txt:#1A4E88; --L2-bg:#EAF2FA; --L2-bd:#A9C8E8;
+  --L3-txt:#14523E; --L3-bg:#EAF5F0; --L3-bd:#A8D5C2;
+  --add:#1E8449; --cut:#B03A2E; --hold:#4A5C6A; --wait:#A9761A; --risk:#7B241C; --tbd:#6B4E8C;
+}
+*{box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;line-height:1.75;color:#1f2733;max-width:1060px;margin:0 auto;padding:14px 12px 60px;background:#f5f6f8}
+h2{margin:0}
+.tpl{background:#fdecea;border:2px dashed #d98b7d;border-radius:9px;padding:12px 16px;margin-bottom:14px;font-size:13px}
+.tpl b{color:#8a3030}
+.hdr{background:#12324e;color:#fff;border-radius:10px;padding:12px 16px;margin-bottom:10px}
+.hdr .d{font-size:26px;font-weight:800;letter-spacing:1px}
+.hdr .m{font-size:12px;color:#bcd4e6;margin-top:4px}
+.freshbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.fresh{font-size:11.5px;padding:2px 9px;border-radius:10px;color:#fff;font-weight:700}
+.f-new{background:var(--add)}.f-mid{background:var(--wait)}.f-old{background:var(--cut)}.f-tbd{background:var(--tbd)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+.toolbar button{font-size:12.5px;padding:6px 13px;border-radius:7px;border:1.5px solid #9fb0c0;background:#fff;color:#12324e;cursor:pointer;font-weight:700}
+.toolbar a{font-size:12.5px;padding:6px 13px;border-radius:7px;border:1.5px solid #9fb0c0;background:#fff;color:#12324e;text-decoration:none;font-weight:700}
+.layer{border-radius:10px;margin:12px 0;overflow:hidden;border:2px solid}
+.layer>summary{cursor:pointer;padding:11px 15px;font-size:17px;font-weight:800;list-style:none}
+.layer>summary::-webkit-details-marker{display:none}
+.layer>summary::before{content:"▸ ";font-weight:400}
+.layer[open]>summary::before{content:"▾ "}
+.layer .body{padding:4px 14px 14px;background:#fff}
+#L1{border-color:var(--L1-bd)} #L1>summary{background:var(--L1-bg);color:var(--L1-txt)}
+#L2{border-color:var(--L2-bd)} #L2>summary{background:var(--L2-bg);color:var(--L2-txt)}
+#L3{border-color:var(--L3-bd)} #L3>summary{background:var(--L3-bg);color:var(--L3-txt)}
+.blk{border-left:5px solid #cbd5de;padding:2px 0 2px 10px;margin:13px 0}
+#L1 .blk{border-left-color:var(--L1-bd)} #L2 .blk{border-left-color:var(--L2-bd)} #L3 .blk{border-left-color:var(--L3-bd)}
+.blk h3{font-size:14.5px;margin:0 0 5px;color:#12324e}
+.chip{display:inline-block;border-radius:5px;padding:1px 9px;font-size:12px;font-weight:800;color:#fff;margin-right:5px;white-space:nowrap}
+.c-add{background:var(--add)}.c-cut{background:var(--cut)}.c-hold{background:var(--hold)}
+.c-wait{background:var(--wait)}.c-risk{background:var(--risk)}.c-tbd{background:var(--tbd)}
+.pill{display:inline-block;border-radius:11px;padding:1px 10px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.p-sys{border:1.5px dashed var(--hold);color:var(--hold)}
+.p-wait{border:2.5px solid var(--L1-txt);color:var(--L1-txt)}
+.p-ok{background:var(--L1-txt);color:#fff}
+table{border-collapse:collapse;width:100%;margin:7px 0;background:#fff;font-size:12.5px}
+th,td{border:1px solid #dde3e8;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#eef4f8;color:#12324e}
+.slot{background:#f3f0fa;border:1px dashed var(--tbd);border-radius:5px;padding:1px 6px;font-family:monospace;font-size:11.5px;color:#4A3A6B}
+.chart{border:2px dashed #b9c2cb;border-radius:8px;padding:10px 12px;margin:8px 0;background:#fafbfc}
+.chart .ct{font-size:13px;font-weight:800;color:#12324e}
+.chart .cm{font-size:11.5px;color:#66707c;margin-top:2px}
+.chart .conc{font-size:12.5px;color:#12324e;margin-top:6px;padding:5px 9px;background:#eef4f8;border-radius:5px}
+.band{position:relative;height:14px;border-radius:7px;margin:7px 0;background:linear-gradient(90deg,var(--add) 0 33%,var(--wait) 33% 66%,var(--cut) 66% 100%)}
+.band .mk{position:absolute;top:-4px;font-size:15px;line-height:1}
+.stock{border:1px solid #dde3e8;border-radius:9px;padding:10px 12px;margin:10px 0;background:#fff}
+.stock .nm{font-size:15px;font-weight:800;color:#12324e}
+.term{border-bottom:1px dotted #8a6100;cursor:help}
+.note{background:#eef4f8;border:1px solid #b9d3e6;border-radius:7px;padding:8px 12px;margin:8px 0;font-size:12.5px}
+.jump{font-size:11.5px;color:#1A4E88;text-decoration:underline dotted;margin-left:6px}
+@media(max-width:640px){
+  body{padding:10px 8px 50px}
+  .hdr .d{font-size:20px}
+  table,thead,tbody,th,td,tr{display:block}
+  thead{display:none}
+  tr{border:1px solid #dde3e8;border-radius:7px;margin-bottom:8px;padding:5px}
+  td{border:none;border-bottom:1px solid #eef1f4;padding:5px 4px;font-size:12.5px}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-l) " ";font-weight:700;color:#66707c}
+  .layer>summary{font-size:15px}
+}
+</style></head><body>
+
+<div class="hdr">
+  <div class="d">★ 每日投资产品 · 2026-07-19　[今天的]</div>
+  <div class="m">生产于 2026-07-19T02:27:45 ｜ run_id=R-20260719-112745 ｜ 各市场价格时点：美股取昨夜收；日股取当日/最近交易日收；周末休市→最近交易日(页头已标)</div>
+  <div class="freshbar">
+    <span class="fresh f-new">● 当天 当日实时价</span>
+    <span class="fresh f-mid">● 1~3天前 SBI等沿用</span>
+    <span class="fresh f-old">● 旧·超3天 0</span>
+    <span class="fresh f-tbd">● 待接 6</span>
+  </div>
+</div>
+
+<div class="toolbar">
+  <button onclick="allOpen(true)">一键全部展开</button>
+  <button onclick="allOpen(false)">全部折叠</button>
+  <a href="#L1">① 今天怎么做</a><a href="#L2">② 为什么这么做</a><a href="#L3">③ 完整研究底稿</a>
+</div>
+
+<details class="layer" id="L1" open><summary>① 今天怎么做</summary><div class="body">
+
+<div class="blk"><h3>今天总决定</h3>
+<div>总闸维持(无新Fed事件·基线) ｜ 今日姿态：<b>守核心为主(守14/等4/加0/减2)</b> ｜ 今天：总闸维持·观察、板块半导体走弱→守核心、不追高、控AI集中</div></div>
+
+<div class="blk"><h3>今天哪些数据不能依赖</h3>
+<div><div><span class="chip c-tbd">? 待接</span><b>爱德万</b>：现价 27505.0 是中周期公允 3000 的约 9 倍——架构师已复核：真·景气高点的正常极贵(峰值定价·峰值PE约54)，非算错。守·不追高、留峰值风险安全垫</div><div><span class="chip c-tbd">? 待接</span><b>闪迪</b>：现价 1350.034 是中周期公允 55 的约 25 倍——架构师已复核：真·景气高点的正常极贵(峰值定价·峰值PE约54)，非算错。守·不追高、留峰值风险安全垫</div><div><span class="chip c-tbd">? 待接</span><b>伊藤忠</b>：权威估值待接·只有架构师非权威估算/框架参考</div><div><span class="chip c-tbd">? 待接</span><b>Circle</b>：权威估值待接·只有架构师非权威估算/框架参考</div><div><span class="chip c-tbd">? 待接</span><b>闪迪</b>：权威估值待接·只有架构师非权威估算/框架参考</div><div><span class="chip c-tbd">? 待接</span><b>SpaceX</b>：权威估值待接·只有架构师非权威估算/框架参考</div></div></div>
+
+<div class="blk"><h3>今日动作表（唯一决定源 · 三层同源）</h3>
+<table>
+<tr><th>动作</th><th>状态</th><th>股票</th><th>现价</th><th>第一档</th><th>第二档</th><th>账户/币种/股数/金额</th><th>停止条件</th><th></th></tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-wait">… 等</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">第一三共 <span style="color:#8a94a0">JP.4568</span></td>
+<td data-l="现价">¥2,791.00 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/9900/—</td>
+<td data-l="停止">跌破 ¥2,959 才谈加、涨过 ¥3,616 才谈减</td>
+<td data-l=""><a class="jump" href="#why-JP.4568">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">英伟达 <span style="color:#8a94a0">US.NVDA</span></td>
+<td data-l="现价">$202.55 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/1020/—</td>
+<td data-l="停止">跌破 $216 才谈加、涨过 $265 才谈减</td>
+<td data-l=""><a class="jump" href="#why-US.NVDA">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-wait">… 等</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">微软 <span style="color:#8a94a0">US.MSFT</span></td>
+<td data-l="现价">$393.82 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/690/—</td>
+<td data-l="停止">跌破 $390 才谈加、涨过 $477 才谈减</td>
+<td data-l=""><a class="jump" href="#why-US.MSFT">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">MSTR <span style="color:#8a94a0">US.MSTR</span></td>
+<td data-l="现价">$94.85 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/858/—</td>
+<td data-l="停止">跌破 $84 才谈加、涨过 $103 才谈减</td>
+<td data-l=""><a class="jump" href="#why-US.MSTR">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">Coinbase <span style="color:#8a94a0">US.COIN</span></td>
+<td data-l="现价">$157.12 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/245/—</td>
+<td data-l="停止">跌破 $67 才谈加、涨过 $82 才谈减</td>
+<td data-l=""><a class="jump" href="#why-US.COIN">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">软银 <span style="color:#8a94a0">JP.9984</span></td>
+<td data-l="现价">¥5,424.00 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/6900/—</td>
+<td data-l="停止">跌破 ¥6,324 才谈加、涨过 ¥7,729 才谈减</td>
+<td data-l=""><a class="jump" href="#why-JP.9984">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">东京海上 <span style="color:#8a94a0">JP.8766</span></td>
+<td data-l="现价">¥7,526.00 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/1000/—</td>
+<td data-l="停止">跌破 ¥6,584 才谈加、涨过 ¥8,047 才谈减</td>
+<td data-l=""><a class="jump" href="#why-JP.8766">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-wait">… 等</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">索尼 <span style="color:#8a94a0">JP.6758</span></td>
+<td data-l="现价">¥3,470.00 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/1000/—</td>
+<td data-l="停止">跌破 ¥3,702 才谈加、涨过 ¥4,524 才谈减</td>
+<td data-l=""><a class="jump" href="#why-JP.6758">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">爱德万 <span style="color:#8a94a0">JP.6857</span></td>
+<td data-l="现价">¥27,505.00 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/800/—</td>
+<td data-l="停止">跌破 ¥2,646 才谈加、涨过 ¥3,234 才谈减</td>
+<td data-l=""><a class="jump" href="#why-JP.6857">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">丰田 <span style="color:#8a94a0">JP.7203</span></td>
+<td data-l="现价">¥2,899.50 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/800/—</td>
+<td data-l="停止">跌破 ¥2,430 才谈加、涨过 ¥2,970 才谈减</td>
+<td data-l=""><a class="jump" href="#why-JP.7203">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">伊藤忠 <span style="color:#8a94a0">JP.8001</span></td>
+<td data-l="现价">¥1,902.50 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/900/—</td>
+<td data-l="停止">权威估值待接→现在不动手·守着看</td>
+<td data-l=""><a class="jump" href="#why-JP.8001">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">万代 <span style="color:#8a94a0">JP.7832</span></td>
+<td data-l="现价">¥4,189.00 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/500/—</td>
+<td data-l="停止">跌破 ¥3,782 才谈加、涨过 ¥4,622 才谈减</td>
+<td data-l=""><a class="jump" href="#why-JP.7832">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-wait">… 等</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">任天堂 <span style="color:#8a94a0">JP.7974</span></td>
+<td data-l="现价">¥7,294.00 <span style="font-size:11px;color:#8a94a0">[JP·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">SBI(日元账户)/¥/2000/—</td>
+<td data-l="停止">跌破 ¥4,846 才谈加、涨过 ¥5,923 才谈减</td>
+<td data-l=""><a class="jump" href="#why-JP.7974">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-cut">▼ 减</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">博通 <span style="color:#8a94a0">US.AVGO</span></td>
+<td data-l="现价">$369.99 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/150/—</td>
+<td data-l="停止">跌回 $362 以下就别再减</td>
+<td data-l=""><a class="jump" href="#why-US.AVGO">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">Circle <span style="color:#8a94a0">US.CRCL</span></td>
+<td data-l="现价">$60.39 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/400/—</td>
+<td data-l="停止">权威估值待接→现在不动手·守着看</td>
+<td data-l=""><a class="jump" href="#why-US.CRCL">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">闪迪 <span style="color:#8a94a0">US.SNDK</span></td>
+<td data-l="现价">$1,350.03 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/20/—</td>
+<td data-l="停止">权威估值待接→现在不动手·守着看</td>
+<td data-l=""><a class="jump" href="#why-US.SNDK">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">台积电 <span style="color:#8a94a0">US.TSM</span></td>
+<td data-l="现价">$397.75 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/1/—</td>
+<td data-l="停止">跌破 $325 才谈加、涨过 $360 才谈减</td>
+<td data-l=""><a class="jump" href="#why-US.TSM">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-cut">▼ 减</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">META <span style="color:#8a94a0">US.META</span></td>
+<td data-l="现价">$640.25 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/95/—</td>
+<td data-l="停止">跌回 $637 以下就别再减</td>
+<td data-l=""><a class="jump" href="#why-US.META">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">IBKR <span style="color:#8a94a0">US.IBKR</span></td>
+<td data-l="现价">$90.78 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/14/—</td>
+<td data-l="停止">跌破 $48 才谈加、涨过 $58 才谈减</td>
+<td data-l=""><a class="jump" href="#why-US.IBKR">为什么→</a></td>
+</tr>
+
+<tr>
+<td data-l="动作"><span class="chip c-hold">■ 守</span></td>
+<td data-l="状态"><span class="pill p-sys">系统建议·尚未执行</span></td>
+<td data-l="股票">SpaceX <span style="color:#8a94a0">US.SPCX</span></td>
+<td data-l="现价">$124.14 <span style="font-size:11px;color:#8a94a0">[US·2026-07-19]</span></td>
+<td data-l="第一档">—（今日不加） × —（今日不加）</td>
+<td data-l="第二档">—（今日不加） × —（今日不加）</td>
+<td data-l="下单">富途/IBKR(美元)/$/10/—</td>
+<td data-l="停止">权威估值待接→现在不动手·守着看</td>
+<td data-l=""><a class="jump" href="#why-US.SPCX">为什么→</a></td>
+</tr>
+
+</table></div>
+
+<div class="blk"><h3>最重要的三项风险</h3>
+<div><span class="chip c-risk">⚠ 险</span><b>AI供应链超配</b>：AI供应链 65.9% 超 45% 上限　<span style="color:#66707c">若发生怎么办：按现金建议减仓表·先减最贵的降集中</span></div><div><span class="chip c-risk">⚠ 险</span><b>台海地缘/先进制程</b>：台积电/爱德万等重仓押先进制程·地缘尾部风险　<span style="color:#66707c">若发生怎么办：守核心·不追高·留安全垫；证伪信号见各卡③第16项</span></div><div><span class="chip c-risk">⚠ 险</span><b>半导体周期高位</b>：闪迪/爱德万等处景气高点·峰值定价　<span style="color:#66707c">若发生怎么办：守·不追高·不因中周期极贵就自动减(峰值可能续)</span></div></div>
+
+<div class="blk"><h3>与昨天相比变了什么</h3>
+<div class="note">新增 0 ｜ 取消 0 ｜ 升降级 见各卡。<b>这里只是导航，全文仍在下面各层，不替代。</b><br>详见各层；差分优先页以当日 vs 昨日 production/decisions 现算。</div></div>
+
+<div class="blk"><h3>组合体检</h3>
+<div class="chart" data-chart="4"><div class="ct">图4 · 当前仓位 vs 上限</div>
+<div class="cm">数据：holdings_true + 正式配置的集中度上下限（<b>阈值必须读配置文件，不得写死</b>）｜ 数据日 2026-07-19 ｜ 来源 holdings_true + full_product_render 集中度上下限(配置)</div>
+<div><div>AI供应链 65.9% / 上限 45% <span class="chip c-risk">⚠ 超</span></div><div>加密 9.6% / 上限 12% </div><div>防御 14.4% / 上限 15% </div></div>
+<div class="conc">一句话：AI供应链 65.9% 超上限 45%——最该盯的超配。</div></div>
+
+<div class="chart" data-chart="10"><div style="font-size:11px;color:#A9761A">（本图第二轮补·画法待接·结论/数据已填真值或标待接）</div><div class="ct">图10 · 照系统做 vs 完全不动</div>
+<div class="cm">数据：影子组合（记分卡三件魂）+ 实际净值 ｜ 样本天数 样本不足·参考（不足须标"参考"）</div>
+<div class="conc">一句话：照系统做 vs 完全不动——样本不足时只作参考·不夸大。</div></div>
+
+<div class="chart" data-chart="11"><div style="font-size:11px;color:#A9761A">（本图第二轮补·画法待接·结论/数据已填真值或标待接）</div><div class="ct">图11 · SBI 独立进攻仓</div>
+<div class="cm">数据：sbi_sleeve 快照 ｜ 基准/目标一律读快照与批准记录，<b>不得写死</b> ｜ 数据日 2026-07-18</div>
+<div>当前 <span style="color:#6B4E8C">待接·不编</span> → 目标 +40% 待接 ｜ +100% 待接 ｜ 进度 待接·缺进攻仓已投入额</div>
+<div class="conc">一句话：SBI独立进攻仓·目标/进度读快照与批准记录。</div></div>
+
+<div class="chart" data-chart="12"><div class="ct">图12 · 数据新旧程度</div>
+<div class="cm">数据：各数据文件的 data_date ｜ 缺 data_date → 红点「来源不明·不可依赖」</div>
+<div class="conc">一句话：越新越可信；缺 data_date 标红不可依赖。</div></div>
+</div>
+
+</div></details>
+
+<details class="layer" id="L2"><summary>② 为什么这么做</summary><div class="body">
+<div class="note">每只重点股票一张卡，12项齐全。<b>核心字段与①③同源，只改讲解深度、不改结论。</b></div>
+
+
+<div class="stock" id="why-JP.4568">
+<div class="nm">第一三共 <span style="color:#8a94a0;font-size:12px">JP.4568</span>
+  <span class="chip c-wait">… 等</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.4568">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥2,959 ~ ¥3,616</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:0%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥2,959~¥3,616；现价 ¥2,791，动作=等。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽且变宽·锚在DXd/ADC技术平台。主要变量是Enhertu单药集中(占1/3收入)+管线临床/安全性(ILD/肺炎监测)+专利悬崖(十年末)。<br>决策链：第一三共=全球肿瘤ADC龙头、DXd平台宽护城河 → 但账本目前=②趋势观察·不杀(非①·把握中)、Enhertu单药占1/3集中+临床事件风险 → 现价约¥2,758对DCF中枢¥3,287有折让、前瞻股息率约3.6% → 所以今天动作=</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 支撑/超¥4,000+分析师目标(增速8%→更高见敏感性)（Enhertu夺1线HER2+乳腺+扩HER2-low/新瘤种、Datroway快放量、管线ADC兑现、向¥3兆目标）｜ 中 合理区¥2,959~¥3,616(中枢¥3,287)·EPS增约8~12%（Enhertu近期+20%+后减速、Datroway成稳态老二、一次性计提滚出后利润率回升）｜ 坏 杀估值向低teens PE·下探¥2,800或以下（Enhertu集中被TROP2/HER2新进入者侵蚀、ILD安全信号/试验失败、专利/生物类似药后期压力、日元走强削海外）</div>
+<div class="conc">一句话：好支撑/超¥4,000+分析师目标(增速8%→更高见敏感性)/中合理区¥2,959~¥3,616(中枢¥3,287)·EPS增约8~12%/坏杀估值向低teens PE·下探¥2,800或以下——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在等：</b>现在 ¥2,791，已跌破便宜位 ¥2,959、算便宜（低 5.7%），但近90天列不出明确催化剂、也还没企稳 → 便宜但没催化·别接飞刀；先等出催化(财报/审批/指引上调/大单)或企稳(站稳20日均值)再加。</div>
+<div><b>为什么不选另一个动作：</b>不选加：没到便宜位或没催化(别接飞刀)；不选减：没到贵位、也没超配触发。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报:Q1(截至2026-06)约2026年8月初</div>
+<div><b>生意被证伪的条件：</b>①Enhertu核心适应症份额被结构性侵蚀 ②出现ILD等重大安全信号/关键三期试验失败 ③专利悬崖临近而管线接不上。</div>
+<div><b>系统把握程度：</b>中把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div style="font-size:11px;color:#A9761A">（本图第二轮补·画法待接·结论/数据已填真值或标待接）</div><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 14.4% → 动作后 14.4%（上限 15%）</div>
+<div class="conc">一句话：这一动后「防御」占比 14.4%→14.4%。</div></div>
+
+<div class="chart" data-chart="9"><div style="font-size:11px;color:#A9761A">（本图第二轮补·画法待接·结论/数据已填真值或标待接）</div><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.NVDA">
+<div class="nm">英伟达 <span style="color:#8a94a0;font-size:12px">US.NVDA</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.NVDA">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$216 ~ $265</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:0%">▼</span></div>
+<div class="conc">一句话：今日该值 $216~$265；现价 $203，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 8 分·宽(第一梯队)。唯一可能被攻破的是&#x27;换掉它的代价&#x27;——万一哪天换别家不难了，就危险(见第④、⑨块)。<br>决策链：世界大势(AI是国力竞争、钱砸算力) → 战略上算力是主线 → 英伟达是这条线最核心 → 生意/护城河/账本全是最高档 → 估值还略便宜 → 本来该重点买；可是你押在AI上的钱已经超上限、英伟达一只也快到15%单只上限 → 纪律不许再加 →</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 约$348(增速20%→30%现算)（AI用起来爆发+各国自建算力+新芯片顺利，一直高速涨）｜ 中 $216~$265(中间$241)（AI继续但增速降到20%左右，份额稳住）｜ 坏 约$162(增速20%→10%现算)（大公司不再猛砸钱+客户改用自研芯片+中国持续受限，增速掉到10%以下）</div>
+<div class="conc">一句话：好约$348(增速20%→30%现算)/中$216~$265(中间$241)/坏约$162(增速20%→10%现算)——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 $203，已跌破便宜位 $216、算便宜——本来可以加，但它属于已经超上限的「AI供应链」→ 现在不加（只换不加，别往最挤的地方再塞钱）；要动它只能是拿它换掉同类里更贵的。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报(FY2027 Q2·日期待接)：看数据中心还涨不涨、利润率、下季指引</div>
+<div><b>生意被证伪的条件：</b>①大公司不再砸钱建AI ②它的软件护城河被别人绕开 ③客户大规模改用自研芯片。价格贵不是卖出理由、超标也只是&#x27;不加&#x27;、不是&#x27;砍核心&#x27;。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+<tr><td data-l="标的">AMD</td><td data-l="P/E">待接</td><td data-l="PEG">待接</td><td data-l="增速">待接</td><td data-l="护城河">待接</td></tr><tr><td data-l="标的">AVGO</td><td data-l="P/E">待接</td><td data-l="PEG">待接</td><td data-l="增速">待接</td><td data-l="护城河">待接</td></tr></table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 65.9% → 动作后 65.9%（上限 45%）</div>
+<div class="conc">一句话：这一动后「AI供应链」占比 65.9%→65.9%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.MSFT">
+<div class="nm">微软 <span style="color:#8a94a0;font-size:12px">US.MSFT</span>
+  <span class="chip c-wait">… 等</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.MSFT">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$390 ~ $477</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:4%">▼</span></div>
+<div class="conc">一句话：今日该值 $390~$477；现价 $394，动作=等。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽(第一梯队)。最硬是&#x27;企业换掉它的代价&#x27;；主要变量是AI资本开支能否转化成利润(见⑧)。<br>决策链：AI是国力主线、钱砸算力 → 云+AI是主战场 → 微软是&#x27;AI基础设施&#x27;最核心的花钱方与受益方之一 → 生意/护城河/账本全是最高档(①优质·高把握) → 但估值约20倍前瞻PE不便宜、且AI资本开支正吞现金流 → 所以今天动作=&#x27;等&#x27;(</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 增速升档→中枢上移(增速12%→更高见敏感性)（Azure持续35~40%+、Copilot付费复利、capex转成利润）｜ 中 合理区$390~$477(中枢$433)（Azure渐降到约30%、云+AI带动低两位数EPS增长、capex压近期现金流）｜ 坏 增速降档→中枢下移(增速12%→更低见敏感性)（AI资本开支过建+需求空档、现金流承压、Azure降到20%多、利润率下滑）</div>
+<div class="conc">一句话：好增速升档→中枢上移(增速12%→更高见敏感性)/中合理区$390~$477(中枢$433)/坏增速降档→中枢下移(增速12%→更低见敏感性)——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在等：</b>现在 $394，还没跌到便宜位 $390，还差 1.0% → 现在先别动手，盯着；等它跌到 $390 以下再加。</div>
+<div><b>为什么不选另一个动作：</b>不选加：没到便宜位或没催化(别接飞刀)；不选减：没到贵位、也没超配触发。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报：2026-07-29(FY2026 Q4+全年·盘后)——微软官方IR已确认</div>
+<div><b>生意被证伪的条件：</b>①Azure持续减速跌破约30% ②AI资本开支长期无法转化成利润、自由现金流持续恶化 ③企业级护城河(身份/办公捆绑)被绕开。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 65.9% → 动作后 65.9%（上限 45%）</div>
+<div class="conc">一句话：这一动后「AI供应链」占比 65.9%→65.9%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.MSTR">
+<div class="nm">MSTR <span style="color:#8a94a0;font-size:12px">US.MSTR</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.MSTR">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$84 ~ $103</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:58%">▼</span></div>
+<div class="conc">一句话：今日该值 $84~$103；现价 $95，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 窄/基本无耐久护城河。MSTR是杠杆BTC代理·唯一真优势是规模与资本市场机器、二者在溢价长期&lt;1.0倍时蒸发。<br>决策链：MSTR=杠杆化比特币代理(BTC+债+优先股杠杆±溢价) → 账本②趋势观察·把握中(mNAV近平价·飞轮临界) → 现价约$97对BTC净值/股约$93约4%溢价 → 想要纯BTC敞口·ETF/直接BTC更干净便宜;持MSTR是为杠杆上</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 杠杆上行:BTC值↑40~90%+溢价扩→MSTR可翻倍(高BTC beta)（BTC回涨(向/破$90~120K)且mNAV溢价再扩(&gt;1.5倍)、飞轮重启、ATM增厚发股）｜ 中 MSTR大致1:1跟BTC(减杠杆拖累);若续卖则每股BTC缓慢侵蚀（BTC区间$55~75K、mNAV约0.9~1.2倍(近平价)、无新增厚发股、适度卖BTC付优先股息/债务）｜ 坏 双击——BTC值↓+折价扩+杠杆/优先股放大对普通股损失·跌幅&gt;BTC本身（BTC进一步跌(&lt;$45~50K)且溢价塌破平价、被迫卖BTC补$15.5B优先股息+债务、摊薄）</div>
+<div class="conc">一句话：好杠杆上行:BTC值↑40~90%+溢价扩→MSTR可翻倍(高BTC beta)/中MSTR大致1:1跟BTC(减杠杆拖累);若续卖则每股BTC缓慢侵蚀/坏双击——BTC值↓+折价扩+杠杆/优先股放大对普通股损失·跌幅&gt;BTC本身——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 $95，在合理区里（$84~$103）、不算便宜也不算贵 → 现在不动手；跌破 $84 才谈加、涨过 $103 才谈减。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>BTC现货价(压倒一切·everything keys off it)</div>
+<div><b>生意被证伪的条件：</b>①mNAV持续</div>
+<div><b>系统把握程度：</b>中把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 9.6% → 动作后 9.6%（上限 12%）</div>
+<div class="conc">一句话：这一动后「加密」占比 9.6%→9.6%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.COIN">
+<div class="nm">Coinbase <span style="color:#8a94a0;font-size:12px">US.COIN</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.COIN">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$67 ~ $82</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 $67~$82；现价 $157，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 真实但窄~中且周期性——最强在美监管/品牌·最弱在定价权(费率压缩)与利率/合约依赖的USDC腿。<br>决策链：Coinbase=高beta加密周期bet → 账本②趋势观察·把握中、盈利极端周期(GAAP PE约58倍被扭曲、无可靠正常化EPS·待接) → 现价$166已假设持续牛市周期、52周$139~$445显加密beta → 先看加密周期→再</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 大幅上行·可重估向前高($300~450)（持续加密牛:高交易量+升费、USDC余额/市值增、利率支持、利美国加密立法、Base/衍生品放量、盈利回/超FY24峰值）｜ 中 大致区间震荡·现价到中度上行（震荡区间加密、量归峰值下、S&amp;S($2.8B)托底、适度opex纪律、Circle合约较差续签、盈利约$1~2B/年）｜ 坏 急跌·历史上50%+回撤属常态（加密冬天:量崩(FY22模板)、费率压缩、降息削USDC利息收入、Circle重谈压S&amp;S、监管冲击、GAAP转亏(未实）</div>
+<div class="conc">一句话：好大幅上行·可重估向前高($300~450)/中大致区间震荡·现价到中度上行/坏急跌·历史上50%+回撤属常态——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 $157，中周期/穿牛熊算 极贵（景气高点·峰值定价）（现价约合理上沿 $82 的 1.9 倍）→ 守·不追高、留峰值风险安全垫；不因这个数就自动减（峰值可能持续·中周期/穿牛熊只作参考·董事长尺）。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>加密市场周期(主导驱动·量=交易收入)</div>
+<div><b>生意被证伪的条件：</b>①加密结构性熊市、量与S&amp;S双杀 ②监管强制拆分/禁核心产品 ③USDC经济被Circle重谈/稳定币竞争持续侵蚀。</div>
+<div><b>系统把握程度：</b>中把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 9.6% → 动作后 9.6%（上限 12%）</div>
+<div class="conc">一句话：这一动后「加密」占比 9.6%→9.6%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-JP.9984">
+<div class="nm">软银 <span style="color:#8a94a0;font-size:12px">JP.9984</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.9984">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥6,324 ~ ¥7,729</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:0%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥6,324~¥7,729；现价 ¥5,424，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：控股公司口径:护城河靠资产质量(Arm)与拿项目能力·但被&#x27;孙氏折价&#x27;长期压制。主要变量是Arm/OpenAI账面与折价能否收窄。<br>决策链：AI是国力主线、钱砸算力 → 软银=加杠杆、带折价的 Arm+OpenAI 代理 → 想要纯Arm就买ARM、想要OpenAI+折价收窄期权且接受杠杆/孙氏风险才选软银 → 账本①优质·高把握、NAV法可信度A → 但高beta、LTV/折</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 NAV↑↑(第三方估约¥74兆路径)、折价收窄向20~30%（Arm AI版税放量+OpenAI高估值IPO+回购收窄折价）｜ 中 NAV在¥40兆附近波动、价随Arm走（Arm稳、OpenAI守住账面、折价维持约40~50%）｜ 坏 NAV↓(向/破¥30兆)、价↓↓(高beta放大)（AI估值杀多、Arm/OpenAI账面回落、LTV上升、折价走阔）</div>
+<div class="conc">一句话：好NAV↑↑(第三方估约¥74兆路径)、折价收窄向20~30%/中NAV在¥40兆附近波动、价随Arm走/坏NAV↓(向/破¥30兆)、价↓↓(高beta放大)——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 ¥5,424，已跌破便宜位 ¥6,324、算便宜——本来可以加，但它属于已经超上限的「AI供应链」→ 现在不加（只换不加，别往最挤的地方再塞钱）；要动它只能是拿它换掉同类里更贵的。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>Q1 FY2026财报约2026-08：2026-03-31以来首个官方NAV更新(看NAV/LTV/折价)</div>
+<div><b>生意被证伪的条件：</b>①LTV升破25% ②Arm/OpenAI账面AI去估值大跌 ③折价长期无法收窄且NAV下行。要降AI敞口、软银是质量相对弱的一只、优先于英伟达/台积电减。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 65.9% → 动作后 65.9%（上限 45%）</div>
+<div class="conc">一句话：这一动后「AI供应链」占比 65.9%→65.9%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-JP.8766">
+<div class="nm">东京海上 <span style="color:#8a94a0;font-size:12px">JP.8766</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.8766">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥6,584 ~ ¥8,047</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:64%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥6,584~¥8,047；现价 ¥7,526，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽·锚在地域分散+承保文化。主要变量是巨灾经验、美费率周期、日元(削海外利润)。<br>决策链：东京海上=宽护城河、AA级、约一半利润国际分散的财险 → 账本①优质·高把握 → 但现价¥7,688近52周高、约1.8倍IFRS账面/前瞻16~17倍、对中枢¥7,315略偏高 → 前瞻股息率约3.2%+约15连增+¥4,000億回购给收</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 重估向约2.0倍IFRS账面→¥8,500~9,000+（美专业险续硬、日本提费站稳、JGB收益率升抬投资收益、加速卖交叉持股做大回购、调整ROE→14%+）｜ 中 ¥7,500~8,200(中枢¥7,315)·约3%息+EPS/DPS增长+回购（调整净利约+8%/年到¥9,500億后中个位数、股息+10~12%/年、约1.7~1.8倍账面）｜ 坏 重估向约1.4~1.5倍→¥6,000~6,500（大巨灾年(日本台风/地震或美飓风)、美专业险转软、股市跌削未实现收益/ESR、日元走强削海外利润）</div>
+<div class="conc">一句话：好重估向约2.0倍IFRS账面→¥8,500~9,000+/中¥7,500~8,200(中枢¥7,315)·约3%息+EPS/DPS增长+回购/坏重估向约1.4~1.5倍→¥6,000~6,500——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 ¥7,526，在合理区里（¥6,584~¥8,047）、不算便宜也不算贵 → 现在不动手；跌破 ¥6,584 才谈加、涨过 ¥8,047 才谈减。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报:Q1 FY2026(截至2026-06)约2026年8月上中旬</div>
+<div><b>生意被证伪的条件：</b>①承保纪律/多年记录被打破、综合成本率结构性恶化 ②地域分散优势(国际盈利)瓦解 ③资本(ESR)被巨灾/股市重创且难恢复。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 14.4% → 动作后 14.4%（上限 15%）</div>
+<div class="conc">一句话：这一动后「防御」占比 14.4%→14.4%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-JP.6758">
+<div class="nm">索尼 <span style="color:#8a94a0;font-size:12px">JP.6758</span>
+  <span class="chip c-wait">… 等</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.6758">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥3,702 ~ ¥4,524</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:0%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥3,702~¥4,524；现价 ¥3,470，动作=等。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽(IP/PS网络/传感器技术)。主要变量是主机周期与传感器客户集中(苹果)、综合体折价能否经金融分拆收窄。<br>决策链：索尼利润引擎约2/3是消费娱乐(PS软件/音乐版税/影视动漫)、约1/4是图像传感器 → 生意质量高(宽护城河、双分部创纪录OI)、①优质·高把握 → 现价约15倍前瞻、对DCF基准¥4,113略偏便宜、且分拆后SOTP重估期权 → 但主机</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 向/破¥4,700目标(增速6%→更高见敏感性)（PS5后期软件/PS Plus强+PS6预期升温、传感器需求回暖(高端手机/汽车/AI相机)、音乐续+20%+OI、分拆）｜ 中 合理值约¥3,800~4,200(增速6%基准¥4,113)（OI增至约¥1.6兆(按指引)、游戏平到升、传感器+10~12%、音乐稳、折价渐收窄）｜ 坏 平到降·回约¥3,000（PS6前主机周期低谷、传感器客户(苹果)量/价压力或对三星丢份额、影视失手、日元走强削海外利润）</div>
+<div class="conc">一句话：好向/破¥4,700目标(增速6%→更高见敏感性)/中合理值约¥3,800~4,200(增速6%基准¥4,113)/坏平到降·回约¥3,000——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在等：</b>现在 ¥3,470，已跌破便宜位 ¥3,702、算便宜（低 6.3%），但近90天列不出明确催化剂、也还没企稳 → 便宜但没催化·别接飞刀；先等出催化(财报/审批/指引上调/大单)或企稳(站稳20日均值)再加。</div>
+<div><b>为什么不选另一个动作：</b>不选加：没到便宜位或没催化(别接飞刀)；不选减：没到贵位、也没超配触发。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报:2026-07-31(Q1 FY至2027-03)</div>
+<div><b>生意被证伪的条件：</b>①PS生态装机与开发者偏好被结构性侵蚀 ②图像传感器对三星持续丢份额、苹果socket流失 ③音乐/内容年金式现金流受损。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 — → 动作后 —（上限 —）</div>
+<div class="conc">一句话：这一动后「未归类」占比 —→—。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-JP.6857">
+<div class="nm">爱德万 <span style="color:#8a94a0;font-size:12px">JP.6857</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.6857">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥2,646 ~ ¥3,234</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥2,646~¥3,234；现价 ¥27,505，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：经济护城河 宽(经周期调整)。双寡头结构+换掉代价是耐久支柱；主要变量是半导体周期与SoC对泰瑞达竞争。<br>决策链：AI是国力主线、钱砸算力 → AI芯片必须逐颗测试、测试机需求跟着GPU/HBM复杂度走 → 爱德万是测试双寡头、领AI算力/存储测试 → 生意/账本高档(①优质·高把握) → 但约46倍TTM按峰值定价、且高周期性+日元敞口 → 所以今天</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 EPS朝¥700~800·再评级¥38,000~45,000(分析师框架·非模型（AI/HBM测试强度复利、HBM4/Rubin放量、守GPU测试领先、营收&gt;¥1.6兆、利润率&gt;45%）｜ 中 约¥30,000~34,000(近共识¥32,695)（达FY至2027-03指引(¥1.42兆·EPS约¥636~663)后正常消化、倍数压向高20/低30倍）｜ 坏 EPS回¥250~350·下修¥12,000~18,000（半导体/AI资本开支消化或GPU库存修正、营收回¥0.8~0.9兆、利润率回约30%）</div>
+<div class="conc">一句话：好EPS朝¥700~800·再评级¥38,000~45,000(分析师框架·非模型/中约¥30,000~34,000(近共识¥32,695)/坏EPS回¥250~350·下修¥12,000~18,000——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 ¥27,505，中周期/穿牛熊算 极贵（景气高点·峰值定价）（现价约合理上沿 ¥3,234 的 8.5 倍）→ 守·不追高、留峰值风险安全垫；不因这个数就自动减（峰值可能持续·中周期/穿牛熊只作参考·董事长尺）。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报：FY2026 Q1(季度截至2026-06)约2026年7月末/8月初——看订单与全年指引修正</div>
+<div><b>生意被证伪的条件：</b>①book-to-bill连续2季</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 65.9% → 动作后 65.9%（上限 45%）</div>
+<div class="conc">一句话：这一动后「AI供应链」占比 65.9%→65.9%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-JP.7203">
+<div class="nm">丰田 <span style="color:#8a94a0;font-size:12px">JP.7203</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.7203">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥2,430 ~ ¥2,970</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:87%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥2,430~¥2,970；现价 ¥2,900，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽·锚在规模+TPS+混动统治力。弱点维:BEV技术非护城河、反是被追赶的敞口;过渡期长度=最大不确定性。<br>决策链：丰田盈利=全球汽车周期+日元+关税驱动、与AI资本开支完全不同源 → 生意质量高(宽护城河、销量第一、混动统治)、账本①优质·高把握 → 现价约¥2,933落中周期公允(¥2,700)中上沿、P/B~1.0+3.5%息给下方支撑、但近两年利</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 PE重估11~12倍→¥3,600~4,000+（HEV需求超预期+BEV成功追赶+日元维持偏弱+关税缓解、EPS回¥330+）｜ 中 约10倍→¥2,800~3,200(中枢¥2,700)（HEV稳态领先、BEV缓慢追赶、日元温和走强(¥145~150)、关税部分消化、中周期EPS¥250~300）｜ 坏 杀估值8倍→¥1,800~2,300（中国EV价格战外溢+BEV掉队丢份额、日元大幅走强(&lt;¥135)、美关税长期化、周期下行叠加召回、EPS跌向¥180~2）</div>
+<div class="conc">一句话：好PE重估11~12倍→¥3,600~4,000+/中约10倍→¥2,800~3,200(中枢¥2,700)/坏杀估值8倍→¥1,800~2,300——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 ¥2,900，在合理区里（¥2,430~¥2,970）、不算便宜也不算贵 → 现在不动手；跌破 ¥2,430 才谈加、涨过 ¥2,970 才谈减。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报:FY2027 Q1(截至2026-06)约2026年8月上旬——关注关税实际拖累、日元、指引调整</div>
+<div><b>生意被证伪的条件：</b>①中国EV份额结构性流失+HEV需求骤转BEV而丰田掉队 ②日元急升+周期下行同时叠加、正常化盈利结构性下移 ③固态电池等下一轮技术押注全面落空。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 — → 动作后 —（上限 —）</div>
+<div class="conc">一句话：这一动后「未归类」占比 —→—。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-JP.8001">
+<div class="nm">伊藤忠 <span style="color:#8a94a0;font-size:12px">JP.8001</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.8001">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥1,225 ~ ¥1,885</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥1,225~¥1,885；现价 ¥1,902，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽·核心来自&#x27;消费/非资源倾斜(FamilyMart)+最佳ROE/资本纪律&#x27;——市场以最高P/B奖励。主要变量是商品价格、全球贸易/中国、日元。<br>决策链：伊藤忠盈利=全球贸易/商品/消费(FamilyMart)驱动、与AI资本开支完全不同源 → 生意质量高(宽护城河、消费倾斜、五商社最佳ROE、伯克希尔&gt;10%背书)、账本①优质·高把握 → 现价约2.0倍P/B(同业最高)、约14.6倍P/</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 归母净利向/超¥1兆·P/B重估&gt;2.2倍→价升（商品价稳+FamilyMart同店增长+数字变现加速+激进回购(回报率&gt;64%)+日元顺风）｜ 中 P/B守约1.9~2.1倍·总回报≈EPS增长+约2.3%息(现价¥1,904)（达指引—FY2027归母净利约¥9,500億、中个位数增长、¥44+累进股息、稳回购）｜ 坏 归母净利平/降·P/B下修向约1.6倍→价承压(累进股息+回购缓冲)（全球贸易放缓/中国弱、商品价跌击金属能源分部、FamilyMart消费转软、日元走强(换算拖累)）</div>
+<div class="conc">一句话：好归母净利向/超¥1兆·P/B重估&gt;2.2倍→价升/中P/B守约1.9~2.1倍·总回报≈EPS增长+约2.3%息(现价¥1,904)/坏归母净利平/降·P/B下修向约1.6倍→价承压(累进股息+回购缓冲)——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>架构师中周期估算 ¥1,225~¥1,885·中枢¥1,510（尺:商社NAV/PB·可靠度够(数据)/中(定价判断)·非权威）→ 现价 ¥1,902 → 偏贵/充分定价 → 守（已充分定价）（权威估值待接·这套是架构师非权威估算·只作框架参考）</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报:Q1 FY2027(2026-04~06)约2026年8月初</div>
+<div><b>生意被证伪的条件：</b>①消费/非资源盈利质量(FamilyMart+食品)结构性恶化 ②ROE长期跌破同业、资本纪律松动 ③P/B溢价在商品/贸易下行中被证伪。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 — → 动作后 —（上限 —）</div>
+<div class="conc">一句话：这一动后「未归类」占比 —→—。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-JP.7832">
+<div class="nm">万代 <span style="color:#8a94a0;font-size:12px">JP.7832</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.7832">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥3,782 ~ ¥4,622</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:48%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥3,782~¥4,622；现价 ¥4,189，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽·核心=自有/长青IP × 跨渠道变现 × 收藏级制造工艺三重绑定。主要变量是爆款周期(主机大作节奏)+海外Gunpla/卡牌变现。<br>决策链：万代盈利=消费者/粉丝驱动的玩具/卡牌/模型/游戏/动画需求、与AI资本开支完全不同源 → IP轴心(高达/龙珠/海贼王/艾尔登)长青变现、账本①优质·高把握、营收¥1.35兆创新高、利润率14%、FCF正向、净现金型 → 现价约¥4,06</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 EPS上修·合理PE 20~22倍·目标上行(增速7%→更高见敏感性)（高达延续爆发(卡牌全球化+GQuuuuuuX长尾)+海外Gunpla(中国/美国)产能放量+FY27推艾尔登级新大作、营）｜ 中 约18~20倍前瞻·现价附近合理(中枢¥4,202)（符合FY27指引(销售平、利润略降)、IP组合稳态变现、Gunpla逐步扩产、无爆款也无失速）｜ 坏 EPS下修·PE收缩&lt;15倍·下行（游戏大作空窗(Digital延续-22.6%利润下滑)、高达高基数回落、海外扩张执行不力、日元/消费疲软、利润连续两年降）</div>
+<div class="conc">一句话：好EPS上修·合理PE 20~22倍·目标上行(增速7%→更高见敏感性)/中约18~20倍前瞻·现价附近合理(中枢¥4,202)/坏EPS下修·PE收缩&lt;15倍·下行——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 ¥4,189，在合理区里（¥3,782~¥4,622）、不算便宜也不算贵 → 现在不动手；跌破 ¥3,782 才谈加、涨过 ¥4,622 才谈减。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报:FY2027 Q1(截至2026-06)约2026年8月上旬——看Digital能否止跌、高达高基数后同比</div>
+<div><b>生意被证伪的条件：</b>①高达等核心IP变现力结构性衰退 ②Digital游戏长期空窗、爆款周期不再 ③海外Gunpla/卡牌扩张彻底失败。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 — → 动作后 —（上限 —）</div>
+<div class="conc">一句话：这一动后「未归类」占比 —→—。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-JP.7974">
+<div class="nm">任天堂 <span style="color:#8a94a0;font-size:12px">JP.7974</span>
+  <span class="chip c-wait">… 等</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-JP.7974">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：¥4,846 ~ ¥5,923</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 ¥4,846~¥5,923；现价 ¥7,294，动作=等。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽·锚在自有IP+一体化。主要脆弱点是第三方依赖与周期性。<br>决策链：任天堂盈利=消费者游戏/IP支出驱动、与AI资本开支完全不同源 → 宽护城河(自有IP+一体化)、但账本②趋势观察·把握中(Switch 2周期拐点未定) → 单年盈利极依赖周期·须跨周期归一+约27%市值净现金托底 → 现价约¥7,074</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 重估向/超¥10,000(增速6%→更高见敏感性)（Switch 2周期比肩/超原Switch(155m+)、软件附着强、NSO增、IP/电影/乐园复利）｜ 中 经营价值¥4,845~¥5,922(中枢¥5,384)+净现金约¥1,940→合（Switch 2稳销但非破纪录、FY27指引(净利¥3,100億)守住后软件驱动中周期增长）｜ 坏 回撤·但净现金约27%市值托底(是回撤非franchise减值)（Switch 2上市后动能消退+宏观/消费弱+日元走强、未来某低谷年重演FY25(营收-30%·FCF近零)、盈利周期性）</div>
+<div class="conc">一句话：好重估向/超¥10,000(增速6%→更高见敏感性)/中经营价值¥4,845~¥5,922(中枢¥5,384)+净现金约¥1,940→合/坏回撤·但净现金约27%市值托底(是回撤非franchise减值)——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在等：</b>现在 ¥7,294，已涨过贵位 ¥5,923、算贵（比中间值高 35%）→ 现在不追、也不用减（这一类没超限）；等它跌回 ¥5,923 以下再谈。</div>
+<div><b>为什么不选另一个动作：</b>不选加：没到便宜位或没催化(别接飞刀)；不选减：没到贵位、也没超配触发。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报:Q1 FY2027(截至2026-06)约2026年8月初(确切日期待接)——看Switch 2动能+附着率</div>
+<div><b>生意被证伪的条件：</b>①Switch 2周期显著弱于预期且软件附着结构性下滑 ②自有IP变现力(马力欧/塞尔达/宝可梦)衰退 ③换代执行失误重置周期。</div>
+<div><b>系统把握程度：</b>中把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 — → 动作后 —（上限 —）</div>
+<div class="conc">一句话：这一动后「未归类」占比 —→—。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.AVGO">
+<div class="nm">博通 <span style="color:#8a94a0;font-size:12px">US.AVGO</span>
+  <span class="chip c-cut">▼ 减</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.AVGO">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$296 ~ $362</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 $296~$362；现价 $370，动作=减。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽(靠换掉代价+规模+互连/封装技术领先)。主要变量是大厂自研与Marvell竞争、以及客户集中(见④⑧)。<br>决策链：AI是国力主线、钱砸算力 → 定制芯片+AI网络是英伟达之外最干净的算力敞口 → 博通是这条线的核心供应商(六大云厂的定制伙伴) → 生意/护城河/账本最高档(①优质·高把握) → 但现价高于DCF中枢、客户集中度高 → 所以今天动作=&#x27;守</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 EPS复合&gt;25%·中枢上移(增速20%→更高见敏感性)·分析师目标约$524（AI营收达/超FY2026 $56B指引、朝FY2027 &gt;$100B、新XPU客户(OpenAI/Anthropic)）｜ 中 合理区$296~$362(中枢$329)·随EPS增长（AI高增但基数大后减速、VMware+9%稳、FY2026 EPS约$11.6兑现）｜ 坏 增速降档→中枢下移(增速20%→更低见敏感性)（大厂AI资本开支消化/单一大客户内包或延单、半导体周期下行、毛利/估值压缩）</div>
+<div class="conc">一句话：好EPS复合&gt;25%·中枢上移(增速20%→更高见敏感性)·分析师目标约$524/中合理区$296~$362(中枢$329)·随EPS增长/坏增速降档→中枢下移(增速20%→更低见敏感性)——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在减：</b>现在 $370，已涨过贵位 $362、算贵；而且「AI供应链」这一类已经超上限 → 现在可以减，优先从它减；跌回 $362 以下就别再减了。</div>
+<div><b>为什么不选另一个动作：</b>不选守：已过贵位且该类超配；不选加：贵不该加。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报：Q3 FY2026约2026-09-03(季度截至约2026-08-02)</div>
+<div><b>生意被证伪的条件：</b>①单一大客户内包替代博通、AI半导体订单持续下滑 ②Marvell在核心项目夺回定制芯片份额 ③AI资本开支周期长期逆转。价格贵只是&#x27;不追高&#x27;、非卖出理由。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+<tr><td data-l="标的">MRVL</td><td data-l="P/E">待接</td><td data-l="PEG">待接</td><td data-l="增速">待接</td><td data-l="护城河">待接</td></tr><tr><td data-l="标的">AMD</td><td data-l="P/E">待接</td><td data-l="PEG">待接</td><td data-l="增速">待接</td><td data-l="护城河">待接</td></tr></table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 65.9% → 动作后 65.9%（上限 45%）</div>
+<div class="conc">一句话：这一动后「AI供应链」占比 65.9%→65.9%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.CRCL">
+<div class="nm">Circle <span style="color:#8a94a0;font-size:12px">US.CRCL</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.CRCL">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$13 ~ $43</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 $13~$43；现价 $60，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 偏宽·但护的是&#x27;合规牌照&#x27;、护不了&#x27;利率&#x27;。收入约95%利率驱动是根本脆弱。<br>决策链：Circle=约95%收入USDC储备利息的稳定币发行方·对利率极敏感 → 账本②趋势观察·把握中、GAAP亏被一次性SBC扭曲、无可靠正常化EPS(待接) → 现价$65较IPO峰值跌约74~78%、当前处降息压制、Q1&#x27;26收入已环比下</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 收入/EBITDA双击·估值大幅修复（利率higher-for-longer(降息暂缓)+USDC从$77B持续复合增长(40% CAGR兑现)）｜ 中 估值区间震荡·收入低速增长（温和降息(储备收益率3.5%→约3%)、USDC量增部分对冲利率拖累、净利平台化）｜ 坏 收入约95%利率驱动·盈利被压塌·估值继续下行（美联储激进降息(-100~200bp)→利息收入按约$303M净/100bp缩水、叠加USDC增长停滞+Coinbase）</div>
+<div class="conc">一句话：好收入/EBITDA双击·估值大幅修复/中估值区间震荡·收入低速增长/坏收入约95%利率驱动·盈利被压塌·估值继续下行——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>架构师中周期估算 $13~$43·中枢$25（尺:储备利息正常化·可靠度勉强/偏不够·非权威·低置信）→ 现价 $60 → 极贵 → 守着看（低置信）（权威估值待接·这套是架构师非权威估算·只作框架参考）</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>美联储利率路径(#1驱动·压倒一切)——降息=利空、暂停/higher-for-longer=利多</div>
+<div><b>生意被证伪的条件：</b>①激进降息持续压塌利息收入且USDC增长停滞 ②Coinbase续约大幅拿走经济利益 ③USDC对USDT持续丢份额/脱锚。</div>
+<div><b>系统把握程度：</b>中把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 9.6% → 动作后 9.6%（上限 12%）</div>
+<div class="conc">一句话：这一动后「加密」占比 9.6%→9.6%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.SNDK">
+<div class="nm">闪迪 <span style="color:#8a94a0;font-size:12px">US.SNDK</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.SNDK">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$40 ~ $80</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 $40~$80；现价 $1,350，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 窄(总体)。NAND比逻辑/DRAM更商品化——多家可信供应商、定价由行业供需定、非闪迪定。<br>决策链：闪迪论点生死在①AI存储上行+NBM硬承诺模式多持久、②是否在周期峰值买 → 账本①优质·高把握、但NAND护城河窄+当前处极端峰值 → 现价约$1,583按持续峰值定价、中周期公允($35~95)远在其下、base+bear合计约75%概</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 持续约$90~130 EPS·现价可支撑/更高（AI存储需求+NBM硬承诺合约结构性打破周期、供给紧、毛利守约70%+入FY27）｜ 中 盈利从峰值大跌·中周期EPS $4~8→公允远低于现价（上行周期12~24月内翻转(NAND向来如此)、毛利归约30~40%、NBM缓冲但不消除周期）｜ 坏 深度下修向账面(约$93)或以下（过剩(YMTC/行业capex)+需求消化→毛利回20%多、可能亏损、峰值即2026）</div>
+<div class="conc">一句话：好持续约$90~130 EPS·现价可支撑/更高/中盈利从峰值大跌·中周期EPS $4~8→公允远低于现价/坏深度下修向账面(约$93)或以下——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>架构师中周期估算 $40~$80·中枢$55（尺:中周期(峰值定价对照)·可靠度勉强·非权威·低置信）→ 现价 $1,350 → 极贵（峰值定价） → 守·不追高、留峰值风险安全垫（权威估值待接·这套是架构师非权威估算·只作框架参考）</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>Q4 FY26财报2026-08-05:指引营收$7.75~8.25B·GAAP毛利78.9~80.9%·非GAAP EPS $30~33——对峰值门槛的超/不及是二元</div>
+<div><b>生意被证伪的条件：</b>①NAND合约价见顶回落、NBM未能实质抑制周期 ②对三星/海力士持续丢份额 ③过剩致毛利结构性回20%多。⚠估值按中周期EPS×8~12倍锚·勿按峰值。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 65.9% → 动作后 65.9%（上限 45%）</div>
+<div class="conc">一句话：这一动后「AI供应链」占比 65.9%→65.9%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.TSM">
+<div class="nm">台积电 <span style="color:#8a94a0;font-size:12px">US.TSM</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.TSM">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$325 ~ $360</div>
+<div><b>未来1~2年目标价（未来该值）</b>：$475 ~ $500　<span style="color:#8a94a0"></span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 $325~$360，未来目标 $475~$500；现价 $398，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽(科技硬件里最宽之一)。真正的约束是产能与地缘、不是竞争。<br>决策链：AI是国力主线、钱砸算力 → 先进制程代工是AI硬件链的咽喉 → 台积电是这条咽喉近乎垄断(≤3nm) → 生意/护城河/账本全最高档(①优质·高把握) → 但27倍前瞻已按成长定价、且台海尾部+周期高位毛利 → 所以今天动作=&#x27;守&#x27;(核心</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 成长框架主导·分析师均值目标约$490(chartmill·非模型结论)（AI资本开支超级周期续3~5年、2nm按良率放量、CoWoS持续售罄、毛利守高50~60%、20%+CAGR）｜ 中 约当前25~28倍前瞻·总回报≈EPS增速（AI需求强但2027起减速、FY2026+30%后归中位数、毛利向高50%回归）｜ 坏 中周期框架主导·倍数压到约15~18倍×更低正常化EPS→明显下行（AI消化/过建+半导体周期下行、稼动与毛利回中周期，或台海冲击）</div>
+<div class="conc">一句话：好成长框架主导·分析师均值目标约$490(chartmill·非模型结论)/中约当前25~28倍前瞻·总回报≈EPS增速/坏中周期框架主导·倍数压到约15~18倍×更低正常化EPS→明显下行——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 $398，虽略高于今日价值区 $360，但 PEG≈0.60（&lt;1=成长便宜）——价高是因为增速更快、看明年利润其实不贵 → 守·不追高；已超配这一类·不加（成长便宜不当贵杀·董事长PEG尺）。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>Q2 2026财报：今日2026-07-16(指引营收$39.0~40.2B·毛利65.5~67.5%)——AI动能与毛利是否续</div>
+<div><b>生意被证伪的条件：</b>①制程代差被三星/英特尔追平(良率+封装+信任四样都被补齐) ②AI资本开支周期长期逆转、稼动与毛利跌回中周期且不复 ③台海发生实质产能中断。价格贵只是&#x27;不追高&#x27;、非卖出理由。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+<tr><td data-l="标的">ASML</td><td data-l="P/E">贵。股价~1815美元(7/15)、前瞻PE约4</td><td data-l="PEG">待接</td><td data-l="增速">待接</td><td data-l="护城河">贵·等回调</td></tr><tr><td data-l="标的">AMAT</td><td data-l="P/E">AMAT前瞻PE~36/一年+164%</td><td data-l="PEG">待接</td><td data-l="增速">待接</td><td data-l="护城河">贵·等回调</td></tr></table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 65.9% → 动作后 65.9%（上限 45%）</div>
+<div class="conc">一句话：这一动后「AI供应链」占比 65.9%→65.9%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.META">
+<div class="nm">META <span style="color:#8a94a0;font-size:12px">US.META</span>
+  <span class="chip c-cut">▼ 减</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.META">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$521 ~ $637</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 $521~$637；现价 $640，动作=减。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽(核心是网络效应·约35.6亿日活的社交图谱)。主要变量是AI资本开支ROI能否兑现、以及AI聊天助手对信息流注意力的侵蚀(见④⑧)。<br>决策链：AI是国力主线、钱砸算力 → 广告+AI是Meta的战场 → Meta是拥有现金印钞机(广告)、同时重仓AI基础设施的核心 → 生意/护城河/账本最高档(①优质·高把握)、且约17~20倍前瞻在大盘科技里偏便宜 → 但capex($125~</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 倍数扩+EPS超预期→向/破$1,000(增速12%→更高见敏感性)（AI广告效率复利(+20%+营收续)、AI capex见ROI、RL亏损稳、新AI产品变现）｜ 中 合理区约$521~$637(中枢$579)·近共识目标约$825（广告增速归低两位数、capex($125~145B)压FCF但广告引擎养得起、RL亏损约$18~20B/年）｜ 坏 倍数收缩向$450~550(增速12%→更低见敏感性)（capex压顶ROI弱、广告市场转弱(周期)、AI聊天侵蚀信息流、RL继续烧钱→FCF压缩再评级）</div>
+<div class="conc">一句话：好倍数扩+EPS超预期→向/破$1,000(增速12%→更高见敏感性)/中合理区约$521~$637(中枢$579)·近共识目标约$825/坏倍数收缩向$450~550(增速12%→更低见敏感性)——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在减：</b>现在 $640，已涨过贵位 $637、算贵；而且「AI供应链」这一类已经超上限 → 现在可以减，优先从它减；跌回 $637 以下就别再减了。</div>
+<div><b>为什么不选另一个动作：</b>不选守：已过贵位且该类超配；不选加：贵不该加。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次财报：Q2 2026约2026年7月末(Q1指引Q2营收$58~61B)——看capex指引是否再确认/上调</div>
+<div><b>生意被证伪的条件：</b>①AI资本开支长期无法转成营收/FCF、自由现金流持续恶化 ②广告引擎结构性减速(AI聊天侵蚀信息流) ③监管强制拆分核心资产。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 65.9% → 动作后 65.9%（上限 45%）</div>
+<div class="conc">一句话：这一动后「AI供应链」占比 65.9%→65.9%。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.IBKR">
+<div class="nm">IBKR <span style="color:#8a94a0;font-size:12px">US.IBKR</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.IBKR">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：$48 ~ $58</div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:100%">▼</span></div>
+<div class="conc">一句话：今日该值 $48~$58；现价 $91，动作=守。今日价值区与未来目标分开看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">护城河：护城河 宽·锚在&#x27;随规模复利的自动化成本优势&#x27;。费率压缩是长期风险·但IBKR已是低成本领导。<br>决策链：IBKR=高质量、高利润率(77%税前)、约30%账户增长的全球券商、高利率受益(NII) → 账本①优质·高把握 → 但现价$97约37倍前瞻·为持续30%增长定价、正常化券商倍数中枢仅$52.8 → 所以今天动作=&#x27;等&#x27;(优质但贵·等回</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 EPS $2.6~3.0+·溢价倍数守→向$110~120+（利率higher-for-longer或仅浅降;账户增长稳30%+;强市场活动(高DARTs);NII随余额增长守/增）｜ 中 大致区间$90~105·倍数适度压缩(正常化中枢$52.8·市场给成长溢价)（美联储2026降约50~100bp;约$0.2~0.4B NII逆风被25~30%账户/余额增长+健康交易抵;EPS约$）｜ 坏 EPS平/降·倍数向20~25倍去溢价→$50~70(近正常化中枢)（激进降息(150bp+)+市场低迷同时砍DARTs与保证金余额;增长减速·NII与佣金双压）</div>
+<div class="conc">一句话：好EPS $2.6~3.0+·溢价倍数守→向$110~120+/中大致区间$90~105·倍数适度压缩(正常化中枢$52.8·市场给成长溢价)/坏EPS平/降·倍数向20~25倍去溢价→$50~70(近正常化中枢)——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>现在 $91，中周期/穿牛熊算 极贵（景气高点·峰值定价）（现价约合理上沿 $58 的 1.6 倍）→ 守·不追高、留峰值风险安全垫；不因这个数就自动减（峰值可能持续·中周期/穿牛熊只作参考·董事长尺）。</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b>下次季度财报（日期待公布·公司通常于季度结束后约3周发布；上次已于2026-01发布4Q2025）</div>
+<div><b>生意被证伪的条件：</b>①账户增长结构性减速(盯月度) ②自动化成本优势/77%利润率被侵蚀 ③激进降息+市场低迷同时压NII与佣金且增长接不上。</div>
+<div><b>系统把握程度：</b>高把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 — → 动作后 —（上限 —）</div>
+<div class="conc">一句话：这一动后「未归类」占比 —→—。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+<div class="stock" id="why-US.SPCX">
+<div class="nm">SpaceX <span style="color:#8a94a0;font-size:12px">US.SPCX</span>
+  <span class="chip c-hold">■ 守</span>
+  <span class="pill p-sys">系统建议·尚未执行</span>
+  <a class="jump" href="#L1">回①</a><a class="jump" href="#deep-US.SPCX">看完整研究→</a></div>
+
+<div class="chart" data-chart="1"><div class="ct">图1 · 今日价值区 ── 现价 ── 未来目标价</div>
+<div class="cm">数据：valuation_results（今日区间）＋现价＋forward_fair（未来目标）｜ <b>今日价值区与未来目标价必须分两行、各标时点，永不合并</b></div>
+<div><b>今日价值区（今天该值）</b>：<span style="color:#6B4E8C">待接·不编</span> ~ <span style="color:#6B4E8C">待接·不编</span></div>
+<div><b>未来1~2年目标价（未来该值）</b>：<span style="color:#6B4E8C">待接·不编</span>　<span style="color:#8a94a0">（缺前瞻EPS·待架构师补）</span></div>
+<div class="band"><span class="mk" style="left:50%">▼</span></div>
+<div class="conc">一句话：估值待接·只守着看。</div></div>
+
+<div class="chart" data-chart="8"><div class="ct">图8 · 支持 ↔ 反对</div>
+<div class="cm">数据：evidence_chain 正反证据（与③第14项同源）｜ <b>反面证据为空必须写明"未找到反面证据·已查哪些源"，不得留白</b></div>
+<table><tr><th>支持这个决定</th><th>反对这个决定</th></tr>
+<tr><td data-l="支持">见③第14项正反证据全量</td><td data-l="反对">未找到反面证据·已查(深研③护城河/⑧风险/evidence_chain);如后续出现将补入</td></tr></table>
+<div class="conc">一句话：支持/反对并列；反面为空必写已查哪些源。</div></div>
+
+<div class="chart" data-chart="2"><div class="ct">图2 · 好 / 中 / 坏 三种情况</div>
+<div class="cm">数据：敏感性（EPS±／倍数±）＋情景假设 ｜ 缺情景→只显中性并注明</div>
+<div>好 <span style="color:#6B4E8C">待接·不编</span>（缺情景·只显已有）｜ 中 <span style="color:#6B4E8C">待接·不编</span>（缺情景·只显已有）｜ 坏 <span style="color:#6B4E8C">待接·不编</span>（缺情景·只显已有）</div>
+<div class="conc">一句话：好<span style="color:#6B4E8C">待接·不编</span>/中<span style="color:#6B4E8C">待接·不编</span>/坏<span style="color:#6B4E8C">待接·不编</span>——三价分开看，别只盯一个数。</div></div>
+
+<div class="blk"><h3>为什么现在这么做</h3>
+<div><b>为什么现在守：</b>暂无可信估值基础（缺真源）→ 现在不动手，守着看</div>
+<div><b>为什么不选另一个动作：</b>不选加：已超配/不够便宜；不选减：没到贵位或成长便宜(PEG<1)。</div>
+<div><b><span class="term" title="未来可能推动股价和利润发生明显变化的具体事情">催化剂</span>（能推动股价明显变化的具体事情）：</b><span style="color:#6B4E8C">待接·不编</span>（近90天列不出明确前瞻催化剂）　<span style="color:#8a94a0">来源：—</span></div>
+<div><b>催化剂失效条件：</b><span style="color:#6B4E8C">待接·不编</span></div>
+<div><b>生意被证伪的条件：</b>见③第16项判断被推翻的条件</div>
+<div><b>系统把握程度：</b>中把握 —— 账本质地档＋估值可信度综合(见③第6项)</div></div>
+
+<div class="chart" data-chart="7"><div class="ct">图7 · 催化剂与财报事件时间线</div>
+<div class="cm">数据：earnings_calendar + 催化剂库 ｜ <b>例行财报日期本身不算催化剂</b>（须董事长定稿的尺，按正式配置判定）</div>
+<div></div>
+<div class="conc">一句话：例行财报日期本身不算催化剂；只认前瞻真事件。</div></div>
+
+<div class="chart" data-chart="6"><div class="ct">图6 · 同类股票横向比较</div>
+<div class="cm">数据：valuation_results + sector_research 同业倍数 ｜ 同业缺→留空标「待接」不猜</div>
+<table><tr><th>标的</th><th>前瞻P/E</th><th>PEG</th><th>增速</th><th>护城河</th></tr>
+</table>
+<div class="conc">一句话：同业倍数横比见表；缺的标待接不猜。</div></div>
+
+<div class="chart" data-chart="5"><div class="ct">图5 · 这一动对仓位的影响</div>
+<div class="cm">数据：holdings_true + 拟议动作股数 ｜ 金额未定→用区间显示</div>
+<div>动作前 — → 动作后 —（上限 —）</div>
+<div class="conc">一句话：这一动后「未归类」占比 —→—。</div></div>
+
+<div class="chart" data-chart="9"><div class="ct">图9简 · 世界观 → 行业 → 本股 → 今天动作</div>
+<div class="cm">数据：evidence_chain 分层 + final_decision ｜ 某环无事件→标「今日无新事件」不硬编</div>
+<div>世界观(AI国力主线)→行业(所在AI链环)→本股(护城河/账本)→今天动作(按唯一决定表)。详见③第11项。</div>
+<div class="conc">一句话：世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。</div></div>
+</div>
+
+
+</div></details>
+
+<details class="layer" id="L3"><summary>③ 完整研究底稿</summary><div class="body">
+<div class="note"><b>16项完整保留、一条不删。</b>本层永不外移、永不精简；有效证据项目数／原始来源数／反面证据数／研究模块数<b>只增不减</b>（出厂 lint 校验）。</div>
+
+
+<div class="stock" id="deep-JP.4568">
+<div class="nm">第一三共 <span style="color:#8a94a0;font-size:12px">JP.4568</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.4568">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;第一三共已从&#x27;日本本土老药企&#x27;转型成&#x27;全球肿瘤ADC(抗体偶联药物)龙头&#x27;——靠自研DXd平台造出best-in-class抗癌药。核心引擎(截至2026-03)：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;Enhertu(HER2 ADC·旗舰)&#x27;, &#x27;what&#x27;: &#x27;乳腺癌等HER2抗癌药·与阿斯利康共同开发/商业化(日本外分利润)&#x27;, &#x27;size&#x27;: &#x27;第一三共自报营收¥6,984億(+26.3%)·约占总收入1/3;美¥3,863億(+28%)/欧¥1,748億/ASCA¥997億(+42%)&#x27;}, {&#x27;block&#x27;: &#x27;Datroway(TROP2 ADC·第二支柱)&#x27;, &#x27;what&#x27;: &#x27;datopotamab deruxtecan(Dato-DXd)&#x27;, &#x27;size&#x27;: &#x27;首个完整年¥476億·FY2026指引¥1,114億(+133.9%)&#x27;}</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接第一三共官方FY2025业绩+stockanalysis(IFRS)。带待接的是本轮无单一权威源的项(FCF/FY2027净利指引)。日本大盘药企营收兆円级、量级已核。Enhertu为第一三共自报口径(全球终端销售约¥8,195億为另一口径·非第一三共收入)。&quot;, &quot;margin_label&quot;: &quot;净利率&quot;, &quot;metric_label&quot;: &quot;Enhertu营收(自报)&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;截至2023-03&quot;, &quot;revenue&quot;: &quot;¥1.28兆(12,785億)&quot;, &quot;yoy&quot;: &quot;+22.4%&quot;, &quot;gross_margin&quot;: &quot;8.5%(净</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽且变宽·锚在DXd/ADC技术平台。主要变量是Enhertu单药集中(占1/3收入)+管线临床/安全性(ILD/肺炎监测)+专利悬崖(十年末)。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>两段式EPS-DCF</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：Enhertu夺1线HER2+乳腺+扩HER2-low/新瘤种、Datroway快放量、管线ADC兑现、向¥3兆目标→支撑/超¥4,000+分析师目标(增速8%→更高见敏感性)（约25~30%）<br>中：Enhertu近期+20%+后减速、Datroway成稳态老二、一次性计提滚出后利润率回升→合理区¥2,959~¥3,616(中枢¥3,287)·EPS增约8~12%（约50%）<br>坏：Enhertu集中被TROP2/HER2新进入者侵蚀、ILD安全信号/试验失败、专利/生物类似药后期压力、日元走强削海外→杀估值向低teens PE·下探¥2,800或以下（约20~25%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报:Q1(截至2026-06)约2026年8月初<br>监管:Enhertu 1线HER2+乳腺FDA批(2026已得)+HER2+实体瘤欧盟批(2026-06);Datroway转移性TNBC FDA批(该适应症首个ADC)<br>试验读出:DESTINY-Breast09(1线HER2+·PFS风险降44%·ASCO2025/NEJM)驱动1线采用;更多DESTINY/TROPION分析(ASCO2026 25+摘要·2026-05-28)<br>战略:第6期中期计划(¥3兆@FY2030)执行里程碑</td></tr>
+<tr><th>10 风险及观察信号</th><td>单药集中(Enhertu)·重Enhertu约占1/3收入且主导利润·信号季度Enhertu新患者份额(核心HER2&gt;50%)、ILD/肺炎率、任何销售miss/安全信号<br>专利悬崖(十年末)·重Enhertu成分专利+Lixiana独占随时间侵蚀·信号生物类似药/仿制申报、IP诉讼<br>管线/试验失败·重DXd平台是整个论点·信号DESTINY/TROPION三期miss或FDA CRL、新适应症ILD安全<br>日元汇率·重海外(美/欧)是肿瘤收入大头、日元走强削报表收入/EPS·信号USD/JPY日元走强<br>定价/政策·重美国药价压力(IRA后期)、欧日降价·信号报销决定/IRA名单</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>第一三共=全球肿瘤ADC龙头、DXd平台宽护城河 → 但账本目前=②趋势观察·不杀(非①·把握中)、Enhertu单药占1/3集中+临床事件风险 → 现价约¥2,758对DCF中枢¥3,287有折让、前瞻股息率约3.6% → 所以今天动作=&#x27;等&#x27;(观察·不急加、不追高)。什么才算&#x27;该走&#x27;(只看生意)：①Enhertu核心适应症份额被结构性侵蚀 ②出现ILD等重大安全信号/关键三期试验失败 ③专利悬崖临近而管线接不上。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;医药临床/监管事件风险、日元汇率、专利悬崖;注:与AI/科技/半导体驱动无关&quot;, &quot;weight&quot;: &quot;组合里的&#x27;非AI防御成长&#x27;锚(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;肿瘤需求由疾病发病/审批/人口驱动、与AI资本开支周期结构性不相关→AI/半导体回调时第一三共基本面不跟跌;但它是成长药企·非低beta公用事业、带二元临床/监管事件风险(试验读出/安全信号)——分散AI/宏观周期风险、但叠加特有生物医药事件风险、按此控仓&quot;, &quot;swap&quot;: &quot;作分散AI风险的非周期成长医药而持有;账本②·若临床/份额恶化则重估、非因AI换出&quot;</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接第一三共官方FY2025业绩(2026-05-11)+stockanalysis交叉核(每数带as_of+来源·官方PDF为金源·建议终审前逐项复核)；⑤估值由估值引擎(growth_dcf·eps0=¥165规范化)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据第一三共IR与权威公开信息补至基准深度。财年截止3月31日、按日历期末标注。JPY·億円/兆円。Enhertu用第一三共自报口径(与全球终端销售口径不同·已注)。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽且变宽·锚在DXd/ADC技术平台。主要变量是Enhertu单药集中(占1/3收入)+管线临床/安全性(ILD/肺炎监测)+专利悬崖(十年末)。<br>决策链：第一三共=全球肿瘤ADC龙头、DXd平台宽护城河 → 但账本目前=②趋势观察·不杀(非①·把握中)、Enhertu单药占1/3集中+临床事件风险 → 现价约¥2,758对DCF中枢¥3,287有折让、前瞻股息率约3.6% → 所以今天动作=<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①Enhertu核心适应症份额被结构性侵蚀 ②出现ILD等重大安全信号/关键三期试验失败 ③专利悬崖临近而管线接不上。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.NVDA">
+<div class="nm">英伟达 <span style="color:#8a94a0;font-size:12px">US.NVDA</span> · 完整研究底稿
+  <a class="jump" href="#why-US.NVDA">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;英伟达不是&#x27;卖显卡的&#x27;，它是AI时代的&#x27;卖铲子的&#x27;——谁挖AI这座金矿，都得买它的铲子(芯片)，而且铲子把手还焊死在它家平台上、换不掉。钱从五处来，按大小排：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;数据中心·芯片&#x27;, &#x27;what&#x27;: &#x27;训练和运行AI用的大芯片(H100、最新的Blackwell)&#x27;, &#x27;size&#x27;: &#x27;绝对主力：最近一季 $75.2B，占了整季营收 $81.6B 的九成&#x27;}, {&#x27;block&#x27;: &#x27;数据中心·连接线&#x27;, &#x27;what&#x27;: &quot;把成千上万颗芯片连成&#x27;一台超级计算机&#x27;的高速线路和交换机&quot;, &#x27;size&#x27;: &quot;跟着芯片一起卖·占比待接。别人只卖单颗芯片，它卖&#x27;整机柜一套&#x27;&quot;}, {&#x27;block&#x27;: &#x27;软件订阅&#x27;, &#x27;what&#x27;: &#x27;配套的AI软件、按年收费&#x27;, &#x27;size&#x27;: &quot;小但利润高·待接——把&#x27;卖一次硬件&#x27;变成&#x27;年年收租&#x27;&quot;</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;看一家公司值不值，先看它这几年是不是真在越赚越多、且赚的是真钱(有现金)。下列均为 NVIDIA 官方财报 GAAP 实际数(非估算)，每行带财报日期与来源。&quot;, &quot;cols&quot;: [&quot;财年(截止)&quot;, &quot;营收&quot;, &quot;比去年&quot;, &quot;毛利率(GAAP)&quot;, &quot;净利(GAAP)&quot;, &quot;自由现金流&quot;, &quot;数据中心占比&quot;, &quot;as_of&quot;, &quot;来源&quot;], &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2024 (截至2024-01-28)&quot;, &quot;revenue&quot;: &quot;$60.9B&quot;, &quot;yoy&quot;: &quot;+126%&quot;, &quot;gross_margin&quot;: &quot;72.7%&quot;, &quot;net_income&quot;</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 8 分·宽(第一梯队)。唯一可能被攻破的是&#x27;换掉它的代价&#x27;——万一哪天换别家不难了，就危险(见第④、⑨块)。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>两段式EPS-DCF</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：AI用起来爆发+各国自建算力+新芯片顺利，一直高速涨→约$348(增速20%→30%现算)（约30%）<br>中：AI继续但增速降到20%左右，份额稳住→$216~$265(中间$241)（约50%）<br>坏：大公司不再猛砸钱+客户改用自研芯片+中国持续受限，增速掉到10%以下→约$162(增速20%→10%现算)（约20%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报(FY2027 Q2·日期待接)：看数据中心还涨不涨、利润率、下季指引<br>新芯片Blackwell交货节奏：产能顺不顺，决定最近一两季营收<br>大公司(微软/谷歌/亚马逊/Meta)财报里说要花多少钱建AI：这是需求端最重要的风向标<br>各国&#x27;国家AI&#x27;下订单：新需求兑现没<br>美国对华芯片管制松/紧：中国市场开不开</td></tr>
+<tr><th>10 风险及观察信号</th><td>大公司不再猛砸钱建AI·重数据中心占了它九成收入，需求一转弱、伤得最狠·信号大厂集体说&#x27;少花点建AI&#x27;<br>客户改用自研芯片·重大厂自研占比 待接·信号这比例逐季往上走<br>客户太集中·重前几大客户占它营收比 待接(应该不低)·信号某个大客户砍单<br>中国被管制·重中国曾占它约两成营收(受限后大降)·信号管制加码或放松<br>你组合里&#x27;一起涨一起跌&#x27;·重它和台积电/爱德万/存储同向，放大你整盘波动·信号半导体整体回调</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>世界大势(AI是国力竞争、钱砸算力) → 战略上算力是主线 → 英伟达是这条线最核心 → 生意/护城河/账本全是最高档 → 估值还略便宜 → 本来该重点买；可是你押在AI上的钱已经超上限、英伟达一只也快到15%单只上限 → 纪律不许再加 → 所以：守住、别加；真要降AI，先减质量弱的软银，不动英伟达。什么才算&#x27;生意坏了要走&#x27;(跟价格无关，只看生意)：①大公司不再砸钱建AI ②它的软件护城河被别人绕开 ③客户大规模改用自研芯片。价格贵不是卖出理由、超标也只是&#x27;不加&#x27;、不是&#x27;砍核心&#x27;。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;AI投入、半导体周期、台海(它的芯片台积电代工)、利率(成长股怕利率涨)&quot;, &quot;weight&quot;: &quot;是你AI敞口里最大的一块，也是最贴&#x27;单只≤15%&#x27;上限的一只(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;跟台积电/爱德万/闪迪/博通一条绳上、同涨同跌——等于你在&#x27;AI硬件&#x27;上下了叠加的注；防御仓(第一三共/东京海上/日股)是拉住它的另一头&quot;, &quot;swap&quot;: &quot;算力这节点几乎没人能替代→基本不在&#x27;换出去&#x27;名单里；要腾AI额度，从别处腾(见第四部分附·替换引擎)&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>定性块①③④⑥⑦⑧⑨⑩取自董事长认可的《成品级深度样卡_英伟达_定深度基准》(深度与大白话已认可)；②多年财报由Code接权威源填真+每数带as_of/来源；⑤估值区间与中枢取自估值引擎单一源(valuation_results·R1)、敏感性由two_stage_dcf现算。缺真源仍标&#x27;待接&#x27;不编。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 8 分·宽(第一梯队)。唯一可能被攻破的是&#x27;换掉它的代价&#x27;——万一哪天换别家不难了，就危险(见第④、⑨块)。<br>决策链：世界大势(AI是国力竞争、钱砸算力) → 战略上算力是主线 → 英伟达是这条线最核心 → 生意/护城河/账本全是最高档 → 估值还略便宜 → 本来该重点买；可是你押在AI上的钱已经超上限、英伟达一只也快到15%单只上限 → 纪律不许再加 →<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①大公司不再砸钱建AI ②它的软件护城河被别人绕开 ③客户大规模改用自研芯片。价格贵不是卖出理由、超标也只是&#x27;不加&#x27;、不是&#x27;砍核心&#x27;。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.MSFT">
+<div class="nm">微软 <span style="color:#8a94a0;font-size:12px">US.MSFT</span> · 完整研究底稿
+  <a class="jump" href="#why-US.MSFT">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;微软是&#x27;企业IT的水和电&#x27;——全世界公司办公(Office/Teams)、身份登录、云计算(Azure)都离不开它，AI又给它装了新引擎。钱从三大块来：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;生产力与业务流程&#x27;, &#x27;what&#x27;: &#x27;Office/Microsoft 365、Copilot、Teams、领英、Dynamics(企业办公与协作·按年收订阅费)&#x27;, &#x27;size&#x27;: &#x27;约$35.0B/季·同比+17%——稳、Copilot抬人均收费&#x27;}, {&#x27;block&#x27;: &#x27;智能云 Azure&#x27;, &#x27;what&#x27;: &#x27;公有云与AI算力底座、服务器产品、企业服务&#x27;, &#x27;size&#x27;: &#x27;约$34.7B/季·同比+30%(Q3 Azure+40%)——增长最快的引擎&#x27;}, {&#x27;block&#x27;: &#x27;更个人计算&#x27;, &#x27;what&#x27;: &#x27;Windows、Xbox游戏、Surfac</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;均为微软官方财报(SEC 10-K/8-K/季报)GAAP实际数(EPS为稀释后)；微软财年截止6月30日。带&#x27;待接&#x27;的是官方未单列或本轮未取到firm源的项，不瞎写。&quot;, &quot;margin_label&quot;: &quot;营业利润率(GAAP)&quot;, &quot;metric_label&quot;: &quot;Azure/云 增速&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2023 (截至2023-06-30)&quot;, &quot;revenue&quot;: &quot;$211.9B&quot;, &quot;yoy&quot;: &quot;+7%&quot;, &quot;gross_margin&quot;: &quot;41.8%(营业)&quot;, &quot;net_income&quot;: &quot;$72.4B&quot;, &quot;fcf&quot;: &quot;约$5</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽(第一梯队)。最硬是&#x27;企业换掉它的代价&#x27;；主要变量是AI资本开支能否转化成利润(见⑧)。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>两段式EPS-DCF</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：Azure持续35~40%+、Copilot付费复利、capex转成利润→增速升档→中枢上移(增速12%→更高见敏感性)（约25%）<br>中：Azure渐降到约30%、云+AI带动低两位数EPS增长、capex压近期现金流→合理区$390~$477(中枢$433)（约55%）<br>坏：AI资本开支过建+需求空档、现金流承压、Azure降到20%多、利润率下滑→增速降档→中枢下移(增速12%→更低见敏感性)（约20%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报：2026-07-29(FY2026 Q4+全年·盘后)——微软官方IR已确认<br>Copilot企业席位付费渗透、Azure AI产能扩充、消费型计价切换<br>资本开支轨迹(约$190B年化节奏)——决定自由现金流与利润率的最大摆动项<br>监管：欧盟/英国/FTC 云捆绑与反垄断审查、OpenAI关系结构</td></tr>
+<tr><th>10 风险及观察信号</th><td>AI资本开支过建·重FY26约$40B/季、约$190B年化(press口径·待7/29确认)；FY25自由现金流已-3.3%·信号自由现金流持续同比下滑 + Azure降到约30%以下<br>Azure减速·重云是最快引擎、一旦减速估值承压·信号增速印在指引区间以下<br>折旧压毛利·重GPU/数据中心大建→折旧上升·信号营业利润率跌破约44%<br>监管/反垄断·重云捆绑与OpenAI关系被审查·信号出现正式的捆绑整改令<br>估值·重约20倍前瞻PE·非便宜·信号EPS增速滑到个位数</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>AI是国力主线、钱砸算力 → 云+AI是主战场 → 微软是&#x27;AI基础设施&#x27;最核心的花钱方与受益方之一 → 生意/护城河/账本全是最高档(①优质·高把握) → 但估值约20倍前瞻PE不便宜、且AI资本开支正吞现金流 → 所以今天动作=&#x27;等&#x27;(优质但不急加、等更好点位)，不是&#x27;守核心不动&#x27;那类、更不是砍。什么才算&#x27;生意坏了要走&#x27;(只看生意)：①Azure持续减速跌破约30% ②AI资本开支长期无法转化成利润、自由现金流持续恶化 ③企业级护城河(身份/办公捆绑)被绕开。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;AI资本开支(它是最大花钱方之一)、利率(长久期成长股·多头估值敏感)&quot;, &quot;weight&quot;: &quot;你的大仓之一、AI敞口里的软件侧核心(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;与英伟达/博通同属AI资本开支因子、方向相关但不如硬件链同涨同跌那么紧；低beta约0.9、比纯成长股稳&quot;, &quot;swap&quot;: &quot;软件AI核心、几乎不在换出名单；要腾AI额度优先动质量更弱的仓，不动微软&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接微软官方10-K/8-K/季报(SEC·每数带as_of+来源)；⑤估值由估值引擎(growth_dcf)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据微软官方IR与权威公开信息补至基准深度·判断人工不足处标待接不编。财报截止6/30；FY2026全年7/29财报未出→最新为FY26 Q3(截至2026-03-31)。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽(第一梯队)。最硬是&#x27;企业换掉它的代价&#x27;；主要变量是AI资本开支能否转化成利润(见⑧)。<br>决策链：AI是国力主线、钱砸算力 → 云+AI是主战场 → 微软是&#x27;AI基础设施&#x27;最核心的花钱方与受益方之一 → 生意/护城河/账本全是最高档(①优质·高把握) → 但估值约20倍前瞻PE不便宜、且AI资本开支正吞现金流 → 所以今天动作=&#x27;等&#x27;(<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①Azure持续减速跌破约30% ②AI资本开支长期无法转化成利润、自由现金流持续恶化 ③企业级护城河(身份/办公捆绑)被绕开。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.MSTR">
+<div class="nm">MSTR <span style="color:#8a94a0;font-size:12px">US.MSTR</span> · 完整研究底稿
+  <a class="jump" href="#why-US.MSTR">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;MSTR(Strategy)本质是&#x27;一台上市的比特币囤积机&#x27;+一小块萎缩的企业分析软件。机制=&#x27;比特币飞轮&#x27;:发股/可转债/优先股融资→几乎全买BTC→当股价高于持币净值(mNAV&gt;1)时发股买币是增厚&#x27;每股比特币&#x27;、溢价支撑下一轮。BTC从&gt;$93K(2026-01)跌到约$60~65K后mNAV压向/破1.0倍→飞轮反转(破1时发股反而摊薄每股BTC)。&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;比特币持仓(核心·全部价值)&#x27;, &#x27;what&#x27;: &#x27;843,775 BTC(占所有上市公司BTC&gt;60%)·按市价计&#x27;, &#x27;size&#x27;: &#x27;市值约$54.6B(× $64,728)——股权故事的全部&#x27;}, {&#x27;block&#x27;: &#x27;杠杆资本结构&#x27;, &#x27;what&#x27;: &#x27;可转债$6.7B+永续优先股$15.5B(senior于普通股)&#x27;, &#x27;size&#x27;: &#x27;嵌入杠杆·放大</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;软件营收基本走平(约$460~500M);GAAP净利被BTC市价主导(2025-01起用ASU 2023-08公允价值会计·BTC每季按市价计入损益)、非经营表现。带待接的是本轮无一手源的项(Q2&#x27;26 10-Q、平均成本基础各源冲突)。&quot;, &quot;margin_label&quot;: &quot;净利(GAAP·被BTC市价扰动)&quot;, &quot;metric_label&quot;: &quot;BTC持仓/软件营收&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2022 (截至2022-12)&quot;, &quot;revenue&quot;: &quot;软件$499.26M&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;-$2.62B</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 窄/基本无耐久护城河。MSTR是杠杆BTC代理·唯一真优势是规模与资本市场机器、二者在溢价长期&lt;1.0倍时蒸发。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>净资产法(NAV)</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：BTC回涨(向/破$90~120K)且mNAV溢价再扩(&gt;1.5倍)、飞轮重启、ATM增厚发股→杠杆上行:BTC值↑40~90%+溢价扩→MSTR可翻倍(高BTC beta)（约25~30%）<br>中：BTC区间$55~75K、mNAV约0.9~1.2倍(近平价)、无新增厚发股、适度卖BTC付优先股息/债务→MSTR大致1:1跟BTC(减杠杆拖累);若续卖则每股BTC缓慢侵蚀（约40~45%）<br>坏：BTC进一步跌(&lt;$45~50K)且溢价塌破平价、被迫卖BTC补$15.5B优先股息+债务、摊薄→双击——BTC值↓+折价扩+杠杆/优先股放大对普通股损失·跌幅&gt;BTC本身（约30%）</td></tr>
+<tr><th>9 关键事件日历</th><td>BTC现货价(压倒一切·everything keys off it)<br>进一步买BTC(mNAV&gt;1才增厚)<br>资本募集:ATM普通股/可转债/永续优先股(各改杠杆)<br>债务管理:如$1.5B 2029可转债约8%折价回购(2026-05)<br>指数纳入/被动流入;mNAV回1.0倍以上重启飞轮;BTC公允价值会计(每季市价摆动GAAP净利)</td></tr>
+<tr><th>10 风险及观察信号</th><td>BTC价崩(杠杆)·重$6.7B债+$15.5B优先股senior于普通股·BTC回撤对普通股&gt;1:1;Q2&#x27;26单季约-$8.32B·信号BTC破约$50K显著抬覆盖压力<br>溢价塌·重mNAV已在2026-04~06破1.0倍(0.82~0.86倍)、现约1.04~1.07倍·信号持续&lt;1.0倍→关掉增厚发股、可自我强化折价<br>债/摊薄·重$6.7B可转债;破平价发股摊薄每股BTC·信号mNAV&lt;1.0倍还ATM发股<br>被迫卖币/优先股息负担·重$15.5B优先股持续现金股息义务·美元储备仅$871M·已卖约3,588 BTC付息·授权变现最多约20,800 BTC(约2.5%)·信号BTC长期低+资本市场关闭→更大规模被迫卖币<br>关键人(Saylor)+监管/税/会计·重战略/品牌/B类超级投票权集中Saylor;企业AMT对未实现BTC收益·优先股息税务·信号Saylor离任/减持;监管加码</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>MSTR=杠杆化比特币代理(BTC+债+优先股杠杆±溢价) → 账本②趋势观察·把握中(mNAV近平价·飞轮临界) → 现价约$97对BTC净值/股约$93约4%溢价 → 想要纯BTC敞口·ETF/直接BTC更干净便宜;持MSTR是为杠杆上行+溢价期权、须容忍溢价/折价摆动+摊薄/被迫卖币风险 → 所以今天动作=&#x27;等&#x27;(观察BTC与mNAV·不追高)。什么才算&#x27;该走&#x27;：①mNAV持续&lt;1.0倍→飞轮反转、每股BTC被摊薄侵蚀 ②BTC结构性熊市叠加被迫卖币 ③关键人/监管冲击。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;比特币价格(杠杆放大)、加密周期、利率/流动性(杠杆融资)&quot;, &quot;weight&quot;: &quot;加密簇(MSTR/COIN/CRCL)成员·计入≤12%加密总敞口上限(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;MSTR/COIN/CRCL彼此高相关且同步比特币周期;MSTR尤其是高beta、杠杆、方向性BTC bet——非分散器、给加密仓叠加集中风险。因嵌入杠杆(债+$15.5B优先股)叠在BTC上·风险口径&gt;美元权重·更小仓位即达同等加密beta&quot;, &quot;swap&quot;: &quot;只有想要杠杆化BTC敞口且能容忍溢价/折价+摊薄/被迫卖币才持;想要纯BT</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②软件业务营收接stockanalysis(自10-K)、BTC相关损益接SEC 10-K/8-K(每数带as_of+来源)；⑤估值用mNAV/净资产法(比特币净值−负债−优先股÷股本·不用PE·GAAP净利被BTC市价扰动为负)、真输入接Strategy 8-K EX-99.1(2026-05-26);①③④⑥⑦⑧⑨⑩据SEC披露与权威公开信息补至基准深度。财年=日历年。USD。BTC价快照2026-07-15 $64,728。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 窄/基本无耐久护城河。MSTR是杠杆BTC代理·唯一真优势是规模与资本市场机器、二者在溢价长期&lt;1.0倍时蒸发。<br>决策链：MSTR=杠杆化比特币代理(BTC+债+优先股杠杆±溢价) → 账本②趋势观察·把握中(mNAV近平价·飞轮临界) → 现价约$97对BTC净值/股约$93约4%溢价 → 想要纯BTC敞口·ETF/直接BTC更干净便宜;持MSTR是为杠杆上<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①mNAV持续</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.COIN">
+<div class="nm">Coinbase <span style="color:#8a94a0;font-size:12px">US.COIN</span> · 完整研究底稿
+  <a class="jump" href="#why-US.COIN">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;Coinbase是&#x27;最合规的美国加密交易所&#x27;——两种赚钱方式、比例是全部故事:交易费(随行情大起大落)+订阅服务(相对稳)。&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;交易收入(交易费·周期性)&#x27;, &#x27;what&#x27;: &#x27;买卖加密的手续费(零售高费率为主·机构低费率增长快)&#x27;, &#x27;size&#x27;: &#x27;FY2025约59%净收入·牛市暴涨熊市崩塌&#x27;}, {&#x27;block&#x27;: &#x27;订阅与服务(S&amp;S·稳定增长引擎)&#x27;, &#x27;what&#x27;: &#x27;USDC利息收入(与Circle分成)、质押奖励、托管、Coinbase One订阅&#x27;, &#x27;size&#x27;: &#x27;FY2025约41%·$2.8B·+23%·牛市论点(经常性、少价格敏感)&#x27;}, {&#x27;block&#x27;: &#x27;新腿(权重升)&#x27;, &#x27;what&#x27;: &#x27;衍生品(美国+国际经Deribit)、Base(以太坊L2)、机构prime/托管&#x27;, &#x27;si</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接Coinbase SEC 10-K+季度股东信(GAAP)。关键=极端周期:营收/盈利在加密冬天崩、牛市飙。带待接的是本轮无一手源的项(各年FCF·FY25 S&amp;S细分)。&quot;, &quot;margin_label&quot;: &quot;调整EBITDA(非GAAP)&quot;, &quot;metric_label&quot;: &quot;订阅服务(S&amp;S)营收&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2022 (截至2022-12·加密冬)&quot;, &quot;revenue&quot;: &quot;$3.19B&quot;, &quot;yoy&quot;: &quot;-60%&quot;, &quot;gross_margin&quot;: &quot;-$0.37B(调整EBITDA)&quot;, &quot;net_income&quot;: &quot;-$2</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 真实但窄~中且周期性——最强在美监管/品牌·最弱在定价权(费率压缩)与利率/合约依赖的USDC腿。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>正常化PE</b>（同一只只能有一把尺）<br>normalized_eps=3.39<br>pe_normal=22<br>来源：SEC EDGAR CIK 1679788 · us-gaap:EarningsPerShareDiluted · 10-K · FY2021-2025(会计年末2021-12-31~2025-12-31) · GAAP摊薄<br>可信度：<b>中·精算(真SEC数·但周期极端·穿牛熊简单平均)</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td>{&quot;eps_pm20&quot;: [2.71, 4.07], &quot;pe_pm20&quot;: [18, 26], &quot;fair_low&quot;: 48.8, &quot;fair_high&quot;: 105.8}</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：持续加密牛:高交易量+升费、USDC余额/市值增、利率支持、利美国加密立法、Base/衍生品放量、盈利回/超FY24峰值($2.5B+)→大幅上行·可重估向前高($300~450)（约30%）<br>中：震荡区间加密、量归峰值下、S&amp;S($2.8B)托底、适度opex纪律、Circle合约较差续签、盈利约$1~2B/年→大致区间震荡·现价到中度上行（约40%）<br>坏：加密冬天:量崩(FY22模板)、费率压缩、降息削USDC利息收入、Circle重谈压S&amp;S、监管冲击、GAAP转亏(未实现加密marks放大)→急跌·历史上50%+回撤属常态（约30%）</td></tr>
+<tr><th>9 关键事件日历</th><td>加密市场周期(主导驱动·量=交易收入)<br>美监管明朗(加密市场结构/稳定币立法·利合规在位者)<br>USDC增长(市值轨迹·ATH约$75B驱动S&amp;S)<br>Circle合约续签(约2026-08)——双刃:催化或风险按条款;摩根大通曾因此下调目标<br>Base生态变现、衍生品/国际扩张</td></tr>
+<tr><th>10 风险及观察信号</th><td>加密周期收入波动·重交易收入约59%净收入·单一冬天曾-66%(2022)·信号BTC/ETH+总加密市值翻转、现货量降<br>监管(SEC/全球)·重执法、产品禁令(质押)、上币审查·信号新SEC行动、不利立法<br>费率压缩·重零售费率长期降·Robinhood/PayPal/券商竞争·信号季度信里混合费率下滑<br>USDC/利率依赖·重S&amp;S约41%靠USDC利息(约$0.9~1.35B/年·系美债收益率)·降息直接削这&#x27;稳&#x27;收入·信号美联储降息、USDC余额降、Circle续签变差<br>自有账簿加密marks·重Q4&#x27;25约$718M未实现亏·GAAP盈利与经营脱钩摆动·信号加密价跌→即便经营尚可GAAP也亏</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>Coinbase=高beta加密周期bet → 账本②趋势观察·把握中、盈利极端周期(GAAP PE约58倍被扭曲、无可靠正常化EPS·待接) → 现价$166已假设持续牛市周期、52周$139~$445显加密beta → 先看加密周期→再看监管明朗→再看USDC/Circle续签→最后估值 → 所以今天动作=&#x27;等&#x27;(观察·不追高)。什么才算&#x27;该走&#x27;：①加密结构性熊市、量与S&amp;S双杀 ②监管强制拆分/禁核心产品 ③USDC经济被Circle重谈/稳定币竞争持续侵蚀。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;加密周期、利率(经USDC利息)、监管;高beta加密bet·非分散器&quot;, &quot;weight&quot;: &quot;加密簇(MSTR/COIN/CRCL)成员·计入≤12%加密总敞口上限(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;MSTR/COIN/CRCL彼此高相关且同步加密周期——加COIN不在簇内分散风险;★COIN↔CRCL经USDC直接经济联动:二者分享USDC储备利息(Coinbase平台内100%、平台外50/50)·USDC/利率/Circle合约的冲击同时打二者·同持有=风险重复计&quot;, &quot;swap&quot;: &quot;高beta加密卫星·非核心/防</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②财报接Coinbase SEC 10-K/季度股东信(每数带as_of+来源)；⑤Coinbase盈利极端周期(加密牛熊)、无公开权威&#x27;正常化EPS&#x27;源→估值标待接不硬编、附透明穿越周期区间与市场参照;①③④⑥⑦⑧⑨⑩据SEC披露与权威公开信息补至基准深度。财年=日历年。USD。现价$166.42(OpenD 2026-07-16)。属加密簇(MSTR/COIN/CRCL·计入≤12%上限)。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 真实但窄~中且周期性——最强在美监管/品牌·最弱在定价权(费率压缩)与利率/合约依赖的USDC腿。<br>决策链：Coinbase=高beta加密周期bet → 账本②趋势观察·把握中、盈利极端周期(GAAP PE约58倍被扭曲、无可靠正常化EPS·待接) → 现价$166已假设持续牛市周期、52周$139~$445显加密beta → 先看加密周期→再<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①加密结构性熊市、量与S&amp;S双杀 ②监管强制拆分/禁核心产品 ③USDC经济被Circle重谈/稳定币竞争持续侵蚀。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-JP.9984">
+<div class="nm">软银 <span style="color:#8a94a0;font-size:12px">JP.9984</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.9984">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;软银集团不是&#x27;经营一门生意&#x27;、而是&#x27;一个装着一堆股权的投资控股公司&#x27;——它的价值=手里资产(Arm/OpenAI等)减负债，几乎不看利润看NAV(净资产)。本质是&#x27;加了杠杆、带折价的 Arm+OpenAI 代理&#x27;。资产按权重(2026-03-31·持有资产¥48.26兆)：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;Arm(约90%持股)&#x27;, &#x27;what&#x27;: &#x27;芯片IP设计龙头(AI/数据中心算力押注)——皇冠明珠&#x27;, &#x27;size&#x27;: &#x27;调整后权益价值¥19.15兆(毛¥22.32兆减资产抵押融资¥3.17兆)·约占40%&#x27;}, {&#x27;block&#x27;: &#x27;愿景基金二期(SVF2)&#x27;, &#x27;what&#x27;: &#x27;晚期科技基金·持有OpenAI仓位(随OpenAI估值大涨)&#x27;, &#x27;size&#x27;: &#x27;¥17.19兆·约36%&#x27;}, {&#x27;block&#x27;: &#x27;其余+愿景一期+日本电信+</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;mode&quot;: &quot;nav&quot;, &quot;plain&quot;: &quot;控股公司看NAV(净资产)、不是看利润。软银仅在季报披露NAV;最近官方NAV为2026-03-31(FY2025 Q4·2026-05-13披露·Arm/SBKK/T-Mobile按2026-05-12市价)。2026-03-31后无官方NAV;市传6月约¥74兆/¥13,000每股系第三方估算·非官方→待接。&quot;, &quot;rows&quot;: [{&quot;period&quot;: &quot;2025-06-30 (Q1 FY2025)&quot;, &quot;nav&quot;: &quot;约¥32.4兆&quot;, &quot;ltv&quot;: &quot;—&quot;, &quot;nav_ps&quot;: &quot;—&quot;, &quot;discount&quot;: &quot;—&quot;, &quot;as_of</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>控股公司口径:护城河靠资产质量(Arm)与拿项目能力·但被&#x27;孙氏折价&#x27;长期压制。主要变量是Arm/OpenAI账面与折价能否收窄。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>净资产法(NAV)</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：Arm AI版税放量+OpenAI高估值IPO+回购收窄折价→NAV↑↑(第三方估约¥74兆路径)、折价收窄向20~30%（约30%）<br>中：Arm稳、OpenAI守住账面、折价维持约40~50%→NAV在¥40兆附近波动、价随Arm走（约45%）<br>坏：AI估值杀多、Arm/OpenAI账面回落、LTV上升、折价走阔→NAV↓(向/破¥30兆)、价↓↓(高beta放大)（约25%）</td></tr>
+<tr><th>9 关键事件日历</th><td>Q1 FY2026财报约2026-08：2026-03-31以来首个官方NAV更新(看NAV/LTV/折价)<br>Arm季报(NAV最大单项驱动·约40%)<br>OpenAI估值事件/可能IPO(市传或近期递交)→兑现SVF2账面<br>回购/收窄折价动作——收约40~50%缺口的经典杠杆<br>SB Energy/数据中心上市</td></tr>
+<tr><th>10 风险及观察信号</th><td>NAV波动·重NAV一季¥30.9兆→¥40.06兆(Arm/OpenAI按市价重估)·非经营且很跳·信号Arm/OpenAI账面大幅回落<br>集中·重Arm约40%+SVF2/OpenAI约36%=约3/4的NAV押在两个AI注上·信号两大资产任一大跌<br>杠杆/净债·重净债¥8.21兆·LTV约17%(2026-03-31·曾20.6%)·政策上限25%常态/35%紧急·信号LTV升破25%(被迫去杠杆/Arm质押贷款保证金风险)<br>折价持续·重约40~50%&#x27;孙氏折价&#x27;长期durable·信号即便NAV升、折价不收窄→价值困住<br>日元汇率·重主要资产(Arm/OpenAI/T-Mobile)是美元→日元走强削NAV·信号USD/JPY大幅走强</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>AI是国力主线、钱砸算力 → 软银=加杠杆、带折价的 Arm+OpenAI 代理 → 想要纯Arm就买ARM、想要OpenAI+折价收窄期权且接受杠杆/孙氏风险才选软银 → 账本①优质·高把握、NAV法可信度A → 但高beta、LTV/折价是风控闸 → 所以今天动作=&#x27;守&#x27;(核心卫星持有、不追高)，不加。什么才算&#x27;该走&#x27;(风控)：①LTV升破25% ②Arm/OpenAI账面AI去估值大跌 ③折价长期无法收窄且NAV下行。要降AI敞口、软银是质量相对弱的一只、优先于英伟达/台积电减。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;AI资本开支(经Arm/OpenAI)、日元汇率(日股·美元资产)、高beta杠杆&quot;, &quot;weight&quot;: &quot;高beta的AI卫星仓(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;与英伟达/台积电/爱德万同属AI资本开支、且经Arm/OpenAI放大;日元计价+美元资产=兼一个日元/美元汇率仓;杠杆控股→放大涨跌&quot;, &quot;swap&quot;: &quot;AI敞口里质量相对弱、高波动→要腾AI额度优先减软银、不动英伟达/台积电(见第四部分附替换引擎)&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②控股公司看NAV净资产历史(接软银官方IR SOTP·每期带as_of+来源；2026-03-31后无官方NAV·市传6月约¥74兆/¥13,000每股系第三方估算·非官方→标待接)；⑤估值由估值引擎(NAV净资产法·官方2026-03-31)单一源+NAV敏感性现算；①③④⑥⑦⑧⑨⑩据软银IR与权威公开信息补至基准深度。财年截止3月31日。JPY·兆円/億円。2026-01-01做过4拆1、每股数已拆调。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：控股公司口径:护城河靠资产质量(Arm)与拿项目能力·但被&#x27;孙氏折价&#x27;长期压制。主要变量是Arm/OpenAI账面与折价能否收窄。<br>决策链：AI是国力主线、钱砸算力 → 软银=加杠杆、带折价的 Arm+OpenAI 代理 → 想要纯Arm就买ARM、想要OpenAI+折价收窄期权且接受杠杆/孙氏风险才选软银 → 账本①优质·高把握、NAV法可信度A → 但高beta、LTV/折<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①LTV升破25% ②Arm/OpenAI账面AI去估值大跌 ③折价长期无法收窄且NAV下行。要降AI敞口、软银是质量相对弱的一只、优先于英伟达/台积电减。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-JP.8766">
+<div class="nm">东京海上 <span style="color:#8a94a0;font-size:12px">JP.8766</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.8766">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;东京海上是&#x27;日本最大的财险集团、也是三大日险里最国际化的&#x27;——约一半利润来自海外(尤其美国专业险)。保险是&#x27;先收保费、再赔付、中间用浮存金投资&#x27;的生意。三大引擎(截至2026-03)：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;国际(尤其美国)&#x27;, &#x27;what&#x27;: &#x27;Philadelphia(美商业/专业财险)、Delphi(美团体寿/伤残)、Tokio Marine HCC(全球专业险)+拉美/亚洲/欧洲&#x27;, &#x27;size&#x27;: &#x27;承保保费¥3.57兆(+4.6% ex-FX)·单一最大利润贡献(约45~50%调整利润·精确拆分待接)·增长引擎&#x27;}, {&#x27;block&#x27;: &#x27;日本财险&#x27;, &#x27;what&#x27;: &#x27;东京海上日动火灾—车险/火险/专业险&#x27;, &#x27;size&#x27;: &#x27;承保保费¥2.79兆·TMNF业务利润¥1,732億(+¥462億·涨费/产品提价)·约35%利润&#x27;</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接东京海上官方4Q FY2025摘要+stockanalysis。⚠自2026-03财年起IFRS为主、下表净利以J-GAAP口径为主(标注)、勿与IFRS混。带待接的是本轮无单一权威源的项(承保保费4年序列/合并综合成本率/调整ROE)。&quot;, &quot;margin_label&quot;: &quot;调整净利(KPI)&quot;, &quot;metric_label&quot;: &quot;年股息/股&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;截至2023-03&quot;, &quot;revenue&quot;: &quot;经常收益¥6.62兆&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;调整净利待接&quot;, &quot;net_income&quot;: &quot;¥3,76</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽·锚在地域分散+承保文化。主要变量是巨灾经验、美费率周期、日元(削海外利润)。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>PB/内含价值法</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：美专业险续硬、日本提费站稳、JGB收益率升抬投资收益、加速卖交叉持股做大回购、调整ROE→14%+→重估向约2.0倍IFRS账面→¥8,500~9,000+（约25%）<br>中：调整净利约+8%/年到¥9,500億后中个位数、股息+10~12%/年、约1.7~1.8倍账面→¥7,500~8,200(中枢¥7,315)·约3%息+EPS/DPS增长+回购（约50%）<br>坏：大巨灾年(日本台风/地震或美飓风)、美专业险转软、股市跌削未实现收益/ESR、日元走强削海外利润→重估向约1.4~1.5倍→¥6,000~6,500（约25%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报:Q1 FY2026(截至2026-06)约2026年8月上中旬<br>交叉持股卖出(重大持续催化):持续卖&#x27;业务相关股&#x27;趋近零→释放资本做回购(FY2026计划¥4,000億 vs FY2025¥2,400億)与股息<br>股息/回购:约15连增股息(¥245)+累进政策+按ESR/ROE灵活回购<br>费率/准备金:日本车/火险提费流入;JGB收益率升=投资收益顺风</td></tr>
+<tr><th>10 风险及观察信号</th><td>巨灾/自然灾害·重日本台风/地震+美飓风敞口·信号单季巨灾计提&gt;¥1,000~2,000億;盯台风季(8~10月)与美大西洋飓风<br>利率/准备金·重准备金充足性(FY2025含澳洲Greensill诉讼准备金计提);利率降压亚洲寿险·信号不利准备金发展披露;利率骤逆转<br>股市/交叉持股·重ESR约155%部分股权挂钩;日股大跌降未实现收益/偿付能力·信号TOPIX回撤&gt;20%;ESR向约130%<br>日元汇率·重约一半利润美元等·日元走强削报表利润(FY2025 FX拖约-¥350億)·信号USD/JPY日元大幅走强</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>东京海上=宽护城河、AA级、约一半利润国际分散的财险 → 账本①优质·高把握 → 但现价¥7,688近52周高、约1.8倍IFRS账面/前瞻16~17倍、对中枢¥7,315略偏高 → 前瞻股息率约3.2%+约15连增+¥4,000億回购给收益支撑 → 所以今天动作=&#x27;等&#x27;(优质·回调¥6,500~7,000再加、不追高)。什么才算&#x27;该走&#x27;(只看生意)：①承保纪律/多年记录被打破、综合成本率结构性恶化 ②地域分散优势(国际盈利)瓦解 ③资本(ESR)被巨灾/股市重创且难恢复。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;巨灾/自然灾害、利率(受益于升息·与成长股相反)、日元汇率;注:与AI资本开支/半导体无关&quot;, &quot;weight&quot;: &quot;组合里的&#x27;防御+收益压舱石&#x27;(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;承保与投资盈利由费率/巨灾/利率驱动、与AI资本开支/半导体需求无关→AI/科技回调时东京海上照样收保费、照发约3.2%股息;更是利率受益者(高收益率抬投资收益)、与长久期成长股相反敏感→有效对冲&quot;, &quot;swap&quot;: &quot;收益+分散仓、几乎不在换出名单;它的尾部风险是巨灾/汇率(与科技泡沫无关)、按此控仓&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接东京海上官方4Q FY2025摘要(2026-05-20)+stockanalysis(每数带as_of+来源)；⑤估值由估值引擎(保险PB/内含价值法·IFRS每股净资产)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据东京海上IR与权威公开信息补至基准深度。财年截止3月31日。⚠会计口径:自2026-03财年起以IFRS+ICS为主口径、同时披露J-GAAP、两套差异大(如FY2025净利J-GAAP¥9,804億 vs IFRS¥5,313億)、勿混。JPY·億円/兆円。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽·锚在地域分散+承保文化。主要变量是巨灾经验、美费率周期、日元(削海外利润)。<br>决策链：东京海上=宽护城河、AA级、约一半利润国际分散的财险 → 账本①优质·高把握 → 但现价¥7,688近52周高、约1.8倍IFRS账面/前瞻16~17倍、对中枢¥7,315略偏高 → 前瞻股息率约3.2%+约15连增+¥4,000億回购给收<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①承保纪律/多年记录被打破、综合成本率结构性恶化 ②地域分散优势(国际盈利)瓦解 ③资本(ESR)被巨灾/股市重创且难恢复。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-JP.6758">
+<div class="nm">索尼 <span style="color:#8a94a0;font-size:12px">JP.6758</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.6758">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;索尼是&#x27;内容+硬件综合体&#x27;——约2/3利润来自娱乐/IP(游戏/音乐/影视·消费驱动)、约1/4来自图像传感器(半导体部件·但是成熟成像芯片、非AI加速器)。这个组合正是它的分散逻辑(见⑩)。分部(截至2026-03·持续经营)：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;游戏与网络服务(PlayStation)&#x27;, &#x27;what&#x27;: &#x27;PS主机/游戏/PS Plus订阅/网络&#x27;, &#x27;size&#x27;: &#x27;营收¥4.69兆·约占30%·最大引擎;OI +12%(吸收Bungie ¥120.1B减值)&#x27;}, {&#x27;block&#x27;: &#x27;图像与传感(半导体)&#x27;, &#x27;what&#x27;: &#x27;CMOS图像传感器(供苹果等手机厂)&#x27;, &#x27;size&#x27;: &#x27;营收¥2.15兆·约17%·OI ¥357.3B(+37%创纪录)·增长最强&#x27;}, {&#x27;block&#x27;: &#x27;音乐&#x27;, &#x27;what&#x27;: &#x27;录制音</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接索尼官方FY2025业绩+stockanalysis。数据完整性注:2025-10金融板块部分分拆→列终止经营、FY至2026-03为持续经营口径、部分往年数被各数据商不一致重述→单年增速视为近似。营收量级(约¥12~13兆)可靠。&quot;, &quot;margin_label&quot;: &quot;营业利润率&quot;, &quot;metric_label&quot;: &quot;游戏(PS)/传感器&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;截至2023-03&quot;, &quot;revenue&quot;: &quot;¥11.54兆&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;约10.5%(营业·含金融)&quot;, &quot;net_income&quot;: &quot;¥9</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽(IP/PS网络/传感器技术)。主要变量是主机周期与传感器客户集中(苹果)、综合体折价能否经金融分拆收窄。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>两段式EPS-DCF</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：PS5后期软件/PS Plus强+PS6预期升温、传感器需求回暖(高端手机/汽车/AI相机)、音乐续+20%+OI、分拆后SOTP重估→向/破¥4,700目标(增速6%→更高见敏感性)（约30%）<br>中：OI增至约¥1.6兆(按指引)、游戏平到升、传感器+10~12%、音乐稳、折价渐收窄→合理值约¥3,800~4,200(增速6%基准¥4,113)（约50%）<br>坏：PS6前主机周期低谷、传感器客户(苹果)量/价压力或对三星丢份额、影视失手、日元走强削海外利润→平到降·回约¥3,000（约20%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报:2026-07-31(Q1 FY至2027-03)<br>索尼金融集团分拆后价值兑现/进一步减持<br>PS5后期→PS6过渡:下代主机公布/时点(PS6发布日尚未定)<br>图像传感器需求周期:高端手机换机、汽车传感、新苹果传感器订单<br>回购(随FY2025业绩公布)+股息升至¥35</td></tr>
+<tr><th>10 风险及观察信号</th><td>主机周期·重游戏约占30%营收;换代前低谷压硬件毛利·信号PS5销量减速+无PS6催化<br>内容成败·重影视OI已-11%;单部大片/大作成败摆动分部OI±数百亿円(Bungie ¥120.1B减值为鉴)·信号重磅游戏/影片失手<br>传感器客户集中(苹果)·重传感器约17%营收·苹果单一大客户份额高·信号苹果转向三星双供/手机销量走弱<br>日元汇率·重大量海外利润·日元走强削报表利润·信号日央行紧缩/USDJPY走强(每¥敏感度待接·无权威源)<br>重组/一次性·重FY2026含索尼本田EV退出亏损+¥1.38兆分拆会计损失·信号新一次性大额计提</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>索尼利润引擎约2/3是消费娱乐(PS软件/音乐版税/影视动漫)、约1/4是图像传感器 → 生意质量高(宽护城河、双分部创纪录OI)、①优质·高把握 → 现价约15倍前瞻、对DCF基准¥4,113略偏便宜、且分拆后SOTP重估期权 → 但主机周期/传感器客户集中/日元是变量 → 所以今天动作=&#x27;等&#x27;(优质·等更好点位或分批、不急)。什么才算&#x27;该走&#x27;(只看生意)：①PS生态装机与开发者偏好被结构性侵蚀 ②图像传感器对三星持续丢份额、苹果socket流失 ③音乐/内容年金式现金流受损。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;消费周期(娱乐)、图像传感器周期、日元汇率;注:半导体敞口是成熟成像传感器·非AI资本开支&quot;, &quot;weight&quot;: &quot;组合里的&#x27;分散器&#x27;——大头是非AI的娱乐/IP现金流(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;娱乐/音乐/影视利润=消费驱动、与AI资本开支基本不相关→AI/半导体回调时索尼这块不跟跌;传感器(约17%)有半导体敞口但是消费成像芯片、按手机/汽车相机周期走·非大厂AI建设→与AI硬件不同步、反而强化分散角色&quot;, &quot;swap&quot;: &quot;作分散AI风险的娱乐+差异化半导体kicker而持有;非AI核心、几乎不在换出名单&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接索尼官方FY2025业绩(SEC 6-K/官方PR)+stockanalysis交叉核(每数带as_of+来源)；⑤估值由估值引擎(growth_dcf·eps0=次年共识¥207)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据索尼IR与权威公开信息补至基准深度。财年截止3月31日、索尼&#x27;FY2025&#x27;=截至2026-03。注:2025-10金融板块部分分拆→列为终止经营·跨年营收口径有噪声、已注。JPY·億円/兆円。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽(IP/PS网络/传感器技术)。主要变量是主机周期与传感器客户集中(苹果)、综合体折价能否经金融分拆收窄。<br>决策链：索尼利润引擎约2/3是消费娱乐(PS软件/音乐版税/影视动漫)、约1/4是图像传感器 → 生意质量高(宽护城河、双分部创纪录OI)、①优质·高把握 → 现价约15倍前瞻、对DCF基准¥4,113略偏便宜、且分拆后SOTP重估期权 → 但主机<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①PS生态装机与开发者偏好被结构性侵蚀 ②图像传感器对三星持续丢份额、苹果socket流失 ③音乐/内容年金式现金流受损。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-JP.6857">
+<div class="nm">爱德万 <span style="color:#8a94a0;font-size:12px">JP.6857</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.6857">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;爱德万是&#x27;AI芯片的质检仪龙头&#x27;——GPU/HBM越复杂，出厂前要测的项越多、测得越久，就要买越多它的测试机。和泰瑞达两家垄断全球芯片测试机。两大块：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;测试系统(&gt;90%营收)&#x27;, &#x27;what&#x27;: &#x27;SoC测试机(测逻辑/算力芯片:GPU/AI加速器/定制ASIC·旗舰V93000)+存储测试机(DRAM含AI用HBM、NAND)&#x27;, &#x27;size&#x27;: &#x27;SoC约占测试系统七成、是AI算力增长主力；存储约两成半(HBM为AI拉动)&#x27;}, {&#x27;block&#x27;: &#x27;服务及其他(&lt;10%)&#x27;, &#x27;what&#x27;: &#x27;系统级测试(SLT)、器件接口/分选机、现场服务、维护&#x27;, &#x27;size&#x27;: &#x27;小·稳定后市场&#x27;}], &#x27;future_growth&#x27;: &#x27;①GPU复杂度+HBM堆叠层数上升(HBM4 16层、英伟达Rubin抬HBM含量</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接爱德万官方IR合并业绩+stockanalysis交叉核(IFRS)；营业利润/利润率以IR为准(与数据商口径有差、已注)。标待接的是本轮无单一权威源的项。日本大盘股营收为兆円级、量级已核对。&quot;, &quot;margin_label&quot;: &quot;毛利率&quot;, &quot;metric_label&quot;: &quot;稀释EPS&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;截至2023-03&quot;, &quot;revenue&quot;: &quot;¥5,602億(¥0.56兆)&quot;, &quot;yoy&quot;: &quot;+34.4%&quot;, &quot;gross_margin&quot;: &quot;57.0%&quot;, &quot;net_income&quot;: &quot;¥1,304億&quot;, &quot;fcf&quot;: &quot;待接&quot;, &quot;m</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>经济护城河 宽(经周期调整)。双寡头结构+换掉代价是耐久支柱；主要变量是半导体周期与SoC对泰瑞达竞争。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>中周期盈利法(不用峰值)</b>（同一只只能有一把尺）<br>normal_eps=147<br>pe_mid=20<br>来源：stockanalysis.com/quote/TYO/6857/financials · S&amp;P Global Market Intelligence · JPY摊薄EPS · FY2022-FY2026(财年Apr-Mar)<br>可信度：<b>中高·精算(真数·仅取到FY22-25共4年·FY19-21未取到→区间偏保守)</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td>{&quot;eps_pm20&quot;: [118, 176], &quot;pe_pm20&quot;: [16, 24], &quot;fair_low&quot;: 1882, &quot;fair_high&quot;: 4234}</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：AI/HBM测试强度复利、HBM4/Rubin放量、守GPU测试领先、营收&gt;¥1.6兆、利润率&gt;45%→EPS朝¥700~800·再评级¥38,000~45,000(分析师框架·非模型)（约30%）<br>中：达FY至2027-03指引(¥1.42兆·EPS约¥636~663)后正常消化、倍数压向高20/低30倍→约¥30,000~34,000(近共识¥32,695)（约45%）<br>坏：半导体/AI资本开支消化或GPU库存修正、营收回¥0.8~0.9兆、利润率回约30%→EPS回¥250~350·下修¥12,000~18,000（约25%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报：FY2026 Q1(季度截至2026-06)约2026年7月末/8月初——看订单与全年指引修正<br>管理层已提示FY2026上半年&#x27;消化期&#x27;(下一代器件切换)、下半年恢复增长——超此谨慎框架是关键摆动<br>AI/HBM需求：HBM4(16层)量产认证、英伟达Rubin抬HBM含量、定制ASIC(博通/Marvell)测试量、SoC产能向约1万台/年扩</td></tr>
+<tr><th>10 风险及观察信号</th><td>半导体周期敏感·重已验证幅度:2024-03营收-13%、EPS-61%、营业利润率18%→44%大摆动·信号book-to-bill下滑、封测厂稼动降、GPU/HBM库存积压<br>客户/终端集中·重重度依赖少数先进AI/GPU与HBM客户(存储测试约75% DRAM)·信号对手夺单/单一大客户订单递延<br>日元汇率·重大出口商、报表币种日元;需求多为美元计价·信号USD/JPY波动&gt;5~10%(每¥1/USD敏感度待接·无权威源)<br>估值·重约46倍TTM、按峰值盈利定价·信号任何AI资本开支波动→急剧下修(见熊市)</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>AI是国力主线、钱砸算力 → AI芯片必须逐颗测试、测试机需求跟着GPU/HBM复杂度走 → 爱德万是测试双寡头、领AI算力/存储测试 → 生意/账本高档(①优质·高把握) → 但约46倍TTM按峰值定价、且高周期性+日元敞口 → 所以今天动作=&#x27;守&#x27;(核心持有、不追高)，不加。什么才算&#x27;生意坏了要走&#x27;(只看生意)：①book-to-bill连续2季&lt;1 ②HBM/GPU库存修正、AI测试需求被证明是脉冲非结构 ③泰瑞达在SoC夺回份额且爱德万存储/HBM优势被侵蚀。价格贵只是&#x27;不追高&#x27;、非卖出理由。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;半导体周期、AI资本开支、日元汇率(日股出口商)&quot;, &quot;weight&quot;: &quot;AI硬件敞口的&#x27;卖铲子&#x27;卫星仓(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;与英伟达/AMD/博通/HBM厂(海力士/三星/美光)/泰瑞达重叠、同涨同跌；是GPU设计商的&#x27;picks-and-shovels&#x27;替代、且带日元敞口&quot;, &quot;swap&quot;: &quot;测试双寡头有真护城河但高周期——靠&#x27;控仓位&#x27;管周期回撤、非满配；要腾AI额度可优先于更弱仓考虑&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接爱德万官方IR合并业绩PDF+stockanalysis交叉核(每数带as_of+来源；分部占比/市占为分析师估算·非IR披露·标注)；⑤爱德万系周期股(中周期盈利法)、无权威&#x27;正常化EPS&#x27;公开源→估值标待接不硬编、附真实前瞻EPS/PE作市场参照；①③④⑥⑦⑧⑨⑩据爱德万IR与权威公开信息补至基准深度。财年截止3月31日、按日历期末标注避免混淆。JPY·億円/兆円。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：经济护城河 宽(经周期调整)。双寡头结构+换掉代价是耐久支柱；主要变量是半导体周期与SoC对泰瑞达竞争。<br>决策链：AI是国力主线、钱砸算力 → AI芯片必须逐颗测试、测试机需求跟着GPU/HBM复杂度走 → 爱德万是测试双寡头、领AI算力/存储测试 → 生意/账本高档(①优质·高把握) → 但约46倍TTM按峰值定价、且高周期性+日元敞口 → 所以今天<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①book-to-bill连续2季</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-JP.7203">
+<div class="nm">丰田 <span style="color:#8a94a0;font-size:12px">JP.7203</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.7203">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;丰田是&#x27;全球销量第一的车企&#x27;——靠混动(HEV)统治力在&#x27;纯电还没全面经济化&#x27;的过渡期赚过渡期利润+时间，同时押固态电池等下一轮。约85%营收来自汽车。两大块：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;汽车(约85%营收)&#x27;, &#x27;what&#x27;: &#x27;按地区:北美(最大最赚·但FY2026被美关税几乎抹平北美利润);日本产/出口;中国面临本土EV价格战;欧洲/新兴市场增量&#x27;, &#x27;size&#x27;: &#x27;约¥45兆级;混动(HEV)是核心故事—集团电动化车约37%以HEV为主、高油价+充电不足下需求强劲&#x27;}, {&#x27;block&#x27;: &#x27;纯电(BEV)&#x27;, &#x27;what&#x27;: &#x27;多路径(HEV+PHEV+BEV+氢)里的BEV&#x27;, &#x27;size&#x27;: &#x27;占比个位数低段·落后BYD/Tesla—转型速度是最大质疑点·固态电池为关键未来筹码&#x27;}, {&#x27;block&#x27;: &#x27;金融服务(TFS)&#x27;,</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接丰田官方IR各财年业绩+MarkLines。带待接的是本轮无单一权威源的项(汽车业务单列FCF/金融分部数)。营收量级¥37~50兆已核。汽车属周期股·近两年高利润含弱日元红利、正在回吐。&quot;, &quot;margin_label&quot;: &quot;营业利润率&quot;, &quot;metric_label&quot;: &quot;合并销量(百万台)&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;截至2023-03&quot;, &quot;revenue&quot;: &quot;¥37.15兆&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;7.3%(营业)&quot;, &quot;net_income&quot;: &quot;¥2.451兆&quot;, &quot;fcf&quot;: &quot;待接(汽车)&quot;, &quot;met</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽·锚在规模+TPS+混动统治力。弱点维:BEV技术非护城河、反是被追赶的敞口;过渡期长度=最大不确定性。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>中周期盈利法(不用峰值)</b>（同一只只能有一把尺）<br>normal_eps=270<br>pe_mid=10<br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：HEV需求超预期+BEV成功追赶+日元维持偏弱+关税缓解、EPS回¥330+→PE重估11~12倍→¥3,600~4,000+（约25%）<br>中：HEV稳态领先、BEV缓慢追赶、日元温和走强(¥145~150)、关税部分消化、中周期EPS¥250~300→约10倍→¥2,800~3,200(中枢¥2,700)（约50%）<br>坏：中国EV价格战外溢+BEV掉队丢份额、日元大幅走强(&lt;¥135)、美关税长期化、周期下行叠加召回、EPS跌向¥180~220→杀估值8倍→¥1,800~2,300（约25%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报:FY2027 Q1(截至2026-06)约2026年8月上旬——关注关税实际拖累、日元、指引调整<br>BEV战略:新一代BEV专用平台/产能落地、中国BEV反攻计划<br>固态电池:量产时间表与能量密度突破(称2027~2028附近·精确日期待接)—若兑现是重估级催化<br>日元汇率:USDJPY每¥1对营业利润高敏;美国汽车关税松紧决定北美利润恢复</td></tr>
+<tr><th>10 风险及观察信号</th><td>汽车周期·重营业利润已从¥5.35兆(2024-03)→¥3.77兆(2026-03)·-30%·信号全球销量连续下滑、库存天数升、激励飙升<br>BEV转型颠覆(尤其中国)·重份额流失、HEV若骤转BEV则护城河贬值·信号中国销量/份额持续下滑、BEV渗透率陡升<br>汇率(日元·盈利弹性最大)·重USDJPY每¥1约影响营业利润¥400~500億量级(精确敏感度待接)·信号日央行加息/USDJPY跌破¥140<br>美国关税·重FY2026冲击约¥4,500億·几乎抹平北美利润·信号关税加码/长期化<br>召回/质量认证·重大规模召回损害成本与品牌·信号重大召回公告/监管处罚</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>丰田盈利=全球汽车周期+日元+关税驱动、与AI资本开支完全不同源 → 生意质量高(宽护城河、销量第一、混动统治)、账本①优质·高把握 → 现价约¥2,933落中周期公允(¥2,700)中上沿、P/B~1.0+3.5%息给下方支撑、但近两年利润含弱日元红利在回吐 → 所以今天动作=&#x27;等&#x27;(优质·守/回调¥2,300~2,500再加、不追高)。什么才算&#x27;该走&#x27;(只看生意)：①中国EV份额结构性流失+HEV需求骤转BEV而丰田掉队 ②日元急升+周期下行同时叠加、正常化盈利结构性下移 ③固态电池等下一轮技术押注全面落空。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;汽车周期、日元汇率(盈利弹性最大)、美国关税;注:与AI资本开支/半导体完全不同源&quot;, &quot;weight&quot;: &quot;组合里的&#x27;价值+周期+股息压舱石&#x27;(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;盈利驱动=全球汽车需求周期+日元+关税、与AI资本开支周期完全独立→AI/半导体回调时丰田不因同源下跌、提供真实跨周期分散;但它有自身的汽车周期+BEV转型+日元/关税风险——是&#x27;换了一种风险&#x27;的分散、非消除风险&quot;, &quot;swap&quot;: &quot;价值/收益型配置、作科技/AI成长仓的对冲与现金流来源;非AI核心、几乎不在换出名单&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接丰田官方IR各财年业绩(global.toyota·2023-05-10/2024-05-08/2025-05-08/2026-05-08)+MarkLines交叉核(每数带as_of+来源)；⑤估值由估值引擎(周期股·中周期盈利法)单一源+敏感性现算·中周期EPS由4年真净利归一(透明自算·非峰值)；①③④⑥⑦⑧⑨⑩据丰田IR与权威公开信息补至基准深度。财年截止3月31日、按日历期末标注。JPY·億円/兆円。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽·锚在规模+TPS+混动统治力。弱点维:BEV技术非护城河、反是被追赶的敞口;过渡期长度=最大不确定性。<br>决策链：丰田盈利=全球汽车周期+日元+关税驱动、与AI资本开支完全不同源 → 生意质量高(宽护城河、销量第一、混动统治)、账本①优质·高把握 → 现价约¥2,933落中周期公允(¥2,700)中上沿、P/B~1.0+3.5%息给下方支撑、但近两年利<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①中国EV份额结构性流失+HEV需求骤转BEV而丰田掉队 ②日元急升+周期下行同时叠加、正常化盈利结构性下移 ③固态电池等下一轮技术押注全面落空。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-JP.8001">
+<div class="nm">伊藤忠 <span style="color:#8a94a0;font-size:12px">JP.8001</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.8001">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;伊藤忠是&#x27;日本五大综合商社里最偏消费/非资源的&#x27;——奉行&#x27;利は川下にあり(利润在下游)&#x27;、故意重仓消费/民生业务、赚更稳的钱、拿五家里最高的ROE。八大分部，招牌是FamilyMart：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;食品/民生(生活相关)&#x27;, &#x27;what&#x27;: &#x27;Dole(生鲜)、尤其FamilyMart(约1.6万+便利店)—vs同业的关键差异化&#x27;, &#x27;size&#x27;: &#x27;稳、防御、国内消费驱动·利润权重大且增长&#x27;}, {&#x27;block&#x27;: &#x27;纺织&#x27;, &#x27;what&#x27;: &#x27;伊藤忠的历史根·品牌/服装&#x27;, &#x27;size&#x27;: &#x27;稳定&#x27;}, {&#x27;block&#x27;: &#x27;机械/金属矿产/能源化学&#x27;, &#x27;what&#x27;: &#x27;机械(工厂/汽车/工程·FY2027增长驱动)、铁矿/煤(主要资源敞口·但利润占比小于三菱/三井)、油气/化学&#x27;, &#x27;size&#x27;: &#x27;机械增量·资源占比低</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接伊藤忠官方FIR+irbank。带待接的是本轮无单一权威源的项(分年核心经营现金流/FY2026经营现金流)。2026-01-01五拆一、每股数已拆调。营收兆円级已核。商社看归母净利(KPI)与ROE、不看营收。&quot;, &quot;margin_label&quot;: &quot;ROE&quot;, &quot;metric_label&quot;: &quot;每股净资产/股息(拆分后)&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;截至2023-03&quot;, &quot;revenue&quot;: &quot;¥13.95兆&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;16.6%(ROE·irbank)&quot;, &quot;net_income&quot;: &quot;归母¥8,005</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽·核心来自&#x27;消费/非资源倾斜(FamilyMart)+最佳ROE/资本纪律&#x27;——市场以最高P/B奖励。主要变量是商品价格、全球贸易/中国、日元。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>NAV/PB(按主业·商社偏资产→NAV)</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>待接真源</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：商品价稳+FamilyMart同店增长+数字变现加速+激进回购(回报率&gt;64%)+日元顺风→归母净利向/超¥1兆·P/B重估&gt;2.2倍→价升（约25%）<br>中：达指引—FY2027归母净利约¥9,500億、中个位数增长、¥44+累进股息、稳回购→P/B守约1.9~2.1倍·总回报≈EPS增长+约2.3%息(现价¥1,904)（约55%）<br>坏：全球贸易放缓/中国弱、商品价跌击金属能源分部、FamilyMart消费转软、日元走强(换算拖累)→归母净利平/降·P/B下修向约1.6倍→价承压(累进股息+回购缓冲)（约20%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报:Q1 FY2027(2026-04~06)约2026年8月初<br>回购/加息息:FY2027回报率目标+新回购授权;第12连增股息(¥44+)<br>伯克希尔持股:已&gt;10%;进一步增持或声明上限=情绪催化<br>年度经营计划(替代中期计划)每年4月定KPI;FamilyMart数字/零售媒体变现</td></tr>
+<tr><th>10 风险及观察信号</th><td>商品价格周期·重金属矿产+能源化学分部是价格接受者(占比小于三菱/三井)·信号铁矿/煤/油持续走低→分部利润降<br>全球贸易/中国·重贸易量与FamilyMart相邻亚洲需求随全球增长·信号中国放缓、关税/贸易战升级→量+利润率压缩<br>日元汇率·重大量海外盈利·日元走强削换算利润与权益;净DER约0.6倍(适中)·信号日元急升→指引下调风险<br>估值·重约2.0倍P/B(同业最高)、倍数缓冲薄·信号情绪转向时较资源同业(约1倍)回撤更多</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>伊藤忠盈利=全球贸易/商品/消费(FamilyMart)驱动、与AI资本开支完全不同源 → 生意质量高(宽护城河、消费倾斜、五商社最佳ROE、伯克希尔&gt;10%背书)、账本①优质·高把握 → 现价约2.0倍P/B(同业最高)、约14.6倍P/E、前瞻息约2.3% → 优质但P/B溢价、倍数缓冲薄 → 所以今天动作=&#x27;等&#x27;(优质·回调P/B向约1.6倍再加、不追高)。什么才算&#x27;该走&#x27;(只看生意)：①消费/非资源盈利质量(FamilyMart+食品)结构性恶化 ②ROE长期跌破同业、资本纪律松动 ③P/B溢价在商品/贸易下行中被证伪。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;商品价格周期、全球贸易/中国、日元汇率;注:与AI资本开支/半导体无关&quot;, &quot;weight&quot;: &quot;组合里的&#x27;价值+股息防御压舱石&#x27;(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;盈利=全球贸易/商品/消费/机械驱动、与AI资本开支周期基本正交→AI/半导体回调时伊藤忠不因同源下跌;回报来源(累进约2.3%息+中个位数利润增长+回购+约2倍P/B实打实账面)与科技周期正交、有效分散科技集中度;伯克希尔&gt;10%持股为需求backstop&quot;, &quot;swap&quot;: &quot;收益+分散仓、几乎不在换出名单;尾部风险是商品/贸易/汇率(与科技泡沫无关)、按此控</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接伊藤忠官方FIR/业绩+irbank(每数带as_of+来源)；⑤伊藤忠系综合商社(引擎按NAV法)、但商社无公开权威SOTP/NAV每股拆分(公司不披露·实务按P/B估)→估值标待接不硬编、附真实P/B/股息率/ROE作市场参照；①③④⑥⑦⑧⑨⑩据伊藤忠IR与权威公开信息补至基准深度。财年截止3月31日。2026-01-01做过5拆1、每股数已拆调。JPY·億円/兆円。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽·核心来自&#x27;消费/非资源倾斜(FamilyMart)+最佳ROE/资本纪律&#x27;——市场以最高P/B奖励。主要变量是商品价格、全球贸易/中国、日元。<br>决策链：伊藤忠盈利=全球贸易/商品/消费(FamilyMart)驱动、与AI资本开支完全不同源 → 生意质量高(宽护城河、消费倾斜、五商社最佳ROE、伯克希尔&gt;10%背书)、账本①优质·高把握 → 现价约2.0倍P/B(同业最高)、约14.6倍P/<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>缺真输入：assets[各资产估值]、net_debt(净负债)、shares(总股本)（该用 NAV/PB(按主业·商社偏资产→NAV)·各资产真估值合计 − 净负债 ÷ 股本(±控股折价)）·不硬编</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①消费/非资源盈利质量(FamilyMart+食品)结构性恶化 ②ROE长期跌破同业、资本纪律松动 ③P/B溢价在商品/贸易下行中被证伪。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-JP.7832">
+<div class="nm">万代 <span style="color:#8a94a0;font-size:12px">JP.7832</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.7832">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;万代南梦宫是&#x27;IP轴心+多渠道变现&#x27;的娱乐集团——拥有/授权顶级IP(高达/龙珠/海贼王/艾尔登法环)，在玩具/游戏/动画/街机四大渠道反复变现。四大分部(截至2026-03)：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;玩具娱乐(Toys&amp;Hobby)&#x27;, &#x27;what&#x27;: &#x27;高达塑料模型(Gunpla)、集换卡牌、扭蛋、食玩、手办&#x27;, &#x27;size&#x27;: &#x27;最大分部约¥6,739億·利润率约18.8%·增长引擎&#x27;}, {&#x27;block&#x27;: &#x27;数字/游戏(Digital)&#x27;, &#x27;what&#x27;: &#x27;主机游戏(艾尔登法环发行方·龙珠/海贼王IP游戏)+手游&#x27;, &#x27;size&#x27;: &#x27;约¥4,600億·FY26利润-22.6%(缺艾尔登DLC/火影级大作)&#x27;}, {&#x27;block&#x27;: &#x27;IP制作&#x27;, &#x27;what&#x27;: &#x27;动画制作、影像、音乐&#x27;, &#x27;size&#x27;: &#x27;表现良好·规模较小</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接万代南梦宫官方IR财报PDF+stockanalysis。带待接的是本轮无独立权威源的分部/单IP细分。营收兆円级已核。IP驱动消费·爆款周期波动。&quot;, &quot;margin_label&quot;: &quot;营业利润率&quot;, &quot;metric_label&quot;: &quot;Gundam单IP销售&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;截至2023-03&quot;, &quot;revenue&quot;: &quot;¥9,901億(¥0.99兆)&quot;, &quot;yoy&quot;: &quot;+11.3%&quot;, &quot;gross_margin&quot;: &quot;11.8%(营业)&quot;, &quot;net_income&quot;: &quot;¥903億(-2.6%)&quot;, &quot;fcf&quot;: &quot;¥702億&quot;, &quot;met</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽·核心=自有/长青IP × 跨渠道变现 × 收藏级制造工艺三重绑定。主要变量是爆款周期(主机大作节奏)+海外Gunpla/卡牌变现。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>两段式EPS-DCF</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：高达延续爆发(卡牌全球化+GQuuuuuuX长尾)+海外Gunpla(中国/美国)产能放量+FY27推艾尔登级新大作、营收回双位数、营业利润率回15%+→EPS上修·合理PE 20~22倍·目标上行(增速7%→更高见敏感性)（约25%）<br>中：符合FY27指引(销售平、利润略降)、IP组合稳态变现、Gunpla逐步扩产、无爆款也无失速→约18~20倍前瞻·现价附近合理(中枢¥4,202)（约50%）<br>坏：游戏大作空窗(Digital延续-22.6%利润下滑)、高达高基数回落、海外扩张执行不力、日元/消费疲软、利润连续两年降→EPS下修·PE收缩&lt;15倍·下行（约25%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报:FY2027 Q1(截至2026-06)约2026年8月上旬——看Digital能否止跌、高达高基数后同比<br>重大游戏/动画发布:新主机大作管线(龙珠/海贼王/艾尔登系IP)、高达GQuuuuuuX动画后续<br>Gunpla产能扩张:静冈及海外(含中国)产能投资—直接决定Toys&amp;Hobby放量上限<br>海外IP变现:高达卡牌已扩54国;高达在中国/美国的模型+卡牌渗透是最大增量</td></tr>
+<tr><th>10 风险及观察信号</th><td>爆款驱动波动·重Digital分部FY26利润已-22.6%(缺艾尔登DLC级产品)·信号季度主机游戏销量同比、软件销售额环比<br>IP依赖集中·重单一IP(高达)FY26占比高且+65.7%高基数·信号高达次年同比转负→整体承压<br>海外执行·重Gunpla海外产能/渠道落地慢于预期·信号海外营收占比停滞、扩产资本开支延期<br>消费可选周期·重玩具/娱乐属可选消费·受景气影响·信号同店/扭蛋/景品线下需求走弱<br>汇率·重海外收入占比升、日元大幅升值侵蚀换算·信号USD/JPY快速升值</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>万代盈利=消费者/粉丝驱动的玩具/卡牌/模型/游戏/动画需求、与AI资本开支完全不同源 → IP轴心(高达/龙珠/海贼王/艾尔登)长青变现、账本①优质·高把握、营收¥1.35兆创新高、利润率14%、FCF正向、净现金型 → 现价约¥4,065对DCF中枢¥4,202基本合理、约18倍前瞻+1.8%息、非泡沫 → 所以今天动作=&#x27;等&#x27;(优质·压舱石·等更好点位或分批、不急)。什么才算&#x27;该走&#x27;(只看生意)：①高达等核心IP变现力结构性衰退 ②Digital游戏长期空窗、爆款周期不再 ③海外Gunpla/卡牌扩张彻底失败。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;IP爆款周期、消费可选景气、日元汇率;注:与AI资本开支/半导体无关&quot;, &quot;weight&quot;: &quot;组合里的&#x27;防御/非AI消费压舱石&#x27;(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;收入=消费/娱乐/收藏文化驱动、与AI/半导体资本开支周期基本正交→AI/科技回调时高达模型/龙珠卡牌/粉丝收藏需求不因此下滑;波动来自IP爆款/消费景气/日元、与科技估值/算力capex驱动因子正交、有效分散科技集中度;正FCF+1.8%息+保守指引给下行缓冲&quot;, &quot;swap&quot;: &quot;作分散AI风险的消费压舱石而持有;非AI核心、几乎不在换出名单;注:仍属可选消费</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接万代南梦宫官方IR财报PDF+stockanalysis交叉核(每数带as_of+来源)；⑤估值由估值引擎(growth_dcf·eps0=官方FY2027指引¥202.69)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据万代IR与权威公开信息补至基准深度。财年截止3月31日、&#x27;FY-Mar-2026&#x27;=截至2026-03(2026-05公布)。JPY·億円/兆円。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽·核心=自有/长青IP × 跨渠道变现 × 收藏级制造工艺三重绑定。主要变量是爆款周期(主机大作节奏)+海外Gunpla/卡牌变现。<br>决策链：万代盈利=消费者/粉丝驱动的玩具/卡牌/模型/游戏/动画需求、与AI资本开支完全不同源 → IP轴心(高达/龙珠/海贼王/艾尔登)长青变现、账本①优质·高把握、营收¥1.35兆创新高、利润率14%、FCF正向、净现金型 → 现价约¥4,06<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①高达等核心IP变现力结构性衰退 ②Digital游戏长期空窗、爆款周期不再 ③海外Gunpla/卡牌扩张彻底失败。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-JP.7974">
+<div class="nm">任天堂 <span style="color:#8a94a0;font-size:12px">JP.7974</span> · 完整研究底稿
+  <a class="jump" href="#why-JP.7974">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;任天堂是&#x27;自有IP+软硬一体&#x27;的游戏公司——靠马力欧/塞尔达/宝可梦等只此一家的自有IP，把主机装机变成软件+订阅+电影/主题乐园的多年变现。Switch 2(2025-06上市)开新周期。四块：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;硬件(Switch 2·平台)&#x27;, &#x27;what&#x27;: &#x27;主机·上市初薄利(razor)播种装机&#x27;, &#x27;size&#x27;: &#x27;FY26上市约10个月卖19.86m台·量驱动但初期摊薄毛利·提价改善单机经济&#x27;}, {&#x27;block&#x27;: &#x27;软件(第一方IP·利润引擎)&#x27;, &#x27;what&#x27;: &#x27;马力欧/塞尔达/宝可梦/马力欧卡丁车·高毛利&#x27;, &#x27;size&#x27;: &#x27;最大利润贡献·新装机上的附着率是关键盈利杠杆&#x27;}, {&#x27;block&#x27;: &#x27;数字/在线&#x27;, &#x27;what&#x27;: &#x27;数字销售+Switch Online订阅(经常性高毛利·缓冲周期)&#x27;, &#x27;si</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接任天堂官方IR决算说明PDF+stockanalysis。带待接的是本轮无独立权威源的项(部分软件销量·Q1财报确切日期·共识EPS精确值)。营收兆円级已核。主机周期使单年盈利剧烈波动·须跨周期看。&quot;, &quot;margin_label&quot;: &quot;营业利润率&quot;, &quot;metric_label&quot;: &quot;硬件销量(百万台)&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;截至2023-03&quot;, &quot;revenue&quot;: &quot;¥1.60兆(16,017億)&quot;, &quot;yoy&quot;: &quot;-5.5%&quot;, &quot;gross_margin&quot;: &quot;31.5%(营业)&quot;, &quot;net_income&quot;: &quot;¥4,328億&quot;, &quot;fc</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽·锚在自有IP+一体化。主要脆弱点是第三方依赖与周期性。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>两段式EPS-DCF</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：Switch 2周期比肩/超原Switch(155m+)、软件附着强、NSO增、IP/电影/乐园复利→重估向/超¥10,000(增速6%→更高见敏感性)（约30%）<br>中：Switch 2稳销但非破纪录、FY27指引(净利¥3,100億)守住后软件驱动中周期增长→经营价值¥4,845~¥5,922(中枢¥5,384)+净现金约¥1,940→合计近/略高现价（约45%）<br>坏(保守·主机周期波动)：Switch 2上市后动能消退+宏观/消费弱+日元走强、未来某低谷年重演FY25(营收-30%·FCF近零)、盈利周期性减半→回撤·但净现金约27%市值托底(是回撤非franchise减值)（约25%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报:Q1 FY2027(截至2026-06)约2026年8月初(确切日期待接)——看Switch 2动能+附着率<br>Switch 2销量 vs FY27预测16.5m;May/Sept 2026提价效果<br>重大第一方发售(新马力欧/塞尔达/宝可梦/马力欧卡丁车)——软件毛利直接驱动<br>IP变现:超级马力欧兄弟电影续集、超级任天堂世界乐园扩张、授权<br>资本回报:股息¥162+大额净现金下的潜在回购</td></tr>
+<tr><th>10 风险及观察信号</th><td>主机周期·重FY25低谷:营收-30.3%、FCF转负·信号硬件销量峰后减速&gt;约15%/年(FY27已指引-16.9%)<br>爆款/软件档期依赖·重盈利随几个招牌大作摆动·信号某财年第一方3A延期/缺席<br>IP过度依赖·重重度依赖马力欧/塞尔达/宝可梦·信号招牌作附着率下滑<br>日元汇率(对任天堂很大)·重多数销售在海外(美元/欧元)·日元走强直接压报表(FY26经常利润¥5,421億&gt;&gt;营业¥3,601億显FX摆动大)·信号日元持续走强·FY27已提示约¥1,000億成本(元件/关税)<br>换代/平台过渡·重每代都有弱launch风险·信号硬件创新失误/下代延期</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>任天堂盈利=消费者游戏/IP支出驱动、与AI资本开支完全不同源 → 宽护城河(自有IP+一体化)、但账本②趋势观察·把握中(Switch 2周期拐点未定) → 单年盈利极依赖周期·须跨周期归一+约27%市值净现金托底 → 现价约¥7,074约20倍前瞻·除现金经营业务更便宜 → 所以今天动作=&#x27;等&#x27;(观察Switch 2动能·不追高)。什么才算&#x27;该走&#x27;(只看生意)：①Switch 2周期显著弱于预期且软件附着结构性下滑 ②自有IP变现力(马力欧/塞尔达/宝可梦)衰退 ③换代执行失误重置周期。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;主机周期、消费景气、日元汇率;注:与AI资本开支/半导体完全不同源&quot;, &quot;weight&quot;: &quot;组合里的&#x27;防御偏向·非AI分散器&#x27;(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;需求驱动=消费游戏/IP支出、与AI资本开支/半导体周期无关→AI/半导体回调时任天堂盈利驱动不受触及、与AI交易低基本面相关;约¥2.22兆净现金(约27%市值)+约2.3%股息+宽护城河自有IP=真实下方缓冲、比典型科技更防御;它自身风险是主机周期+日元(特有·与AI回调不相关)——正是有用的分散器&quot;, &quot;swap&quot;: &quot;作分散AI风险的消费/IP压舱石而持有;</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接任天堂官方IR决算说明PDF(报告日期标注)+stockanalysis交叉核(每数带as_of+来源)；⑤估值由估值引擎(growth_dcf·eps0=FY2027指引隐含¥271)单一源+敏感性现算·另注净现金约¥2.22兆为DCF外缓冲；①③④⑥⑦⑧⑨⑩据任天堂IR与权威公开信息补至基准深度。财年截止3月31日、按日历期末标注。Switch 2于2025-06上市→主机周期拐点是核心。JPY·億円/兆円。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽·锚在自有IP+一体化。主要脆弱点是第三方依赖与周期性。<br>决策链：任天堂盈利=消费者游戏/IP支出驱动、与AI资本开支完全不同源 → 宽护城河(自有IP+一体化)、但账本②趋势观察·把握中(Switch 2周期拐点未定) → 单年盈利极依赖周期·须跨周期归一+约27%市值净现金托底 → 现价约¥7,074<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①Switch 2周期显著弱于预期且软件附着结构性下滑 ②自有IP变现力(马力欧/塞尔达/宝可梦)衰退 ③换代执行失误重置周期。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.AVGO">
+<div class="nm">博通 <span style="color:#8a94a0;font-size:12px">US.AVGO</span> · 完整研究底稿
+  <a class="jump" href="#why-US.AVGO">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;博通是&#x27;AI算力的第二把铲子&#x27;——大厂嫌英伟达通用GPU贵，就找博通量身定制自己的AI专用芯片(XPU/ASIC)、再配上把芯片连起来的网络芯片；另加一块VMware企业软件当现金牛。两大块：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;半导体解决方案&#x27;, &#x27;what&#x27;: &#x27;AI定制芯片(给谷歌/Meta/OpenAI/Anthropic等设计专用XPU)+AI网络(以太网交换Tomahawk/Jericho、光/SerDes)+传统半导体(宽带/无线/存储)&#x27;, &#x27;size&#x27;: &#x27;FY2025占58%($36.858B)·AI半导体$20B(+65%)是增长引擎&#x27;}, {&#x27;block&#x27;: &#x27;基础设施软件&#x27;, &#x27;what&#x27;: &#x27;VMware(2023年约$86~88B收购·转订阅制VCF)+大型机/企业软件(CA/赛门铁克)&#x27;, &#x27;size&#x27;: &#x27;FY2025占</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;均为博通官方新闻稿/8-K/10-K；营收GAAP与非GAAP同值。标&#x27;待接·precise&#x27;的是本轮未核到官方精确值的项、不作权威。2024年7月10拆1、每股数已拆调。&quot;, &quot;margin_label&quot;: &quot;毛利率(非GAAP)&quot;, &quot;metric_label&quot;: &quot;AI半导体营收&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2023 (截至2023-10-29)&quot;, &quot;revenue&quot;: &quot;$35.8B&quot;, &quot;yoy&quot;: &quot;+8%&quot;, &quot;gross_margin&quot;: &quot;约75%(precise待接)&quot;, &quot;net_income&quot;: &quot;$14.082B(GAAP)&quot;, </div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽(靠换掉代价+规模+互连/封装技术领先)。主要变量是大厂自研与Marvell竞争、以及客户集中(见④⑧)。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>两段式EPS-DCF</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：AI营收达/超FY2026 $56B指引、朝FY2027 &gt;$100B、新XPU客户(OpenAI/Anthropic)上量、毛利守78%+→EPS复合&gt;25%·中枢上移(增速20%→更高见敏感性)·分析师目标约$524（约30%）<br>中：AI高增但基数大后减速、VMware+9%稳、FY2026 EPS约$11.6兑现→合理区$296~$362(中枢$329)·随EPS增长（约50%）<br>坏：大厂AI资本开支消化/单一大客户内包或延单、半导体周期下行、毛利/估值压缩→增速降档→中枢下移(增速20%→更低见敏感性)（约20%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报：Q3 FY2026约2026-09-03(季度截至约2026-08-02)<br>Q3 FY2026指引：营收约$29.4B(+84%)·AI半导体$16B(&gt;200%同比)——最强催化<br>全年AI指引上调至约$56B(+约180%)、重申FY2027 AI营收&gt;$100B目标<br>VMware订阅转化基本完成→盯续费/留存与软件+高个位数增长<br>新定制芯片客户(OpenAI/Anthropic)上量</td></tr>
+<tr><th>10 风险及观察信号</th><td>客户集中·重前五客户约占FY2025营收40%、分销商约48%；仅约6个核心定制AI芯片客户(FY2025 10-K)·信号大厂capex指引下调/某客户宣布自研替代/AI半导体订单减速跌破指引<br>AI资本开支周期·重营收越来越押在少数大厂capex预算上·信号云厂capex砍单、CoWoS订单softening<br>VMware执行/估值·重约$86B收购留大额债务·信号续费阻力/软件增速转负<br>地缘/台海·重重度依赖台积电先进制程+CoWoS封装·信号台海事件/对华出口管制加码<br>估值·重现价$394高于DCF中枢$329·信号AI增长一旦失速、高倍数回杀</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>AI是国力主线、钱砸算力 → 定制芯片+AI网络是英伟达之外最干净的算力敞口 → 博通是这条线的核心供应商(六大云厂的定制伙伴) → 生意/护城河/账本最高档(①优质·高把握) → 但现价高于DCF中枢、客户集中度高 → 所以今天动作=&#x27;守&#x27;(核心持有、不追高)，不加。什么才算&#x27;生意坏了要走&#x27;(只看生意)：①单一大客户内包替代博通、AI半导体订单持续下滑 ②Marvell在核心项目夺回定制芯片份额 ③AI资本开支周期长期逆转。价格贵只是&#x27;不追高&#x27;、非卖出理由。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;AI资本开支、半导体周期、台海地缘(台积电制程+CoWoS依赖)&quot;, &quot;weight&quot;: &quot;AI硬件敞口的核心之一(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;与英伟达/台积电同属AI资本开支+半导体周期、同涨同跌；VMware软件给一点周期缓冲；你持博通正是押&#x27;大厂自研&#x27;这条对英伟达的对冲/补充线&quot;, &quot;swap&quot;: &quot;AI定制芯片近乎不可替代的头部→基本不在换出名单；因客户集中+估值风险宜&#x27;控仓位&#x27;管、非满配&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接博通官方新闻稿/SEC 8-K/10-K(每数带as_of+来源；标&#x27;待接·precise&#x27;的项本轮未核到官方精确值·不作权威)；⑤估值由估值引擎(growth_dcf·eps0=FY2026非GAAP共识$11.62)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据博通IR与权威公开信息补至基准深度。财年截止11月初；2024年7月做过10拆1、每股数已拆分调整。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽(靠换掉代价+规模+互连/封装技术领先)。主要变量是大厂自研与Marvell竞争、以及客户集中(见④⑧)。<br>决策链：AI是国力主线、钱砸算力 → 定制芯片+AI网络是英伟达之外最干净的算力敞口 → 博通是这条线的核心供应商(六大云厂的定制伙伴) → 生意/护城河/账本最高档(①优质·高把握) → 但现价高于DCF中枢、客户集中度高 → 所以今天动作=&#x27;守<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①单一大客户内包替代博通、AI半导体订单持续下滑 ②Marvell在核心项目夺回定制芯片份额 ③AI资本开支周期长期逆转。价格贵只是&#x27;不追高&#x27;、非卖出理由。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.CRCL">
+<div class="nm">Circle <span style="color:#8a94a0;font-size:12px">US.CRCL</span> · 完整研究底稿
+  <a class="jump" href="#why-US.CRCL">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;Circle是&#x27;受监管稳定币USDC的发行方&#x27;。核心事实:约94~95%收入=USDC储备(主要短期美债)的利息收入→收入对利率极度敏感、降息=收入直接下滑。这是理解Circle的全部主线。&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;USDC发行+储备利息收入&#x27;, &#x27;what&#x27;: &#x27;发USDC(第二大稳定币)、等额储备投短期美债赚利息&#x27;, &#x27;size&#x27;: &quot;Q1&#x27;26储备收入$653M=总收入94%·绝对主导·随利率涨跌&quot;}, {&#x27;block&#x27;: &#x27;Coinbase收入分成(成本项)&#x27;, &#x27;what&#x27;: &#x27;Coinbase拿平台内USDC储备收入100%、平台外50%&#x27;, &#x27;size&#x27;: &#x27;2024付Coinbase $908M·最大成本线·随USDC规模膨胀&#x27;}, {&#x27;block&#x27;: &#x27;其他(新引擎)&#x27;, &#x27;what&#x27;: &#x27;Circle支付网络、代币化、US</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接Circle SEC S-1/10-Q+官方季报。短历史(2025-06 IPO)·已注。关键=约95%收入是USDC储备利息、对利率极敏感。带待接的是本轮无一手源的项(FY23精确净利·FY25全年分销成本)。&quot;, &quot;margin_label&quot;: &quot;调整EBITDA&quot;, &quot;metric_label&quot;: &quot;USDC流通量&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2023 (截至2023-12)&quot;, &quot;revenue&quot;: &quot;约$1.45B&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;待接&quot;, &quot;net_income&quot;: &quot;待接·精确&quot;, &quot;fcf&quot;: </div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 偏宽·但护的是&#x27;合规牌照&#x27;、护不了&#x27;利率&#x27;。收入约95%利率驱动是根本脆弱。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>正常化PE</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>待接真源</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：利率higher-for-longer(降息暂缓)+USDC从$77B持续复合增长(40% CAGR兑现)→收入/EBITDA双击·估值大幅修复（约25%）<br>中：温和降息(储备收益率3.5%→约3%)、USDC量增部分对冲利率拖累、净利平台化→估值区间震荡·收入低速增长（约45%）<br>坏(降息重挫·按工单必含)：美联储激进降息(-100~200bp)→利息收入按约$303M净/100bp缩水、叠加USDC增长停滞+Coinbase续约拿走更多经济利益→收入约95%利率驱动·盈利被压塌·估值继续下行（约30%）</td></tr>
+<tr><th>9 关键事件日历</th><td>美联储利率路径(#1驱动·压倒一切)——降息=利空、暂停/higher-for-longer=利多<br>USDC流通量增长(40% CAGR指引能否兑现)<br>GENIUS Act/稳定币立法落地细则(利合规发行人)<br>新合作伙伴、机构采用、Circle支付网络放量<br>Coinbase分销协议约2026-08续签结果</td></tr>
+<tr><th>10 风险及观察信号</th><td>★利率敏感度(主导风险)·重每100bp降息约净税前-$303M(储备-$618M/成本+$315M·基于收益率4.26%);每25bp约-$76M·信号FOMC点阵图转鸽、储备收益率跌破3%<br>USDC流通/脱锚·重流通量是储备之源·赎回潮或脱锚直接缩表·信号USDC市值持续下滑、折价交易<br>Coinbase经济分成·重2024付$908M·续约(2026-08)条款恶化风险·信号续约条款变差<br>监管·重GENIUS Act&#x27;利息禁止&#x27;解释可能限制商业模式·信号不利细则<br>Tether竞争·重规模约3倍·持续挤压份额·信号USDC份额下滑</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>Circle=约95%收入USDC储备利息的稳定币发行方·对利率极敏感 → 账本②趋势观察·把握中、GAAP亏被一次性SBC扭曲、无可靠正常化EPS(待接) → 现价$65较IPO峰值跌约74~78%、当前处降息压制、Q1&#x27;26收入已环比下滑 → 先看美联储利率路径→再看USDC增速能否跑赢利率拖累→再看Coinbase续约 → 所以今天动作=&#x27;等&#x27;(观察·不追高)。什么才算&#x27;该走&#x27;：①激进降息持续压塌利息收入且USDC增长停滞 ②Coinbase续约大幅拿走经济利益 ③USDC对USDT持续丢份额/脱锚。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;利率(降息受损·主导)、加密周期、USDC流通、监管;高利率敞口的稳定币bet&quot;, &quot;weight&quot;: &quot;加密簇(MSTR/COIN/CRCL)成员·计入≤12%加密总敞口上限(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;MSTR/COIN/CRCL彼此高相关且同步加密周期;CRCL↔COIN经USDC经济直接联动(分享储备利息)。★利率因子澄清(据研究更正工单前提):CRCL降息受损(储备利息随降息缩)——而IBKR同样是高利率受益(客户现金/保证金NII随降息缩)、二者对利率是【同向】(都怕降息)、故在利率因子上【正相关·不是对冲】</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②财报接Circle SEC S-1/10-Q+官方季报PR(每数带as_of+来源)；⑤Circle约95%收入是USDC储备利息、对利率极敏感、无可靠正常化EPS(新上市+利率依赖)→估值标待接不硬编、附官方利率敏感度与市场参照;①③④⑥⑦⑧⑨⑩据SEC披露与权威公开信息补至基准深度。财年=日历年·2025-06 IPO(发行价$31)。USD。现价$65.35(OpenD 2026-07-16)。属加密簇(MSTR/COIN/CRCL·计入≤12%上限)。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 偏宽·但护的是&#x27;合规牌照&#x27;、护不了&#x27;利率&#x27;。收入约95%利率驱动是根本脆弱。<br>决策链：Circle=约95%收入USDC储备利息的稳定币发行方·对利率极敏感 → 账本②趋势观察·把握中、GAAP亏被一次性SBC扭曲、无可靠正常化EPS(待接) → 现价$65较IPO峰值跌约74~78%、当前处降息压制、Q1&#x27;26收入已环比下<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>缺真输入：normalized_eps+pe_normal（该用 正常化PE·正常化EPS × 正常化PE）·不硬编</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①激进降息持续压塌利息收入且USDC增长停滞 ②Coinbase续约大幅拿走经济利益 ③USDC对USDT持续丢份额/脱锚。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.SNDK">
+<div class="nm">闪迪 <span style="color:#8a94a0;font-size:12px">US.SNDK</span> · 完整研究底稿
+  <a class="jump" href="#why-US.SNDK">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;闪迪是&#x27;纯NAND闪存厂&#x27;——把闪存做成卡/盘/SSD。2025-02-21从西部数据(WD)分拆独立上市。当前深陷一轮AI存储驱动的极端NAND上行周期(股价YTD涨约800%+)。端市场(Q3 FY26)：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;Edge/客户端(约62%)&#x27;, &#x27;what&#x27;: &#x27;PC客户端SSD、嵌入/移动闪存&#x27;, &#x27;size&#x27;: &#x27;$3,663M·同比+295%&#x27;}, {&#x27;block&#x27;: &#x27;数据中心/企业SSD(约25%)&#x27;, &#x27;what&#x27;: &#x27;高容量企业SSD(AI/云存储·HBM相邻)&#x27;, &#x27;size&#x27;: &#x27;$1,467M·同比+645%·环比+233%——最小但最快·AI存储增长引擎&#x27;}, {&#x27;block&#x27;: &#x27;消费(约14%)&#x27;, &#x27;what&#x27;: &#x27;SanDisk品牌卡/U盘/零售&#x27;, &#x27;size&#x27;: &#x27;$820M·+44%</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接闪迪SEC 10-Q/10-K+Q3 FY26 8-K。⚠独立上市仅约5季·历史短:FY23/24为WD闪存分部carve-out(非独立)、已注。NAND极端周期:GAAP毛利率4季从22.5%→78.4%、盈利从巨亏到大赚。当前在周期峰值·勿按峰值估。&quot;, &quot;margin_label&quot;: &quot;毛利率(GAAP)&quot;, &quot;metric_label&quot;: &quot;数据中心占比/端市场&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2023 (WD分部·2023-06-30)&quot;, &quot;revenue&quot;: &quot;$6,086M&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;7.1</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 窄(总体)。NAND比逻辑/DRAM更商品化——多家可信供应商、定价由行业供需定、非闪迪定。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>中周期盈利法(不用峰值)</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>待接真源</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：AI存储需求+NBM硬承诺合约结构性打破周期、供给紧、毛利守约70%+入FY27→持续约$90~130 EPS·现价可支撑/更高（约20~25%）<br>中：上行周期12~24月内翻转(NAND向来如此)、毛利归约30~40%、NBM缓冲但不消除周期→盈利从峰值大跌·中周期EPS $4~8→公允远低于现价（约50%）<br>坏：过剩(YMTC/行业capex)+需求消化→毛利回20%多、可能亏损、峰值即2026→深度下修向账面(约$93)或以下（约25~30%）</td></tr>
+<tr><th>9 关键事件日历</th><td>Q4 FY26财报2026-08-05:指引营收$7.75~8.25B·GAAP毛利78.9~80.9%·非GAAP EPS $30~33——对峰值门槛的超/不及是二元<br>NAND现货/合约价——最重要变量;峰值翻转恐慌已在2026-07-15砸盘<br>企业/AI-SSD需求持久性;HBF(高带宽闪存)路线图<br>Kioxia/Flash Ventures合资(延至2034)·BiCS 300+层放量;行业产能纪律 vs capex竞赛(YMTC)</td></tr>
+<tr><th>10 风险及观察信号</th><td>极端周期性·重GAAP毛利4季22.5%→78.4%·FY23亏$2.1B vs FY26季度赚$3.6B·信号合约价下滑、渠道库存升<br>过剩/定价·重全行业在AI景气中加产能·信号同业下调指引(SK海力士2026-07-15 -15%已外溢)<br>资本开支强度·重表观低($134M/9月·经合资)·下行仍需资本·信号弱价时合资capex call<br>客户集中·重NBM多年合约集中于少数大数据中心买家·信号大客户重谈/取消<br>估值·重P/B约19倍·价约中周期公允20倍+·倍数压缩是近期主导风险·信号峰值翻转确认</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>闪迪论点生死在①AI存储上行+NBM硬承诺模式多持久、②是否在周期峰值买 → 账本①优质·高把握、但NAND护城河窄+当前处极端峰值 → 现价约$1,583按持续峰值定价、中周期公允($35~95)远在其下、base+bear合计约75%概率盈利崩70~90% → 所以今天动作=&#x27;等&#x27;(守核心·不追高·留峰值安全垫)。什么才算&#x27;该走&#x27;(只看生意)：①NAND合约价见顶回落、NBM未能实质抑制周期 ②对三星/海力士持续丢份额 ③过剩致毛利结构性回20%多。⚠估值按中周期EPS×8~12倍锚·勿按峰值。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;半导体/NAND周期、AI存储需求、行业过剩;它是半导体+AI存储敞口·非分散器&quot;, &quot;weight&quot;: &quot;AI硬件/存储敞口的高beta周期卫星仓(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;与AI/半导体簇(存储同业美光/SK海力士、AI资本开支主题)高相关→AI/半导体回调时闪迪跟跌·加重AI存储+半导体周期敞口·非对冲;高beta、无股息、总回报全由价/周期驱动&quot;, &quot;swap&quot;: &quot;按周期/高beta卫星控仓·非核心;峰值风险大→靠&#x27;控仓位+等中周期点位&#x27;管、勿按峰值满配&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②财报接闪迪SEC 10-Q/10-K(CIK 0002023554)+Q3 FY26 8-K新闻稿(每数带as_of+来源)；⑤闪迪系NAND强周期股(中周期盈利法·峰值利润压回中枢)、但无公开权威&#x27;正常化EPS&#x27;源(独立上市仅约5季·周期极端)→估值标待接不硬编、附透明中周期构造($35~95)与峰值定价对照;①③④⑥⑦⑧⑨⑩据SEC披露与权威公开信息补至基准深度。财年约6月末(承自WD)。USD。⚠现处NAND极端上行周期(AI存储)、盈利在周期峰值·勿按峰值估。现价$1,583(OpenD 2026-07-16)。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 窄(总体)。NAND比逻辑/DRAM更商品化——多家可信供应商、定价由行业供需定、非闪迪定。<br>决策链：闪迪论点生死在①AI存储上行+NBM硬承诺模式多持久、②是否在周期峰值买 → 账本①优质·高把握、但NAND护城河窄+当前处极端峰值 → 现价约$1,583按持续峰值定价、中周期公允($35~95)远在其下、base+bear合计约75%概<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>缺真输入：normal_eps+pe_mid 或 ebitda_normal+ev_ebitda+net_debt+shares(任一整套)（该用 中周期盈利法(不用峰值)·正常年景EPS×中周期PE，或 中周期EBITDA×EV/EBITDA）·不硬编</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①NAND合约价见顶回落、NBM未能实质抑制周期 ②对三星/海力士持续丢份额 ③过剩致毛利结构性回20%多。⚠估值按中周期EPS×8~12倍锚·勿按峰值。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.TSM">
+<div class="nm">台积电 <span style="color:#8a94a0;font-size:12px">US.TSM</span> · 完整研究底稿
+  <a class="jump" href="#why-US.TSM">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;台积电是全球&#x27;AI芯片的唯一顶级代工厂&#x27;——英伟达/苹果/AMD设计好芯片，都得拿到它这儿用最先进的制程造出来，别家良率追不上。钱按&#x27;算什么用&#x27;和&#x27;用几纳米工艺&#x27;两种切法看：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;高性能计算 HPC(含AI加速器)&#x27;, &#x27;what&#x27;: &#x27;AI/数据中心芯片代工——现在的绝对主力与最快引擎&#x27;, &#x27;size&#x27;: &#x27;FY2025占营收58%·同比+48%(3年从手机主导翻成AI主导)&#x27;}, {&#x27;block&#x27;: &#x27;智能手机&#x27;, &#x27;what&#x27;: &#x27;手机芯片(苹果为锚)&#x27;, &#x27;size&#x27;: &#x27;FY2025占29%·+11%·成熟有季节性&#x27;}, {&#x27;block&#x27;: &#x27;物联网/汽车/消费电子&#x27;, &#x27;what&#x27;: &#x27;IoT 5%(+15%)、汽车 5%(+34%·最快的小块)、DCE 1%&#x27;, &#x27;size&#x27;: &#x27;小但汽车增速快&#x27;}, {&#x27;b</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;核心营收/毛利率/制程占比源自台积电季报/年报(多源一致)；部分firm项(FY2025全年净利/EPS、FY23/24 capex/FCF)本轮无单一权威源→标待接不编。TWD/USD并列。&quot;, &quot;margin_label&quot;: &quot;毛利率&quot;, &quot;metric_label&quot;: &quot;HPC(AI)占比&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2023 (日历年)&quot;, &quot;revenue&quot;: &quot;$69.30B&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;54.4%&quot;, &quot;net_income&quot;: &quot;$26.88B&quot;, &quot;fcf&quot;: &quot;待接&quot;, &quot;metric&quot;:</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽(科技硬件里最宽之一)。真正的约束是产能与地缘、不是竞争。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>P/E+PEG(成熟成长·非中周期)</b>（同一只只能有一把尺）<br>forward_eps=18<br>forward_pe=23.5<br>peg=0.6<br>fair_locked={&#x27;low&#x27;: 325, &#x27;mid&#x27;: 342, &#x27;high&#x27;: 360}<br>来源：架构师前瞻锁定(尺与呈现提案2026-07-19)·FY26E ADR EPS≈$18·前瞻PE≈23-24·PEG≈0.6·目标FY27E×22/高盛TWD3000<br>可信度：<b>中高·架构师锁定前瞻(FY26E EPS/PE/PEG·非机械精算)</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：AI资本开支超级周期续3~5年、2nm按良率放量、CoWoS持续售罄、毛利守高50~60%、20%+CAGR→成长框架主导·分析师均值目标约$490(chartmill·非模型结论)（约30%）<br>中：AI需求强但2027起减速、FY2026+30%后归中位数、毛利向高50%回归→约当前25~28倍前瞻·总回报≈EPS增速（约50%）<br>坏：AI消化/过建+半导体周期下行、稼动与毛利回中周期，或台海冲击→中周期框架主导·倍数压到约15~18倍×更低正常化EPS→明显下行（约20%）</td></tr>
+<tr><th>9 关键事件日历</th><td>Q2 2026财报：今日2026-07-16(指引营收$39.0~40.2B·毛利65.5~67.5%)——AI动能与毛利是否续<br>月度营收(台积电按月披露)——最高频信号(6月市传+68%·待台积电IR确认)<br>2026资本开支指引 $52~56B(CEO称&#x27;靠上限&#x27;)——未来产能/AI信念的风向标<br>2nm(N2)下半年放量——良率与客户采用<br>海外厂(亚利桑那多厂扩建/日本熊本/德国)——产能分散与毛利/地缘影响</td></tr>
+<tr><th>10 风险及观察信号</th><td>台海地缘集中·重先进制程绝大多数产能在台湾(确切%待接·亚/日/德仍少数)·信号两岸军事升级/出口管制扩大/航运保险中断——二元尾部、年概率低但极重<br>客户集中·重苹果+英伟达为两大客户(确切占比待接·历史苹果约20%+)·信号苹果自研内移/英伟达需求空档/云厂capex砍单<br>AI资本开支/周期·重毛利66%+HPC 58%→盈利押在一个AI投资周期上·信号云厂capex指引下调/CoWoS订单转softening/晶圆库存升稼动降<br>汇率·重结果对TWD/USD敏感(指引基准NT$31.7)·信号台币走强压缩报表毛利</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>AI是国力主线、钱砸算力 → 先进制程代工是AI硬件链的咽喉 → 台积电是这条咽喉近乎垄断(≤3nm) → 生意/护城河/账本全最高档(①优质·高把握) → 但27倍前瞻已按成长定价、且台海尾部+周期高位毛利 → 所以今天动作=&#x27;守&#x27;(核心持有、不追高)，不加。什么才算&#x27;生意坏了要走&#x27;(只看生意)：①制程代差被三星/英特尔追平(良率+封装+信任四样都被补齐) ②AI资本开支周期长期逆转、稼动与毛利跌回中周期且不复 ③台海发生实质产能中断。价格贵只是&#x27;不追高&#x27;、非卖出理由。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;AI资本开支、半导体周期、台海地缘(它是台海因子权重最大的一只)&quot;, &quot;weight&quot;: &quot;AI硬件敞口的核心之一(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;与英伟达/博通/爱德万同属AI资本开支+半导体周期、同涨同跌；且独扛最重的台海地缘因子&quot;, &quot;swap&quot;: &quot;先进制程代工近乎不可替代→基本不在换出名单；台海尾部大→靠&#x27;刻意控仓位&#x27;而非满配来管、不是靠换掉&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接台积电官方季报/年报(SEC 6-K·pr.tsmc.com·每数带as_of+来源；部分经TrendForce/Investing.com等二手聚合、核心营收/毛利/制程数多源一致可溯源到台积电发布)；⑤台积电=成熟成长→P/E+PEG(架构师锁定前瞻EPS$18·PE23-24·PEG0.6·今日价值区$325-360·未来目标$475-500)，非中周期；①③④⑥⑦⑧⑨⑩据台积电IR与权威公开信息补至基准深度。今日2026-07-16恰为其Q2财报日、本卡取Q2发布前最新(Q1 2026实际+Q2指引)。TWD/USD并列·汇率基准NT$31.7=US$1、ADR=5股普通股。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽(科技硬件里最宽之一)。真正的约束是产能与地缘、不是竞争。<br>决策链：AI是国力主线、钱砸算力 → 先进制程代工是AI硬件链的咽喉 → 台积电是这条咽喉近乎垄断(≤3nm) → 生意/护城河/账本全最高档(①优质·高把握) → 但27倍前瞻已按成长定价、且台海尾部+周期高位毛利 → 所以今天动作=&#x27;守&#x27;(核心<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①制程代差被三星/英特尔追平(良率+封装+信任四样都被补齐) ②AI资本开支周期长期逆转、稼动与毛利跌回中周期且不复 ③台海发生实质产能中断。价格贵只是&#x27;不追高&#x27;、非卖出理由。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.META">
+<div class="nm">META <span style="color:#8a94a0;font-size:12px">US.META</span> · 完整研究底稿
+  <a class="jump" href="#why-US.META">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;Meta是&#x27;全球最大的注意力收租机&#x27;——把约35.6亿人每天刷Facebook/Instagram/WhatsApp的注意力卖给广告主(约99%收入是广告)，再拿这台印钞机去烧两个大坑:元宇宙(Reality Labs)和AI资本开支。两大分部：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;应用家族(FoA)&#x27;, &#x27;what&#x27;: &#x27;Facebook/Instagram/WhatsApp/Messenger/Threads的数字广告(约99%收入)·约35.6亿日活&#x27;, &#x27;size&#x27;: &#x27;FY2025营收$198.76B、营业利润$102.47B——几乎全部利润引擎;Q1 2026营收+33%(多年最快·AI排序/广告工具Advantage+抬价量)&#x27;}, {&#x27;block&#x27;: &#x27;现实实验室(Reality Labs)&#x27;, &#x27;what&#x27;: &#x27;VR/AR硬件(Ques</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;均为Meta官方IR新闻稿/8-K GAAP实际数。资本开支(capex)是核心故事、单列。FY2025净利与Q1 2026 EPS受一次性税项扰动→已注(用经营口径看)。&quot;, &quot;margin_label&quot;: &quot;营业利润率(GAAP)&quot;, &quot;metric_label&quot;: &quot;资本开支(capex)&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2023 (日历年)&quot;, &quot;revenue&quot;: &quot;$134.90B&quot;, &quot;yoy&quot;: &quot;+16%&quot;, &quot;gross_margin&quot;: &quot;35%&quot;, &quot;net_income&quot;: &quot;$39.10B&quot;, &quot;fcf&quot;: &quot;$44.07B&quot;, &quot;m</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽(核心是网络效应·约35.6亿日活的社交图谱)。主要变量是AI资本开支ROI能否兑现、以及AI聊天助手对信息流注意力的侵蚀(见④⑧)。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>两段式EPS-DCF</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：AI广告效率复利(+20%+营收续)、AI capex见ROI、RL亏损稳、新AI产品变现→倍数扩+EPS超预期→向/破$1,000(增速12%→更高见敏感性)（约25%）<br>中：广告增速归低两位数、capex($125~145B)压FCF但广告引擎养得起、RL亏损约$18~20B/年→合理区约$521~$637(中枢$579)·近共识目标约$825（约50%）<br>坏：capex压顶ROI弱、广告市场转弱(周期)、AI聊天侵蚀信息流、RL继续烧钱→FCF压缩再评级→倍数收缩向$450~550(增速12%→更低见敏感性)（约25%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次财报：Q2 2026约2026年7月末(Q1指引Q2营收$58~61B)——看capex指引是否再确认/上调<br>capex指引更新:任何偏离$125~145B(FY2026)是最大单一股价变量(Q1上调曾致盘后跌约6~7%)<br>AI产品变现:Meta AI助手用量、商业消息AI、AI广告工具(Advantage+广告主数据翻倍)、&#x27;出租多余算力&#x27;叙事<br>监管:美国FTC反垄断(Instagram/WhatsApp拆分尾部风险)、欧盟DMA/DSA罚款、&#x27;付费或同意&#x27;广告模式裁决</td></tr>
+<tr><th>10 风险及观察信号</th><td>AI资本开支压FCF·重capex $39.2B→$72.2B(FY24→FY25)、FY2026指引$125~145B;FY2025 FCF已从$52B降到$43.6B·信号FCF转平/负、或capex再上调而营收未加速<br>现实实验室亏损·重累计亏损已超$70B、FY2025营业亏损-$19.19B且走阔·信号年亏损超约$20B且消费硬件无起色<br>监管·重FTC反垄断(结构性拆分尾部)、欧盟罚款(可达数十亿)·信号正式拆分令/大额罚单<br>广告市场周期·重约99%收入是广告、宏观/广告衰退立刻重伤(2022先例)·信号广告预算收缩<br>AI信息流颠覆·重注意力转向AI助手→曝光缩·信号时长/曝光下滑<br>治理·重双层股权·扎克伯格控投票权→capex/战略不受股东制衡·信号—</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>AI是国力主线、钱砸算力 → 广告+AI是Meta的战场 → Meta是拥有现金印钞机(广告)、同时重仓AI基础设施的核心 → 生意/护城河/账本最高档(①优质·高把握)、且约17~20倍前瞻在大盘科技里偏便宜 → 但capex($125~145B)正压FCF、ROI仍是&#x27;信仰&#x27;、现价略高于DCF中枢 → 所以今天动作=&#x27;等&#x27;(优质但等更好点位、不急加)。什么才算&#x27;生意坏了要走&#x27;(只看生意)：①AI资本开支长期无法转成营收/FCF、自由现金流持续恶化 ②广告引擎结构性减速(AI聊天侵蚀信息流) ③监管强制拆分核心资产。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;AI资本开支(它是最大花钱方之一)、利率(长久期高倍数成长·多头估值敏感)&quot;, &quot;weight&quot;: &quot;AI敞口里带现金牛的核心之一(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;与英伟达/博通/微软同属AI资本开支因子;作为&#x27;有真实盈利、倍数更低(约17~20倍)&#x27;的大盘科技、估值风险低于更高倍数AI同行、但带capex/监管的个体风险;可作pick-and-shovel(半导体)的对冲/对照而非叠加&quot;, &quot;swap&quot;: &quot;有现金印钞机的AI核心、几乎不在换出名单;要腾AI额度优先动质量更弱的仓、不动Meta&quot;}</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②多年财报接Meta官方IR新闻稿/SEC 8-K/10-K(每数带as_of+来源·均GAAP)；⑤估值由估值引擎(growth_dcf·eps0=规范化约$28)单一源+敏感性现算；①③④⑥⑦⑧⑨⑩据Meta IR与权威公开信息补至基准深度。财年=日历年。FY2025净利与Q1 2026 EPS受一次性税项扰动·已注。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽(核心是网络效应·约35.6亿日活的社交图谱)。主要变量是AI资本开支ROI能否兑现、以及AI聊天助手对信息流注意力的侵蚀(见④⑧)。<br>决策链：AI是国力主线、钱砸算力 → 广告+AI是Meta的战场 → Meta是拥有现金印钞机(广告)、同时重仓AI基础设施的核心 → 生意/护城河/账本最高档(①优质·高把握)、且约17~20倍前瞻在大盘科技里偏便宜 → 但capex($125~<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①AI资本开支长期无法转成营收/FCF、自由现金流持续恶化 ②广告引擎结构性减速(AI聊天侵蚀信息流) ③监管强制拆分核心资产。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.IBKR">
+<div class="nm">IBKR <span style="color:#8a94a0;font-size:12px">US.IBKR</span> · 完整研究底稿
+  <a class="jump" href="#why-US.IBKR">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td>{&#x27;intro&#x27;: &quot;IBKR(盈透)是&#x27;高度自动化的全球电子券商&#x27;——自动化带来约74~77%税前利润率(碾压任何金融机构)+对利率的杠杆。四大收入引擎：&quot;, &#x27;streams&#x27;: [{&#x27;block&#x27;: &#x27;净利息收入(NII·利率敏感核心)&#x27;, &#x27;what&#x27;: &#x27;客户现金余额利差+保证金放贷(保证金贷款$90.2B·+40%)&#x27;, &#x27;size&#x27;: &#x27;约占FY2025净收入58%($3.6B)·高利率受益引擎&#x27;}, {&#x27;block&#x27;: &#x27;佣金(交易)&#x27;, &#x27;what&#x27;: &#x27;交易量(DARTs)+账户增长驱动&#x27;, &#x27;size&#x27;: &#x27;约$2.1B(+27%)·约34%·降息时增长(抵NII)&#x27;}, {&#x27;block&#x27;: &#x27;做市/其他费与服务&#x27;, &#x27;what&#x27;: &#x27;其他费约$291M·遗留做市已小&#x27;, &#x27;size&#x27;: &#x27;小&#x27;}], &#x27;future_growth&#x27;: &#x27;①账户增长稳在约30%+/年;</td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div>{&quot;plain&quot;: &quot;接IBKR SEC 10-K/8-K季报(拆分后)。⚠Up-C结构:公众仅约占运营LLC 21~23%、归母净利(驱动报告EPS)远小于合并净利、两者并列。带待接的是本轮无精确源的项(FY25精确营收/NII/调整EPS/全年DARTs)。&quot;, &quot;margin_label&quot;: &quot;税前利润率&quot;, &quot;metric_label&quot;: &quot;客户账户(百万·YoY)&quot;, &quot;rows&quot;: [{&quot;fy&quot;: &quot;FY2022 (截至2022-12)&quot;, &quot;revenue&quot;: &quot;净收入$3.067B&quot;, &quot;yoy&quot;: &quot;—&quot;, &quot;gross_margin&quot;: &quot;约64%(税前·待精确)&quot;, &quot;n</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td>护城河 宽·锚在&#x27;随规模复利的自动化成本优势&#x27;。费率压缩是长期风险·但IBKR已是低成本领导。·</td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>正常化PE</b>（同一只只能有一把尺）<br>normalized_eps=2.4<br>pe_normal=22<br>可信度：<b>A·精算</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td>好：利率higher-for-longer或仅浅降;账户增长稳30%+;强市场活动(高DARTs);NII随余额增长守/增→EPS $2.6~3.0+·溢价倍数守→向$110~120+（约30%）<br>中：美联储2026降约50~100bp;约$0.2~0.4B NII逆风被25~30%账户/余额增长+健康交易抵;EPS约$2.5→大致区间$90~105·倍数适度压缩(正常化中枢$52.8·市场给成长溢价)（约50%）<br>坏：激进降息(150bp+)+市场低迷同时砍DARTs与保证金余额;增长减速·NII与佣金双压→EPS平/降·倍数向20~25倍去溢价→$50~70(近正常化中枢)（约20%）</td></tr>
+<tr><th>9 关键事件日历</th><td>下次季度财报（日期待公布·公司通常于季度结束后约3周发布；上次已于2026-01发布4Q2025）<br>月度经纪指标(账户/DARTs/保证金余额·每月初)——账户增速是最受关注数<br>利率路径:美联储决定直接动NII(对IBKR正偏·与同业相反)<br>DARTs/市场波动(波动升=交易多=佣金多);产品扩张(加密、预测市场、国际)</td></tr>
+<tr><th>10 风险及观察信号</th><td>利率敏感度(主要)·重每25bp降息约减年NII $77~108M·NII约58%收入·信号美联储加速降息、客户现金收益率降;抵消=余额增长+更高交易<br>市场活动周期·重熊市/低波动时佣金+保证金余额降·信号DARTs下滑、保证金贷款收缩(盯月度指标)<br>竞争/费率压力·重零佣金趋势·Robinhood/嘉信·信号每DART佣金侵蚀<br>监管·重全球多辖区券商·保证金/PFOF/加密规则·信号PFOF或保证金新规<br>Up-C/控制结构·重公众仅约21~23%·Peterffy/内部人控投票权+约77%经济·信号治理/对齐担忧·低流通·报告EPS仅反映公众部分</td></tr>
+<tr><th>11 世界观→决定完整推导</th><td>IBKR=高质量、高利润率(77%税前)、约30%账户增长的全球券商、高利率受益(NII) → 账本①优质·高把握 → 但现价$97约37倍前瞻·为持续30%增长定价、正常化券商倍数中枢仅$52.8 → 所以今天动作=&#x27;等&#x27;(优质但贵·等回调或以增长消化估值·不追高)。什么才算&#x27;该走&#x27;(只看生意)：①账户增长结构性减速(盯月度) ②自动化成本优势/77%利润率被侵蚀 ③激进降息+市场低迷同时压NII与佣金且增长接不上。</td></tr>
+<tr><th>12 在整个组合中的作用</th><td>{&quot;common_risks&quot;: &quot;利率(高利率受益·降息逆风)、市场活动周期、费率压缩;非加密簇·非AI bet·是优质成长金融&quot;, &quot;weight&quot;: &quot;组合里的&#x27;高质量成长金融·高利率受益&#x27;(具体%见第三部分集中度现算)&quot;, &quot;correlation&quot;: &quot;★利率因子关系(据研究更正工单前提):工单原设&#x27;IBKR高利率受益、与降息敏感的Circle正好对冲&#x27;——但IBKR与CRCL【都】是高利率受益/降息受损(IBKR的NII、CRCL的储备利息·降息时双双缩)、二者对利率【同向】→在利率因子上【正相关·不是对冲】、不能相互对冲降息风险。真正的利率对冲需配&#x27;降息受益&#x27;标的(如长久期成长/</td></tr>
+<tr><th>13 原始资料/日期/来源</th><td>②财报接IBKR SEC 10-K/8-K季报(每数带as_of+来源)；⑤估值由估值引擎(正常化PE·normalized_eps=$2.40×22倍)单一源+敏感性现算;①③④⑥⑦⑧⑨⑩据SEC披露与权威公开信息补至基准深度。财年=日历年·2024-06做过4拆1、每股数已拆调。USD。现价$97.31(OpenD 2026-07-16)。⚠Up-C结构:上市公司仅约占运营LLC 21~23%经济、归母净利远小于合并净利、下表两者并列。</td></tr>
+<tr><th>14 正反面证据（全量）</th><td>护城河：护城河 宽·锚在&#x27;随规模复利的自动化成本优势&#x27;。费率压缩是长期风险·但IBKR已是低成本领导。<br>决策链：IBKR=高质量、高利润率(77%税前)、约30%账户增长的全球券商、高利率受益(NII) → 账本①优质·高把握 → 但现价$97约37倍前瞻·为持续30%增长定价、正常化券商倍数中枢仅$52.8 → 所以今天动作=&#x27;等&#x27;(优质但贵·等回<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>本只权威估值已 OK·精算</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>①账户增长结构性减速(盯月度) ②自动化成本优势/77%利润率被侵蚀 ③激进降息+市场低迷同时压NII与佣金且增长接不上。</td></tr>
+</table>
+</div>
+
+<div class="stock" id="deep-US.SPCX">
+<div class="nm">SpaceX <span style="color:#8a94a0;font-size:12px">US.SPCX</span> · 完整研究底稿
+  <a class="jump" href="#why-US.SPCX">回②</a><a class="jump" href="#L1">回①</a></div>
+<table>
+<tr><th style="width:22%">1 公司靠什么赚钱</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>2 多年收入/利润/现金流</th><td><div class="chart" data-chart="3"><div class="ct">图3 · 多年趋势</div><div class="cm">数据：edgar_financials／公司IR 多年真数 ｜ 年数不足→只画取到的年并标「仅N年」</div><div><span style="color:#6B4E8C">待接·不编</span>（多年财务见 edgar_financials/公司IR·本卡未铺满则标待接）</div><div class="conc">一句话：多年真数看趋势；年数不足标仅N年。</div></div></td></tr>
+<tr><th>3 业务结构</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>4 护城河</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>5 竞争对手</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>6 估值模型与每一个输入</th><td>用哪把尺：<b>待接</b>（同一只只能有一把尺）<br><span style="color:#6B4E8C">待接·不编</span><br>可信度：<b>待接</b>（须与自述一致）</td></tr>
+<tr><th>7 敏感性分析</th><td><span style="color:#6B4E8C">待接·不编</span>（EPS±20%/倍数±20%·精算股已填·其余待接）</td></tr>
+<tr><th>8 好/中/坏完整计算</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>9 关键事件日历</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>10 风险及观察信号</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>11 世界观→决定完整推导</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>12 在整个组合中的作用</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>13 原始资料/日期/来源</th><td><span style="color:#6B4E8C">待接·不编</span></td></tr>
+<tr><th>14 正反面证据（全量）</th><td>见③第14项正反证据全量<br>反面：见图8/未找到则已注明查哪些源</td></tr>
+<tr><th>15 哪些待接·为什么</th><td>权威估值待接</td></tr>
+<tr><th>16 判断被推翻的条件</th><td>见③第16项判断被推翻的条件</td></tr>
+</table>
+</div>
+
+
+</div></details>
+
+<script>
+function allOpen(v){document.querySelectorAll('details').forEach(function(d){d.open=v;});}
+</script>
+</body></html>
