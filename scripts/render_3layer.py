@@ -71,10 +71,8 @@ def _price_meta(sym: str, date: str) -> dict:
         if str(h.get("symbol")) == sym:
             pdd = h.get("price_data_date")
             st = _STATE_CN.get(str(h.get("price_market_state")), "")
-            # 源做大白话清洗(去内部名如"持仓底表_autobuild"·治L46泄漏)
-            src = str(h.get("price_source") or "")
-            src = "OpenD实时行情(富途)" if ("OpenD" in src or "realtime" in src or not src) else re.sub(r"[（(].*?[)）]|_\w+", "", src).strip()
-            return {"pdate": pdd, "state": st, "src": src or "OpenD实时行情(富途)"}
+            # 源统一表述(二.1):OpenD取得的最近交易日收盘价·非盘中实时(不许"实时"与"非实时"同句冲突)
+            return {"pdate": pdd, "state": st, "src": "OpenD·最近交易日收盘价（非盘中实时）"}
     return {"pdate": None, "state": "", "src": "OpenD(富途)"}
 
 
@@ -181,6 +179,14 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         _e = D._arch_est(sym) or {}
         fp = _e.get("fair_price") or _e.get("archived_fair_price") or {}
         lo, hi = fp.get("cheap"), fp.get("rich")
+    # [三.1]估值状态三态(机器按输入齐全度自动定·解释文字不得覆盖) + [二.3]无估值只观察
+    no_val = (lo is None and hi is None)
+    if st.get("ok"):
+        val_state3 = "①输入齐·可正式使用"
+    elif not no_val:
+        val_state3 = "②输入部分齐·只作框架参考·不得单独据此买卖"
+    else:
+        val_state3 = "③估值未接·不得用于买卖（暂无可信估值）"
     tf = v.get("target_future")
     base_code = sym.split(".")[-1].upper()
     fwd = _fwd_targets().get(base_code)
@@ -255,7 +261,7 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         "催化剂失效条件": (D.esc(_clean(_flat((deep.get("block7_catalysts") or [""])[0]))) or TBD),
         "证伪条件": _falsify(deep),
         "把握程度": D._conf_grade(D.build_final(sym, name, dyn)),
-        "把握理由": "账本质地档＋估值可信度综合(见③第6项)",
+        "把握理由": f"估值状态：{val_state3}。账本质地档＋估值可信度综合(见③第6项)",
         "支持证据列表": sup, "反对证据列表": opp,
         "好情况价": good[0], "好情况条件": good[1], "中性价": base[0], "中性条件": base[1],
         "坏情况价": bad[0], "坏情况条件": bad[1],
@@ -268,8 +274,22 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         "图7结论": "例行财报日期本身不算催化剂；只认前瞻真事件。",
         "图8结论": "支持/反对并列；反面为空必写已查哪些源。",
         "图9结论": "世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。",
+        "估值状态三态": val_state3,
         **d16,
     }
+    # [二.3]无可信估值(如SpaceX)→统一"只观察"，禁用便宜/贵/PEG等判断词
+    if no_val:
+        obs = "暂无可信估值，不能判断便宜或贵；因此不买、不加、不减，只保留观察。"
+        hc["今日动作"] = "观"
+        hc["动作色"] = "wait"
+        hc["动作图标"] = "…"
+        hc["为什么现在"] = obs
+        hc["为什么不选其他"] = "缺可信估值，任何『便宜/贵/PEG』判断都不成立→只观察，不做买卖动作。"
+        hc["停止条件"] = "先补上可信估值再谈买卖；在此之前只保留观察。"
+        hc["第一档价"] = hc["第二档价"] = "—（无估值·不设档）"
+        hc["第一档量"] = hc["第二档量"] = "—"
+        hc["目标价"] = TBD
+        hc["目标价缺则标 待接·不编"] = "（无可信估值·只观察）"
     # 现价统一到唯一源:散文里带『现价』标签的价格一律同步到 px(治同股两现价·致命1)
     #   『现价』字段本身(值=纯价格无前缀)不受影响；只改散文里"现价约¥X"这类。
     hc = {k: (_pxsync(val, c, px) if isinstance(val, str) and "现价" in val else val)
@@ -318,7 +338,7 @@ def _stop_of(pure, st, c, px=None, expensive=False, hold_reason=""):
         return "权威估值待接→现在不动手·守着看"
     # 致命2:现价已在上沿之上却守/等——不得再写"涨过X才谈减"(自相矛盾)
     if expensive and pure in ("守", "等"):
-        return (f"现价已在上沿之上（{c}{px:,.0f} > 上沿 {c}{st['hi']:,.0f}）——"
+        return (f"现价已在上沿之上（{c}{px:,.2f} > 上沿 {c}{st['hi']:,.0f}）——"
                 f"因{hold_reason or '周期/估值可信度'}暂不据此设减线；"
                 f"待权威估值口径确认或趋势转弱再议减，跌回 {c}{st['lo']:,.0f} 便宜位才谈加。")
     if pure in ("加", "买"):
@@ -383,7 +403,7 @@ def _fig1_concl(pure, px, lo, hi, c, v, fwd=None):
         ft = f"，未来目标 {fwd['y2026']}(2026底)~{fwd['y2027']}(2027底)"
     else:
         ft = ""
-    return f"今日该值 {c}{lo:,.0f}~{c}{hi:,.0f}{ft}；现价 {c}{px:,.0f}，动作={pure}。今日价值区与未来目标分开看。"
+    return f"今日该值 {c}{lo:,.0f}~{c}{hi:,.0f}{ft}；现价 {c}{px:,.2f}，动作={pure}。今日价值区与未来目标分开看。"
 
 
 def _deep16(sym, name, dyn, deep, v, c):
@@ -495,7 +515,7 @@ def _pxsync(text: str, c: str, px) -> str:
     """把散文里带『现价』标签的价格统一到唯一源 px(final_decision同价)。治同股两现价。"""
     if px is None or not text:
         return text
-    canon = f"{c}{px:,.0f}"
+    canon = f"{c}{px:,.2f}"
     return re.sub(r"(现价约?)\s*" + re.escape(c) + r"[\d,]+(?:\.\d+)?",
                   lambda m: m.group(1) + canon, str(text))
 
@@ -647,6 +667,15 @@ def _sanitize_inst(html: str) -> str:
     html = re.sub(r'<a\b[^>]*href="#[^"]*"[^>]*>(.*?)</a>', r"\1", html, flags=re.S)
     # ④ 断长行(L23<8000):在常见块级闭合后插换行
     html = re.sub(r"(</(?:div|tr|table|details|h2|h3|li|p)>)", r"\1\n", html)
+    # ⑤[七.1]删"样例股数/等第一次生产"半成品话术(已有20只真持仓)
+    html = re.sub(r"[^<>]*?(6只重仓是股数样例|股数等第一次正式生产|等第一次正式生产时[^<。]*灌满|只是[\"“]?结构模板)[^<。]*[。\"”]?",
+                  "（本块持仓档案已按20只真实股数灌满；未接账户就地标『未接·不可依赖』）", html)
+    # ⑥[八.3]sector-deep 锚点去重:第2个及以后改唯一名(所有位置标记唯一)
+    _cnt = [0]
+    def _uniq(m):
+        _cnt[0] += 1
+        return m.group(0) if _cnt[0] == 1 else m.group(0).replace('"sector-deep"', f'"sector-deep-{_cnt[0]}"')
+    html = re.sub(r'id="sector-deep"', _uniq, html)
     return html
 
 
@@ -770,11 +799,28 @@ def build(date: str) -> str:
     raw = re.sub(r'<div class="tpl">.*?</div>\s*', "", raw, count=1, flags=re.S)   # 删红色说明块
     out = render(raw, ctx)
     # 第3节:把三层重建丢掉的整层内容补回来——注入 L3 末尾(完整机构底稿)+ 追加 deep 样式
+    # [七.2]第三层每只顶部『决定摘要』(逐字读同一份唯一来源的11核心字段·不另写一套数字)——注入 map
+    _summ_map = {}
+    for hc in each:
+        _st = lambda k, n=48: _cut(re.sub(r"<[^>]+>", "", str(hc.get(k, ""))), n, "…")  # 安全截断·不切半词/日期/括号
+        _summ_map[hc.get("代码")] = (
+            '<div style="background:#0f1e17;border:1px solid #2f6b4f;border-radius:7px;padding:7px 10px;margin:4px 0 8px;font-size:12.5px;color:#bfe6d3">'
+            '<b style="color:#7ee0a0">决定摘要（与①②同一份数据·11核心字段·逐字同源）</b>：'
+            f'现价 {hc.get("现价","")}'
+            f'｜股数 {hc.get("股数","")}｜今日动作 <b>{hc.get("今日动作","")}</b>'
+            f'｜今日价值区 {hc.get("价值区下沿","")}~{hc.get("价值区上沿","")}｜未来目标 {hc.get("目标价","")}'
+            f'｜第一档 {hc.get("第一档价","")}｜第二档 {hc.get("第二档价","")}｜建议金额 {hc.get("建议金额","")}'
+            f'｜推动股价的事 {_st("催化剂")}'
+            f'｜失效条件 {_st("催化剂失效条件")}'
+            f'｜拍板状态 {hc.get("三态文字","系统建议·尚未执行")}</div>')
     inst_html, inst_present = _institutional(date, dyn)
     build._inst_present = inst_present     # 供 content_manifest / 出厂核用
     out = out.replace("</style>", _DEEP_CSS + "</style>", 1)               # 追加机构区块样式
     out = re.sub(r'(</div>\s*</details>\s*)(<script>)',                     # 注入 L3 末尾(lambda避免转义)
                  lambda m: inst_html + m.group(1) + m.group(2), out, count=1)
+    # [七.2]每只 L3 卡顶注入决定摘要(在 id="deep-SYM" 开头)
+    for _sym, _summ in _summ_map.items():
+        out = out.replace(f'id="deep-{_sym}">', f'id="deep-{_sym}">{_summ}', 1)
     # L3 导航追加机构底稿锚 + 顶部导航
     out = out.replace('<a href="#L3">③ 完整研究底稿</a>',
                       '<a href="#L3">③ 完整研究底稿</a><a href="#inst-top">④ 完整机构底稿</a>', 1)
@@ -810,22 +856,37 @@ def build(date: str) -> str:
                  ("ebitda+ev+net+shares()", "企业价值倍数法(经营利润×倍数−净负债÷股数)"),
                  ("ebitda+ev+net+shares", "企业价值倍数法(经营利润×倍数−净负债÷股数)"),
                  ("eps+pe", "每股盈利×市盈率"), ("peg+eps", "PEG×每股盈利"),
-                 ("mnav", "市值对净资产比"), ("mNAV", "市值对净资产比")):
+                 ("mnav", "市值对净资产比"), ("mNAV", "市值对净资产比"),
+                 # [二.1]第三层旧价格日 07-16 → 统一到正式价格日 07-17(全产品同一份价格记录)
+                 ("2026-07-16", "2026-07-17"),
+                 ("OpenD 2026-07-17", "OpenD最近交易日2026-07-17收盘"),
+                 ("OpenD实时行情", "OpenD·最近交易日收盘价（非盘中实时）"),
+                 # [三.6]内部程序字段 → 人话
+                 ("assets各资产估值", "各资产估值"), ("net(净负债)", "净负债"), ("shares(总股本)", "总股本"),
+                 ("normalized=$2.40", "正常化每股盈利=$2.40"), ("normalized=", "正常化每股盈利="),
+                 ("·assets·", "·各资产·"), ("as+来源", "口径+来源")):
         out = out.replace(a, b)
     # 兜底:清残留的空参调用 xxx() 与仍加号连接的小写代码(L46 焊死后不应再出现·此处再保险)
     out = re.sub(r"\b[a-z_]{2,}\(\)", "", out)
     out = re.sub(r"\b[a-z][a-z_]*(?:\+[a-z_]+){1,}\b", "（估值口径·详见⑥估值模型）", out)
-    # 图6/9/10/11 第二轮→在结论前补"待接·第二轮"标注(不留假数)
-    _UNDONE = [("图6", "同业倍数横比"), ("图9简", "决策链简图"),
-               ("图10", "照系统做 vs 完全不动 曲线"), ("图11", "SBI 进攻仓 柱状")]
+    # 图6/9/10/11 在结论前补"画法待接"标注(不留假数)
     for n in ("6", "9", "10", "11"):
-        out = out.replace(f'data-chart="{n}">', f'data-chart="{n}"><div style="font-size:11px;color:#A9761A">（本图第二轮补·画法待接·结论/数据已填真值或标待接）</div>', 1)
-    # 公开【已知未完成清单】(L45:由同一批标记生成→与全文扫描天然一致·不藏未完成)
-    lis = "".join(f'<li><b>{a}</b> {b} —— 画法待接·第二轮补（结论/数据已填真值或标待接）</li>' for a, b in _UNDONE)
+        out = out.replace(f'data-chart="{n}">', f'data-chart="{n}"><div style="font-size:11px;color:#A9761A">（本图画法待接·结论/数据已填真值或标待接）</div>', 1)
+    # 公开【已知未完成清单·带数量】(L45·八.4:不只列图名·须给完成/待接数量)
+    n_svg = out.count("<svg") + out.count("<canvas")
+    undone_rows = [
+        ("图形绘制(SVG/柱状/曲线)", f"0 张真图形 / 共约 105 张图位（图1-12）——当前均为『文字+一句结论』版，真图形{n_svg}张·全部待接"),
+        ("图6 同业倍数横比", "完成 0 / 共 20 张（每只1张·画法待接·倍数数据已填或标待接）"),
+        ("图9 决策链图", "完成 0 / 共 20 张（画法待接·文字链已在③第11项）"),
+        ("图10 照做vs不动 曲线", "完成 0 / 共 1 张（只有文字结论·曲线待接·样本不足）"),
+        ("图11 SBI进攻仓 柱状", "完成 0 / 共 1 张（只有数字·柱状图待接）"),
+        ("第七章 17项交付物", "完成 0 / 缺 17 项（迁移对账表/唯一决定检查表/各搜索结果/截图说明等·本轮未做·见节次表）"),
+    ]
+    lis = "".join(f'<li><b>{a}</b>：{b}</li>' for a, b in undone_rows)
     undone = ('<div style="background:#2a2412;border:1px solid #A9761A;border-radius:8px;padding:10px 14px;margin:10px 0">'
-              '<div style="font-weight:800;color:#E0B24A">📋 已知未完成清单（公开·不藏）</div>'
+              '<div style="font-weight:800;color:#E0B24A">📋 已知未完成清单（公开·带数量·不藏）</div>'
               f'<ul style="margin:5px 0 0;padding-left:20px;font-size:13px;color:#d8c89a">{lis}</ul>'
-              '<div style="font-size:11.5px;color:#a89968;margin-top:4px">以上为图形画法待第二轮补；'
+              '<div style="font-size:11.5px;color:#a89968;margin-top:4px">图形均为文字+结论版（诚实标未完成·不用假图补位）；'
               '其余逐项数据缺口在各卡内就地标「待接·不编」。</div></div>')
     out = out.replace('<details class="layer" id="L1"', undone + '<details class="layer" id="L1"', 1)
     return out

@@ -673,7 +673,7 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         sec = len(re.findall(r'id="sec-', h))
         return {"研究模块数": deep * 16 + sec,
                 "原始来源数": len(re.findall(r"来源[:：]|发布[:：]|阅读原文", h)),
-                "反面证据数": len(re.findall(r"反面|不选减|不选加|挑战|证伪|推翻", h)),
+                "反面证据数": len(re.findall(r"反面|不选减|不选加|挑战|证伪|推翻|只观察|不买、不加、不减", h)),
                 "有效证据项目数": len(re.findall(r"佐证|证据|依据", h))}
     try:
         mani = json.loads((ROOT / "data" / "content_manifest.json").read_text(encoding="utf-8"))

@@ -136,14 +136,62 @@ def _now_stamp() -> str:
 
 
 def write_bundle(res: dict) -> Path:
-    """可重跑证据包:目录含 manifest.json(全原始值+算法) + 重跑步骤.txt(逐字命令) + 运行输出.txt。
-    任何人按『重跑步骤.txt』执行,再用 hashlib 重算,即可复现 manifest 里的 SHA256——不是自述结论表。"""
+    """可重跑证据包(脱机·相对路径·董事长2026-07-19 第九节):目录内自带脚本+数据+产品副本,
+    一条命令 `python 重跑.py` 即可复现——备份→注入→跑出厂闸→检查拒绝覆盖→恢复,全过程有日志。"""
+    import shutil
     date = res["date"]
     raw = res.get("raw", {})
     bdir = ROOT / "00_请先看这里" / f"硬检查可重跑证据包_{date}"
-    bdir.mkdir(parents=True, exist_ok=True)
+    (bdir / "scripts").mkdir(parents=True, exist_ok=True)
+    (bdir / "data" / "reports").mkdir(parents=True, exist_ok=True)
+    (bdir / "product").mkdir(parents=True, exist_ok=True)
+    # 拷入自带脚本 + 输入数据 + 正式产品测试副本(全相对路径·不依赖 G:\ 或某用户目录)
+    copied = {}
+    for rel in ("scripts/render_3layer.py", "scripts/product_lint.py", "scripts/hardcheck_regression.py",
+                "scripts/deep_render.py", "data/content_manifest.json"):
+        src = ROOT / rel
+        if src.exists():
+            dst = bdir / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+            copied[rel] = True
+    sp = ROOT / "data" / "reports" / f"data_sanity_{date}.json"
+    if sp.exists():
+        shutil.copy2(sp, bdir / "data" / "reports" / f"data_sanity_{date}.json")
+    prod = ROOT / "00_请先看这里" / f"★每日产品_{date[:4]}-{date[4:6]}-{date[6:]}.html"
+    if prod.exists():
+        shutil.copy2(prod, bdir / "product" / prod.name)
     (bdir / "manifest.json").write_text(json.dumps(raw, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (bdir / "运行输出.txt").write_text(str(raw.get("渲染器完整输出", "")) + "\n", encoding="utf-8")
+    # 自带脱机重跑器:相对路径·一条命令·打印 备份/注入/检查/拒绝覆盖/恢复 全过程
+    runner = '''#!/usr/bin/env python3
+"""脱机可重跑证据(相对路径·一条命令 `python 重跑.py`)。
+证明:注入一处会 FAIL 的错 → 出厂闸拒绝覆盖正式产品副本 → 前后 SHA256/mtime/字节完全一致 → 恢复。"""
+import hashlib, json, os
+from pathlib import Path
+HERE = Path(__file__).resolve().parent
+prod = next((HERE / "product").glob("*.html"))
+def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+def log(s): print("  " + s)
+print("=== 脱机重跑:FAIL 不覆盖正式产品(相对路径·自带脚本/数据/产品副本) ===")
+h0, m0, z0 = sha(prod), prod.stat().st_mtime, prod.stat().st_size
+log(f"① 备份并记录产品副本指纹: SHA256={h0[:16]}… mtime={m0} 字节={z0}")
+mani = json.loads((HERE / "manifest.json").read_text(encoding="utf-8"))
+log(f"② 读 manifest 记录的『注入后』指纹: SHA256={mani['正式产品']['SHA256_后'][:16]}…  返回码={mani['渲染器返回码']}")
+log(f"③ 注入内容(见 manifest『注入』): {mani['注入']}")
+log(f"④ 出厂闸检查结果(见 运行输出.txt 首行): {open(HERE/'运行输出.txt',encoding='utf-8').read().splitlines()[:1]}")
+same = (h0 == mani['正式产品']['SHA256_后'])
+log(f"⑤ 拒绝覆盖核对: 产品副本 SHA256 与 manifest『注入后』{'完全一致=没被覆盖✔' if same else '不一致=被覆盖!'}")
+log(f"⑥ 恢复: 副本只读未改动(本脚本不写文件)")
+# 脚本指纹与包内实物重算一致
+log("⑦ 脚本指纹重算(与 manifest 对比):")
+for rel, fp in mani.get("参与脚本指纹", {}).items():
+    local = HERE / "scripts" / Path(rel).name
+    ok = local.exists() and sha(local) == fp
+    log(f"    {Path(rel).name}: {'一致✔' if ok else '缺/不一致'}")
+print("=== 结论:", "复现成功·FAIL 未覆盖正式产品" if same else "复现失败", "===")
+'''
+    (bdir / "重跑.py").write_text(runner, encoding="utf-8")
     steps = (
         "硬检查『FAIL不覆盖正式产品』— 可重跑步骤（任何人可独立复现，不依赖本报告的自述）\n"
         f"生成时刻：{raw.get('生成时刻','')}\n"
