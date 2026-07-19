@@ -864,19 +864,33 @@ def _stabilized(sym: str, dyn: dict) -> bool:
     return False
 
 
-def _stabilized_calc(sym: str, dyn: dict) -> str:
-    """成品里显示『近20交易日不创新低』的实际计算:20日最低价/最近新低日/是否通过(董事长2026-07-19)。"""
+def _stabilized_calc(sym: str, dyn: dict, date: str = "") -> str:
+    """加仓闸『近20交易日不创新低』逐项实测(董事长2026-07-19 第五节·C):
+    近20日最低价/最低价日期/最近创新低日期/是否满足/所用序列/推动股价的事/最终是否通过——缺则写明因缺什么判不通过。"""
     m = (dyn.get("ma") or {}).get(sym) or {}
     low20 = m.get("low_20d")
     px = m.get("realtime_price")
+    kn = m.get("kline_count")
     c = cur(sym)
-    if low20 is None:
-        return '<span style="font-size:11px;color:#A9761A">（企稳判据：20日低数据待接·不编）</span>'
-    gap = f"，现价高于20日低 {((px-low20)/low20*100):+.1f}%" if isinstance(px, (int, float)) and low20 else ""
-    # 只有 low_20d 单值、无逐日轨迹 → 无法确认"最近是否仍在续创新低"→ 判据保守=未通过(待接轨迹)
-    return (f'<span style="font-size:11px;color:#8ea3b6">（企稳实测：近20交易日最低价 '
-            f'<b>{c}{low20:,.0f}</b>{gap}；最近新低日=待接·缺逐日轨迹；'
-            f'<b>是否通过=否</b>·判据数据不足时保守当未企稳）</span>')
+    date = date or dyn.get("date", "")
+    cat = _catalyst_within(sym, date) if date else ""
+    low_txt = f"{c}{low20:,.0f}" if isinstance(low20, (int, float)) else "待接（未取到20日低）"
+    gap = (f"（现价高于20日低约 {((px-low20)/low20*100):+.1f}%）"      # 不印现价数值·避免与卡内唯一现价口径打架
+           if isinstance(px, (int, float)) and isinstance(low20, (int, float)) and low20 else "")
+    # 只有 low_20d 单值、无逐日轨迹 → 最低价日期/最近创新低日期无法定位 → 保守判不通过
+    miss = "缺【最近一次创新低日期】(仅存20日低单值·未落盘逐日价格序列·无法确认近日是否仍在续创新低)"
+    return (
+        '<div style="font-size:11.5px;color:#9fb3c4;background:#0f1925;border-left:3px solid #3a5a8a;'
+        'border-radius:0 6px 6px 0;padding:6px 10px;margin:5px 0">'
+        '<b style="color:#8ec6ff">加仓闸·近20个交易日不创新低（逐项实测）</b><br>'
+        f'· 近20个交易日最低价：<b>{low_txt}</b>{gap}<br>'
+        f'· 最低价发生日期：<b>待接</b>（{miss[2:]}）<br>'
+        f'· 最近一次创新低日期：<b>待接</b>（同上·缺逐日轨迹）<br>'
+        f'· 是否满足「20日不创新低」：<b>无法确认→保守判否</b><br>'
+        f'· 所用每日价格序列：源 OpenD K_DAY 日线（{kn if kn else "待接"} 根）·逐日序列未落盘·待接<br>'
+        f'· 推动股价的事情（名称·日期·来源）：{esc(_cut(str(cat), 90)) if cat else "近90天列不出明确前瞻事件·待接"}<br>'
+        f'· 最终是否通过：<b style="color:#ffb454">否</b>——因{miss}，按铁律保守不当企稳（不接飞刀）。'
+        '</div>')
 
 
 def _peak_cyclical(sym: str) -> bool:
@@ -1988,7 +2002,7 @@ def _action_of_raw(sym: str, name: str, dyn: dict, date: str) -> tuple:
         # 「加」闸(董事长提案2026-07-19):便宜 且(有催化剂 或 已企稳)才'加';否则降级'等'·别接飞刀
         _cat_ev = _catalyst_within(sym, date)          # 近90天内明确事件(列得出具体那条)
         _stab = _stabilized(sym, dyn)                  # 近约20日站上20日均值·企稳(客观过滤·非买卖线·仅决定现在加还是再等)
-        _stab_calc = _stabilized_calc(sym, dyn)        # 近20交易日不创新低的实际计算(最低价/新低日/是否通过)
+        _stab_calc = _stabilized_calc(sym, dyn, date)        # 近20交易日不创新低的逐项实测(第五节·C)
         if not _cat_ev and not _stab:
             return tag("等", f"{P}，<b>已跌破便宜位 {c}{lo:,.0f}、算便宜（低 {abs(st['gap_lo']):.1f}%）</b>，"
                              f"但<b>近90天列不出明确催化剂、也还没企稳</b> → <b>便宜但没催化·别接飞刀</b>；"

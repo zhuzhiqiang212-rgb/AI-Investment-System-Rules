@@ -628,6 +628,81 @@ def _waits(sym, v):
     return "本只权威估值已 OK·精算"
 
 
+def _stab_calc_of(sym, dyn, date):
+    """[五·C]取加仓闸逐项实测(复用 deep_render._stabilized_calc)·逐只显示。"""
+    try:
+        return D._stabilized_calc(sym, dyn, date)
+    except Exception:
+        return ""
+
+
+# ── [A]三层导航 + [B]版面区块(董事长2026-07-19 第十一/十二节) ──
+_NAV_CSS = (
+    "#topnav{position:sticky;top:0;z-index:50;background:#0b1420;border-bottom:1px solid #2b4054;"
+    "padding:7px 10px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px}"
+    "#topnav a{color:#9ed8ff;text-decoration:none;font-weight:700;white-space:nowrap}"
+    "#topnav a:hover{text-decoration:underline}#topnav b{color:#ffd479}"
+    ".navret{background:#0e1a26;border:1px solid #24384c;border-radius:6px;padding:5px 9px;margin:6px 0;"
+    "font-size:12.5px;color:#bcd0e2;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}"
+    ".navret a{color:#7ee0a0;font-weight:700;text-decoration:none}.navret a:hover{text-decoration:underline}"
+    ".navret .crumb{color:#ffd479;font-weight:800}"
+    ".blockend{text-align:center;color:#5a6b7a;font-size:12px;border-top:1px dashed #2b4054;margin:16px 0 6px;padding-top:5px}"
+    "@media(max-width:600px){#topnav{font-size:12px;gap:5px 8px}.navret{font-size:11.5px}}"
+)
+
+
+def _add_nav(out: str, order: list, names: dict) -> str:
+    """A:固定导航条+每卡顶部/底部返回同一只+当前位置面包屑;B:块结束分隔。"""
+    # A1 固定导航条(滚动常驻·手机适配) + 顶部锚
+    out = out.replace("<body>", '<body>\n<a id="top"></a>\n'
+                      '<div id="topnav"><b>快速跳转：</b>'
+                      '<a href="#L1">今天怎么做</a><a href="#L2">为什么这么做</a>'
+                      '<a href="#L3">完整研究底稿</a><a href="#inst-top">完整机构底稿</a>'
+                      '<a href="#top">返回顶部 ↑</a></div>', 1)
+    # A2 L1 每只加 id="act-{sym}"(供第二层返回同一只) —— 锚在该只"为什么→"链接前
+    for sym in order:
+        out = out.replace(f'<a class="jump" href="#why-{sym}">为什么→</a>',
+                          f'<a id="act-{sym}"></a><a class="jump" href="#why-{sym}">为什么→</a>', 1)
+    idx = {s: i for i, s in enumerate(order)}
+
+    def _l2bar(sym):
+        nm = names.get(sym, sym)
+        return (f'<div class="navret"><span class="crumb">当前：第二层 ＞ {nm} ＞ 为什么这么做</span>'
+                f'<a href="#act-{sym}">← 返回第一层：今天怎么做（回到 {nm}）</a>'
+                f'<a href="#deep-{sym}">看本只完整研究底稿 →</a></div>')
+
+    def _l3bar(sym):
+        nm = names.get(sym, sym)
+        nxt = order[idx[sym] + 1] if idx.get(sym, len(order) - 1) < len(order) - 1 else None
+        nxt_a = f'<a href="#deep-{nxt}">下一只股票：{names.get(nxt, nxt)} →</a>' if nxt else '<a href="#inst-top">进入 ④ 完整机构底稿 →</a>'
+        return (f'<div class="navret"><span class="crumb">当前：第三层 ＞ {nm} ＞ 完整研究底稿</span>'
+                f'<a href="#why-{sym}">← 返回第二层：本只为什么这样做（回到 {nm}）</a>'
+                f'<a href="#act-{sym}">← 返回第一层：今天怎么做</a>{nxt_a}</div>')
+
+    # A2/A3 顶部条:每卡开头注入 + A2/A3 底部条:每卡下一张开头前注入前一张的底部条
+    st = {"sym": None, "layer": None}
+
+    def _open(m):
+        layer, sym = m.group(1), m.group(2)
+        pre = ""
+        if st["sym"] and st["layer"] == layer:            # 上一张同层卡的【底部条】
+            pre = (_l2bar(st["sym"]) if layer == "why" else _l3bar(st["sym"]))
+        st["sym"], st["layer"] = sym, layer
+        top = (_l2bar(sym) if layer == "why" else _l3bar(sym))
+        return pre + m.group(0) + top
+    out = re.sub(r'<div class="stock" id="(why|deep)-([^"]+)">', _open, out)
+    # 每层最后一张卡的底部条 + B1 本块结束分隔
+    if order:
+        last = order[-1]
+        out = out.replace('<details class="layer" id="L3">',
+                          _l2bar(last) + '<div class="blockend">— 本块结束：② 为什么这么做 —</div><details class="layer" id="L3">', 1)
+        out = out.replace('<h2 class="main" id="inst-top"',
+                          _l3bar(last) + '<div class="blockend">— 本块结束：③ 完整研究底稿 —</div><h2 class="main" id="inst-top"', 1)
+    # B1 机构底稿各块之间加"本块结束"分隔
+    out = out.replace('<details class="sub" id="sec-', '<div class="blockend">— 上一机构块结束 —</div><details class="sub" id="sec-')
+    return out
+
+
 # 复用 deep_render 的机构区块样式(注入内容才有正确排版)——只搬 class 规则、不动 body/:root
 _DEEP_CSS = (
     ".card{background:#151f2b;border:1px solid #2b4054;border-radius:10px;padding:12px 14px;margin:10px 0}"
@@ -698,6 +773,10 @@ def _sanitize_inst(html: str) -> str:
     # ⑤[七.1]删"样例股数/等第一次生产"半成品话术(已有20只真持仓)
     html = re.sub(r"[^<>]*?(6只重仓是股数样例|股数等第一次正式生产|等第一次正式生产时[^<。]*灌满|只是[\"“]?结构模板)[^<。]*[。\"”]?",
                   "（本块持仓档案已按20只真实股数灌满；未接账户就地标『未接·不可依赖』）", html)
+    # ⑦[B4]旧称呼→正式章节名(注明所属)
+    for old, new in (("右栏第6块", "规则附件·6把尺（原右栏第6块）"), ("右栏第六块", "规则附件·6把尺（原右栏第6块）"),
+                     ("右栏6块", "规则附件·6把尺"), ("右栏底子", "规则附件·6把尺（属规则附件）")):
+        html = html.replace(old, new)
     # ⑥[八.3]sector-deep 锚点去重:第2个及以后改唯一名(所有位置标记唯一)
     _cnt = [0]
     def _uniq(m):
@@ -710,12 +789,22 @@ def _sanitize_inst(html: str) -> str:
 def _institutional(date, dyn):
     """把三层重建时丢掉的【非个股整层内容】补回来(复用 deep_render 的 part builder)。"""
     daily = dyn.get("daily", {}) or {}
+    # [B2/八.2]板块龙头研究正文只保留一个正式位置(sec-sector);其它位置(sec-macro内嵌同块)改"查看完整研究→"链接·不整段复制
+    try:
+        _sector_str = D.sector_deep_block(date) or ""
+    except Exception:
+        _sector_str = ""
+    _sector_link = ('<div class="card" style="border:1px dashed #3a5a8a"><b>板块深度尺·龙头五维小研报</b>'
+                    '：为避免整段重复，正文只在【④ 板块深度尺】保留一份。'
+                    '<a href="#sec-sector" style="color:#7ee0a0;font-weight:700">查看完整研究 →</a></div>')
     folds, present = [], []
     for title, aid, fn in _INST_BLOCKS:
         try:
             body = fn(D, date, dyn, daily) or ""
         except Exception as e:
             body = f'<div class="note">本块加载失败·待接（{D.esc(str(e))}）</div>'
+        if aid == "sec-macro" and _sector_str and _sector_str in body:   # 六层里内嵌的板块块→换链接(去重)
+            body = body.replace(_sector_str, _sector_link)
         folds.append(f'<details class="sub" id="{aid}"><summary>{D.esc(title)}</summary>'
                      f'<div style="padding:4px 6px 10px">{body}</div></details>')
         present.append(aid)
@@ -830,7 +919,11 @@ def build(date: str) -> str:
     # [七.2]第三层每只顶部『决定摘要』(逐字读同一份唯一来源的11核心字段·不另写一套数字)——注入 map
     _summ_map = {}
     for hc in each:
-        _st = lambda k, n=48: _cut(re.sub(r"<[^>]+>", "", str(hc.get(k, ""))), n, "…")  # 安全截断·不切半词/日期/括号
+        def _st(k, n=48):
+            s = _cut(re.sub(r"<[^>]+>", "", str(hc.get(k, ""))), n, "…")
+            if s.count("（") > s.count("）"):     # 截断致括号不闭合→补齐(治L13)
+                s += "）"
+            return s.replace("（", "(").replace("）", ")")   # 决定摘要用半角括号·避免嵌套全角误判
         _summ_map[hc.get("代码")] = (
             '<div style="background:#0f1e17;border:1px solid #2f6b4f;border-radius:7px;padding:7px 10px;margin:4px 0 8px;font-size:12.5px;color:#bfe6d3">'
             '<b style="color:#7ee0a0">决定摘要（与①②同一份数据·11核心字段·逐字同源）</b>：'
@@ -840,10 +933,12 @@ def build(date: str) -> str:
             f'｜第一档 {hc.get("第一档价","")}｜第二档 {hc.get("第二档价","")}｜建议金额 {hc.get("建议金额","")}'
             f'｜推动股价的事 {_st("催化剂")}'
             f'｜失效条件 {_st("催化剂失效条件")}'
-            f'｜拍板状态 {hc.get("三态文字","系统建议·尚未执行")}</div>')
+            f'｜拍板状态 {hc.get("三态文字","系统建议·尚未执行")}</div>'
+            # [五·C]加仓闸逐项实测(逐只都显示·不只加-候选)
+            + _stab_calc_of(hc.get("代码"), dyn, date))
     inst_html, inst_present = _institutional(date, dyn)
     build._inst_present = inst_present     # 供 content_manifest / 出厂核用
-    out = out.replace("</style>", _DEEP_CSS + "</style>", 1)               # 追加机构区块样式
+    out = out.replace("</style>", _DEEP_CSS + _NAV_CSS + "</style>", 1)     # 追加机构区块样式 + [A/B]导航版面样式
     out = re.sub(r'(</div>\s*</details>\s*)(<script>)',                     # 注入 L3 末尾(lambda避免转义)
                  lambda m: inst_html + m.group(1) + m.group(2), out, count=1)
     # [七.2]每只 L3 卡顶注入决定摘要(在 id="deep-SYM" 开头)
@@ -852,6 +947,10 @@ def build(date: str) -> str:
     # L3 导航追加机构底稿锚 + 顶部导航
     out = out.replace('<a href="#L3">③ 完整研究底稿</a>',
                       '<a href="#L3">③ 完整研究底稿</a><a href="#inst-top">④ 完整机构底稿</a>', 1)
+    # [A十一/B十二]三层导航(固定条+返回同一只+面包屑)+版面块结束分隔
+    _order = [hc.get("代码") for hc in each if hc.get("代码")]
+    _names = {hc.get("代码"): re.sub(r"<[^>]+>", "", str(hc.get("名") or hc.get("代码"))) for hc in each}
+    out = _add_nav(out, _order, _names)
     # 致命1:整块换掉页头新鲜度条→非交易日禁用'当日实时价/旧·超3天 0'类表述
     out = re.sub(r'<div class="freshbar">.*?</div>', _freshbar_html(fresh, len(tbd_rows)), out, count=1, flags=re.S)
     if fresh.get("market_closed"):        # 非交易日:顶部"[今天的]"改如实标注(价非今天的)
