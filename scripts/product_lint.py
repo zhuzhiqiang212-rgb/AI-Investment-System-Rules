@@ -466,6 +466,30 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     except Exception:
         pass
 
+    # ── L36 同股多现价(硬检查·董事长2026-07-19 轮5致命1·本次它漏了→补进)：同一只两个不同现价→拦 ──
+    #     现价是三层核心字段,必须全读同一 final_decision 单一源(动作表/why卡/deep推导逐字一致)。
+    #     覆盖两处来源:(a)动作表权威价"¥N.NN [市场·日期]"；(b)各卡散文里带"现价"标签的价。
+    for fn, h in vols.items():
+        pxmap: dict[str, set] = {}
+        # (a) 动作表:同一 <tr> 内 symbol + 带[市场·日期]标签的现价
+        for tr in re.findall(r"<tr\b.*?</tr>", h, re.S):
+            ms = re.search(r"(JP\.\d+|US\.[A-Z]+|HK\.\d+)", tr)
+            mp = re.search(r"[¥$]([\d,]{3,})(?:\.\d+)?\s*\[(?:JP|US|HK|CC)", tr)
+            if ms and mp:
+                pxmap.setdefault(ms.group(1), set()).add(mp.group(1).replace(",", ""))
+        # (b) 各卡散文"现价约¥N"：按 id="why-/deep-{sym}" 卡锚分段归属到本只
+        anchors = [(m.start(), m.group(1))
+                   for m in re.finditer(r'id="(?:why|deep)-((?:JP|US|HK|CC)\.[A-Z0-9.]+)"', h)]
+        bounds = anchors + [(len(h), None)]
+        for k in range(len(anchors)):
+            s0, sym = bounds[k]
+            for m in re.finditer(r"现价约?\s*[¥$]([\d,]{3,})", h[s0:bounds[k + 1][0]]):
+                pxmap.setdefault(sym, set()).add(m.group(1).replace(",", ""))
+        for sym, ps in pxmap.items():
+            if len(ps) > 1:
+                fails.append(f"L36 同股多现价：{fn} 的 {sym} 出现多个现价 {sorted(ps)}"
+                             f"——现价是三层核心字段,必须全读同一 final_decision 单一源(动作表/why卡/推导逐字一致)")
+
     # ── L15 同一条提示刷屏(佐证"料已N天旧"应只在①册顶部说一次·不许层层重复) ──
     n_stale = sum(len(re.findall(r"这份料已放了\s*\d+\s*天", h)) for h in vols.values())
     if n_stale:

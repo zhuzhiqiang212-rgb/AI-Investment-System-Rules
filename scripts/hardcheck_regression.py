@@ -54,6 +54,12 @@ def run(date: str) -> dict:
     cases.append({"name": "致命2·估值口径矛盾(注入爱德万疑似拆股)", "expect": "FAIL·L35", "fails": f2,
                   "ok": len(f2) >= 1})
 
+    # ── 致命3:注入同股第二个现价(第一三共deep卡 ¥2,758 与动作表 ¥2,791 并存)→ L36 ──
+    inj3 = h.replace('id="deep-JP.4568"', 'id="deep-JP.4568"><span>现价约¥2,758</span', 1)
+    f3 = [x for x in curated(PL.lint_volumes({prod.name: inj3}, date)) if x.startswith("L36")]
+    cases.append({"name": "致命3·同股多现价(注入第一三共第二个现价)", "expect": "FAIL·L36", "fails": f3,
+                  "ok": len(f3) >= 1})
+
     # ── 真实测:FAIL→正式产品不被覆盖·保留上一版(哈希前后比对·董事长2026-07-19补做) ──
     #   做法:①记正式产品(★每日产品_·三层)当前哈希/mtime ②注入爱德万价格异常(制造 L35 FAIL)
     #   ③真跑 render_3layer(出厂lint硬闸) ④比对哈希——FAIL 应 rc≠0 且哈希/mtime 不变(没被覆盖)。

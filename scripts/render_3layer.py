@@ -123,7 +123,7 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     peers = _peers(sym)
     # 深研16项
     d16 = _deep16(sym, name, dyn, deep, v, c)
-    return {
+    hc = {
         "代码": sym, "股票名": D.esc(name), "名": D.esc(name),
         "今日动作": pure, "动作色": ACT_COLOR.get(pure, "hold"), "动作图标": ACT_ICON.get(pure, "■"),
         "三态": "sys", "三态文字": "系统建议·尚未执行",
@@ -154,6 +154,11 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         "图9结论": "世界观→行业→本股→今天动作一条链；某环无事件标今日无新事件。",
         **d16,
     }
+    # 现价统一到唯一源:散文里带『现价』标签的价格一律同步到 px(治同股两现价·致命1)
+    #   『现价』字段本身(值=纯价格无前缀)不受影响；只改散文里"现价约¥X"这类。
+    hc = {k: (_pxsync(val, c, px) if isinstance(val, str) and "现价" in val else val)
+          for k, val in hc.items()}
+    return hc
 
 
 def _evidence(deep, kind):
@@ -167,14 +172,14 @@ def _support_from(deep):
         bits.append(f"护城河：{D.esc(str(m.get('score')))}")
     d9 = str(deep.get("block9_decision_chain") or "")
     if d9:
-        bits.append("决策链：" + D.esc(re.sub(r"<[^>]+>", "", d9)[:120]))
+        bits.append("决策链：" + D.esc(_cut(re.sub(r"<[^>]+>", "", d9), 120)))
     return "<br>".join(bits) or "见③第14项正反证据全量"
 
 
 def _sc(rows, key):
     for r in rows:
         if str(r.get("case", "")).startswith(key):
-            return (D.esc(str(r.get("value", "待接"))[:40]), D.esc(str(r.get("assume", ""))[:60]))
+            return (D.esc(_cut(r.get("value") or "待接", 40, "…")), D.esc(_cut(r.get("assume") or "", 60, "…")))
     return (TBD, "缺情景·只显已有")
 
 
@@ -253,12 +258,19 @@ def _fig1_concl(pure, px, lo, hi, c, v):
 
 
 def _deep16(sym, name, dyn, deep, v, c):
-    """③完整研究底稿16项——从深研卡真取·缺标待接。只增不减。"""
-    g = lambda k: D.esc(_clean(_flat(deep.get(k)))[:400]) or TBD   # 经 _flat/_clean·不 dump 原始 dict
+    """③完整研究底稿16项——从深研卡真取·缺标待接。只增不减(L3内容不缩水·安全截断不切半词)。"""
+    g = lambda k, n=900: (D.esc(_cut(_clean(_flat(deep.get(k))), n)) or TBD)   # _flat已None→空·不 dump dict
     method = str(v.get("model_disp") or "")
     if not method:
         av = D._arch_est(sym) or {}
         method = str(av.get("ruler_short") or "待接")
+    # 可信度随『估值输入』走:输入待接 → 不得标 A·精算(治轮5致命5·可信度牌与内容矛盾)
+    vin = _val_inputs(sym, v)
+    cred_raw = str(v.get("credibility") or "待接")
+    if vin == TBD or "待接" in vin:
+        cred = "待接·框架参考（输入未接·不标精算）"
+    else:
+        cred = cred_raw.replace("低置信", "低置信·仅作框架参考")
     return {
         "赚钱模式": g("block1_business") or _b(deep, "block1"),
         "多年财务": _fin_years(sym, deep),
@@ -266,11 +278,11 @@ def _deep16(sym, name, dyn, deep, v, c):
         "护城河": _moat(deep),
         "竞争对手": g("block4_competitors") or _b(deep, "block4"),
         "估值模型": D.esc(method),
-        "估值输入逐项含来源": _val_inputs(sym, v),
-        "可信度": D.esc((str(v.get("credibility") or "待接")).replace("低置信","低置信·仅作框架参考")),
+        "估值输入逐项含来源": vin,
+        "可信度": D.esc(cred),
         "敏感性": _sens(sym, v),
         "三情况完整推导": _scen_full(deep),
-        "事件日历": "<br>".join(D.esc(_clean(_flat(x))) for x in (deep.get("block7_catalysts") or [])) or TBD,
+        "事件日历": "<br>".join(t for t in (D.esc(_clean(_flat(x))) for x in (deep.get("block7_catalysts") or [])) if t) or TBD,
         "风险与可观测信号": _risks(deep),
         "推导链全版": g("block9_decision_chain"),
         "组合作用": _b(deep, "block10") or g("block10_portfolio"),
@@ -284,6 +296,19 @@ def _deep16(sym, name, dyn, deep, v, c):
 
 _LEAK = ("任一整套", "该用 ", "不硬编", "缺真输入", "raw_holding", "block1_", "block2_")
 
+# 深研卡内部英文字段名→人话(治『字段名裸露成正文』·董事长轮5致命3)。
+#   有译名→带中文标签；无译名的英文结构键→只出值不出键名(绝不裸露英文key)。
+_KZH = {
+    "intro": "简介", "streams": "业务线", "block": "板块", "what": "是什么", "size": "规模",
+    "plain": "说明", "margin": "利润率", "metric": "指标", "rows": "", "fy": "财年",
+    "revenue": "营收", "yoy": "同比", "gross": "毛利率", "net": "净利", "fcf": "自由现金流",
+    "as": "口径", "source": "来源", "sources": "来源", "note": "备注", "prob": "概率",
+    "case": "情形", "assume": "假设", "value": "取值", "why": "理由", "score": "评分",
+    "risk": "风险", "weight": "权重", "signal": "信号", "name": "名称", "pe": "市盈率",
+    "peg": "PEG", "detail": "细节", "title": "标题", "desc": "说明", "text": "",
+    "date": "日期", "event": "事件", "role": "作用", "eps": "每股盈利", "operating": "营业利润",
+}
+
 
 def _clean(s: str) -> str:
     """清内部话术/字段名/原始dict痕迹→不印给董事长(治 L4b/L4c 泄露)。"""
@@ -295,33 +320,74 @@ def _clean(s: str) -> str:
 
 
 def _flat(val) -> str:
-    """dict/list→大白话文本(不 json.dumps·不泄露结构)。"""
+    """dict/list→大白话文本(不 json.dumps·None→空·英文键翻译或去键·不泄露结构)。"""
+    if val is None:
+        return ""
     if isinstance(val, dict):
-        return "；".join(f"{k}：{_flat(v)}" for k, v in val.items() if v and not str(k).startswith("_"))
+        out = []
+        for k, v in val.items():
+            if v is None or v == "" or str(k).startswith("_"):
+                continue
+            fv = _flat(v)
+            if not fv:
+                continue
+            zh = _KZH.get(str(k).strip().lower())
+            out.append(f"{zh}：{fv}" if zh else fv)   # 有译名带标签·无译名只出值(不裸露英文key)
+        return "；".join(out)
     if isinstance(val, list):
-        return "；".join(_flat(x) for x in val if x)
-    return re.sub(r"<[^>]+>", "", str(val))
+        return "；".join(x for x in (_flat(i) for i in val) if x)
+    s = re.sub(r"<[^>]+>", "", str(val))
+    return "" if s.strip().lower() == "none" else s   # 兜底:字符串 "None" 也当空
+
+
+def _cut(s: str, n: int, tail: str = "…（余见完整底稿）") -> str:
+    """安全截断:不切半个数字/词——回退到最近句读，截了就补省略号。治『¥后数字没了/sourc缺字母』。"""
+    if s is None:
+        return ""
+    s = str(s)
+    if len(s) <= n:
+        return s
+    seg = s[:n]
+    cut = max(seg.rfind("；"), seg.rfind("。"), seg.rfind("，"), seg.rfind("、"),
+              seg.rfind("）"), seg.rfind(")"))
+    if cut > n * 0.5:                                  # 有靠后的句读→切到那
+        seg = seg[:cut + 1]
+    else:                                              # 否则退到最后一个非数字/字母边界，别切半个 token
+        seg = re.sub(r"[\w¥$,.]+$", "", seg)
+    return seg.rstrip("·、，,") + tail
+
+
+def _pxsync(text: str, c: str, px) -> str:
+    """把散文里带『现价』标签的价格统一到唯一源 px(final_decision同价)。治同股两现价。"""
+    if px is None or not text:
+        return text
+    canon = f"{c}{px:,.0f}"
+    return re.sub(r"(现价约?)\s*" + re.escape(c) + r"[\d,]+(?:\.\d+)?",
+                  lambda m: m.group(1) + canon, str(text))
 
 
 def _b(deep, prefix):
     for k, val in deep.items():
         if str(k).startswith(prefix) and val:
-            return D.esc(_clean(_flat(val))[:300])
+            return D.esc(_cut(_clean(_flat(val)), 600))
     return ""
 
 
 def _moat(deep):
     m = deep.get("block3_moat") or {}
-    if m:
-        return D.esc(f"{m.get('score','')}·{re.sub(chr(60)+'[^'+chr(62)+']+'+chr(62),'',str(m.get('why','')))[:200]}")
+    score = m.get("score") or ""
+    why = re.sub(r"<[^>]+>", "", str(m.get("why") or ""))
+    if score or why:
+        return D.esc(_cut(f"{score}·{why}".strip("·"), 300))
     return TBD
 
 
 def _fin_years(sym, deep):
     d = deep.get("block4_realdata") or deep.get("block2_financials") or {}
-    if d:
-        return D.esc(_clean(_flat(d))[:300])
-    return f'{TBD}（多年财务见 edgar_financials/公司IR·本卡未铺满则标待接）'
+    txt = _clean(_flat(d)) if d else ""
+    if txt:
+        return D.esc(_cut(txt, 900))
+    return f'{TBD}（多年财务见官方财报数据/公司IR·本卡未铺满则标待接）'
 
 
 def _val_inputs(sym, v):
@@ -335,7 +401,7 @@ def _val_inputs(sym, v):
             bits.append(f"{LBL[k]}={D.esc(_clean(_flat(vi[k])))}")
     src = vi.get("source")
     if src:
-        bits.append(f"来源：{D.esc(_clean(str(src))[:120])}")
+        bits.append(f"来源：{D.esc(_cut(_clean(str(src)), 120))}")
     return "<br>".join(bits) or TBD
 
 
@@ -343,28 +409,34 @@ def _sens(sym, v):
     vi = _rj(ROOT / "data" / "valuation" / "val_inputs.json").get("holdings", {}).get(sym, {})
     s = vi.get("sensitivity")
     if s:
-        return D.esc(_clean(_flat(s))[:200])
-    return f'{TBD}（EPS±20%/倍数±20%·精算股已填·其余待接）'
+        return D.esc(_cut(_clean(_flat(s)), 300))
+    return f'{TBD}（每股盈利±20%/倍数±20%·精算股已填·其余待接）'
 
 
 def _scen_full(deep):
     rows = (deep.get("block6_scenarios") or {}).get("rows") or []
     if rows:
-        return "<br>".join(D.esc(f"{r.get('case')}：{r.get('assume','')}→{r.get('value','')}（{r.get('prob','')}）") for r in rows)
+        return "<br>".join(
+            D.esc(f"{r.get('case') or ''}：{r.get('assume') or ''}→{r.get('value') or ''}"
+                  f"（{r.get('prob') or ''}）".replace("：→", "：待接→").replace("（）", ""))
+            for r in rows)
     return TBD
 
 
 def _risks(deep):
     rk = (deep.get("block8_risks") or {}).get("rows") or []
     if rk:
-        return "<br>".join(D.esc(f"{r.get('risk','')}·重{r.get('weight','')}·信号{r.get('signal','')}") for r in rk)
+        return "<br>".join(
+            D.esc(f"{r.get('risk') or '待接'}·重{r.get('weight') or '—'}·信号{r.get('signal') or '待接'}")
+            for r in rk)
     return TBD
 
 
 def _sources(deep):
     src = deep.get("source_note") or deep.get("sources")
-    if src:
-        return D.esc(_clean(_flat(src))[:400])
+    txt = _clean(_flat(src)) if src else ""
+    if txt:
+        return D.esc(_cut(txt, 400))
     return TBD
 
 
@@ -419,7 +491,7 @@ def build(date: str) -> str:
         "新增数": fresh["chg_new"], "取消数": fresh["chg_cancel"], "升降级数": fresh["chg_grade"],
         "差分明细": _diff(date),
         "图4结论": f"AI供应链 {_cat_pct(conc,'AI供应链')} 超上限 {_cat_limit(conc,'AI供应链')}——最该盯的超配。",
-        "来源": "holdings_true + full_product_render 集中度上下限(配置)",
+        "来源": "持仓底表 + 组合集中度上下限(正式配置)",
         "样本天数": _shadow_days(), "图10结论": _fig10(), "图12结论": "越新越可信；缺 data_date 标红不可依赖。",
         "SBI总资产": sbi_asset, "SBI数据日": "2026-07-18", "目标40": _sbi_goal(sbi_tot, 0.4),
         "目标100": _sbi_goal(sbi_tot, 1.0), "进度": "待接·缺进攻仓已投入额", "图11结论": "SBI独立进攻仓·目标/进度读快照与批准记录。",
@@ -434,7 +506,10 @@ def build(date: str) -> str:
     out = out.replace("三层骨架模板 · 给Code填数据 · " + dd, f"★每日投资产品 · {dd}")
     out = out.replace("三层骨架模板 · 给Code填数据", "★每日投资产品")
     out = re.sub(r"低置信(?!·仅作框架参考)", "低置信·仅作框架参考", out)
-    # 内部话/裸字段名→大白话(治 L4b·不许印内部 jargon 给董事长)
+    # 删模板里给Code的括号提示语(校验提示·不是给董事长看的·治轮5致命6)
+    for hint in ("（<b>阈值必须读配置文件，不得写死</b>）", "（不足须标\"参考\"）",
+                 "（须董事长定稿的尺，按正式配置判定）", "（出厂 lint 校验）", "（须与自述一致）"):
+        out = out.replace(hint, "")
     for a, b in (("不硬编", "不编造数字"), ("eps0", "起始每股盈利"), ("normal_eps", "正常化每股盈利"),
                  ("pe_mid", "中周期市盈率"), ("normalized_eps", "正常化每股盈利"), ("pe_normal", "正常化市盈率"),
                  ("ebitda_normal", "正常化经营利润"), ("ev_ebitda", "企业价值倍数"), ("net_debt", "净负债"),
