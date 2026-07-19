@@ -693,6 +693,21 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 if k in cur and isinstance(base, int) and cur[k] < base:
                     fails.append(f"L9 内容缩水：{fn} 的『{k}』={cur[k]} < 基线 {base}——只增不减,不许删有效研究证据")
 
+    # ── L50 日期一致性(董事长2026-07-20)：文件名日期 = run_id 日期 = 页头 data_date，三者必须一致(跨午夜错位) ──
+    for fn, h in vols.items():
+        if 'id="L3"' not in h and "inst-top" not in h:
+            continue
+        m_fn = re.search(r"(\d{4})-(\d{2})-(\d{2})", fn)
+        m_rid = re.search(r"run_id=R3-(\d{8})", h)
+        m_dd = re.search(r'★ 每日投资产品 · (\d{4}-\d{2}-\d{2})', _txt(h)) or re.search(r"data_date[^0-9]{0,4}(\d{4}-\d{2}-\d{2})", h)
+        fn_d = "".join(m_fn.groups()) if m_fn else None
+        rid_d = m_rid.group(1) if m_rid else None
+        dd_d = m_dd.group(1).replace("-", "") if m_dd else None
+        ds = {x for x in (fn_d, rid_d, dd_d) if x}
+        if len(ds) > 1:
+            fails.append(f"L50 日期错位：{fn} 文件名日={fn_d}·run_id日={rid_d}·页头data_date={dd_d} 三者不一致"
+                         f"——文件名日=run_id日=数据日必须相同(跨午夜生产须锚定数据日)")
+
     # ── L49b 术语裸奔(董事长2026-07-19)：正式产品用了这些术语，必须有『术语速查表』把它们解释成人话 ──
     _JARGON = ("pp", "P/E", "PEG", "DCF", "NAV", "回撤", "集中度", "催化剂", "止盈", "止损",
                "浮盈", "浮亏", "指引", "共识", "护城河", "峰值定价", "正常化", "中周期", "穿周期", "重估", "杀估值")
