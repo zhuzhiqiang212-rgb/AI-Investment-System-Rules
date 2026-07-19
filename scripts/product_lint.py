@@ -693,6 +693,17 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 if k in cur and isinstance(base, int) and cur[k] < base:
                     fails.append(f"L9 内容缩水：{fn} 的『{k}』={cur[k]} < 基线 {base}——只增不减,不许删有效研究证据")
 
+    # ── L49b 术语裸奔(董事长2026-07-19)：正式产品用了这些术语，必须有『术语速查表』把它们解释成人话 ──
+    _JARGON = ("pp", "P/E", "PEG", "DCF", "NAV", "回撤", "集中度", "催化剂", "止盈", "止损",
+               "浮盈", "浮亏", "指引", "共识", "护城河", "峰值定价", "正常化", "中周期", "穿周期", "重估", "杀估值")
+    for fn, h in vols.items():
+        if 'id="L3"' not in h and "inst-top" not in h:
+            continue
+        t = _txt(h)
+        used = [w for w in _JARGON if w in t]
+        if used and "术语速查表" not in h and 'id="glossary"' not in h:
+            fails.append(f"L49术语 裸奔：{fn} 用了术语 {used[:6]} 但缺『术语速查表』——董事长看不懂的词必须全解释成人话")
+
     # ── L49 异常价专项核准闸(董事长2026-07-19 第四节·最高风险)：现价与合理值差>5倍且卡内无核准标注 → 禁止发布 ──
     try:
         sg = json.loads((ROOT / "data" / "reports" / f"data_sanity_{date}.json").read_text(encoding="utf-8"))
