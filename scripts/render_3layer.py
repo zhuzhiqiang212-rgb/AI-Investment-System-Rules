@@ -628,6 +628,42 @@ def _waits(sym, v):
     return "本只权威估值已 OK·精算"
 
 
+# ── [收口·真凶]135处内联亮色(旧深色主题)统一翻成浅底可读色·CSS盖不住内联→只能全文替换(董事长2026-07-19) ──
+#   规则:浅背景上不得有亮色文字·每处内联 color 与其背景对比度≥4.5:1。整个产品统一为浅色主题。
+_INLINE_TEXT = {   # 亮色文字 → 浅底可读的深色(架构师给的换算值)
+    "#ffb454": "#8A3E00", "#A9761A": "#8A3E00", "#ffd479": "#7A5C00", "#E0B24A": "#7A5C00",
+    "#caa24a": "#6B5200", "#c9a86a": "#6B5200", "#a89968": "#6B5200", "#d8c89a": "#6B5200", "#a89968": "#6B5200",
+    "#7ee0a0": "#1E7A45", "#8cf5be": "#1E7A45", "#bfe6d3": "#1E7A45", "#8ef5be": "#1E7A45",
+    "#ff9a9a": "#A3231F", "#ff5c5c": "#A3231F", "#ffd0d0": "#A3231F", "#ffb0b0": "#A3231F",
+    "#9ed8ff": "#12324E", "#8fd6ff": "#12324E", "#5cc8ff": "#12324E", "#8ec6ff": "#12324E",
+    "#7cc4ff": "#12324E", "#9ed8ff": "#12324E", "#bcd0e2": "#3A4A5A", "#cfe0ee": "#26404F",
+    "#8ea3b6": "#4A5C6A", "#9db0c2": "#4A5C6A", "#c8d4de": "#3A4A5A", "#8a94a0": "#4A5C6A",
+    "#9fb3c4": "#3A4A5A", "#ffe4a8": "#7A5C00",
+    # 二轮扫描补漏(脚本扫出<4.5:1)
+    "#d9e7ef": "#3A4A5A", "#ffcf6b": "#7A5C00", "#bcd8ee": "#26404F", "#d8c68a": "#6B5200",
+    "#c9a9f6": "#5B3E8C", "#ff6b6b": "#A3231F", "#4f9e7f": "#1A6B3B", "#66707c": "#4A5C6A",
+    "#9ed6a8": "#1A6B3B", "#ffd0d0": "#A3231F", "#d0f0dd": "#1A6B3B", "#e6d0a8": "#6B5200",
+}
+_INLINE_BG = {     # 旧深色主题的深底(残留在浅色页面里) → 浅底
+    "#141c26": "#F2F4F7", "#0f1925": "#F2F4F7", "#0e1621": "#F2F4F7", "#0e1a26": "#F2F4F7",
+    "#0a141d": "#F2F4F7", "#10202e": "#EAF2FA", "#0e1c2e": "#EAF2FA", "#13202d": "#EAF2FA",
+    "#101a26": "#F2F4F7", "#151f2b": "#F7F9FB", "#0f1e17": "#EAF5EF", "#12261f": "#EAF5EF",
+    "#0f2e1c": "#E4F4EA", "#3a1414": "#FBEAEA", "#3a2410": "#F5EFE0", "#2a2412": "#F5EFE0",
+    "#2a1f10": "#F5EFE0", "#1c1608": "#F5EFE0", "#0b1118": "#FFFFFF", "#0f2018": "#EAF5EF",
+    "#1c2740": "#EAF2FA", "#122033": "#EAF2FA", "#0d1a12": "#EAF5EF", "#1a1208": "#F5EFE0",
+}   # 注:#12324e/#5C4033/#123A6B/#123D2E/#0b1420(topnav)/#12203a(.hdr) 是深色强调条·故意不翻·配白字
+
+
+def _light_theme(out: str) -> str:
+    """全文把旧深色主题的内联亮色文字/深色背景 → 浅底可读色(逐一替换·CSS改不掉内联·只能这样)。"""
+    for a, b in _INLINE_TEXT.items():
+        out = out.replace(f"color:{a}", f"color:{b}").replace(f"color: {a}", f"color:{b}")
+    for a, b in _INLINE_BG.items():
+        out = out.replace(f"background:{a}", f"background:{b}").replace(f"background: {a}", f"background:{b}")
+        out = out.replace(f"background-color:{a}", f"background-color:{b}")
+    return out
+
+
 # [E1]四只估值底稿(架构师2026-07-19补正·Code照文渲染·数值一字不改)
 _ARCH_VAL = {
     "US.COIN": (
@@ -767,10 +803,10 @@ _A_CSS = (
 
 # ── [A]三层导航 + [B]版面区块(董事长2026-07-19 第十一/十二节) ──
 _NAV_CSS = (
-    "#topnav{position:sticky;top:0;z-index:50;background:#0b1420;border-bottom:1px solid #2b4054;"
+    "#topnav{position:sticky;top:0;z-index:50;background:#12324E;border-bottom:2px solid #0d2438;"
     "padding:7px 10px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px}"
-    "#topnav a{color:#9ed8ff;text-decoration:none;font-weight:700;white-space:nowrap}"
-    "#topnav a:hover{text-decoration:underline}#topnav b{color:#ffd479}"
+    "#topnav a{color:#FFFFFF !important;text-decoration:none;font-weight:700;white-space:nowrap}"
+    "#topnav a:hover{text-decoration:underline}#topnav b{color:#FFE08A !important}"
     ".navret{background:#0e1a26;border:1px solid #24384c;border-radius:6px;padding:5px 9px;margin:6px 0;"
     "font-size:12.5px;color:#bcd0e2;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}"
     ".navret a{color:#7ee0a0;font-weight:700;text-decoration:none}.navret a:hover{text-decoration:underline}"
@@ -1160,6 +1196,12 @@ def build(date: str) -> str:
               '<div style="font-size:11.5px;color:#a89968;margin-top:4px">图形均为文字+结论版（诚实标未完成·不用假图补位）；'
               '其余逐项数据缺口在各卡内就地标「待接·不编」。</div></div>')
     out = out.replace('<details class="layer" id="L1"', undone + '<details class="layer" id="L1"', 1)
+    # [收口·治本]:root 金色变量改深棕/白底 + .p-wait 待拍板徽章改实心(董事长2026-07-19【1】)
+    out = out.replace("--L1-txt:#8A6100", "--L1-txt:#5C4033").replace("--L1-bg:#FDF6E3", "--L1-bg:#FFFFFF")
+    out = out.replace(".p-wait{border:2.5px solid var(--L1-txt);color:var(--L1-txt)}",
+                      ".p-wait{background:#5C4033;color:#FFFFFF;border:none;padding:2px 10px}")
+    # [收口·真凶]135处内联亮色 → 浅底可读色(CSS盖不住内联·全文替换·统一浅色主题)
+    out = _light_theme(out)
     return out
 
 
