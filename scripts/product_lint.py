@@ -693,6 +693,27 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 if k in cur and isinstance(base, int) and cur[k] < base:
                     fails.append(f"L9 内容缩水：{fn} 的『{k}』={cur[k]} < 基线 {base}——只增不减,不许删有效研究证据")
 
+    # ── L49 异常价专项核准闸(董事长2026-07-19 第四节·最高风险)：现价与合理值差>5倍且卡内无核准标注 → 禁止发布 ──
+    try:
+        sg = json.loads((ROOT / "data" / "reports" / f"data_sanity_{date}.json").read_text(encoding="utf-8"))
+        anom = []
+        for x in (sg.get("issues") or []):
+            if str(x.get("type")) == "量级哨兵":
+                mm = re.search(r"约\s*(\d+(?:\.\d+)?)\s*倍", str(x.get("detail", "")))
+                if mm and float(mm.group(1)) > 5:
+                    anom.append((str(x.get("symbol")), str(x.get("name") or ""), float(mm.group(1))))
+        for fn, h in vols.items():
+            if 'id="L3"' not in h and "inst-top" not in h:
+                continue
+            for sym, nm, mult in anom:
+                si = h.find(f'id="why-{sym}"')
+                seg = h[si:si + 4000] if si > 0 else ""
+                if "数据未通过专项核准" not in seg:
+                    fails.append(f"L49 异常价未核准：{fn} 的 {nm}({sym}) 现价约合理值 {mult:.0f} 倍，"
+                                 f"卡内却无『数据未通过专项核准，不可据此买卖』标注——差>5倍且无拆股核准/两源前禁止发布")
+    except Exception:
+        pass
+
     return fails
 
 

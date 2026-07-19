@@ -65,6 +65,24 @@ def _daydiff(d1: str, d2: str) -> int:
         return 0
 
 
+_ANOM_CACHE: dict = {}
+
+
+def _sanity_anomaly(date: str) -> dict:
+    """读 data_sanity 的量级哨兵→{sym: 倍数}(现价与中周期公允差>5倍·四·专项核准前须显眼标注)。"""
+    if date in _ANOM_CACHE:
+        return _ANOM_CACHE[date]
+    out = {}
+    for x in (_rj(ROOT / "data" / "reports" / f"data_sanity_{date}.json").get("issues") or []):
+        if str(x.get("type")) == "量级哨兵":
+            m = re.search(r"约\s*(\d+(?:\.\d+)?)\s*倍", str(x.get("detail", "")))
+            mult = float(m.group(1)) if m else 6.0
+            if mult > 5:
+                out[str(x.get("symbol"))] = mult
+    _ANOM_CACHE[date] = out
+    return out
+
+
 def _price_meta(sym: str, date: str) -> dict:
     """该只现价的真实交易日/时点/源(读 holdings_true.price_data_date·非生产日)。治致命1。"""
     for h in (_rj(ROOT / "data" / "accounts" / f"holdings_true_{date}.json").get("holdings") or []):
@@ -277,6 +295,16 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         "估值状态三态": val_state3,
         **d16,
     }
+    # [四]现价与合理值差>5倍(爱德万/闪迪)→专项核准前显眼标注·不得再以"架构师已复核"为凭
+    _anom = _sanity_anomaly(date).get(sym)
+    if _anom:
+        warn = (f'<b style="color:#ff5c5c">⚠ 数据未通过专项核准，不可据此买卖</b>（现价约为中周期合理值 {_anom:.0f} 倍）'
+                f'——待补：正式代码/交易所/原始行情记录/是否拆股+拆股公告/拆股前后价格与股数/持仓是否同步调整/'
+                f'OpenD价/第二个独立行情源/两源是否一致/估值输入用拆股前还是拆股后口径。此前一律只观察、不据此下单。')
+        hc["为什么现在"] = warn + "｜" + str(hc.get("为什么现在", ""))
+        hc["三态文字"] = "⚠数据未通过专项核准·不可据此买卖（仅观察）"
+        hc["今日动作"] = "观"
+        hc["动作色"] = "wait"
     # [二.3]无可信估值(如SpaceX)→统一"只观察"，禁用便宜/贵/PEG等判断词
     if no_val:
         obs = "暂无可信估值，不能判断便宜或贵；因此不买、不加、不减，只保留观察。"
