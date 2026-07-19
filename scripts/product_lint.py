@@ -469,7 +469,9 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     # ── L36 同股多现价(硬检查·董事长2026-07-19 轮5致命1·本次它漏了→补进)：同一只两个不同现价→拦 ──
     #     现价是三层核心字段,必须全读同一 final_decision 单一源(动作表/why卡/deep推导逐字一致)。
     #     覆盖两处来源:(a)动作表权威价"¥N.NN [市场·日期]"；(b)各卡散文里带"现价"标签的价。
-    for fn, h in vols.items():
+    for fn, h0 in vols.items():
+        cap36 = h0.find('id="inst-top"')                 # ④机构底稿(候选/龙头价)不算个股现价·避免误报
+        h = h0[:cap36] if cap36 > 0 else h0
         pxmap: dict[str, set] = {}
         # (a) 动作表:同一 <tr> 内 symbol + 带[市场·日期]标签的现价
         for tr in re.findall(r"<tr\b.*?</tr>", h, re.S):
@@ -579,7 +581,11 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
             return True
 
     def _cards(h: str):
-        """按 id="why-SYM" / id="deep-SYM" 卡锚切每只的卡片段(用于同卡自洽检查)。"""
+        """按 id="why-SYM" / id="deep-SYM" 卡锚切每只的卡片段(用于同卡自洽检查)。
+        ④完整机构底稿(inst-top 之后)是【非个股整层内容】·不参与个股卡自洽扫描(否则最后一卡溢出误报)。"""
+        cap = h.find('id="inst-top"')
+        if cap > 0:
+            h = h[:cap]
         anchors = [(m.start(), m.group(1))
                    for m in re.finditer(r'id="(?:why|deep)-((?:JP|US|HK|CC)\.[A-Z0-9.]+)"', h)]
         bounds = anchors + [(len(h), None)]
@@ -660,6 +666,32 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
             # 用"不能依赖/待接清单"块的行数近似:此处只拦"声明数≠0 但清单为空"及重复名
             if declared > 0 and "待接" not in t:
                 fails.append(f"L47 清单对不上：{fn} 页头称待接 {declared} 项，正文却找不到待接清单")
+
+    # ── L9 不缩水闸 + L48 版块完整性闸(架构师早要求·GPT9 焊死)：只对三层正式产品·读 content_manifest ──
+    def _l9_counts(h: str) -> dict:
+        deep = len(re.findall(r'id="deep-', h))
+        sec = len(re.findall(r'id="sec-', h))
+        return {"研究模块数": deep * 16 + sec,
+                "原始来源数": len(re.findall(r"来源[:：]|发布[:：]|阅读原文", h)),
+                "反面证据数": len(re.findall(r"反面|不选减|不选加|挑战|证伪|推翻", h)),
+                "有效证据项目数": len(re.findall(r"佐证|证据|依据", h))}
+    try:
+        mani = json.loads((ROOT / "data" / "content_manifest.json").read_text(encoding="utf-8"))
+    except Exception:
+        mani = None
+    if mani:
+        for fn, h in vols.items():
+            if 'id="L3"' not in h and "inst-top" not in h:      # 只核三层正式产品·跳过机器分册
+                continue
+            # L48 版块完整性:旧版登记的必存在区块,新版缺一块 → FAIL
+            for blk in (mani.get("required_blocks") or []):
+                if blk.get("必存在") and str(blk.get("锚", "")) not in h:
+                    fails.append(f"L48 版块缺失：{fn} 缺少区块『{blk.get('名称')}』(锚 {blk.get('锚')}·原位置 {blk.get('原位置')})——旧版有、新版必须有")
+            # L9 不缩水:研究模块/来源/反面证据/有效证据项目数 只增不减,少一条 FAIL
+            cur = _l9_counts(h)
+            for k, base in (mani.get("baseline_counts") or {}).items():
+                if k in cur and isinstance(base, int) and cur[k] < base:
+                    fails.append(f"L9 内容缩水：{fn} 的『{k}』={cur[k]} < 基线 {base}——只增不减,不许删有效研究证据")
 
     return fails
 

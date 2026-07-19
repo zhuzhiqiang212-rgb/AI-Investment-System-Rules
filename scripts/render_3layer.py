@@ -580,6 +580,100 @@ def _waits(sym, v):
     return "本只权威估值已 OK·精算"
 
 
+# 复用 deep_render 的机构区块样式(注入内容才有正确排版)——只搬 class 规则、不动 body/:root
+_DEEP_CSS = (
+    ".card{background:#151f2b;border:1px solid #2b4054;border-radius:10px;padding:12px 14px;margin:10px 0}"
+    ".sym{color:#8ea3b6;font-size:12px}.conf{color:#ffd479}.q{color:#7ee0a0;font-size:13px}.v{color:#9ed8ff;font-size:13px}"
+    ".k{color:#5cc8ff;font-weight:700;margin-right:6px}.deep{margin:6px 0;font-size:14px}.dossier{margin:6px 0;font-size:13px;color:#d9e7ef}.you{margin-top:6px;font-weight:700}"
+    ".blk{font-size:14.5px;color:#ffe4a8;font-weight:700;margin:12px 0 4px;border-left:4px solid #2c6e9a;padding-left:8px}"
+    ".plain{background:#12261f;border-left:4px solid #4f9e7f;border-radius:0 7px 7px 0;padding:6px 11px;margin:6px 0;font-size:13px;color:#bfe6d3}"
+    ".need{color:#ffb454;font-weight:700}.bull{color:#7ee0a0;font-weight:700}.bear{color:#ff9a9a;font-weight:700}.base{color:#7cc4ff;font-weight:700}"
+    ".dt{width:100%;border-collapse:collapse;margin:7px 0;font-size:12.5px}.dt th,.dt td{border:1px solid #2a3d4f;padding:6px 8px;text-align:left;vertical-align:top}.dt th{background:#13202d;color:#bcd0e2}"
+    "h2.main{font-size:20px;color:#ffd479;border-left:6px solid #ffd479;padding-left:10px;margin:18px 0 8px}"
+    "h2.sub{font-size:15px;color:#8ea3b6;font-weight:600;border-left:3px solid #3a5a8a;padding-left:8px;margin:16px 0 6px}"
+    "h3{font-size:15px;color:#cfe0ee}"
+    "details.sub{margin:8px 0;border:1px solid #24384c;border-radius:8px;background:#101a26}"
+    "details.sub>summary{cursor:pointer;padding:9px 13px;font-size:14px;color:#9ed8ff;font-weight:700}"
+    "details.sub>div,details.sub>table{margin:0 11px 10px}"
+    ".ruler-embed{border:1px solid #2a3d4f;border-radius:8px;padding:8px 10px;margin:8px 0;background:#0f1925}"
+    ".note{font-size:12.5px;color:#9fb3c4;margin:6px 0}"
+)
+
+# ── 机构底稿区块(第3节·复用 deep_render 的 part builder·把三层丢掉的整层内容补回来) ──
+#   L3 完整机构底稿(全量)+ L1/L2 摘要引用。每块 try/except 隔离,单块失败不拖垮全局。
+_INST_BLOCKS = [
+    ("机会池 · 该不该换股、换谁（全五关漏斗＋候选池＋替换引擎）", "sec-opp",
+     lambda D, date, dyn, daily: D.part4_opportunity(daily, dyn) + D.part4b_swap_engine(daily, dyn) + D.part4_funnel(date, daily, dyn)),
+    ("板块深度尺 · 6子板块＋龙头五维小研报（军工/电力/光模块·动静分开）", "sec-sector",
+     lambda D, date, dyn, daily: D.sector_deep_block(date)),
+    ("大环境 · 六层世界观＋宏观表", "sec-macro",
+     lambda D, date, dyn, daily: D.part1_layers(daily, dyn) + D.part1_macro_table(daily)),
+    ("组合层 · 集中度是否押偏", "sec-conc",
+     lambda D, date, dyn, daily: D.part3_concentration(date, dyn)),
+    ("风险因子 · 三条主风险＋可观测信号", "sec-risk",
+     lambda D, date, dyn, daily: D.part3_risk_factors(dyn)),
+    ("复盘记分卡三件魂 · 判断记分／确定性累积／多尺度复盘／影子组合／预测记分", "sec-score",
+     lambda D, date, dyn, daily: D.part7_pdca(date, daily) + D.part7_souls(date, daily) + D.part7_forecasts(date)),
+    ("右栏底子 · 6把尺（世界观/国家战略/资金/板块/过滤五关/持仓档案）", "sec-rulers",
+     lambda D, date, dyn, daily: D.part6_rulers(dyn)),
+    ("承接节点 · 今天哪几只跌到加仓价／拍板收件箱", "sec-triggers",
+     lambda D, date, dyn, daily: D.part0_triggers(date, dyn)),
+    ("与昨天相比 · 差分优先＋当日新闻", "sec-diff",
+     lambda D, date, dyn, daily: D.part0_diff(date, dyn)),
+    ("整条逻辑怎么闭环", "sec-loop",
+     lambda D, date, dyn, daily: D.part5_closeloop(daily)),
+]
+
+
+_INST_FIELD_ZH = {
+    "adj_operating_margin": "调整后经营利润率", "ai_target_2026": "2026年AI目标",
+    "backlog_total": "在手订单总额", "billings_growth": "开票增速", "gas_turbine_backlog": "燃气轮机在手订单",
+    "operating_margin": "经营利润率", "revenue_growth": "营收增速", "data_center": "数据中心",
+    "free_cash_flow": "自由现金流", "net_income": "净利润", "gross_margin": "毛利率",
+    "forward_pe": "前瞻市盈率", "book_value": "每股净资产", "dividend_yield": "股息率",
+}
+
+
+def _sanitize_inst(html: str) -> str:
+    """机构底稿注入前清洗:①非交易日诚实化'当日实时价'②内部字段名转人话③断长行(L23)④去跨文档死链(L25)。"""
+    # ① 当日实时价→最近交易日收盘价(非交易日机构块也是同一批07-17价·不许冒充今天)
+    html = re.sub(r"(?<!非)当日实时价", "最近交易日收盘价", html)
+    html = html.replace("今天 OpenD 拉的实时", "最近交易日 OpenD 收盘的")
+    # ② 内部字段名(snake_case)→人话:先译常见,余下泛化清掉(治 L46)
+    for k, v in _INST_FIELD_ZH.items():
+        html = html.replace(k, v)
+    html = re.sub(r"\b[a-z]{2,}(?:_[a-z0-9]+)+\b(?!\s*=\s*[\"'])", "", html)   # 残余 snake 泄漏清掉
+    # ③ 去内部跳锚(三层没有这些锚·避免 L25 坏锚点):把 <a href="#..">x</a> 降级为纯文本
+    html = re.sub(r'<a\b[^>]*href="#[^"]*"[^>]*>(.*?)</a>', r"\1", html, flags=re.S)
+    # ④ 断长行(L23<8000):在常见块级闭合后插换行
+    html = re.sub(r"(</(?:div|tr|table|details|h2|h3|li|p)>)", r"\1\n", html)
+    return html
+
+
+def _institutional(date, dyn):
+    """把三层重建时丢掉的【非个股整层内容】补回来(复用 deep_render 的 part builder)。"""
+    daily = dyn.get("daily", {}) or {}
+    folds, present = [], []
+    for title, aid, fn in _INST_BLOCKS:
+        try:
+            body = fn(D, date, dyn, daily) or ""
+        except Exception as e:
+            body = f'<div class="note">本块加载失败·待接（{D.esc(str(e))}）</div>'
+        folds.append(f'<details class="sub" id="{aid}"><summary>{D.esc(title)}</summary>'
+                     f'<div style="padding:4px 6px 10px">{body}</div></details>')
+        present.append(aid)
+    html = "".join(folds)
+    try:
+        html = D._scrub_leaks(html, is_pool=False)     # 与综合底稿同一套清洗(去内部话/裸字段)
+    except Exception:
+        pass
+    html = _sanitize_inst(html)
+    header = ('<h2 class="main" id="inst-top" style="margin-top:22px">④ 完整机构底稿'
+              '（机会池／板块深研／记分卡／右栏6尺／承接节点／新闻——一条不删·只增不减）</h2>'
+              '<div class="note">本层是三层结构的"完整底稿"延伸：以上①今天怎么做、②为什么，都可在此追到全量原始依据。</div>')
+    return header + html, present
+
+
 def build(date: str) -> str:
     dyn = D.load_dynamic(date)
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
@@ -650,6 +744,10 @@ def build(date: str) -> str:
                    f"全部现价＝最近交易日 <b>{pd}（{_wk(pd)}）</b> 收盘/盘后价（源 OpenD·<b>非当日实时价</b>）。")
     else:
         px_note = "美股取昨夜收；日股取当日/最近交易日收；各只价格交易日见卡内标注。"
+    # 第0节:三层重排版【构建戳】——区别于数据 run_id,每次重排都刷新,让"是不是重新生成过"一眼可辨(诚实:数据仍为原扫描)
+    build_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    px_note += (f" ｜ <b>三层重排版构建：{build_ts}</b>"
+                f"（数据仍为上方 run_id 那次扫描·价=最近交易日；重排版≠重扫数据）")
     ctx = {
         "data_date": dd, "生产时间": gen or D.md_note(dyn) if hasattr(D, "md_note") else gen, "run_id": run_id or TBD,
         "各市场价时点说明": px_note,
@@ -669,6 +767,15 @@ def build(date: str) -> str:
     raw = TPL.read_text(encoding="utf-8")
     raw = re.sub(r'<div class="tpl">.*?</div>\s*', "", raw, count=1, flags=re.S)   # 删红色说明块
     out = render(raw, ctx)
+    # 第3节:把三层重建丢掉的整层内容补回来——注入 L3 末尾(完整机构底稿)+ 追加 deep 样式
+    inst_html, inst_present = _institutional(date, dyn)
+    build._inst_present = inst_present     # 供 content_manifest / 出厂核用
+    out = out.replace("</style>", _DEEP_CSS + "</style>", 1)               # 追加机构区块样式
+    out = re.sub(r'(</div>\s*</details>\s*)(<script>)',                     # 注入 L3 末尾(lambda避免转义)
+                 lambda m: inst_html + m.group(1) + m.group(2), out, count=1)
+    # L3 导航追加机构底稿锚 + 顶部导航
+    out = out.replace('<a href="#L3">③ 完整研究底稿</a>',
+                      '<a href="#L3">③ 完整研究底稿</a><a href="#inst-top">④ 完整机构底稿</a>', 1)
     # 致命1:整块换掉页头新鲜度条→非交易日禁用'当日实时价/旧·超3天 0'类表述
     out = re.sub(r'<div class="freshbar">.*?</div>', _freshbar_html(fresh, len(tbd_rows)), out, count=1, flags=re.S)
     if fresh.get("market_closed"):        # 非交易日:顶部"[今天的]"改如实标注(价非今天的)

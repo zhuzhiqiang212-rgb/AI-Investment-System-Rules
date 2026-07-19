@@ -60,6 +60,19 @@ def run(date: str) -> dict:
     cases.append({"name": "致命3·同股多现价(注入第一三共第二个现价)", "expect": "FAIL·L36", "fails": f3,
                   "ok": len(f3) >= 1})
 
+    # ── 致命5:删掉『板块深度尺』整块 → L48 版块完整性闸必拦(董事长2026-07-19 第4节) ──
+    inj4 = h.replace('id="sec-sector"', 'id="sec-REMOVED"', 1)
+    f4 = [x for x in curated(PL.lint_volumes({prod.name: inj4}, date)) if x.startswith("L48")]
+    cases.append({"name": "致命5·删版块块(演练L48版块完整性闸)", "expect": "FAIL·L48", "fails": f4,
+                  "ok": len(f4) >= 1})
+
+    # ── 致命6:删掉大量反面证据 → L9 不缩水闸必拦 ──
+    import re as _re
+    inj5 = _re.sub(r"不选减|不选加|反面|挑战|证伪|推翻", "", h)
+    f5 = [x for x in curated(PL.lint_volumes({prod.name: inj5}, date)) if x.startswith("L9")]
+    cases.append({"name": "致命6·删反面证据(演练L9不缩水闸)", "expect": "FAIL·L9", "fails": f5,
+                  "ok": len(f5) >= 1})
+
     # ── 真实测:FAIL→正式产品不被覆盖·保留上一版(哈希前后比对·董事长2026-07-19补做) ──
     #   做法:①记正式产品(★每日产品_·三层)当前哈希/mtime ②注入爱德万价格异常(制造 L35 FAIL)
     #   ③真跑 render_3layer(出厂lint硬闸) ④比对哈希——FAIL 应 rc≠0 且哈希/mtime 不变(没被覆盖)。
