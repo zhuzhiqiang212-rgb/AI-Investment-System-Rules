@@ -628,6 +628,109 @@ def _waits(sym, v):
     return "本只权威估值已 OK·精算"
 
 
+# [E1]四只估值底稿(架构师2026-07-19补正·Code照文渲染·数值一字不改)
+_ARCH_VAL = {
+    "US.COIN": (
+        '<b style="color:#7ee0a0">估值底稿·架构师补正（COIN·保留「中·精算」不升级）</b><br>'
+        '逐年GAAP摊薄EPS（SEC EDGAR CIK 1679788·10-K）：FY2021 $14.50（牛市峰值）／FY2022 −$11.83（熊市巨亏·不剔除）／'
+        'FY2023 $0.37／FY2024 $9.48／FY2025 $4.45。<br>'
+        '穿牛熊简单平均（不剔异常年）=(14.50−11.83+0.37+9.48+4.45)/5=<b>$3.39</b>；同业倍数22× → 合理中枢 $74.6（区间 $67~82）；现价$157≈中枢2.1倍。<br>'
+        '为何只给「中」：单一周期内EPS从+14.5摆到−11.8·任何点估值可能上下差一倍·仅一轮完整样本 → 框架参考，不宜单独据此下单。'),
+    "JP.6857": (
+        '<b style="color:#ffb454">估值底稿·架构师补正（爱德万·<u>撤销精算→框架参考</u>）</b><br>'
+        '逐年摊薄EPS（stockanalysis/S&P·财年Apr–Mar）：FY2022 ¥111.81／FY2023 ¥173.67／FY2024 ¥84.16（周期谷）／FY2025 ¥218.01／'
+        'FY2026 ¥513.30（AI/HBM超级景气峰值·已剔除）。<br>'
+        '4年均=587.65/4=¥146.9 ×中周期PE20=¥2,938（区间¥2,646~3,234）。<br>'
+        '<b>为何降级</b>：半导体测试设备强周期(完整周期5–8年)·现仅FY22-25四年·缺FY19-21(恰覆盖上轮低谷)→用不完整周期算「正常年景」不可靠。'
+        '<b style="color:#ff5c5c">撤销「中高·精算」→「框架参考·样本不足一个完整周期」</b>；且现价¥27,505≈中枢9倍·须先过异常价专项核准。'),
+    "US.TSM": (
+        '<b style="color:#7ee0a0">估值底稿·架构师补正（台积电·补敏感性+分年目标）</b><br>'
+        '口径=P/E+PEG（成熟成长）；基准FY2026E ADR EPS≈$18·前瞻P/E≈23.5·净利增速≈40%→PEG≈0.6；合理倍数22×。<br>'
+        '敏感性九宫格（EPS±20%×倍数±20%）：<br>'
+        '<table class="dt" style="max-width:520px"><tr><th>合理价</th><th>17.6×(−20%)</th><th>22.0×(基准)</th><th>26.4×(+20%)</th></tr>'
+        '<tr><td>EPS $14.4(−20%)</td><td>$253</td><td>$317</td><td>$380</td></tr>'
+        '<tr><td>EPS $18.0(基准)</td><td>$317</td><td><b>$396</b></td><td>$475</td></tr>'
+        '<tr><td>EPS $21.6(+20%)</td><td>$380</td><td>$475</td><td>$570</td></tr></table>'
+        '最坏$253／基准$396／最好$570·现价$397.75落基准格附近。<br>'
+        '<b>分年目标</b>：2026年底 $18×22=<b>$396</b>／2027年底 $22×22=<b>$484</b>（高盛TWD3,000≈$475–500与2027底一致·仅作对照）。<br>'
+        '$18假设失效信号：月营收连续两月低于季度指引隐含值／3nm·2nm订单被下修／超大规模AI资本开支放缓／新台币大幅升值／台海事件断供 → 任一出现即重算作废。'),
+    "US.IBKR": (
+        '<b style="color:#ffb454">估值底稿·架构师补正（IBKR·保留「框架参考」不升级）</b><br>'
+        '正常化EPS $2.40来源：FY2025 GAAP摊薄$2.22(已按2024-06 4拆1还原)＋2026共识$2.46~2.49·取中$2.40；合理倍数22× → 中枢$52.8（区间$48~58）·现价$90.78≈1.7倍。<br>'
+        '<b>利率高峰处理</b>：利润含大量客户存款净利息(NII)·随利率走·2023-25高利率期·<u>不外推高利率年</u>·用FY25实际＋次年共识取中作中性利率代理。<br>'
+        '<b>降息情景</b>：基准$2.40→$52.8；降100bp→EPS $2.05~2.15→$45~47；降200bp→EPS $1.75~1.90→$39~42（每降100bp约削EPS$0.25~0.35·架构师估算·非公司披露→故不给精算）。<br>'
+        '市场按~37×前瞻给到$90(为30%+账户增长与77%税前利润率付成长溢价)·「正常化券商倍数」与「成长定价」是两把尺·本估值只说按前者偏贵·不等于该卖。'),
+}
+
+
+def _arch_val_block(sym):
+    body = _ARCH_VAL.get(sym)
+    if not body:
+        return ""
+    return ('<div style="font-size:12px;color:#cfe0ee;background:#0f1925;border-left:3px solid #4f9e7f;'
+            'border-radius:0 6px 6px 0;padding:7px 10px;margin:6px 0">' + body + '</div>')
+
+
+# [E2/E3]统一减仓规则(架构师2026-07-19定稿)——每只六行 + 连续超止盈线天数计数器
+_REDUCE_UP30_PCT = 30           # 止盈线=合理上沿+30%
+_REDUCE_DAYS = 10               # 连续≥10个交易日
+_ARCH_REDUCE = {   # 架构师状态表:现价/合理上沿/超出/正在等的条件
+    "US.COIN": {"px": "$157.12", "top": "$82", "over": "+92%", "cond": "④现价高于合理上沿30%以上且连续10个交易日", "over30": True},
+    "US.IBKR": {"px": "$90.78", "top": "$58", "over": "+57%", "cond": "④现价高于合理上沿30%以上且连续10个交易日", "over30": True},
+    "JP.6857": {"px": "¥27,505", "top": "¥3,234", "over": "+750%", "cond": "先过异常价专项核准（核准前不进减仓判定）", "over30": None},
+    "US.TSM": {"px": "$397.75", "top": "$360", "over": "+10%", "cond": "未达30%止盈线→不进减仓（且PEG 0.6属成长便宜）", "over30": False},
+    "JP.7974": {"px": "¥7,294", "top": "¥5,923", "over": "+23%", "cond": "未达30%止盈线→不进减仓（另有净现金约¥1,940/股缓冲）", "over30": False},
+}
+
+
+def _pin_days(sym, dyn):
+    """[E3·机器件]连续几个交易日"现价高于合理上沿30%线"——接日线序列计数。
+    ★现无逐日收盘序列落盘(仅 low_20d/ma 单值)→计数无法回溯,返回 待接;有序列后此处即生效。"""
+    return None    # 缺日线序列→待接(不编假天数)
+
+
+def _reduce_rule_block(sym, dyn):
+    """减仓候选每只显示的六行(架构师定稿)+ 连续天数计数器。非减仓候选不显示。"""
+    a = _ARCH_REDUCE.get(sym)
+    if not a:
+        return ""
+    days = _pin_days(sym, dyn)
+    days_txt = (f"<b>{days}</b> 天" if isinstance(days, int)
+                else "<b>待接</b>（★缺日线逐日序列·计数器接口已就位·序列落盘后即算；现无法回溯，不编假天数）")
+    if a.get("over30") is True:
+        why = "现价虽已过止盈线(高于合理上沿30%)，但『连续10个交易日』这一天数条件尚未确认满足→暂不减，先计数。"
+        waiting = a["cond"]
+        cur_val = f"现价 {a['px']}·合理上沿 {a['top']}·超出 {a['over']}（已过30%止盈线）"
+        when = "计数满10个交易日且仍在线上 → 正式提请拍板『要不要止盈减一点』(系统不自动减)"
+    elif a.get("over30") is False:
+        why = "未达止盈线(未高于合理上沿30%)→本就不进减仓判定。"
+        waiting = a["cond"]
+        cur_val = f"现价 {a['px']}·合理上沿 {a['top']}·超出 {a['over']}（未过30%线）"
+        when = "达到30%止盈线并开始计数后再谈"
+        days_txt = "—（未过30%线·不计数）"
+    else:
+        why = "异常价未通过专项核准→在核准完成前，本只不进任何减仓判定。"
+        waiting = a["cond"]
+        cur_val = f"现价 {a['px']}·合理上沿 {a['top']}·超出 {a['over']}（须先过异常价专项核准）"
+        when = "异常价专项核准完成后再评估"
+        days_txt = "—（未核准·不计数）"
+    return (
+        '<div style="font-size:12px;color:#cfe0ee;background:#101a26;border-left:3px solid #c47a1e;'
+        'border-radius:0 6px 6px 0;padding:7px 10px;margin:6px 0">'
+        '<b style="color:#ffb454">统一减仓规则·本只六行（架构师定稿·系统不自动减·只提请拍板）</b><br>'
+        f'1. 为什么现在不减：{why}<br>'
+        f'2. 正在等哪一个条件：{esc_none(waiting)}<br>'
+        f'3. 该条件当前数值：{cur_val}<br>'
+        f'4. 已累计多少天（连续＞止盈线）：{days_txt}<br>'
+        f'5. 何时正式提请拍板：{when}<br>'
+        f'6. 什么情况取消减仓提示：价格跌回合理上沿以内，或触发的那个条件消失（仓位回到上限内／利润趋势恢复等）。'
+        '</div>')
+
+
+def esc_none(s):
+    return D.esc(str(s)) if s is not None else ""
+
+
 def _stab_calc_of(sym, dyn, date):
     """[五·C]取加仓闸逐项实测(复用 deep_render._stabilized_calc)·逐只显示。"""
     try:
@@ -635,6 +738,25 @@ def _stab_calc_of(sym, dyn, date):
     except Exception:
         return ""
 
+
+# ── [A组]第一层可读性(董事长2026-07-19 实测·最高优先·只作用 #L1·不动 L2/L3·不改任何决定/数字) ──
+_A_CSS = (
+    # A1 字号层级:最重要的动作徽章/主决定放大到 GPT9 标准(≥14-16px·主决定≥16px)
+    "#L1>summary{font-size:20px;background:#6B4A00;color:#fff}"                       # A2 标题条反白 8.06:1(过AAA)
+    "#L1 .body{background:#fff;border-left:4px solid #B8860B;color:#12324E}"          # A2 区块纯白+左边框+深蓝正文 13.19:1
+    "#L1 .chip{font-size:18px;font-weight:800;padding:3px 14px;border-radius:6px}"    # 动作徽章:全页最重要→最大
+    "#L1 .pill{font-size:14px;font-weight:700;padding:2px 12px}"
+    "#L1 table{font-size:15px}#L1 th,#L1 td{padding:9px 10px}"
+    '#L1 td[data-l="现价"],#L1 td[data-l="第一档"],#L1 td[data-l="第二档"]{font-size:16px;font-weight:700}'  # 主决定数字≥16px
+    "#L1 .blk h3{font-size:17px;color:#6B4A00}#L1 .blk div{font-size:15px;line-height:1.8;color:#12324E}"
+    # A2 配色:表头深底白字 + 隔行交替底色(每行读成整体) + 金色只留标题/边框/重点词
+    "#L1 table th{background:#12324E;color:#fff}"
+    "#L1 table tbody tr:nth-child(even) td,#L1 table tr:nth-child(even) td{background:#FBF3E0}"
+    "#L1 table tbody tr:nth-child(odd) td,#L1 table tr:nth-child(odd) td{background:#fff}"
+    # 手机端再放大一档(验收:亮度50%手机也能读出动作/价格)
+    "@media(max-width:640px){#L1 .chip{font-size:20px;padding:4px 16px}#L1 td{font-size:15px}"
+    '#L1 td[data-l="现价"],#L1 td[data-l="第一档"],#L1 td[data-l="第二档"]{font-size:18px}#L1>summary{font-size:18px}}'
+)
 
 # ── [A]三层导航 + [B]版面区块(董事长2026-07-19 第十一/十二节) ──
 _NAV_CSS = (
@@ -935,10 +1057,13 @@ def build(date: str) -> str:
             f'｜失效条件 {_st("催化剂失效条件")}'
             f'｜拍板状态 {hc.get("三态文字","系统建议·尚未执行")}</div>'
             # [五·C]加仓闸逐项实测(逐只都显示·不只加-候选)
-            + _stab_calc_of(hc.get("代码"), dyn, date))
+            + _stab_calc_of(hc.get("代码"), dyn, date)
+            # [E1]四只估值底稿(架构师补正·照文渲染) + [E2/E3]减仓候选六行+计数器
+            + _arch_val_block(hc.get("代码"))
+            + _reduce_rule_block(hc.get("代码"), dyn))
     inst_html, inst_present = _institutional(date, dyn)
     build._inst_present = inst_present     # 供 content_manifest / 出厂核用
-    out = out.replace("</style>", _DEEP_CSS + _NAV_CSS + "</style>", 1)     # 追加机构区块样式 + [A/B]导航版面样式
+    out = out.replace("</style>", _DEEP_CSS + _NAV_CSS + _A_CSS + "</style>", 1)   # 追加机构样式+导航版面+[A组]第一层可读性(A组最后=优先级最高)
     out = re.sub(r'(</div>\s*</details>\s*)(<script>)',                     # 注入 L3 末尾(lambda避免转义)
                  lambda m: inst_html + m.group(1) + m.group(2), out, count=1)
     # [七.2]每只 L3 卡顶注入决定摘要(在 id="deep-SYM" 开头)
