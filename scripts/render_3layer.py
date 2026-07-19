@@ -165,13 +165,13 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         gap = _daydiff(prod_iso, price_iso)
         overdue = "是" if gap > 4 else "否"       # 超4自然日(>一个周末)才算超时限
         same_day = (price_iso == prod_iso)
-        pdate = (f'价对应交易日 <b>{price_iso[5:]}（{_wk(price_iso)}）{pm["state"] or "收盘"}</b>'
-                 f'｜生产日 {prod_iso[5:]}（{_wk(prod_iso)}）'
+        pdate = (f'产品生产日 {prod_iso}（{_wk(prod_iso)}）'
                  f'{"·非交易日" if _is_weekend(prod_iso) else ""}'
-                 f'｜源 {D.esc(str(pm["src"]))}｜超时限:{overdue}'
-                 + ("" if same_day else "（<b>非当日实时价</b>）"))
+                 f'｜价格对应交易日 <b>{price_iso}（{_wk(price_iso)}）{pm["state"] or "收盘"}</b>'
+                 f'｜来源 {D.esc(str(pm["src"]))}｜是否超时限:{overdue}'
+                 + ("" if same_day else "（<b>非实时·最近交易日收盘</b>）"))
     else:
-        pdate = '价格交易日待接（未取到行情数据日·不编）'
+        pdate = '价格对应交易日待接（未取到行情数据日·不编）'
         same_day = False
     # 今日价值区 / 未来目标（权威 OK → valr；否则架构师）
     if st.get("ok"):
@@ -680,10 +680,13 @@ def build(date: str) -> str:
     dec = _rj(ROOT / "data" / "pdca" / f"decisions_{date}.json").get("decisions", {})
     conc = D._conc_now(date, dyn)
     prod = dyn.get("prod", {})
-    # run_id / 生产时间
-    mani = _rj(ROOT / "data" / "product_manifest.json")
-    run_id = str(mani.get("run_id", ""))
-    gen = str(prod.get("generated_at", ""))[:19]
+    # run_id / 生产时间(第5项:每次重排必须签发【新 run_id + 新生产时间】·页头反映本次真实运行·董事长2026-07-19)
+    #   底层数据扫描的参照从 production 直接取(稳定·不受本次改写 manifest 影响)。
+    data_ref = str(prod.get("run_id") or prod.get("task_id") or str(prod.get("generated_at", ""))[:19] or "待接")
+    _now_dt = datetime.now()
+    run_id = f"R3-{_now_dt.strftime('%Y%m%d-%H%M%S')}"              # 本次三层重排版的新 run_id(每次都新)
+    build._run_id = run_id                                          # 供 manifest 登记用
+    gen = _now_dt.strftime("%Y-%m-%d %H:%M:%S")                     # 本次真实生产(重排)时间
     # 待接清单(不能依赖)——按标的【去重】,同一只多个原因合并成一条(治闪迪重复2次·页头待接计数虚高)
     sanity = _rj(ROOT / "data" / "reports" / f"data_sanity_{date}.json")
     _tbd_map: dict = {}
@@ -741,13 +744,12 @@ def build(date: str) -> str:
     if fresh.get("market_closed"):
         pd = fresh["price_date"]
         px_note = (f"生产日 {_iso(date)}（{_wk(date)}·非交易日/市场休市）；"
-                   f"全部现价＝最近交易日 <b>{pd}（{_wk(pd)}）</b> 收盘/盘后价（源 OpenD·<b>非当日实时价</b>）。")
+                   f"全部现价＝最近交易日 <b>{pd}（{_wk(pd)}）</b> 收盘/盘后价（源 OpenD·<b>非实时·最近交易日收盘</b>）。")
     else:
         px_note = "美股取昨夜收；日股取当日/最近交易日收；各只价格交易日见卡内标注。"
     # 第0节:三层重排版【构建戳】——区别于数据 run_id,每次重排都刷新,让"是不是重新生成过"一眼可辨(诚实:数据仍为原扫描)
-    build_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    px_note += (f" ｜ <b>三层重排版构建：{build_ts}</b>"
-                f"（数据仍为上方 run_id 那次扫描·价=最近交易日；重排版≠重扫数据）")
+    px_note += (f" ｜ 本次生产 run_id=<b>{run_id}</b>（三层重排版·反映本次真实运行）"
+                f"；底层数据扫描={data_ref}（价=最近交易日·重排版≠重扫数据）")
     ctx = {
         "data_date": dd, "生产时间": gen or D.md_note(dyn) if hasattr(D, "md_note") else gen, "run_id": run_id or TBD,
         "各市场价时点说明": px_note,
@@ -898,7 +900,7 @@ def _freshbar_html(fresh, n_tbd):
         return ('<div class="freshbar">'
                 f'<span class="fresh f-mid">● {_wk(prod)}·非交易日(市场休市)</span>'
                 f'<span class="fresh f-mid">● 全部现价＝最近交易日 {pd[5:]}（{_wk(pd)}）收盘/盘后</span>'
-                f'<span class="fresh f-old">● 非当日实时价</span>'
+                f'<span class="fresh f-old">● 非实时·最近交易日收盘</span>'
                 f'<span class="fresh f-tbd">● 待接 {n_tbd}</span></div>')
     return ('<div class="freshbar">'
             f'<span class="fresh f-new">● 当天实时 {fresh["new"]}</span>'
@@ -962,11 +964,10 @@ def main() -> int:
     out = ROOT / "00_请先看这里" / fname
     out.write_text(html, encoding="utf-8")
     print(f"[三层·出品] {fname} · bytes={len(b)} · 乱码EFBFBD=0 · 无{{}}残留 · 每只 {html.count('id=' + chr(34) + 'why-')} 张why卡")
-    # 登记指纹(正式产品=三层)
+    # 登记指纹(正式产品=三层)·用本次新 run_id(第5项:每次重排签发新 run_id)
     try:
         from product_manifest import write_manifest
-        mani = _rj(ROOT / "data" / "product_manifest.json")
-        write_manifest(a.date, str(mani.get("run_id", "")), "", [fname])
+        write_manifest(a.date, str(getattr(build, "_run_id", "")), "", [fname])
     except Exception:
         pass
     return 0

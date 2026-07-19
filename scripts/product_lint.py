@@ -608,15 +608,15 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 fails.append(f"L40 交易日校验：{fn} 生产日 {date} 非交易日，却出现『当日实时价』类肯定表述 "
                              f"{len(false_claim)} 处——非交易日禁用，须显示真实交易日")
 
-        # L41 价格日与生产日分离:每只须两独立字段(价对应交易日/生产日);非交易日二者相同→FAIL
-        if "价对应交易日" in t and "生产日" in t:
-            bad = re.findall(r"价对应交易日\s*([\d\-]{5,10}).{0,40}?生产日\s*([\d\-]{5,10})", t)
-            for pd, gd in bad:
+        # L41 价格日与生产日分离:每只须两独立字段(产品生产日/价格对应交易日);非交易日二者相同→FAIL
+        if "价格对应交易日" in t and "生产日" in t:
+            bad = re.findall(r"生产日\s*([\d\-]{5,10}).{0,60}?价格对应交易日\s*([\d\-]{5,10})", t)
+            for gd, pd in bad:
                 if nontrading and pd.replace("-", "") == gd.replace("-", ""):
-                    fails.append(f"L41 价格日=生产日：{fn} 非交易日却把价格交易日({pd})标成与生产日({gd})相同——须标真实最近交易日")
+                    fails.append(f"L41 价格日=生产日：{fn} 非交易日却把价格对应交易日({pd})标成与生产日({gd})相同——须标真实最近交易日")
                     break
-        elif re.search(r"现价|价对应交易日", t) and "价对应交易日" not in t:
-            fails.append(f"L41 缺价格交易日字段：{fn} 有现价却无『价对应交易日』独立字段（须与生产日分开显示）")
+        elif re.search(r"现价", t) and "价格对应交易日" not in t:
+            fails.append(f"L41 缺价格交易日字段：{fn} 有现价却无『价格对应交易日』独立字段（须与生产日分开显示）")
 
         # L42 同卡语义自洽:极贵/超上沿 与 没到贵位 不得并存;守/等时不得写"涨过X才谈减"
         for sym, seg in _cards(h).items():
