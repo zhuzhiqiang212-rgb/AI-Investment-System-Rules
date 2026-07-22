@@ -29,16 +29,16 @@ code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#
 </head>
 <body>
 <!--PRODUCT_STATUS_START-->
-<div style="background:#0f2e1c;border:3px solid #4fbf87;border-radius:10px;padding:12px 16px;margin:10px 0"><div style="font-size:22px;font-weight:900;color:#1c6b45">当前正式产品 · 数据日 2026-07-17</div><div style="font-size:14px;margin-top:4px">生产于 <b>2026-07-18 01:03:56 JST</b>　｜　run_id <b>R-20260718-010356</b>　｜　本块由生产脚本每次自动回写（不是手填·不会过期）</div><ul style="font-size:13px;margin:6px 0 0 18px"><li><a href="★每日产品_2026-07-17.html">★每日产品_2026-07-17.html</a></li></ul><div style="font-size:12px;color:#555;margin-top:4px">五册的数据日/run_id 必须完全一致；不一致或找不到文件 → 跑 <code>python scripts/product_manifest.py --check</code> 查是不是被旧版覆盖了。</div></div>
+<div style="background:#0f2e1c;border:3px solid #4fbf87;border-radius:10px;padding:12px 16px;margin:10px 0"><div style="font-size:22px;font-weight:900;color:#1c6b45">当前正式产品 · 数据日 2026-07-19</div><div style="font-size:14px;margin-top:4px">生产于 <b>2026-07-19 11:27:45 JST</b>　｜　run_id <b>R-20260719-112745</b>　｜　本块由生产脚本每次自动回写（不是手填·不会过期）</div><ul style="font-size:13px;margin:6px 0 0 18px"><li><a href="★每日产品_2026-07-19.html">★每日产品_2026-07-19.html</a></li></ul><div style="font-size:12px;color:#555;margin-top:4px">五册的数据日/run_id 必须完全一致；不一致或找不到文件 → 跑 <code>python scripts/product_manifest.py --check</code> 查是不是被旧版覆盖了。</div></div>
 <!--PRODUCT_STATUS_END-->
 <!--AUTO_RUN_LOG_START-->
-<div style="background:#0f2e1c;border:2px solid #4fbf87;border-radius:8px;padding:10px 14px;margin:8px 0"><div style="font-size:16px;font-weight:800;color:#1c6b45">每日自动生产（AI投资系统_每日自动生产）：20260717 — ✔ 已出当天五册</div><div style="font-size:13px;margin-top:3px">跑于 2026-07-18 01:05:29 JST　｜　run_id <b>R-20260718-010356</b></div><div style="font-size:11.5px;color:#666;margin-top:3px">本块由 daily_auto_produce.py 每次自动回写。改跑的时间：<code>schtasks /Change /TN "AI投资系统_每日自动生产" /ST 08:00</code></div></div>
+<div style="background:#0f2e1c;border:2px solid #4fbf87;border-radius:8px;padding:10px 14px;margin:8px 0"><div style="font-size:16px;font-weight:800;color:#1c6b45">每日自动生产（AI投资系统_每日自动生产）：20260719 — ✔ 已出当天五册</div><div style="font-size:13px;margin-top:3px">跑于 2026-07-19 11:31:38 JST　｜　run_id <b>R-20260719-112745</b></div><div style="font-size:11.5px;color:#666;margin-top:3px">本块由 daily_auto_produce.py 每次自动回写。改跑的时间：<code>schtasks /Change /TN "AI投资系统_每日自动生产" /ST 08:00</code></div></div>
 <!--AUTO_RUN_LOG_END-->
 <div class="wrap">
 
 <div class="hdr">
   <h1>★ 开工必读 · 主控文件</h1>
-  <div class="sub">任何AI（Chat/Code/Cowork/GPT）接手本项目，第一件事必须读这份文件 ｜ 这是全项目的"单一真相源"入口 ｜ 最后更新 2026-07-18 01:05 JST</div>
+  <div class="sub">任何AI（Chat/Code/Cowork/GPT）接手本项目，第一件事必须读这份文件 ｜ 这是全项目的"单一真相源"入口 ｜ 最后更新 2026-07-19 11:53 JST</div>
 </div>
 
 <div class="truth">
@@ -133,6 +133,20 @@ code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#
     <li>护城河：英伟达9宽/微软7宽/爱德万6窄偏上/第一三共4窄/东京海上4窄/软银2无。</li>
     <li>研究补：AI电力龙头CEG/VST/TLN/GEV/BWXT/Bloom/铀CCJ；AI受益扩散医疗(英伟达×礼来10亿实验室)。</li>
     <li>持仓(真实跨账户合并)：第一三共9900/英伟达1020/微软690/软银6600/东京海上1000/爱德万800/MSTR858/COIN245等。数据待第一次生产Codex自动灌。</li>
+  </ul>
+</div>
+
+<div class="sec">
+  <h2>★ 里程碑2 · 预测基线锁定（2026-07-22 计时开始）</h2>
+  <ul>
+    <li><b>基线锁定完成</b>：35只（20持仓+15候选）双时间尺度预测经三铁律校验（禁五五开/禁买卖价/版本链+大白话四步），forecast_lock 正式锁定（SHA256+Google外部时间戳+哈希链·核链 all_ok）。</li>
+    <li><b>进记分卡 54 条</b>（短期25 / 长期29·进胜率分母）+ 4 条记录不进分母（HII/SpaceX/万代/任天堂 短期＝不锁·判不出 / 不适用·未上市）。总登记 58 条。</li>
+    <li><b>补锁 5 条修正</b>：CRCL/SNDK/丰田 长期由 55% 五五开→改押方向(58/57/57%)进长期分母；万代/任天堂 短期→改不锁。holdings 原 SHA 不删·修正版新 SHA·留演变链。</li>
+    <li><b>三源锁定哈希</b>：候选 <code>f73bc756…</code>／持仓修正版 <code>22c8b29e…</code>／v2 软银爱德万 <code>542d742f…</code>。</li>
+    <li><b>GitHub commit</b>：<code>7ab08e8</code>（基线 push·分支 gate-pipeline-20260722·尺+scripts+data 留档）</li>
+    <li><b>PDCA 核对日排期</b>：短期 8/5(爱德万)·8/19(软银等)｜长期 10/31｜软银长期 2027-1/22。核对日跑 <code>build_pdca_scorecard.py --check-due</code> 自动提醒待评→评判后累计架构师短/长期预测胜率。</li>
+    <li><b>实物</b>：data/forecast/locked_baseline_20260722.json｜data/pdca/locked_predictions_registry.json（58条·SHA哈希链）｜data/pdca/pdca_scorecard_20260722.json（排期+提醒）。</li>
+    <li><b>计时开始 2026-07-22</b>·胜率当前 0 已评（待首个核对日 8/5）。</li>
   </ul>
 </div>
 
