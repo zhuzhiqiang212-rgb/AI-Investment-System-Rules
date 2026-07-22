@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>催化剂库 · 来源三要素规范 v1（待审）</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--soft:#9db0c2;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;--bad:#ff9a9a;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.75;font-size:16px;}
+.wrap{max-width:920px;margin:0 auto;padding:20px 16px 90px;}
+.hdr{padding:16px 20px;background:linear-gradient(135deg,#1c2e40,#132030);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;}
+.hdr h1{font-size:21px;margin:0 0 4px;}
+.hdr .sub{color:var(--soft);font-size:13px;}
+.tie{background:#12202c;border:1px solid #26384a;border-radius:10px;padding:10px 14px;margin:10px 0;font-size:13.5px;color:var(--soft);}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;padding:16px 20px;}
+.sec h2{font-size:18px;margin:0 0 6px;color:#ffe4a8;}
+.sec p{margin:8px 0;font-size:15px;} .sec b{color:#fff;}
+.dim{border-left:3px solid #3a5570;padding:6px 0 6px 14px;margin:12px 0;}
+.dim h3{margin:0 0 4px;font-size:16px;color:#8fd6ff;}
+.dim .q{color:var(--soft);font-size:14px;}
+.dim .ok{color:var(--good);font-size:13.5px;margin-top:3px;}
+.dim .no{color:var(--bad);font-size:13.5px;margin-top:3px;}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;}
+th{background:#13202d;color:#bcd0e2;}
+.hl{color:var(--hi);font-weight:700;}
+.gate{background:#2a1313;border:2px solid #7a3a3a;border-radius:12px;padding:12px 16px;margin:14px 0;}
+.gate b{color:#ffcf6b;}
+.ask{background:#12261c;border:1px solid #285039;border-radius:12px;padding:14px 18px;margin:16px 0;}
+.ask h2{color:var(--good);font-size:17px;margin:0 0 8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hdr">
+  <h1>催化剂库 · 来源三要素规范 v1</h1>
+  <div class="sub">老挂账 P1 ｜ 给每条"能推动股价的未来事件"定一道准入门槛：<b>没来源/没时间/没影响，不许进决策依据</b> ｜ 架构师对 P1 的解读·待董事长确认</div>
+</div>
+
+<div class="tie">
+  <b>设计依据（非自创）</b>：①总则"依据具体未来事件·非趋势"；②生产铁律"不编数·缺数标待核·不估算放行"；③已锁预测里每条都带"依据的未来事件+见分晓+PDCA核对日"——本规范把这套已在跑的纪律，收拢成<b>催化剂库的统一准入门槛</b>。<br>
+  <b>解读声明</b>：看板 P1 原文只有"催化剂库·来源三要素"六字。架构师据系统诚实铁律，把"三要素"解读为 <b>来源 / 时间 / 影响</b>。若与你原意不符，验收时点一句即改。
+</div>
+
+<div class="sec">
+  <h2>为什么要建这道门槛</h2>
+  <p><b>催化剂</b>＝能在未来推动股价动的<b>具体事件</b>（财报、产品发布、监管裁决、并购、涨价…），不是"AI是大趋势"这类空话。</p>
+  <p><b>现状缺口</b>：机器侧 <code>catalyst_dimension_build.py</code> 的"事件驱动"维<span class="hl">还是空壳（value=None·待接新闻源）</span>；催化剂零散躺在各预测的"依据未来事件"里，没有统一库、也没规定<b>每条催化剂必须能追溯到出处</b>。缺门槛的后果：容易混进"据说""市场预期"这类<b>无源催化剂</b>——正是系统最要防的编造。</p>
+</div>
+
+<div class="sec">
+  <h2>★ 来源三要素（每条催化剂强制三样，缺一不合格）</h2>
+
+  <div class="dim"><h3>要素1 · 来源（这事哪来的·谁说的）</h3>
+  <div class="q">必须能追溯到一个可查出处：公司公告/财报指引、监管机构日程、交易所文件、可点开的新闻链接。</div>
+  <div class="ok">✔ 合格：「台积电 2026Q2 法说会官方指引：2027 起涨价约 10%」——有主体、有出处。</div>
+  <div class="no">✘ 不合格：「据说要涨价」「市场普遍预期」——无主体、无法查，一律判无源。</div></div>
+
+  <div class="dim"><h3>要素2 · 时间（什么时候见分晓）</h3>
+  <div class="q">必须给具体日期或明确时间窗，且能对上 PDCA 核对日。</div>
+  <div class="ok">✔ 合格：「下季财报约 2026-10」「OpenAI IPO 时间窗 2026H2–2027」。</div>
+  <div class="no">✘ 不合格：「未来」「长期看」「迟早」——无法核对、无法进记分卡。</div></div>
+
+  <div class="dim"><h3>要素3 · 影响（兑现了会怎样·方向+量级+可信度）</h3>
+  <div class="q">要说清：兑现后股价偏哪个方向、影响大概多大、以及这个催化剂本身<b>有多可信</b>（下方三档）。</div>
+  <div class="ok">✔ 合格：「兑现＝NAV 重估、偏上行、量级大、可信度＝预期（未落地）」。</div>
+  <div class="no">✘ 不合格：只写"利好"——没方向量级、没标可信度，等于没说。</div></div>
+</div>
+
+<div class="sec">
+  <h2>可信度三档（要素3 里必标·防把传闻当事实）</h2>
+  <table>
+    <tr><th>档</th><th>意思</th><th>例</th></tr>
+    <tr><td><span class="hl">已确认</span></td><td>已发生/官方已定，只等价格反映</td><td>台积电已官方指引涨价；爱德万已上修利润指引</td></tr>
+    <tr><td>预期</td><td>合理但未落地，有兑现不确定性</td><td>OpenAI IPO；Clarity Act 通过</td></tr>
+    <tr><td>传闻</td><td>小道消息/未证实</td><td>并购风声——<b>可记录但不得单独作决策依据</b></td></tr>
+  </table>
+</div>
+
+<div class="gate">
+  <b>★ 准入闸（硬规矩）</b>：一条催化剂三要素<b>缺任一</b> → 标「不完整·不得进决策依据」，只能挂"待补来源/待定时间"。<b>可信度=传闻</b>的，可入库观察，但<b>不得单独支撑一个预测方向</b>。这条闸和已锁预测的"依据具体未来事件·非趋势"是同一把尺，只是前移到催化剂入库时就卡。
+</div>
+
+<div class="sec">
+  <h2>接进现有系统（两个接口）</h2>
+  <p>1. <b>填 event_driven 维</b>：<code>catalyst_dimension_build.py</code> 的事件驱动占位，改由本库按三要素结构填（来源/时间/影响+可信度），替换现在的 value=None 空壳。</p>
+  <p>2. <b>预测引用催化剂</b>：预测里的"依据的未来事件"直接<b>引用催化剂库条目 ID</b>，不再各写各的——催化剂改一处，所有引用它的预测同步；PDCA 核对日也跟催化剂的"时间"要素对齐。</p>
+</div>
+
+<div class="sec">
+  <h2>真实示范（全部取自已锁预测·不编）</h2>
+  <table>
+    <tr><th>标的</th><th>催化剂</th><th>①来源</th><th>②时间</th><th>③影响（方向/可信度）</th></tr>
+    <tr><td>台积电 TSM</td><td>2027 涨价 ~10%</td><td>公司法说会官方指引</td><td>2027 起</td><td>定价权→偏上 / <b>已确认</b></td></tr>
+    <tr><td>爱德万 6857</td><td>全年营业利润上修至 7300 亿</td><td>公司自身指引上修</td><td>下季财报约 2026-10</td><td>偏上 / <b>已确认</b>（指引）</td></tr>
+    <tr><td>软银 9984</td><td>OpenAI IPO 兑现</td><td>软银持股+OpenAI 上市进展</td><td>时间窗 2026H2–2027</td><td>NAV 重估→偏上 / 预期</td></tr>
+    <tr><td>Coinbase COIN</td><td>Clarity Act 立法推进</td><td>美国国会立法进展</td><td>待法案表决</td><td>合规交易所利好→偏上 / 预期</td></tr>
+    <tr><td>MSTR</td><td>mNAV&lt;1 飞轮反转</td><td>市值 vs 持币量实时计算</td><td>持续监控（连续3日为扳机）</td><td>偏下 / <b>已确认</b>（数据）</td></tr>
+  </table>
+  <p class="q" style="color:var(--soft);font-size:14px;">五条都天然满足三要素——因为它们本就是从"依据具体未来事件"里锁进去的。反过来说：凑不齐三要素的，本就不该当催化剂用。</p>
+</div>
+
+<div class="ask">
+  <h2>请你审</h2>
+  <ul>
+    <li>1. "三要素＝来源/时间/影响"——这个解读对上你说 P1 的原意了吗？</li>
+    <li>2. 准入闸（缺一不进决策·传闻不单独支撑方向）——这么卡对吗？</li>
+    <li>3. 认可的话，我出派工单让 Code：把 event_driven 维按三要素结构落地 + 预测"依据未来事件"改引用催化剂库 ID。</li>
+  </ul>
+</div>
+
+</div>
+</body>
+</html>

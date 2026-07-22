@@ -247,8 +247,33 @@ def financial_calendar_stub(code: str, name: str) -> dict[str, Any]:
     return {"next_earnings_estimated_date": None, "source": "财报日历", "refresh": "每日", "status": "待人工填入或后续接口接入", "value_basis": "v1先建动态字段结构，不伪造日期", "symbol": code, "name": name}
 
 
-def event_driven_placeholder() -> dict[str, Any]:
-    return {"source": "实时新闻/监管事件", "refresh": "事件驱动", "status": "待接实时新闻源", "value": None}
+_CATALYST_LIB_CACHE: dict[str, list] | None = None
+
+
+def load_catalyst_library() -> dict[str, list]:
+    """读催化剂库·按标的index(P1三要素规范v1落地·替换event_driven空壳)。"""
+    global _CATALYST_LIB_CACHE
+    if _CATALYST_LIB_CACHE is None:
+        lib = read_json(ROOT / "data" / "catalyst" / "catalyst_library.json", {}) or {}
+        idx: dict[str, list] = {}
+        for e in lib.get("催化剂", []):
+            idx.setdefault(str(e.get("标的")), []).append(e)
+        _CATALYST_LIB_CACHE = idx
+    return _CATALYST_LIB_CACHE
+
+
+def event_driven_from_library(code: str) -> dict[str, Any]:
+    """event_driven 维:按三要素结构从催化剂库读(替换 value=None 空壳)。无则标待补·不编造。"""
+    idx = load_catalyst_library()
+    cats = idx.get(code) or idx.get(normalize_code(code)) or []
+    if not cats:
+        return {"source": "催化剂库(data/catalyst/catalyst_library.json)", "refresh": "事件驱动",
+                "status": "该标的无催化剂入库·待补(不编造)", "催化剂数": 0, "催化剂": []}
+    return {"source": "催化剂库(data/catalyst/catalyst_library.json·三要素规范v1)", "refresh": "事件驱动",
+            "status": "已接催化剂库", "催化剂数": len(cats),
+            "催化剂": [{"id": c.get("id"), "催化剂": c.get("催化剂"), "三要素": c.get("三要素"),
+                     "三要素完整": c.get("三要素完整"), "准入状态": c.get("准入状态"),
+                     "可单独支撑预测方向": c.get("可单独支撑预测方向")} for c in cats]}
 
 
 def build(date_text: str) -> dict[str, Any]:
@@ -315,7 +340,7 @@ def build(date_text: str) -> dict[str, Any]:
             "realtime_quote": quote,
             "financial_calendar": financial_calendar_stub(code, name),
             "peer_comparison": peer,
-            "event_driven": event_driven_placeholder(),
+            "event_driven": event_driven_from_library(code),
         })
 
     generated_at = now_jst()
@@ -344,7 +369,8 @@ def build(date_text: str) -> dict[str, Any]:
         "dimension_status": {
             "financial_calendar": {"done": True, "status": "结构已建，日期字段待人工或接口填入", "refresh": "每日"},
             "peer_comparison": {"done": True, "status": "读取实时价与模型实例动态横比", "instance_count": len(instances)},
-            "event_driven": {"done": False, "status": "待接实时新闻源", "refresh": "事件驱动"},
+            "event_driven": {"done": True, "status": "已接催化剂库(三要素规范v1·data/catalyst/catalyst_library.json)",
+                             "refresh": "事件驱动", "库条数": sum(len(v) for v in load_catalyst_library().values())},
         },
         "peer_groups": peer_groups,
         "records": records,
