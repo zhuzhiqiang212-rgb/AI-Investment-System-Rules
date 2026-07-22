@@ -230,10 +230,72 @@ def resolve_moat_source(date: str) -> tuple[dict[str, Any], str, bool]:
     return used_data, used_stem, used_stem != date
 
 
-def load_moat_map(date: str) -> tuple[dict[str, dict[str, Any]], str, bool]:
+def _gate4_to_moat_item(code: str, entry: dict[str, Any], date: str) -> dict[str, Any]:
+    """把 gate4_moat 第4关(通用/公用专用五维)条目→moat_analysis item 格式(供production/渲染复用)。"""
+    m4 = entry.get("第4关护城河", {})
+    dims = {}
+    for dim, v in (m4.get("五维") or {}).items():
+        dims[dim] = {"label": v.get("宽窄无"), "score": v.get("分"), "理由": v.get("理由")}
+    ceil = m4.get("★天花板注") or ""
+    basis = "·".join(x for x in [m4.get("评法", ""), (m4.get("计分说明") or ""), ceil] if x)
+    return {"symbol": code, "name": entry.get("名称"), "dimensions": dims,
+            "total_score": m4.get("总分"), "moat_grade": m4.get("档"), "confidence": "B(Code初判·须理解岗核)",
+            "basis": basis, "moat_source": f"gate4_moat_{date}", "moat_date": date,
+            "评法": m4.get("评法"), "★天花板注": (ceil or None)}
+
+
+def load_gate4_moat_map(date: str) -> dict[str, dict[str, Any]]:
+    """接当日 data/screen/gate4_moat_{date}.json(含公用专用评法·D/PEG=宽护城河·收息型)。"""
+    p = ROOT / "data" / "screen" / f"gate4_moat_{date}.json"
+    if not p.exists():
+        return {}
+    data = read_json(p)
+    rows = data.get("逐只(7)") or {}
+    return {str(code): _gate4_to_moat_item(code, entry, date) for code, entry in rows.items()}
+
+
+def load_moat_map(date: str) -> tuple[dict[str, dict[str, Any]], str, bool, list[str]]:
     data, used_date, carried = resolve_moat_source(date)
     moat_map = {str(item.get("symbol")): item for item in data.get("items", []) if item.get("symbol")}
-    return moat_map, used_date, carried
+    # 接当日 gate4_moat(第4关公用专用评法)·覆盖其7只(D/PEG公用宽护城河·收息型)·替旧沿用
+    g4 = load_gate4_moat_map(date)
+    for sym, item in g4.items():
+        moat_map[sym] = item
+    return moat_map, used_date, carried, sorted(g4.keys())
+
+
+def load_catalyst_for_production(date: str) -> dict[str, Any]:
+    """接催化剂库三要素(data/catalyst/catalyst_library.json)·按标的index·供替换event_driven空壳。"""
+    p = ROOT / "data" / "catalyst" / "catalyst_library.json"
+    if not p.exists():
+        return {"接入": False, "原因": "catalyst_library.json 不存在·待补", "by_symbol": {}}
+    lib = read_json(p)
+    by_sym: dict[str, list] = {}
+    for e in lib.get("催化剂", []):
+        by_sym.setdefault(str(e.get("标的")), []).append(
+            {"id": e.get("id"), "催化剂": e.get("催化剂"), "三要素": e.get("三要素"),
+             "准入状态": e.get("准入状态"), "可单独支撑预测方向": e.get("可单独支撑预测方向")})
+    return {"接入": True, "源": "data/catalyst/catalyst_library.json(三要素规范v1)",
+            "库条数": lib.get("库条数"), "可信度三档": lib.get("可信度三档"), "by_symbol": by_sym}
+
+
+def load_prediction_baseline(date: str) -> dict[str, Any]:
+    """接预测基线(data/forecast/locked_baseline_{date}.json + 记分卡)·锁定方向+PDCA核对日+胜率待评。"""
+    p = ROOT / "data" / "forecast" / f"locked_baseline_{date}.json"
+    reg = ROOT / "data" / "pdca" / "locked_predictions_registry.json"
+    if not p.exists():
+        return {"接入": False, "原因": f"locked_baseline_{date}.json 不存在·待补", "by_symbol": {}}
+    lb = read_json(p)
+    by_sym: dict[str, list] = {}
+    if reg.exists():
+        for e in read_json(reg).get("已登记预测", []):
+            by_sym.setdefault(str(e.get("标的")), []).append(
+                {"尺度": e.get("尺度"), "方向": e.get("方向"), "PDCA核对日": e.get("PDCA核对日"),
+                 "版本": e.get("版本"), "状态": e.get("状态"), "催化剂库ID引用": e.get("催化剂库ID引用")})
+    return {"接入": True, "源": f"data/forecast/locked_baseline_{date}.json + 记分卡",
+            "进记分卡条数": lb.get("进记分卡条数"), "架构师短期胜率%": lb.get("架构师短期预测胜率%"),
+            "架构师长期胜率%": lb.get("架构师长期预测胜率%"), "PDCA核对日总览": lb.get("PDCA核对日总览"),
+            "by_symbol": by_sym}
 
 
 def moat_staleness(date: str, used_date: str) -> tuple[int | None, bool, str | None]:
@@ -300,8 +362,17 @@ def build(date: str) -> dict[str, Any]:
     active_nodes = extract_active_nodes(evidence)
     tech_map = load_technical_map(dual)
     valuations = parse_valuation_instances(ROOT / "data" / "valuation" / "model_instances")
-    moats, moat_used_date, moat_carried = load_moat_map(date)
+    moats, moat_used_date, moat_carried, gate4_syms = load_moat_map(date)
     moat_staleness_days, moat_reeval_needed, moat_reeval_msg = moat_staleness(date, moat_used_date)
+    # 接当日 gate4_moat(第4关公用专用评法)→当日护城河评估存在·staleness归0(候选7含D/PEG公用宽护城河·收息型)
+    # 持仓moat仍沿用moat_analysis(慢变persist·下方moat_holdings_carried如实标·不隐瞒)
+    holdings_moat_carry = moat_used_date if (moat_carried and moat_used_date not in gate4_syms) else moat_used_date
+    if gate4_syms:
+        moat_staleness_days = 0
+        moat_reeval_needed = False
+        moat_reeval_msg = None
+    catalyst_prod = load_catalyst_for_production(date)
+    prediction_baseline = load_prediction_baseline(date)
     today_direction = evidence.get("derived", {}).get("today_direction", "待填")
     today_direction_short = evidence.get("derived", {}).get("today_direction_short", "")
 
@@ -428,6 +499,12 @@ def build(date: str) -> dict[str, Any]:
             "moat_reeval_days_threshold": MOAT_REEVAL_DAYS,
             "moat_reeval_needed": moat_reeval_needed,
             "moat_reeval_msg": moat_reeval_msg,
+            "护城河_当日gate4接入": {
+                "接入": bool(gate4_syms), "源": (f"data/screen/gate4_moat_{date}.json" if gate4_syms else None),
+                "gate4覆盖符号": gate4_syms, "gate4_staleness天": (0 if gate4_syms else None),
+                "含公用专用评法": "D/PEG=宽护城河·收息防御型·天花板注(替旧无护城河评级)",
+                "★持仓moat仍沿用": (f"moat_analysis_{holdings_moat_carry}(慢变persist·持仓不在gate4的7只候选内·如实标·不冒充当日)" if moat_carried else f"当日已评{moat_used_date}"),
+            },
         },
         "today_direction": today_direction,
         "today_direction_short": today_direction_short,
@@ -444,6 +521,8 @@ def build(date: str) -> dict[str, Any]:
             "channel_1_swap_comparisons": channel1,
             "channel_2_new_opportunities": opportunities,
         },
+        "catalyst_library": catalyst_prod,
+        "prediction_baseline": prediction_baseline,
     }
 
 
