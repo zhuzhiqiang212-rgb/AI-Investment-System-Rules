@@ -1,0 +1,386 @@
+{
+ "date": "20260722",
+ "generated_at": "2026-07-22T11:28:42+09:00",
+ "FX_USDJPY": 162.47,
+ "FX来源": "董事长指定实时值162.47",
+ "现金_逐账户": {
+  "富途": {
+   "JPY": 2132074,
+   "USD": 204.75,
+   "新鲜度": "今日2026-07-22(董事长现报)"
+  },
+  "SBI": {
+   "JPY": 17895950,
+   "新鲜度": "2026-07-18(源:sbi_sleeve_2026-07-18.json)"
+  },
+  "IBKR": {
+   "USD": 4508,
+   "新鲜度": "2026-07-02(源:四账户现金补充_2026-07-02.md)"
+  },
+  "bitFlyer": {
+   "JPY": 295363,
+   "新鲜度": "2026-07-02(同上)"
+  }
+ },
+ "现金新鲜度说明": "富途今日/SBI 7-18/IBKR·bitFlyer 7-02(董事长核给·G盘已找齐·不再报无源)",
+ "持仓逐只": [
+  {
+   "symbol": "JP.4568",
+   "name": "第一三共",
+   "market": "JP",
+   "quantity": 9900.0,
+   "price": 2759.5,
+   "currency": "JPY",
+   "market_value_local": 27319050.0,
+   "market_value_usd": 168148.27
+  },
+  {
+   "symbol": "US.NVDA",
+   "name": "英伟达",
+   "market": "US",
+   "quantity": 1020.0,
+   "price": 207.29,
+   "currency": "USD",
+   "market_value_local": 211435.8,
+   "market_value_usd": 211435.8
+  },
+  {
+   "symbol": "US.MSFT",
+   "name": "微软",
+   "market": "US",
+   "quantity": 690.0,
+   "price": 397.75,
+   "currency": "USD",
+   "market_value_local": 274447.5,
+   "market_value_usd": 274447.5
+  },
+  {
+   "symbol": "US.MSTR",
+   "name": "MSTR",
+   "market": "US",
+   "quantity": 858.0,
+   "price": 101.95,
+   "currency": "USD",
+   "market_value_local": 87473.1,
+   "market_value_usd": 87473.1
+  },
+  {
+   "symbol": "US.COIN",
+   "name": "Coinbase",
+   "market": "US",
+   "quantity": 245.0,
+   "price": 175.85,
+   "currency": "USD",
+   "market_value_local": 43083.25,
+   "market_value_usd": 43083.25
+  },
+  {
+   "symbol": "JP.9984",
+   "name": "软银",
+   "market": "JP",
+   "quantity": 6900.0,
+   "price": 5924.0,
+   "currency": "JPY",
+   "market_value_local": 40875600.0,
+   "market_value_usd": 251588.6
+  },
+  {
+   "symbol": "JP.8766",
+   "name": "东京海上",
+   "market": "JP",
+   "quantity": 1000.0,
+   "price": 7911.0,
+   "currency": "JPY",
+   "market_value_local": 7911000.0,
+   "market_value_usd": 48692.07
+  },
+  {
+   "symbol": "JP.6758",
+   "name": "索尼",
+   "market": "JP",
+   "quantity": 1000.0,
+   "price": 3436.0,
+   "currency": "JPY",
+   "market_value_local": 3436000.0,
+   "market_value_usd": 21148.52
+  },
+  {
+   "symbol": "JP.6857",
+   "name": "爱德万",
+   "market": "JP",
+   "quantity": 800.0,
+   "price": 31460.0,
+   "currency": "JPY",
+   "market_value_local": 25168000.0,
+   "market_value_usd": 154908.6
+  },
+  {
+   "symbol": "JP.7203",
+   "name": "丰田",
+   "market": "JP",
+   "quantity": 800.0,
+   "price": 2926.5,
+   "currency": "JPY",
+   "market_value_local": 2341200.0,
+   "market_value_usd": 14410.04
+  },
+  {
+   "symbol": "JP.8001",
+   "name": "伊藤忠",
+   "market": "JP",
+   "quantity": 900.0,
+   "price": 1957.0,
+   "currency": "JPY",
+   "market_value_local": 1761300.0,
+   "market_value_usd": 10840.77
+  },
+  {
+   "symbol": "JP.7832",
+   "name": "万代",
+   "market": "JP",
+   "quantity": 500.0,
+   "price": 4065.0,
+   "currency": "JPY",
+   "market_value_local": 2032500.0,
+   "market_value_usd": 12510.0
+  },
+  {
+   "symbol": "JP.7974",
+   "name": "任天堂",
+   "market": "JP",
+   "quantity": 2000.0,
+   "price": 7006.0,
+   "currency": "JPY",
+   "market_value_local": 14012000.0,
+   "market_value_usd": 86243.61
+  },
+  {
+   "symbol": "US.AVGO",
+   "name": "博通",
+   "market": "US",
+   "quantity": 150.0,
+   "price": 386.5,
+   "currency": "USD",
+   "market_value_local": 57975.0,
+   "market_value_usd": 57975.0
+  },
+  {
+   "symbol": "US.CRCL",
+   "name": "Circle",
+   "market": "US",
+   "quantity": 400.0,
+   "price": 71.08,
+   "currency": "USD",
+   "market_value_local": 28432.0,
+   "market_value_usd": 28432.0
+  },
+  {
+   "symbol": "US.SNDK",
+   "name": "闪迪",
+   "market": "US",
+   "quantity": 5.0,
+   "price": 1589.4,
+   "currency": "USD",
+   "market_value_local": 7947.0,
+   "market_value_usd": 7947.0
+  },
+  {
+   "symbol": "US.TSM",
+   "name": "台积电",
+   "market": "US",
+   "quantity": 1.0,
+   "price": 424.61,
+   "currency": "USD",
+   "market_value_local": 424.61,
+   "market_value_usd": 424.61
+  },
+  {
+   "symbol": "US.META",
+   "name": "META",
+   "market": "US",
+   "quantity": 95.0,
+   "price": 643.81,
+   "currency": "USD",
+   "market_value_local": 61161.95,
+   "market_value_usd": 61161.95
+  },
+  {
+   "symbol": "US.IBKR",
+   "name": "IBKR",
+   "market": "US",
+   "quantity": 14.0,
+   "price": 94.42,
+   "currency": "USD",
+   "market_value_local": 1321.88,
+   "market_value_usd": 1321.88
+  },
+  {
+   "symbol": "US.SPCX",
+   "name": "SpaceX",
+   "market": "US",
+   "quantity": 10.0,
+   "price": null,
+   "currency": "USD",
+   "计价方式": "成本(未上市·无实时价)",
+   "cost_per_share": 138.0,
+   "market_value_local": 1380.0,
+   "market_value_usd": 1380.0,
+   "reason": "未上市·OpenD无实时价·按成本$138×10股=$1,380计入(源:0719台账富途average_cost A级+董事长核)"
+  }
+ ],
+ "持仓只数": 20,
+ "未取到实时价": [
+  {
+   "symbol": "US.SPCX",
+   "name": "SpaceX",
+   "计价": "成本(未上市·无实时价)",
+   "market_value_usd": 1380.0,
+   "原因": "未上市·OpenD无实时价·按成本$138×10股=$1,380计入(源:0719台账富途average_cost A级+董事长核)"
+  }
+ ],
+ "汇总_USD": {
+  "股票市值": 1543572.57,
+  "现金合计": 129802.84,
+  "总资产": 1673375.41,
+  "日股市值": 768490.48
+ },
+ "①几成仓": {
+  "股票市值/总资产%": 92.2,
+  "防御仓(现金)占比%": 7.8,
+  "防御仓线": "现金应≥20%",
+  "防御仓是否达标": false,
+  "口径": "几成仓=股票/(股票+现金)"
+ },
+ "②日股占比_vs单一驱动30%": {
+  "日股市值USD": 768490.48,
+  "占总资产%": 45.9,
+  "风控线": "单一驱动(日元)≤30%",
+  "是否超线": true
+ },
+ "③各单只占比_vs20%": {
+  "逐只降序": [
+   {
+    "symbol": "US.MSFT",
+    "name": "微软",
+    "占总资产%": 16.4,
+    "market_value_usd": 274447.5
+   },
+   {
+    "symbol": "JP.9984",
+    "name": "软银",
+    "占总资产%": 15.03,
+    "market_value_usd": 251588.6
+   },
+   {
+    "symbol": "US.NVDA",
+    "name": "英伟达",
+    "占总资产%": 12.64,
+    "market_value_usd": 211435.8
+   },
+   {
+    "symbol": "JP.4568",
+    "name": "第一三共",
+    "占总资产%": 10.05,
+    "market_value_usd": 168148.27
+   },
+   {
+    "symbol": "JP.6857",
+    "name": "爱德万",
+    "占总资产%": 9.26,
+    "market_value_usd": 154908.6
+   },
+   {
+    "symbol": "US.MSTR",
+    "name": "MSTR",
+    "占总资产%": 5.23,
+    "market_value_usd": 87473.1
+   },
+   {
+    "symbol": "JP.7974",
+    "name": "任天堂",
+    "占总资产%": 5.15,
+    "market_value_usd": 86243.61
+   },
+   {
+    "symbol": "US.META",
+    "name": "META",
+    "占总资产%": 3.66,
+    "market_value_usd": 61161.95
+   },
+   {
+    "symbol": "US.AVGO",
+    "name": "博通",
+    "占总资产%": 3.46,
+    "market_value_usd": 57975.0
+   },
+   {
+    "symbol": "JP.8766",
+    "name": "东京海上",
+    "占总资产%": 2.91,
+    "market_value_usd": 48692.07
+   },
+   {
+    "symbol": "US.COIN",
+    "name": "Coinbase",
+    "占总资产%": 2.57,
+    "market_value_usd": 43083.25
+   },
+   {
+    "symbol": "US.CRCL",
+    "name": "Circle",
+    "占总资产%": 1.7,
+    "market_value_usd": 28432.0
+   },
+   {
+    "symbol": "JP.6758",
+    "name": "索尼",
+    "占总资产%": 1.26,
+    "market_value_usd": 21148.52
+   },
+   {
+    "symbol": "JP.7203",
+    "name": "丰田",
+    "占总资产%": 0.86,
+    "market_value_usd": 14410.04
+   },
+   {
+    "symbol": "JP.7832",
+    "name": "万代",
+    "占总资产%": 0.75,
+    "market_value_usd": 12510.0
+   },
+   {
+    "symbol": "JP.8001",
+    "name": "伊藤忠",
+    "占总资产%": 0.65,
+    "market_value_usd": 10840.77
+   },
+   {
+    "symbol": "US.SNDK",
+    "name": "闪迪",
+    "占总资产%": 0.47,
+    "market_value_usd": 7947.0
+   },
+   {
+    "symbol": "US.IBKR",
+    "name": "IBKR",
+    "占总资产%": 0.08,
+    "market_value_usd": 1321.88
+   },
+   {
+    "symbol": "US.SPCX",
+    "name": "SpaceX",
+    "占总资产%": 0.08,
+    "market_value_usd": 1380.0
+   },
+   {
+    "symbol": "US.TSM",
+    "name": "台积电",
+    "占总资产%": 0.03,
+    "market_value_usd": 424.61
+   }
+  ],
+  "超20%的": [],
+  "风控线": "单只≤20%"
+ }
+}

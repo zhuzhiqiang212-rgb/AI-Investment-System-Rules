@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 JST = timezone(timedelta(hours=9))
 FXV = 162.47  # 董事长指定实时值
 
+# 未上市持仓(无OpenD实时价·按成本计入)·SpaceX在0720台账缺失·据0719台账+董事长核给
+UNLISTED = [{"symbol": "US.SPCX", "name": "SpaceX", "market": "US", "quantity": 10.0, "cost_per_share": 138.0,
+             "reason": "未上市·OpenD无实时价·按成本$138×10股=$1,380计入(源:0719台账富途average_cost A级+董事长核)"}]
+
 CASH = {
     "富途": {"JPY": 2132074, "USD": 204.75, "新鲜度": "今日2026-07-22(董事长现报)"},
     "SBI": {"JPY": 17895950, "新鲜度": "2026-07-18(源:sbi_sleeve_2026-07-18.json)"},
@@ -75,6 +79,14 @@ def main():
         rows.append({"symbol": c, "name": h.get("name"), "market": ("JP" if is_jp else "US"),
                      "quantity": q, "price": p, "currency": ("JPY" if is_jp else "USD"),
                      "market_value_local": round(mv_local, 2), "market_value_usd": round(mv_usd, 2)})
+    # 注入未上市持仓(按成本·列入"未取到实时价")
+    for u in UNLISTED:
+        mv = u["cost_per_share"] * u["quantity"]
+        rows.append({"symbol": u["symbol"], "name": u["name"], "market": u["market"], "quantity": u["quantity"],
+                     "price": None, "currency": "USD", "计价方式": "成本(未上市·无实时价)",
+                     "cost_per_share": u["cost_per_share"], "market_value_local": round(mv, 2),
+                     "market_value_usd": round(mv, 2), "reason": u["reason"]})
+        miss.append(u["symbol"])
     stock_usd = sum(r["market_value_usd"] for r in rows if r.get("market_value_usd") is not None)
     jp_usd = sum(r["market_value_usd"] for r in rows if r.get("market") == "JP" and r.get("market_value_usd") is not None)
 
@@ -90,7 +102,10 @@ def main():
     over20 = [x for x in per_stock if x["占总资产%"] > 20]
 
     out.update({
-        "持仓逐只": rows, "未取到实时价": miss,
+        "持仓逐只": rows, "持仓只数": len(rows),
+        "未取到实时价": [{"symbol": r["symbol"], "name": r["name"], "计价": r.get("计价方式", "缺价·未计入"),
+                     "market_value_usd": r.get("market_value_usd"), "原因": r.get("reason")}
+                    for r in rows if r["symbol"] in miss],
         "汇总_USD": {"股票市值": round(stock_usd, 2), "现金合计": round(cash_usd, 2), "总资产": round(total_usd, 2),
                    "日股市值": round(jp_usd, 2)},
         "①几成仓": {"股票市值/总资产%": round(stock_usd / total_usd * 100, 1),
