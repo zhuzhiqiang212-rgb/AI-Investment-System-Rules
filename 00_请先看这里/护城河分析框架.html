@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>护城河分析框架 · 设计（待审）</title>
+<style>
+:root{--bg:#0e1621;--card:#17232f;--line:#2a3d4f;--text:#eef4f9;--soft:#9db0c2;--hi:#ffcf6b;--good:#7ee0a0;--key:#5cc8ff;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.75;font-size:16px;}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 90px;}
+.hdr{padding:16px 20px;background:linear-gradient(135deg,#1c2e40,#132030);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;}
+.hdr h1{font-size:21px;margin:0 0 4px;}
+.hdr .sub{color:var(--soft);font-size:13px;}
+.tie{background:#12202c;border:1px solid #26384a;border-radius:10px;padding:10px 14px;margin:10px 0;font-size:13px;color:var(--soft);}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:12px 0;padding:16px 20px;}
+.sec h2{font-size:18px;margin:0 0 6px;color:#ffe4a8;}
+.sec p{margin:8px 0;font-size:15px;}
+.sec b{color:#fff;}
+.dim{border-left:3px solid #3a5570;padding:6px 0 6px 14px;margin:12px 0;}
+.dim h3{margin:0 0 4px;font-size:16px;color:#8fd6ff;}
+.dim .q{color:var(--soft);font-size:14px;}
+.dim .ex{color:var(--hi);font-size:13.5px;margin-top:3px;}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px;}
+th,td{border:1px solid var(--line);padding:8px 9px;text-align:left;}
+th{background:#13202d;color:#bcd0e2;}
+.hl{color:var(--hi);font-weight:700;}
+.ask{background:#12261c;border:1px solid #285039;border-radius:12px;padding:14px 18px;margin:16px 0;}
+.ask h2{color:var(--good);font-size:17px;margin:0 0 8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hdr">
+  <h1>护城河分析框架 · 设计</h1>
+  <div class="sub">筛选漏斗第4关（估值之后、个股研究之前）｜ 判断"公司能不能长期赚钱、别人抢不走"｜ 通用五维 + <b>公用事业专用评法（2026-07-22 增补）</b></div>
+</div>
+
+<div class="tie">
+  设计依据：蓝图⑤机会池/筛选层漏斗第4关（硬性→均线→估值→<b>护城河</b>→个股研究）；宪法"经线"公司→竞争优势环。此为董事长清单已列的"重要·待建"项，非自创。
+</div>
+
+<div class="sec">
+  <h2>护城河是什么、为什么放在估值之后</h2>
+  <p>护城河＝<b>一家公司"能不能长期挡住对手、持续赚钱"的本事</b>。城堡（生意）再好，没有护城河（壁垒），迟早被对手攻进来、利润被抢光。</p>
+  <p><b>为什么排在估值之后</b>：前面估值算了"现在贵不贵"，但便宜的公司可能是"便宜有便宜的道理"（要被淘汰）。护城河这一关就是问：<span class="hl">这家公司值得长期拿吗？它的赚钱能力是不是稳的、护得住的？</span>便宜＋有宽护城河，才是真正的好机会。</p>
+</div>
+
+<div class="sec">
+  <h2>五维护城河（巴菲特式，每维打分）</h2>
+
+  <div class="dim"><h3>1. 品牌</h3>
+  <div class="q">客户是不是"认这个牌子、愿意多付钱"？</div>
+  <div class="ex">例：可口可乐、苹果——牌子本身就是壁垒。你持仓里的任天堂（IP品牌）也算。</div></div>
+
+  <div class="dim"><h3>2. 网络效应</h3>
+  <div class="q">用的人越多、它越值钱、越难被替代？</div>
+  <div class="ex">例：微信、信用卡网络、交易所（Coinbase）——用户互相锁住。</div></div>
+
+  <div class="dim"><h3>3. 成本优势</h3>
+  <div class="q">它能比对手更便宜地造出同样东西？</div>
+  <div class="ex">例：台积电的制程规模、规模化生产——对手做不到这么便宜。</div></div>
+
+  <div class="dim"><h3>4. 转换成本</h3>
+  <div class="q">客户想换到对手那儿，麻烦/代价大不大？</div>
+  <div class="ex">例：微软的Office/系统——企业换掉它成本极高，只能一直用。</div></div>
+
+  <div class="dim"><h3>5. 无形资产/专利技术</h3>
+  <div class="q">有没有别人拿不到的专利、牌照、技术垄断？</div>
+  <div class="ex">例：英伟达的AI芯片技术护城河、第一三共的抗癌药专利、爱德万的设备技术。</div></div>
+</div>
+
+<div class="sec">
+  <h2>怎么打分（每维+总评）</h2>
+  <table>
+    <tr><th>每一维打分</th><th>意思</th></tr>
+    <tr><td>宽（2分）</td><td>这一维壁垒很强、对手难攻</td></tr>
+    <tr><td>窄（1分）</td><td>有一点壁垒，但不牢</td></tr>
+    <tr><td>无（0分）</td><td>这一维没壁垒</td></tr>
+  </table>
+  <p><b>总评（五维加总，满分10）</b>：</p>
+  <table>
+    <tr><th>总分</th><th>护城河</th><th>含义</th></tr>
+    <tr><td>7-10</td><td><span class="hl">宽护城河</span></td><td>能长期赚钱、值得长拿</td></tr>
+    <tr><td>4-6</td><td>窄护城河</td><td>有壁垒但要盯着，别人可能追上</td></tr>
+    <tr><td>0-3</td><td>无护城河</td><td>纯拼价格/风口，不值得长拿</td></tr>
+  </table>
+</div>
+
+<div class="sec" style="border-left:4px solid #ffcf6b;">
+  <h2>★ 补充 · 公用事业专用护城河评法（受监管电/水/气）· 2026-07-22 增补</h2>
+
+  <p><b>为什么要单开一套</b>：上面那套"巴菲特五维"（品牌/网络/成本/转换/专利）是给<b>制造·科技·消费</b>公司用的。用它去量<b>受监管公用事业</b>（电力/自来水/燃气公司），会<span class="hl">系统性打低分</span>——因为公用事业的真护城河根本不在这五维里。</p>
+  <p class="q" style="color:var(--soft);">实证：机器用通用五维给你候选里的 <b>D（Dominion 弗吉尼亚电力）和 PEG（PSEG 新泽西电力）</b>打分，两只都只有 3 分＝"无护城河"。这是<b>错判</b>。受监管电网是巴菲特最偏爱的宽护城河生意之一（他旗下 BHE 就是干这个的）。问题不在这两只公司，在"尺"用错了。</p>
+
+  <p><b>公用事业的护城河来自哪</b>——政府发的<b>垄断牌照</b>：某片地区的供电权只给你一家，别人不许进来抢；换来的是你得普遍供电、且赚多少受监管机构管着。所以它护城河极宽，但回报有天花板。据此定专用五维：</p>
+
+  <div class="dim"><h3>公1. 监管特许经营权（垄断牌照）</h3>
+  <div class="q">是不是政府授予的独家服务区？别人能不能进来抢这片地的生意？</div>
+  <div class="ex">宽＝法定独家特许、排他性强；窄＝部分放开/有竞争性零售；无＝纯批发/无特许。这是公用护城河的<b>第一根</b>。</div></div>
+
+  <div class="dim"><h3>公2. 高效规模 / 自然垄断（电网/管网）</h3>
+  <div class="q">这片地的输配电网是不是"只容得下一家"？再建第二张网划不划算？</div>
+  <div class="ex">宽＝区域唯一电网、重复建设不经济（自然垄断）；窄＝部分区域重叠；无＝可竞争。晨星称这为 efficient scale——通用五维里缺的正是它。</div></div>
+
+  <div class="dim"><h3>公3. 受监管回报的确定性（rate base 质量 + 监管环境）</h3>
+  <div class="q">监管机构给不给稳定回报？环境是"配合建设型"还是"对抗压价型"？投资基数(rate base)在不在增长？</div>
+  <div class="ex">宽＝监管建设性、允许ROE稳、rate base 随投资增长（如数据中心接入）；窄＝监管偶有摩擦/滞后；无＝频繁被压价。<b>回报天花板≈行业允许ROE普遍 9.5–10.5%（具体以各州 rate case 为准，不得编数）。</b></div></div>
+
+  <div class="dim"><h3>公4. 资产壁垒（电网不可复制）</h3>
+  <div class="q">要复制它这张网，得花多少钱、多少年？新对手够得着吗？</div>
+  <div class="ex">宽＝输配网+发电资产重置成本极高、建设周期几十年；窄＝资产较轻；无＝易复制。</div></div>
+
+  <div class="dim"><h3>公5. 需求刚性 / 必需品（扣分看侵蚀）</h3>
+  <div class="q">用电是刚需吗？有没有东西在侵蚀它——自发电、分布式光伏、去监管？</div>
+  <div class="ex">宽＝需求刚性且增长（AI数据中心用电爆发）；窄＝需求平/有侵蚀；无＝被替代明显。</div></div>
+
+  <p><b>打分与总评：同通用尺</b>——每维 宽2/窄1/无0，总分 7-10 宽 / 4-6 窄 / 0-3 无，便于接同一漏斗第4关。</p>
+
+  <div class="tie" style="border-color:#7a5a20;background:#2a220f;color:#ffd98a;">
+    <b>★★ 天花板诚实注（必读·防误导）</b>：公用事业"宽护城河"＝<b>利润稳、别人抢不走、下行保护强、分红可预测</b>——但<span class="hl">不等于高成长</span>。它的回报被监管封顶（允许ROE就那么高），是"债券替代型"的<b>防御/收息仓</b>，不是英伟达那种进攻仓。给它宽护城河，意思是"稳得住值得配一点收息"，<b>不是"会大涨"</b>。别拿护城河分高当成"该重仓博上涨"。
+  </div>
+
+  <div class="tie">
+    <b>接口规则（什么股走这套）</b>：主营受州/联邦公用事业委员会监管的<b>输配电/气/水</b>、收入主要来自 rate-regulated 业务的公司 → 走"公用专用五维"；其余一律走通用五维。<b>混合型</b>（如含大量非监管电力零售/发电的，参考 CLAUDE.md 5.5 坑：NRG 毛利率 13.6% 是零售商属性、非电厂）→ 拆开看、就低不就高，标"混合·待理解岗定主业"。
+  </div>
+
+  <p><b>D / PEG 示范打分（架构师初判 · 档位纠偏 · 具体数字待理解岗核实各州最新 rate case，不得编）</b>：</p>
+  <table>
+    <tr><th>标的</th><th>公1特许</th><th>公2规模</th><th>公3回报</th><th>公4资产</th><th>公5需求</th><th>总分/档</th></tr>
+    <tr><td><b>D</b> Dominion·弗吉尼亚</td><td>宽2</td><td>宽2</td><td>1~2 待核</td><td>宽2</td><td>宽2（数据中心用电爆发）</td><td class="hl">9~10 宽护城河</td></tr>
+    <tr><td><b>PEG</b> PSEG·新泽西</td><td>宽2</td><td>宽2</td><td>1~2 待核</td><td>宽2</td><td>1~2（负荷增长弱于弗州）</td><td class="hl">8~9 宽护城河</td></tr>
+  </table>
+  <p class="q" style="color:var(--soft);font-size:14px;">对比：通用五维把这两只判成 3 分"无护城河"（错）；公用专用评法纠正为"宽护城河（但收息型·非成长）"。公3 回报维给区间 1~2、不写死，是因为具体允许ROE/rate base/最新 rate case 结果须理解岗查证后落定——按生产铁律，缺数标"待核"，不估算放行。</p>
+</div>
+
+<div class="sec">
+  <h2>怎么接进筛选漏斗（第4关的作用）</h2>
+  <p>一个标的过了硬性（在方向上）+软性（位置好）+估值（不贵）后，到护城河这关：</p>
+  <p>· <b>宽护城河 + 便宜</b> → <span class="hl">最优质机会，重点关注</span><br>
+  · 窄护城河 + 便宜 → 可以，但盯紧壁垒会不会被攻破<br>
+  · 无护城河 + 便宜 → <b>便宜有便宜的道理，谨慎</b>（可能在被淘汰）</p>
+  <p class="q" style="color:var(--soft);font-size:14px;">诚实边界：护城河是"定性判断"，不是算出来的数。前期由理解岗(Claude)结合公开资料+个股研究打分，标注置信度；不假装是精确公式。</p>
+</div>
+
+<div class="ask">
+  <h2>请你审这个框架，回我</h2>
+  <ul>
+    <li>1. 五维（品牌/网络效应/成本/转换成本/专利）——够不够？你还看重别的吗（比如管理层、政策壁垒）？</li>
+    <li>2. 打分方式（每维宽2/窄1/无0，总分分三档）——这么打对吗？</li>
+    <li>3. 认可的话，我让Codex建成"护城河打分"接进筛选漏斗第4关，并先给6只重仓打一遍护城河分。</li>
+  </ul>
+</div>
+
+</div>
+</body>
+</html>
