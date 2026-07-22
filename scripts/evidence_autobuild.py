@@ -206,8 +206,13 @@ def rule_capital(snapshot: dict[str, Any] | None, curve: dict[str, Any] | None) 
     curve_src = "yield_curve 缺"
     if curve:
         inverted = bool(curve["data"].get("inverted"))
-        spread = curve["data"].get("spread_10y_3m")
-        curve_note = f"曲线{'倒挂' if inverted else '未倒挂'}(10Y-3M={spread})"
+        # 口径统一：优先真2年美债(10Y-2Y·FRED DGS2/Yahoo备源)，与宏观表一致；无2年才退回3月^IRX
+        spread_2y = curve["data"].get("spread_10y_2y")
+        if spread_2y is not None:
+            curve_note = f"曲线{'倒挂' if inverted else '未倒挂'}(10Y-2Y={spread_2y})"
+        else:
+            spread = curve["data"].get("spread_10y_3m")
+            curve_note = f"曲线{'倒挂' if inverted else '未倒挂'}(10Y-3M={spread}·2年待接)"
         curve_src = curve["file"] + ("" if curve["is_today"] else f"(最近可得 {curve['used_date']}·非当日)")
 
     spike = vix_chg_f is not None and vix_chg_f > RULES["VIX_SPIKE_PCT"]
