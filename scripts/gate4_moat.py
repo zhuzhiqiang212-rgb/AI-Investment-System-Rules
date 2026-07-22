@@ -65,6 +65,11 @@ def band(t):
     return "宽护城河" if t >= 7 else ("窄护城河" if t >= 4 else "无护城河")
 
 
+def band_util(t):
+    # 公用:③受监管回报待核不计分→按4维满分8等比定档(架构师《护城河分析框架.html》:宽≥6/窄3-5/无≤2)
+    return "宽护城河" if t >= 6 else ("窄护城河" if t >= 3 else "无护城河")
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--date", default="20260722"); a = ap.parse_args()
     d = a.date
@@ -87,6 +92,7 @@ def main():
         scored = [m[dim][0] for dim in dims if m[dim][0] is not None]
         total = sum(scored)
         pending = [dim for dim in dims if m[dim][0] is None]
+        bd = band_util(total) if is_util else band(total)   # 公用走等比档界(待核不计分·4维满分8)
         g3c = g3rows.get(c, {})
         g3v = g3c.get("第3关估值", {})
         cheap = g3v.get("结论", "")
@@ -94,21 +100,22 @@ def main():
             "评法": ("公用事业专用五维(监管特许/高效规模/受监管回报/资产壁垒/需求刚性)" if is_util
                    else "通用五维(品牌/网络效应/成本/转换成本/专利)"),
             "五维": dimscore, "总分": total,
-            "计分说明": (f"③受监管回报待理解岗核·不计分;其余{len(scored)}维计分={total}" if pending else f"五维全计={total}"),
-            "档": band(total),
-            "宽+便宜=最优质?": ("★是(宽护城河+便宜)" if (band(total) == "宽护城河" and cheap.startswith("便宜"))
-                           else f"否(护城河{band(total)}·估值{cheap})"),
+            "计分说明": (f"③受监管回报待理解岗核·不计分;其余{len(scored)}维计分={total}·按等比档界(宽≥6/窄3-5/无≤2)" if pending else f"五维全计={total}"),
+            "档": bd,
+            "宽+便宜=最优质?": ("★是(宽护城河+便宜)" if (bd == "宽护城河" and cheap.startswith("便宜"))
+                           else f"否({bd}·估值{cheap})"),
         }
         if is_util:
             moat_block["★天花板注"] = UTIL_CEIL
             moat_block["★待核维"] = pending
+            moat_block["档界口径"] = "公用③待核不计分→按4维满分8等比:宽≥6/窄3-5/无≤2(架构师《护城河分析框架.html》)"
         rows[c] = {
             "code": c, "名称": m["名称"],
             "逐关轨迹": {
                 "第1关_激活板块": g3c.get("逐关轨迹", {}).get("第1关_激活板块"),
                 "第2关_象限": g3c.get("逐关轨迹", {}).get("第2关_象限"),
                 "第3关_估值": cheap,
-                "第4关_护城河": band(total),
+                "第4关_护城河": bd,
             },
             "第4关护城河": moat_block,
             "框架/风险注": {k: m[k] for k in m if k.startswith("★")},
@@ -131,7 +138,7 @@ def main():
                           "结论": ("通过·第4关晚于第3关" if after_g3 else "★失败·倒推")},
         "汇总(按护城河总分降序)": summary,
         "宽护城河": wide,
-        "宽+便宜=最优质机会": ([x["code"] for x in best] if best else "★本7只中无『宽护城河且便宜』完美组合(KLAC宽但估值合理·GSK便宜但护城河窄)·最接近见汇总"),
+        "宽+便宜=最优质机会": ([x["code"] for x in best] if best else "3只宽护城河(D/PEG/KLAC)均估值合理·无便宜者·故无宽+便宜完美组合;且D/PEG为收息防御型(天花板注·非成长)。"),
         "逐只(7)": rows,
     }
     p = S / f"gate4_moat_{d}.json"
