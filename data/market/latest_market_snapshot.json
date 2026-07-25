@@ -1,0 +1,123 @@
+{
+ "task_id": "TASK-20260725-R1补snapshot真数据",
+ "mode": "production_data_fetch_fixed_v1",
+ "generated_at": "2026-07-25T23:51:03+09:00",
+ "latest_trading_day_logic": "Yahoo chart range=10d，取最后一根有效日线 close；美国股指/ETF遇假日可能停在07-02，外汇/加密可有不同data_date，逐项如实标。",
+ "security_rules": {
+  "read_only_market_data": true,
+  "place_order_called": false,
+  "change_order_called": false,
+  "cancel_order_called": false,
+  "published": false
+ },
+ "data_sources": {
+  "primary": "GPT转述Reuters/AP(董事长核可)·SOXX/SPX涨跌幅",
+  "fallback": null,
+  "★不再": "原Yahoo Finance chart URL为假源·已改真来源"
+ },
+ "summary": {
+  "total_assets": 6,
+  "ok_change_only": 2,
+  "ok_symbols": [
+   "SOXX",
+   "SPX"
+  ],
+  "pending_count": 4,
+  "pending_symbols": [
+   "^VIX",
+   "US10Y",
+   "DXY",
+   "USDJPY"
+  ],
+  "fail_count": 0,
+  "success_count": 2,
+  "note": "OK_CHANGE_ONLY=只有涨跌幅(GPT转述)·价量null;PENDING=整条待补",
+  "all_items_have_true_data_date_or_pending": true
+ },
+ "assets": [
+  {
+   "symbol": "^VIX",
+   "name": "VIX",
+   "price": null,
+   "close": null,
+   "change_percent": null,
+   "volume": null,
+   "data_date": null,
+   "source": "07-24真值未取到",
+   "source_url": null,
+   "status": "PENDING",
+   "note": "PENDING·值null·不参与规则判定(原07-22旧值弃用)",
+   "prev_data_date": "2026-07-22"
+  },
+  {
+   "symbol": "US10Y",
+   "name": "10Y U.S. Treasury Yield",
+   "price": null,
+   "close": null,
+   "change_percent": null,
+   "volume": null,
+   "data_date": null,
+   "source": "07-24真值未取到",
+   "source_url": null,
+   "status": "PENDING",
+   "note": "PENDING·值null·不参与规则判定(原07-22旧值弃用)",
+   "prev_data_date": "2026-07-22"
+  },
+  {
+   "symbol": "DXY",
+   "name": "U.S. Dollar Index",
+   "price": null,
+   "close": null,
+   "change_percent": null,
+   "volume": null,
+   "data_date": null,
+   "source": "07-24真值未取到",
+   "source_url": null,
+   "status": "PENDING",
+   "note": "PENDING·值null·不参与规则判定(原07-22旧值弃用)",
+   "prev_data_date": "2026-07-22"
+  },
+  {
+   "symbol": "SOXX",
+   "name": "iShares Semiconductor ETF",
+   "price": null,
+   "close": null,
+   "change_percent": -4.5,
+   "volume": null,
+   "data_date": "2026-07-24",
+   "source": "GPT转述Reuters/AP 2026-07-24美股收盘(董事长核可·可核涨跌幅)",
+   "source_url": "https://www.reuters.com/markets/ ; https://apnews.com/hub/financial-markets",
+   "status": "OK_CHANGE_ONLY",
+   "note": "涨跌幅真(GPT转述Reuters/AP·董事长核可);07-24 close/volume未取到→null·不留07-21混血价量"
+  },
+  {
+   "symbol": "SPX",
+   "name": "S&P 500",
+   "price": null,
+   "close": null,
+   "change_percent": 0.05,
+   "volume": null,
+   "data_date": "2026-07-24",
+   "source": "GPT转述Reuters/AP 2026-07-24美股收盘(董事长核可·可核涨跌幅)",
+   "source_url": "https://www.reuters.com/markets/ ; https://apnews.com/hub/financial-markets",
+   "status": "OK_CHANGE_ONLY",
+   "note": "涨跌幅真(GPT转述Reuters/AP·董事长核可);07-24 close/volume未取到→null·不留07-21混血价量"
+  },
+  {
+   "symbol": "USDJPY",
+   "name": "USD/JPY",
+   "price": null,
+   "close": null,
+   "change_percent": null,
+   "volume": null,
+   "data_date": null,
+   "source": "07-24真值未取到",
+   "source_url": null,
+   "status": "PENDING",
+   "note": "PENDING·值null·不参与规则判定(原07-22旧值弃用)",
+   "prev_data_date": "2026-07-22"
+  }
+ ],
+ "data_date": "2026-07-24",
+ "口径": "2026-07-24真实收盘(GPT给·可核·Reuters/AP);拿不到的资产PENDING/null·不参与判定;不再顶层07-24肚里07-21/22。"
+}

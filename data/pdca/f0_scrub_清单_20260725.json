@@ -1,0 +1,198 @@
+[
+ {
+  "文件": "data/pdca/pdca_review_20260725.json",
+  "JSON路径": "/certainty_trajectories[4]/judgment",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/pdca/pdca_review_20260725.json",
+  "JSON路径": "/multi_scale/daily/rings[4]/judgment",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/pdca/pdca_review_20260725.json",
+  "JSON路径": "/multi_scale/daily/rings[4]/evidence",
+  "改后": "费城半导体SOX -4.5%(7-24收盘)→ 规则判「走弱」",
+  "改前(反推)": "SOXX 较昨+5.45%（阈值±1.0%）→ 规则判「走强」",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/pdca/pdca_review_20260725.json",
+  "JSON路径": "/multi_scale/daily/rings[4]/previous_direction",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/pdca/pdca_daily_20260725.json",
+  "JSON路径": "/rings[4]/judgment",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/pdca/pdca_daily_20260725.json",
+  "JSON路径": "/rings[4]/evidence",
+  "改后": "费城半导体SOX -4.5%(7-24收盘)→ 规则判「走弱」",
+  "改前(反推)": "SOXX 较昨+5.45%（阈值±1.0%）→ 规则判「走强」",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/pdca/pdca_daily_20260725.json",
+  "JSON路径": "/rings[4]/previous_direction",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/derived/today_direction",
+  "改后": "费城半导体SOX -4.5%(7-24)",
+  "改前(反推)": "SOXX 较昨+5.45%",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/derived/today_direction",
+  "改后": "板块半导体「走弱",
+  "改前(反推)": "板块半导体「走强",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/derived/today_direction_short",
+  "改后": "半导体走弱",
+  "改前(反推)": "半导体走强",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/derived/decision_constraint",
+  "改后": "费城半导体SOX -4.5%(7-24)",
+  "改前(反推)": "SOXX 较昨+5.45%",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/links[5]/evidence[0]/title",
+  "改后": "半导体走弱",
+  "改前(反推)": "半导体走强",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/links[5]/evidence[0]/title",
+  "改后": "-4.5%",
+  "改前(反推)": "+5.45%",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/links[5]/direction",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/links[5]/plain",
+  "改后": "-4.5%",
+  "改前(反推)": "+5.45%",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/links[5]/today_events[0]",
+  "改后": "费城半导体SOX -4.5%(7-24)",
+  "改前(反推)": "SOXX 较昨+5.45%",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/daily_20260725.json",
+  "JSON路径": "/links[5]/source",
+  "改后": "-4.5%",
+  "改前(反推)": "+5.45%",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/reports/production_20260725.json",
+  "JSON路径": "/today_direction",
+  "改后": "费城半导体SOX -4.5%(7-24)",
+  "改前(反推)": "SOXX 较昨+5.45%",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/reports/production_20260725.json",
+  "JSON路径": "/today_direction",
+  "改后": "板块半导体「走弱",
+  "改前(反推)": "板块半导体「走强",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/reports/production_20260725.json",
+  "JSON路径": "/today_direction_short",
+  "改后": "半导体走弱",
+  "改前(反推)": "半导体走强",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/evidence_chain/damping_20260725.json",
+  "JSON路径": "/layers/板块轮动/prev",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/evidence_chain/damping_20260725.json",
+  "JSON路径": "/layers/板块轮动/hist[0]/state",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/evidence_chain/damping_20260725.json",
+  "JSON路径": "/layers/板块轮动/hist[1]/state",
+  "改后": "半导体走弱·资金流出",
+  "改前(反推)": "半导体走强·资金回流",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/evidence_chain/damping_20260725.json",
+  "JSON路径": "/layers/板块轮动/hist[2]/state",
+  "改后": "半导体走弱",
+  "改前(反推)": "半导体走强",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/evidence_chain/damping_20260725.json",
+  "JSON路径": "/layers/板块轮动/hist[3]/state",
+  "改后": "半导体走弱",
+  "改前(反推)": "半导体走强",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/evidence_chain/damping_20260725.json",
+  "JSON路径": "/layers/板块轮动/hist[4]/state",
+  "改后": "半导体走弱",
+  "改前(反推)": "半导体走强",
+  "★触及历史/昨判/记分": true
+ },
+ {
+  "文件": "data/market/latest_market_snapshot.json",
+  "JSON路径": "/sector_semiconductor/evidence",
+  "改后": "费城半导体SOX -4.5%(7-24)",
+  "改前(反推)": "SOXX 较昨+5.45%",
+  "★触及历史/昨判/记分": false
+ },
+ {
+  "文件": "data/market/latest_market_snapshot.json",
+  "JSON路径": "/sector_semiconductor/note",
+  "改后": "-4.5%",
+  "改前(反推)": "+5.45%",
+  "★触及历史/昨判/记分": false
+ }
+]
