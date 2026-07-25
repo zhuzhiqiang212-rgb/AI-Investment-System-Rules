@@ -4290,8 +4290,9 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
            f'编号 / 生产时间 / 数据来源（点开看·核对用）</summary>'
            f'<div style="font-size:11.5px;color:#9aa8b5;margin-top:5px;line-height:1.75">'
            f'· 数据日 data_date=<b>{esc(_dd)}</b>（这些数字取自哪一天）<br>'
-           f'· 生产于 <b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）——这份文件什么时候跑出来的<br>'
-           f'· 编号 run_id=<b>{esc(run_id)}</b>——这一次运行的号（用来回溯是哪次扫描出的）<br>'
+           f'· 数据扫描于 <b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）——这次 production 扫描的钟点<br>'
+           f'· <b>真实生成时刻 {esc(datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S JST"))}</b>——本文件实际渲染跑出来的钟点（T5:跨午夜可能到次日·与run_id日期分开显）<br>'
+           f'· 编号 run_id=<b>{esc(run_id)}</b>（日期段=数据日 {esc(date)}·跨午夜沿用当日·T5架构师裁定合规）——回溯是哪次扫描<br>'
            + (f'· 行情快照日：{esc(md_note)}<br>' if md_note else '')
            + f'· 深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编'
            + _price_asof_note(date)

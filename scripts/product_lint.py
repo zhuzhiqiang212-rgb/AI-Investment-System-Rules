@@ -69,7 +69,7 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     for fn, h in vols.items():
         rid |= set(re.findall(r"run_id=<b>([^<]+)</b>", h))
         dd |= set(re.findall(r"data_date=<b>([^<]+)</b>", h))
-    # S3(董事长2026-07-25·加强):R3-(三层)/R-(机器版)是册型前缀·两册同源判据=剥前缀后的【时间段+日期段】一致
+    # S3(架构师2026-07-25 追认·原判据为完全一致，经架构师裁定放宽为剥册型前缀后同源):R3-(三层)/R-(机器版)是册型前缀·两册同源判据=剥前缀后的【时间段+日期段】一致
     #   (两册须锚定同一次 production 扫描·render_3layer/deep_render 都取 production.generated_at)。
     #   剥前缀后仍>1 → 两册是两次不同运行的产出·非同源 → FAIL(这正是上轮 L2 没拦住的漏)。
     rid_core = {re.sub(r"^R3?-", "", r) for r in rid}
@@ -101,7 +101,7 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         if bad:
             fails.append(f"L3 转义渣：{fn} 正文出现字面量标签 ×{len(bad)}（示例 {bad[0]}）")
 
-    # ── L4b 大环境/板块模块错模板(董事长2026-07-25·F4/R2):板块/共同风险类模块的「②为什么」栏
+    # ── L4b 大环境/板块模块错模板(架构师F4派工单2026-07-25·R2):板块/共同风险类模块的「②为什么」栏
     #     不许出现个股专用的『护城河/五维/评级待补』(那是持仓卡③的内容·串进大环境模块=错模板) ──
     for fn, h in vols.items():
         for m in re.finditer(r'②\s*为什么\s*[（(]?\s*这么判的依据', h):

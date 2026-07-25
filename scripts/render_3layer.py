@@ -1695,7 +1695,7 @@ def _chain_trunc(s: str, n: int) -> str:
     return cut + "…" + "".join(reversed(st))
 
 
-def _decision_chain(date: str, dyn: dict, daily: dict, dec: dict) -> str:
+def _decision_chain(date: str, dyn: dict, daily: dict, dec: dict, act_map: dict | None = None) -> str:
     """★决策逻辑链(董事长认大方向·依《决策逻辑链_正确设计_20260709》)：产品顶部自上而下一条链，
     ①世界观→②国家战略→③资金流总闸→④板块轮动→⑤五关→⑥决策(每只追源)→⑦复盘↺。
     每层三句：今天出了啥[真抓当日]→拿本层尺一量[支持/动摇]→一句结论+往下传。上层结论作下层前提(因果闭环)。"""
@@ -1813,7 +1813,9 @@ def _decision_chain(date: str, dyn: dict, daily: dict, dec: dict) -> str:
     for h in holds:
         sym = str(h.get("symbol", ""))
         nm = str(h.get("name") or sym)
-        act = str(h.get("action") or (dec.get(sym, {}) or {}).get("action") or "守")
+        # L28 同源(架构师T2 2026-07-25):⑥决策表动作用【与个股卡今日动作同一源】act_map(卡的holding_ctx最终动作),
+        #   不再独立取 h.action → 消灭⑥与自检决定摘要动作打架(每只当天只能一个动作)。
+        act = str((act_map or {}).get(sym) or h.get("action") or (dec.get(sym, {}) or {}).get("action") or "守")
         hard = str(h.get("hard_filter", "—"))
         nodes = h.get("matched_node_classes_effective") or []
         is_anom = sym in anom
@@ -1835,7 +1837,8 @@ def _decision_chain(date: str, dyn: dict, daily: dict, dec: dict) -> str:
         color = {"加": "#7ee0a0", "减": "#ff9a9a", "守": "#cfe0d6", "等": "#e0c060"}.get(act, "#cfe0d6")
         rows.append(
             f'<tr><td style="font-weight:700">{e(nm)}<br><span style="color:#6b8b7a;font-size:10.5px">{e(sym)}</span></td>'
-            f'<td style="text-align:center"><b style="color:{color};font-size:15px">{e(act)}</b></td>'
+            f'<td style="text-align:center"><b style="color:{color};font-size:15px">{e(act)}</b>'
+            f'<span class="actck" data-actck="{e(sym)}|⑥决策表|{e(act)}" style="display:none"></span></td>'
             f'<td style="text-align:center;color:#8fb8a4;font-weight:700">{e(chain_ref)}</td>'
             f'<td style="font-size:11.5px;color:#d7e6dd">{basis}</td></tr>')
     decision = (
@@ -2063,6 +2066,14 @@ def build(date: str) -> str:
     holds = [h for h in prod.get("holdings", []) if not str(h.get("symbol", "")).startswith("CC.")]
     each = [holding_ctx(str(h.get("symbol")), str(h.get("name") or h.get("symbol")), dyn, date, conc, set())
             for h in holds]
+    # L28同源(架构师T2 2026-07-25):个股卡今日动作对齐【唯一决定表 decisions_{date}.json】(单一源)——
+    #   消灭卡的独立覆盖(如no_val→观)与决定表(守)打架;决定表是权威·渲染对齐它·不擅改决定表(治理:决定表先报后改)。
+    for _hc in each:
+        _da = (dec.get(str(_hc.get("代码", "")), {}) or {}).get("action")
+        if _da:
+            _hc["今日动作"] = _da
+            _hc["动作色"] = ACT_COLOR.get(_da, _hc.get("动作色"))
+            _hc["动作图标"] = ACT_ICON.get(_da, _hc.get("动作图标"))
     # 集中度类
     cats = [{"类名": D.esc(k), "当前占比": f"{val.get('pct'):.1f}%", "上限": f"{val.get('limit'):.0f}%",
              "超限": bool(val.get("over"))} for k, val in (conc.get("categories", {}) or {}).items()]
@@ -2104,7 +2115,10 @@ def build(date: str) -> str:
     else:
         px_note = "美股取昨夜收；日股取当日/最近交易日收；各只价格交易日见卡内标注。"
     # 第0节:三层重排版【构建戳】——区别于数据 run_id,每次重排都刷新,让"是不是重新生成过"一眼可辨(诚实:数据仍为原扫描)
-    px_note += (f" ｜ 本次生产 run_id=<b>{run_id}</b>（三层重排版·反映本次真实运行）"
+    # T5(架构师裁定2026-07-25·跨午夜规则):run_id日期段锚 data_date(合规)·但页头须【同时】显真实生成时刻(不许只显run_id日盖过)
+    _gen_real = _now_dt.strftime("%Y-%m-%d %H:%M:%S")
+    px_note += (f" ｜ 本次生产 run_id=<b>{run_id}</b>（三层重排版·run_id日期段=数据日 {_iso(date)}·跨午夜沿用当日）"
+                f" ｜ <b>真实生成时刻 {_gen_real}</b>（本文件实际跑出来的钟点·可能跨午夜到次日·与run_id日期分开显）"
                 f"；底层数据扫描={data_ref}（价=最近交易日·重排版≠重扫数据）")
     # [致命1]唯一正式决定表:总数统计【程序从动作表(each)统计得出】·不手写·三层同源(L51 校验一致)
     _act = {}
@@ -2147,6 +2161,7 @@ def build(date: str) -> str:
             '<b style="color:#7ee0a0">决定摘要（与①②同一份数据·11核心字段·逐字同源）</b>：'
             f'现价 {hc.get("现价","")}'
             f'｜股数 {hc.get("股数","")}｜今日动作 <b>{hc.get("今日动作","")}</b>'
+            f'<span class="actck" data-actck="{D.esc(str(hc.get("代码","")))}|自检决定摘要|{D.esc(str(hc.get("今日动作","")))}" style="display:none"></span>'
             f'｜今日价值区 {hc.get("价值区下沿","")}~{hc.get("价值区上沿","")}｜未来目标 {hc.get("目标价","")}'
             f'｜第一档 {hc.get("第一档价","")}｜第二档 {hc.get("第二档价","")}｜建议金额 {hc.get("建议金额","")}'
             f'｜推动股价的事 {_st("催化剂")}'
@@ -2168,7 +2183,9 @@ def build(date: str) -> str:
     for _sym, _summ in _summ_map.items():
         out = out.replace(f'id="deep-{_sym}">', f'id="deep-{_sym}">{_summ}', 1)
     # ★决策逻辑链(董事长认大方向)——注入产品最顶部(页头后·L1前)·自上而下一条链·决策是终点
-    _chain_html = _decision_chain(date, dyn, daily_chain, dec)
+    # L28同源:⑥决策表动作与个股卡今日动作同一源(消灭动作打架)——从 each(holding_ctx结果)建 sym→今日动作 映射
+    _act_map = {str(hc.get("代码")): str(hc.get("今日动作", "")) for hc in each if hc.get("代码")}
+    _chain_html = _decision_chain(date, dyn, daily_chain, dec, _act_map)
     # ★稳定性状态条(董事长2026-07-25·drive/futu变更):护城河重评/非OpenD待确认/老雷待导出·产品实物可见
     _stab_html, _moat_stale = _stability_banners(date)
     build._moat_stale = _moat_stale          # 供 main 出厂闸:超期未重评→FAIL不出品
@@ -2440,7 +2457,9 @@ def main() -> int:
         return 5
     # 三层版结构不同于机器版：跳过机器版专属结构规则(L2同源页头/L19机器卡格式/L28 actck锚/L29八层闭环)，
     #   保留全部内容安全规则(L1乱码/L3转义/L4内部话泄露/L20低置信警示/L31集中度一致/L34同股多股数/L35口径矛盾)。
-    _SKIP = ("L2 ", "L2b", "L19", "L28", "L29")
+    # L28(同股一个答案)不再SKIP(架构师T2裁定2026-07-25:三层版=每日产品=董事长真看的册·必须查动作打架);
+    #   三层已在⑥决策表/自检决定摘要埋 data-actck 锚·动作同源自 act_map。L2跨册/L19机器卡格式/L29八层闭环仍机器版专属。
+    _SKIP = ("L2 ", "L2b", "L19", "L29")
     fails = [f for f in allf if not f.startswith(_SKIP)]
     if fails:
         print(f"[三层·出厂核 FAIL·不出品] {len(fails)} 条——旧版未被覆盖：")
