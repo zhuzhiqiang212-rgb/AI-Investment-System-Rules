@@ -33,5 +33,11 @@
   "②_历史9vs清单4": "事故记录写影响_历史=9;原f0_report的HIST_KEYS漏了『hist』关键字→只标了4条(previous_direction×2+trajectory×1+prev×1)。实际=4+damping板块轮动hist[0..4]/state×5=9。清单已重标为9·两处对齐。",
   "③_damping_hist连续天数": "damping/板块轮动/hist[0..4]/state是决定『连续第几天』的历史状态序列·确属历史→清单已改true。污染期间我把hist[0],hist[1]从走强误scrub为走弱→会把『方向反转』抹平成『无变化』(架构师验收原话:被抹平成0分)。★已还原:hist=[走强,走强,走弱,走弱,走弱]·damping恢复真实『-1分·方向反转·确定性中→弱』。连续天数:当前走弱是从走强反转的第1天(非连续走弱)·还原后正确。",
   "结论": "三处账目全部对齐说明·结论不变(污染真实存在·已还原·8/5打分前无残留)。"
+ },
+ "git_commit_回报": {
+  "轮2_commit": "7ac3433(P0轮2 R1~R5)",
+  "分支": "p0-round2-remediation-20260725",
+  "说明": "main有untracked冲突→走分支PR;架构师G盘核不到是因未合main。",
+  "轮3_待提交": "S1曲线PENDING+S2显示层拆结论+S3两册run_id同源+L2加强·本轮commit见回报"
  }
 }

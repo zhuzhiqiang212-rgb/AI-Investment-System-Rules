@@ -4241,7 +4241,8 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     try:
         _dt = datetime.fromisoformat(scan_raw.replace("Z", "+00:00"))
         scan_jst = _dt.astimezone(JST).strftime("%Y-%m-%d %H:%M:%S JST")
-        run_id = "R-" + _dt.astimezone(JST).strftime("%Y%m%d-%H%M%S")
+        # S3(董事长2026-07-25·L2同源):日期段=data_date(过L50·跨午夜不错位)·时间段=generated_at的JST时刻(与render_3layer同源)
+        run_id = "R-" + date + "-" + _dt.astimezone(JST).strftime("%H%M%S")
     except Exception:
         scan_jst = "待接"; run_id = "R-" + date + "-nots"
     # 第一档4[验货戳每次重取]：行情快照戳=本次 production 的 generated_at(每次生产就是这次扫描的)，
@@ -4422,7 +4423,8 @@ _JARGON_RE = [
     (r"US10Y\s*/\s*Real Yield", "美国十年期国债利率（含剔除通胀后的真实利率）"),
     (r"\bUS10Y\b", "美国十年期国债利率"),
     (r"\bUS3M\b", "美国三个月国债利率"),
-    (r"10Y-3M\s*=\s*([\d.]+)", r"十年期国债利率比三个月的高\1个百分点（长短端没有倒挂，属正常）"),
+    # S2(董事长2026-07-25):显示层只翻人话·不下"倒挂/正常"结论(那由资金环规则层从真数据算);含负值(-?)分支·不静默漏真倒挂
+    (r"10Y-3M\s*=\s*(-?[\d.]+)", r"十年期国债利率比三个月的相差\1个百分点（倒挂与否见资金环规则判定）"),
     (r"\bFEDFUNDS\b|\bFedFunds\b", "美联储基准利率"),
     (r"\bSOXX\b", "费城半导体指数（一篮子半导体股）"),
     (r"加权净分\s*=\s*([\-\d.]+)", r"综合研判得分\1（正数偏利多、负数偏利空）"),
@@ -4592,8 +4594,9 @@ def _scrub_leaks(html_txt: str, is_pool: bool = False) -> str:
     html_txt = re.sub(r"没变·但要盯\(([^()]{0,40})\)", r"没变，但要盯着点（\1）", html_txt)
     html_txt = re.sub(r"没变\(三支柱维持·([^()]{0,30})\)", r"没变（三支柱延续·\1）", html_txt)
     # 甲7：VIX那句三层括号 → 拆短句
-    html_txt = re.sub(r"（VIX\s*较昨([+\-][\d.]+)%、曲线未倒挂\(10Y-3M=([\d.]+)·2年待接\)）",
-                      r"：市场恐慌指数较昨天\1%，长短期利率没有倒挂，属正常", html_txt)
+    # S2:倒挂verdict(\2)由规则层传入·显示层只翻译不自下结论;PENDING(曲线待补)不匹配→原样透传"待补·不参与判定"
+    html_txt = re.sub(r"（VIX\s*较昨([+\-][\d.]+)%、曲线(未?倒挂)\(10Y-3M=(-?[\d.]+)·2年待接\)）",
+                      r"：市场恐慌指数较昨天\1%，长短期利率\2（10Y-3M=\3·倒挂与否由规则层判定）", html_txt)
     html_txt = _gloss_first(html_txt)          # 术语首次出现就地解释
     # 件二/件五：内部话与草稿语→人话/删(判断口径不变·只改措辞)
     for a, b in (("【状态机·事件驱动】", "【判断依据】"), ("状态机", "判断规则"), ("事件驱动", "按事件才改"),

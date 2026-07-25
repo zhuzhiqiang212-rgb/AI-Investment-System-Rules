@@ -1991,9 +1991,17 @@ def build(date: str) -> str:
     #   底层数据扫描的参照从 production 直接取(稳定·不受本次改写 manifest 影响)。
     data_ref = str(prod.get("run_id") or prod.get("task_id") or str(prod.get("generated_at", ""))[:19] or "待接")
     _now_dt = datetime.now()
-    # [打回二]run_id 的【日期段=data_date(=文件名日)】,只时间段用真实时刻——跨午夜生产也不错位。
-    #   文件名日 = run_id日 = 页头 data_date 三者一致(L50 硬闸)。
-    run_id = f"R3-{date}-{_now_dt.strftime('%H%M%S')}"             # 日期锚定数据日·时间是本次真实运行时刻
+    # S3(董事长2026-07-25·L2同源):run_id 的【时间段】锚定 production.generated_at(与 deep_render 同源·同一次扫描→两册 run_id 时间段一致),
+    #   而非渲染时刻(渲染时刻每次不同→两册永不同源·L2拦不住的根因)。前缀 R3-/R- 是册型标记(三层/机器版)·L2 比对时间段+data_date。
+    from datetime import timezone as _tz, timedelta as _td
+    _JST = _tz(_td(hours=9))
+    _scan_raw = str(prod.get("generated_at") or "")
+    try:
+        # 日期段=data_date(过L50·跨午夜不错位)·时间段=production.generated_at的JST时刻(与deep_render同源)
+        _gt = datetime.fromisoformat(_scan_raw.replace("Z", "+00:00")).astimezone(_JST).strftime("%H%M%S")
+        run_id = f"R3-{date}-{_gt}"
+    except Exception:
+        run_id = f"R3-{date}-{_now_dt.strftime('%H%M%S')}"         # 兜底:production无generated_at时退回渲染时刻
     build._run_id = run_id
     _cross = _now_dt.strftime("%Y%m%d") != date                    # 是否跨午夜(真实时刻不在数据日当天)
     gen = f"{_iso(date)} {_now_dt.strftime('%H:%M:%S')}" + ("（★跨午夜生产·真实时刻 " + _now_dt.strftime("%Y-%m-%d %H:%M") + "·产品归属数据日）" if _cross else "")

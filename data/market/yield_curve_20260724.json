@@ -1,0 +1,22 @@
+{
+ "task_id": "TASK-20260725-S1曲线PENDING",
+ "generated_at": "2026-07-26T00:20:49+09:00",
+ "date": "20260724",
+ "data_date": "2026-07-24",
+ "connection": {
+  "ok": false,
+  "reason": "yield_curve_fetch 07-24 超时·真值未取到"
+ },
+ "source": "PENDING(07-24真值未取到)",
+ "us10y": null,
+ "us3m": null,
+ "spread_10y_3m": null,
+ "spread_10y_2y": null,
+ "inverted": null,
+ "status": "PENDING",
+ "note": "S1(董事长2026-07-25):07-24利率曲线真值未取到(fetch超时)→整条PENDING/null·不参与规则判定·产品显待补·禁用旧值(07-22 0.905)做肯定断言",
+ "safety": {
+  "read_only": true,
+  "place_order_called": false
+ }
+}

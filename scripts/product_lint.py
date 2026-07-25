@@ -69,8 +69,14 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     for fn, h in vols.items():
         rid |= set(re.findall(r"run_id=<b>([^<]+)</b>", h))
         dd |= set(re.findall(r"data_date=<b>([^<]+)</b>", h))
-    if len(rid) != 1:
-        fails.append(f"L2 同源：run_id 不唯一 → {sorted(rid) or '一个都没有'}")
+    # S3(董事长2026-07-25·加强):R3-(三层)/R-(机器版)是册型前缀·两册同源判据=剥前缀后的【时间段+日期段】一致
+    #   (两册须锚定同一次 production 扫描·render_3layer/deep_render 都取 production.generated_at)。
+    #   剥前缀后仍>1 → 两册是两次不同运行的产出·非同源 → FAIL(这正是上轮 L2 没拦住的漏)。
+    rid_core = {re.sub(r"^R3?-", "", r) for r in rid}
+    if not rid:
+        fails.append("L2 同源：run_id 一个都没有")
+    elif len(rid_core) != 1:
+        fails.append(f"L2 同源：两册 run_id 时间段不一致(非同一次运行·剥R3-/R-前缀后) → {sorted(rid)}")
     if len(dd) != 1:
         fails.append(f"L2 同源：data_date 不唯一 → {sorted(dd) or '一个都没有'}")
     # L2b 快照戳也要五册一致 + 必须等于本次 production 的 generated_at(不许旧快照顶充)
