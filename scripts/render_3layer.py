@@ -1980,6 +1980,46 @@ def _stability_banners(date: str) -> tuple:
     return banner, moat_stale
 
 
+def _embed_actck(out: str) -> str:
+    """L28五处全埋(架构师裁定一2026-07-25):今日动作表(模板120)/个股卡header chip(模板167)/为什么现在标签(模板190)
+    补埋 data-actck 锚。★用【实际显示的动作字】做锚值(非decisions)——才能抓住某处显示偏离主表。⑥决策表/自检决定摘要已在生成处埋。"""
+    ACTS = "加减守等买观"
+    # ① 今日动作表:区域内每行 chip动作 + 股票td的sym → 埋锚
+    ti = out.find("今日动作表")
+    if ti >= 0:
+        tend = out.find("</table>", ti)
+        if tend > 0:
+            def _row(m):
+                row = m.group(0)
+                if "data-actck" in row:
+                    return row
+                ma = re.search(r'data-l="动作">\s*<span class="chip[^>]*>[^<]*?([' + ACTS + r'])\s*</span>', row)
+                ms = re.search(r'data-l="股票">[^<]*?<span[^>]*>([A-Z]{2}\.[A-Z0-9]+)</span>', row)
+                if ma and ms:
+                    anc = f'<span class="actck" data-actck="{ms.group(1)}|今日动作表|{ma.group(1)}" style="display:none"></span>'
+                    row = row.replace("</tr>", anc + "</tr>", 1)
+                return row
+            seg = re.sub(r"<tr>.*?</tr>", _row, out[ti:tend], flags=re.S)
+            out = out[:ti] + seg + out[tend:]
+    # ②个股卡header chip + ③为什么现在标签:按 id="why-{sym}" 卡逐个·收集后倒序插入(避偏移)
+    anchors = [(mm.start(), mm.group(1)) for mm in re.finditer(r'id="why-([A-Z]{2}\.[A-Z0-9]+)"', out)]
+    inserts = []
+    for i, (pos, sym) in enumerate(anchors):
+        card = out[pos: (anchors[i + 1][0] if i + 1 < len(anchors) else len(out))]
+        add = ""
+        mc = re.search(r'<span class="chip[^>]*>[^<]*?([' + ACTS + r'])\s*</span>', card)
+        if mc:
+            add += f'<span class="actck" data-actck="{sym}|个股卡header|{mc.group(1)}" style="display:none"></span>'
+        mw = re.search(r"为什么现在([" + ACTS + r"])[：:]", card)
+        if mw:
+            add += f'<span class="actck" data-actck="{sym}|为什么现在标签|{mw.group(1)}" style="display:none"></span>'
+        if add:
+            inserts.append((pos, add))
+    for pos, add in sorted(inserts, reverse=True):
+        out = out[:pos] + add + out[pos:]
+    return out
+
+
 def build(date: str) -> str:
     dyn = D.load_dynamic(date)
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
@@ -2332,6 +2372,7 @@ def build(date: str) -> str:
                  "[风险配仓] AI供应链占 65.9%·45%硬上限已废止(董事长2026-07-19)·改四条规矩·见顶部风险配仓模块", out)
     out = _light_theme(out)
     out = _finalize_product(out, each, dyn, date, conc)   # 出品前统一口径(治L36/L49/L31/L23·根治)
+    out = _embed_actck(out)   # L28五处全埋(架构师裁定一2026-07-25):今日动作表/个股卡header/为什么现在标签补埋data-actck锚
     # GPT裁定:停用全文字符串替换(追不全衍生文本+误伤正常股)——异常股改由数据源/决策链短路+卡片作用域scrub
     return out
 
