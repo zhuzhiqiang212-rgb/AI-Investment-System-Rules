@@ -239,6 +239,23 @@ def build_pending_decisions(date: str) -> dict:
                 "decision": old.get(pid, {}).get("decision", "待董事长填"),
                 "decided_at": old.get(pid, {}).get("decided_at"),
             })
+    # 轮10 A5(裁定Z2④):规矩一·单只>20% 接进正式待拍板——计算已有(portfolio_concentration.singles.over)·口径无争议·不依赖环节/峰值·先落地让通路跑通(当前最大微软18.1%<20%不触发)
+    _slim = (conc.get("upper_limits", {}) or {}).get("单一标的", 20.0)
+    for s in (conc.get("singles") or []):
+        if s.get("over"):
+            _sym = s.get("symbol"); _nm = s.get("name") or _sym; _pct = s.get("pct")
+            pid = f"PD-单只超限-{_sym}"
+            items.append({
+                "id": pid, "date": date, "status": "待拍板",
+                "proposal": f"{_nm}({_sym}) 单只占比 {_pct:.1f}% 超 {_slim:.0f}% 上限(规矩一) → 是否减仓降到限内？",
+                "evidence_chain": [f"第三部分·集中度现算：{_nm} 单只 {_pct:.1f}% vs 单只上限 {_slim:.0f}%（当日production市值折美元）",
+                                   "个股卡⑤估值：该只当前贵贱位置（贵→优先减）",
+                                   "个股卡⑩组合视角：减它对组合与目标缺口的影响"],
+                "options": ["A. 减至限内(20%)", "B. 维持（核心不砍·只换不加）", "C. 部分减"],
+                "default_if_expired": "无拍板→默认 B 维持（不砍核心），次日重新提请",
+                "decision": old.get(pid, {}).get("decision", "待董事长填"),
+                "decided_at": old.get(pid, {}).get("decided_at"),
+            })
     return {"as_of": date, "generated_at": datetime.now(timezone.utc).isoformat(),
             "source": "阈值由 第三部分集中度现算 触发·依据链可回溯到层；拍板记录(decision)由董事长填→次日PDCA验证",
             "pending_count": sum(1 for i in items if i.get("decision") in (None, "", "待董事长填")),
