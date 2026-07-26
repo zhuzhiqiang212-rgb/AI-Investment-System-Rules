@@ -67,6 +67,21 @@ FWD_PE_TICKERS = {"US.VST", "US.CEG", "US.GEV", "US.CCJ",
 NORMALIZED_TICKERS = {"US.MU", "US.SNDK", "JP.285A",   # 存储·纯商品→始终正常化
                       "US.UMC", "US.GFS", "HK.00981"}  # 成熟制程代工·周期商品→正常化
 
+# ★轮15 F1/F2(裁定2026-07-26):第三类·估值不可锚——5年PE区间跨度数十倍或样本不足→做任何正常化/forward PE锚
+#   都是【错的确定结论】(像美光"极贵+2335%"那种看着确定实则没依据的数·同回撤预案硬编码一类错)。
+#   不给公允/不给贵贱·明写不可锚+原因(5年PE区间·数据来源E4轮14)+★替代看法(看周期位置不看估值倍数)。
+#   ★成员严格照裁定4只;铠侠(JP.285A)/成熟代工同疑但E4未查PE区间→留报告提请架构师·不擅扩。
+THIRD_CLASS_UNANCHORABLE = {
+    "US.MU":  {"pe_span": "5年PE区间2.96~136.53(约46倍跨度·内存周期股·E4轮14 fullratio)",
+               "cycle_view": "①NAND/DRAM供需缺口在扩还是在收(HBM/AI需求 vs 美光/三星/海力士扩产) ②存储颗粒价(现货价/合约价环比涨跌) ③产能周期段(涨价周期/去库存/减产)。"},
+    "US.VST": {"pe_span": "5年PE区间7.09~72.67(约10倍跨度·独立发电商·E4轮14 fullratio)",
+               "cycle_view": "①电价(PJM/ERCOT批发电价位置) ②AI数据中心用电缺口在扩还是在收 ③容量市场价格与长约签约进度。参考:forward PE较12月均值47.7大幅压缩(仅作周期位置背景·非贵贱结论)。"},
+    "US.CEG": {"pe_span": "5年PE区间18.78~175.78(叠加2022分拆早期低基数失真·E4轮14 fullratio)",
+               "cycle_view": "①核电PPA长约签约进度(与AI数据中心供电协议) ②批发电价 ③核电稀缺性重估(牌照/延寿/新建)。"},
+    "US.GEV": {"pe_span": "仅约2年历史(2024分拆)·样本不足·不宜用历史PE锚(E4轮14)",
+               "cycle_view": "①订单簿(约1630亿美元)与订单增速(约+71%) ②燃气轮机/电网设备资本开支周期段 ③电力资本开支上行周期位置。"},
+}
+
 METHOD_NORM = "正常化中周期（穿周期均值盈利×板块PE）"
 METHOD_FWD = "看明年预计利润的市盈率（forward P/E）"
 
@@ -165,6 +180,20 @@ def build(date: str) -> dict:
         px = (prices.get(tk) or {}).get("price")
         rec = {"name": meta["name"], "node": node, "research": research,
                "price": px, "pe_ttm": (prices.get(tk) or {}).get("pe_ttm")}
+        # ★轮15 F1(裁定2026-07-26):第三类·估值不可锚 → 短路在最前(先于机械/forward/架构师路径)。
+        #   撤"极贵+2335%"等错的确定结论;不给公允/不给贵贱;明写不可锚+原因+看周期位置。
+        if tk in THIRD_CLASS_UNANCHORABLE:
+            _tc = THIRD_CLASS_UNANCHORABLE[tk]
+            rec["valuation"] = {
+                "source": "候选估值·第三类【估值不可锚】(裁定2026-07-26轮15)",
+                "authoritative": True, "class": "第三类·估值不可锚", "method": "不给估值尺",
+                "verdict": None, "fair": None, "gap_mid_pct": None,
+                "reason": (f"★估值不可锚：{_tc['pe_span']} → 做任何正常化/forward PE锚都是【错的确定结论】"
+                           "(如'极贵+2335%'那种看着确定实则没依据的数)。本类标的的贵贱【不由估值尺给出】。"),
+                "cycle_view": _tc["cycle_view"],
+                "note": f"★本股不能用贵贱看·要用周期位置看：{_tc['cycle_view']}"}
+            out[tk] = rec
+            continue
         # ① 架构师估算优先(非权威·标可靠度)
         if tk in arch:
             rec["valuation"] = {"source": "架构师估算", "authoritative": False, **arch[tk]}

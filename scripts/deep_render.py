@@ -3669,7 +3669,11 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
         # 工单2026-07-17：候选估值+研究已接 → 对比表填真内容，替换引擎能一眼看出换了好在哪
         _cv = _cand_val(r["ticker"])
         _val = (_cv.get("valuation") or {}) if _cv else {}
-        if _val.get("verdict"):
+        if _val.get("class") == "第三类·估值不可锚":   # 轮15 F1:估值不可锚→不给贵贱·看周期位置
+            _vcell = (f'<b style="color:#c9a86a">估值不可锚·贵贱不由估值尺给出</b>'
+                      f'<br><span style="color:#8ea3b6;font-size:11px">{esc(str(_val.get("reason","")))}</span>'
+                      f'<br><b>看周期位置</b>：{esc(str(_val.get("cycle_view","")))}')
+        elif _val.get("verdict"):
             _f = _val.get("fair", {}); _cc = "¥" if r["ticker"].startswith("JP.") else ("HK$" if r["ticker"].startswith("HK.") else "$")
             _mm = str(_val.get("method", "")); _msuf = f'（尺：{esc(_mm)}）' if _mm else ""
             _prow = (f'现价 {_cc}{_cv.get("price")}｜合理 {_cc}{_f.get("cheap")}~{_cc}{_f.get("rich")}·中枢 {_cc}{_f.get("mid")}'
@@ -3714,14 +3718,19 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
         _cand_val("__warm__")
         cv_all = _CANDVAL_CACHE.get("d") or {}
     ct = ""
-    n_val = n_wait = 0
+    n_val = n_wait = n_third = 0
     for tk, v in sorted(cv_all.items(), key=lambda kv: kv[0]):
         val = v.get("valuation") or {}
         cc = "¥" if tk.startswith("JP.") else ("HK$" if tk.startswith("HK.") else "$")
         # 每只标"用的哪把尺"(董事长2026-07-18)：正常化中周期 / 看明年利润的市盈率
         _m = str(val.get("method", ""))
         mlabel = (f'<br><span style="color:#8ea3b6;font-size:10px">尺：{esc(_m)}</span>' if _m else "")
-        if val.get("verdict"):
+        if val.get("class") == "第三类·估值不可锚":   # 轮15 F1:估值不可锚→不给贵贱·看周期位置
+            n_third += 1
+            valcell = (f'<b style="color:#c9a86a">估值不可锚·看周期位置</b>{mlabel}'
+                       f'<br><span style="color:#8ea3b6;font-size:10.5px">{esc(str(val.get("reason",""))[:74])}</span>'
+                       f'<br><span style="font-size:11px">看周期位置：{esc(str(val.get("cycle_view",""))[:96])}</span>')
+        elif val.get("verdict"):
             n_val += 1
             f = val.get("fair", {})
             vcol = "#ff6b6b" if "极贵" in str(val["verdict"]) else ("#ffb454" if "贵" in str(val["verdict"]) else ("#7ee0a0" if ("便宜" in str(val["verdict"]) or "合理" in str(val["verdict"])) else "#7cc4ff"))
@@ -3744,7 +3753,8 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
     cand_tbl = ('<h3 class="sub" style="font-size:15px" id="cand-val">候选估值一览（它是干嘛的 · 现在便宜还是贵）</h3>'
                 f'<div class="card"><div style="font-size:12px;color:#8ea3b6;margin-bottom:4px">'
                 f'共 {len(cv_all)} 只候选：<b style="color:#7ee0a0">{n_val} 只有估值</b>、'
-                f'<b style="color:#ffb454">{n_wait} 只仍待接</b>（各标原因）。'
+                f'<b style="color:#ffb454">{n_wait} 只仍待接</b>、'
+                f'<b style="color:#c9a86a">{n_third} 只估值不可锚(看周期位置·裁定轮15)</b>（各标原因）。'
                 f'美股用 EDGAR 真历史EPS 机械算中周期区间(非精调·够拿来比)；日/港/韩股 EDGAR 取不到→待架构师估算。</div>'
                 '<table class="dt"><tr><th>候选</th><th>它是干嘛的·护城河</th><th>估值（现价 vs 合理区）</th></tr>'
                 + ct + '</table></div>')
