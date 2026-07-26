@@ -256,6 +256,41 @@ def build_pending_decisions(date: str) -> dict:
                 "decision": old.get(pid, {}).get("decision", "待董事长填"),
                 "decided_at": old.get(pid, {}).get("decided_at"),
             })
+    # 轮11 B3(裁定Z2②):规矩二·单环节>30% 接进正式待拍板——用专用SEGMENT_MAP(非不可靠的_holding_node[0])·软银控股型不计入
+    seg = fpr.segment_concentration(prod.get("holdings", []), conc.get("usdjpy"))
+    _seglim = seg.get("limit", 30.0)
+    for _sn, _sv in (seg.get("segments") or {}).items():
+        if _sv.get("over"):
+            _spct = _sv.get("pct")
+            pid = f"PD-环节超限-{_sn}"
+            items.append({
+                "id": pid, "date": date, "status": "待拍板",
+                "proposal": f"{_sn}环节集中度 {_spct:.1f}% 超 {_seglim:.0f}% 上限(规矩二) → 是否减该环节降敞口？",
+                "evidence_chain": [f"第三部分·单环节现算：{_sn} {_spct:.1f}% vs 上限 {_seglim:.0f}%（专用SEGMENT_MAP归环节·成员{_sv.get('members')}·当日market_value折美元；软银等控股型不计入）",
+                                   "该环节成分股：按质量相对弱者优先减",
+                                   "个股卡⑩组合视角：减该环节对组合与目标缺口的影响"],
+                "options": ["A. 减至限内(30%)", "B. 维持（只换不加·不砍核心）", "C. 部分减"],
+                "default_if_expired": "无拍板→默认 B 维持（只换不加），次日重新提请",
+                "decision": old.get(pid, {}).get("decision", "待董事长填"),
+                "decided_at": old.get(pid, {}).get("decided_at"),
+            })
+    # 轮11 B4(裁定):同一驱动组>阈值 接进正式待拍板——名单由架构师维护driver_groups_{date}.json(机器只读)·阈值默认留空(None)=不触发·逻辑先写好等董事长拍板填
+    dg_spec = rj(ROOT / "data" / "screen" / f"driver_groups_{date}.json")
+    dg = fpr.driver_group_concentration(prod.get("holdings", []), conc.get("usdjpy"), dg_spec)
+    for _g in (dg.get("groups") or []):
+        if _g.get("over"):                                # over仅在阈值已填且超线时True(未填→恒False不触发)
+            pid = f"PD-驱动组超限-{_g.get('id')}"
+            items.append({
+                "id": pid, "date": date, "status": "待拍板",
+                "proposal": f"驱动组「{_g.get('id')}」集中度 {_g.get('pct'):.1f}% 超 {dg.get('threshold_pct')}% 阈值 → 是否降该组敞口？(同一点失败全组一起失败)",
+                "evidence_chain": [f"驱动组现算：{_g.get('id')}({_g.get('desc')}) 合计 {_g.get('pct'):.1f}% vs 阈值 {dg.get('threshold_pct')}%（成员{_g.get('members')}·同押{_g.get('desc')}）",
+                                   "环节内部有竞争·驱动组是同一外部主体/事件失败则全组一起失败·风险性质不同",
+                                   "个股卡⑩组合视角：降该组对组合的影响"],
+                "options": ["A. 降该组敞口", "B. 维持（该赌注仍成立）", "C. 部分降"],
+                "default_if_expired": "无拍板→默认 B 维持，次日重新提请",
+                "decision": old.get(pid, {}).get("decision", "待董事长填"),
+                "decided_at": old.get(pid, {}).get("decided_at"),
+            })
     return {"as_of": date, "generated_at": datetime.now(timezone.utc).isoformat(),
             "source": "阈值由 第三部分集中度现算 触发·依据链可回溯到层；拍板记录(decision)由董事长填→次日PDCA验证",
             "pending_count": sum(1 for i in items if i.get("decision") in (None, "", "待董事长填")),

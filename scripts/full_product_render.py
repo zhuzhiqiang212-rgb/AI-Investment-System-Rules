@@ -695,6 +695,22 @@ CONC_NAME_PLAIN = {
     "单一标的": "单一标的（单独一只股票）",
 }
 
+# ── 轮11 B2(架构师裁定):单环节集中度专用映射 ──
+# ★这是判据不是配置：每只只能有一个环节·每处依据写注释。绕开不可靠的 _holding_node(取matched[0]·NVDA/博通/台积电都判成代工)。
+# 只覆盖AI产业链持仓的环节归属(尺7环节:芯片/设备/代工/存储/软件云/AI应用/电力)·非AI持仓不在此表(不进单环节闸)。
+SEGMENT_MAP = {
+    "NVDA": "芯片",     # 英伟达=GPU芯片(算力=芯片·尺用词服从·Q1)
+    "AVGO": "芯片",     # 博通=定制AI芯片(ASIC)+网络芯片设计(A1裁定·非测试设备)
+    "6857": "设备",     # 爱德万=半导体测试机=设备
+    "TSM": "代工",      # 台积电=晶圆代工
+    "SNDK": "存储",     # 闪迪=NAND存储
+    "MSFT": "软件云",   # 微软=Azure/Copilot(B2追认·代码原写"算力"错·产品文案本就写"软件云(微软)")
+    "META": "AI应用",   # META=AI应用
+    # 电力:当前无持仓(环节存在·无标的)
+    # JP.9984 软银:★不进单环节闸(B2裁定)——控股型/NAV驱动·一篮子敞口(Arm+OpenAI+其他)·塞进芯片会让芯片虚高·且软银涨跌取决于NAV/折价非芯片周期·真实风险由驱动组(OpenAI)捕捉。单环节表单列一行"控股型·不计入单环节"
+}
+SEGMENT_UPPER_LIMIT = 30.0   # 规矩二:单一环节上限30%
+
 
 def _base_ticker(symbol: str) -> str:
     return symbol.split(".")[-1]
@@ -973,6 +989,67 @@ def portfolio_concentration(holdings: list[dict[str, Any]], known_cash_usd: floa
         "upper_limits": CONC_UPPER_LIMITS,
         "lower_limits": CONC_LOWER_LIMITS,
     }
+
+
+def segment_concentration(holdings: list[dict[str, Any]], usdjpy: float | None = None) -> dict[str, Any]:
+    """轮11 B2/B3:单环节集中度(规矩二·上限30%)。按 SEGMENT_MAP 给每只归【单一】环节(每只只一个)·
+    算各环节市值 ÷ 全持仓折美元(分母口径与 portfolio_concentration 一致)。绕开不可靠的 _holding_node(matched[0])。
+    软银(9984)等不在SEGMENT_MAP者=控股型·单列 excluded·不计入任何环节(风险由驱动组捕捉)→各环节合计不等于100%属正常。
+    返回 {segments:{环节:{pct,mv_usd,members,over}}, total_usd, excluded, limit}。"""
+    if usdjpy is None:
+        usdjpy = 1.0
+    total = 0.0
+    seg_mv: dict[str, float] = {}
+    seg_members: dict[str, list[str]] = {}
+    excluded: list[dict[str, Any]] = []
+    for h in holdings or []:
+        sym = str(h.get("symbol") or "")
+        mv_usd, _note = _mv_usd(h, usdjpy)
+        if mv_usd is None:
+            continue
+        total += mv_usd                                   # 分母=全持仓折美元(所有持仓·不只AI)
+        seg = SEGMENT_MAP.get(_base_ticker(sym))
+        if seg:
+            seg_mv[seg] = seg_mv.get(seg, 0.0) + mv_usd
+            seg_members.setdefault(seg, []).append(sym)
+        elif _base_ticker(sym) == "9984":                 # 软银:控股型·单列不计入环节(B2裁定)
+            excluded.append({"symbol": sym, "name": h.get("name"), "mv_usd": mv_usd,
+                             "reason": "控股型/NAV驱动·不计入单环节(一篮子敞口·风险由驱动组OpenAI捕捉)"})
+    segments = {}
+    for seg, mv in seg_mv.items():
+        pct = (mv / total * 100.0) if total > 0 else 0.0
+        segments[seg] = {"pct": pct, "mv_usd": mv, "members": seg_members[seg],
+                         "over": pct > SEGMENT_UPPER_LIMIT}
+    return {"segments": segments, "total_usd": total, "excluded": excluded, "limit": SEGMENT_UPPER_LIMIT}
+
+
+def driver_group_concentration(holdings: list[dict[str, Any]], usdjpy: float | None = None,
+                               groups_spec: dict[str, Any] | None = None) -> dict[str, Any]:
+    """轮11 B4(裁定):同一驱动组集中度。★名单不写死·由架构师维护 data/screen/driver_groups_{date}.json(机器只读)。
+    机器只按认定名单算该组市值合计 ÷ 全持仓折美元。★阈值(threshold_pct)默认留空(None)=不触发·等董事长拍板再填(逻辑先写好·不自己填数)。
+    groups_spec 形如 {"threshold_pct": null/25, "groups":[{"id","desc","members":[symbol...]}]}。返回 {groups:[{id,pct,mv_usd,members,over}], threshold_pct}。"""
+    if usdjpy is None:
+        usdjpy = 1.0
+    spec = groups_spec or {}
+    thr = spec.get("threshold_pct")                       # None=董事长未填→不触发(不擅自填数)
+    total = 0.0
+    mv_by_sym: dict[str, float] = {}
+    for h in holdings or []:
+        sym = str(h.get("symbol") or "")
+        mv_usd, _n = _mv_usd(h, usdjpy)
+        if mv_usd is None:
+            continue
+        total += mv_usd
+        mv_by_sym[sym] = mv_usd
+    out_groups = []
+    for g in (spec.get("groups") or []):
+        members = [str(s) for s in (g.get("members") or [])]
+        gmv = sum(mv_by_sym.get(s, 0.0) for s in members)
+        pct = (gmv / total * 100.0) if total > 0 else 0.0
+        over = (thr is not None) and (pct > float(thr))   # 阈值未填→over恒False(不触发)
+        out_groups.append({"id": g.get("id"), "desc": g.get("desc"), "members": members,
+                           "pct": pct, "mv_usd": gmv, "over": over})
+    return {"groups": out_groups, "threshold_pct": thr, "total_usd": total}
 
 
 def concentration_dont_add_lines(symbol: str, conc: dict[str, Any] | None,
