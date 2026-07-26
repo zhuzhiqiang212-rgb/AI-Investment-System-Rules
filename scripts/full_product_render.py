@@ -749,7 +749,8 @@ def hard_gate_conclusion(item: dict[str, Any], ai_strength: str = "", sector_sta
     if _is_crypto(sym):
         return "属「加密簇」·不在AI战略承接链 → 方向不以AI强弱论；按加密≤12%纪律管敞口、守核心不追"
     if _on_ai_node(item):
-        base = f"属「{node}」AI承接节点，战略AI今日{'走强·符合方向' if ai_up else '力度转弱·仍在AI主线内'}（引②战略）"
+        # 轮11 B1止血:_holding_node取matched[0]不可靠(NVDA/博通/台积电effective[0]都=代工)→不再印具体环节名·标「环节待核」·待SEGMENT_MAP(B3)上线后改用权威环节。是否在AI承接链(_on_ai_node)仍可靠(所有候选类都属AI)·故保留AI/非AI判定
+        base = f"属 AI承接节点（具体环节待核·环节源在改·SEGMENT_MAP上线前不显具体环节），战略AI今日{'走强·符合方向' if ai_up else '力度转弱·仍在AI主线内'}（引②战略）"
         return base + ("；但半导体板块今日走弱（引⑥板块）→ 符合方向但不追高" if sector_weak else " → 符合方向")
     if _is_defensive(item):
         return f"属「{node}」防御节点·非AI承接链 → 作抗跌分散仓（方向中性·不随AI强弱进出）"
