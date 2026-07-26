@@ -44,6 +44,7 @@ STEPS = [
     ("③ 审持仓+权威价", "holdings_review_against_chain.py", True),
     ("④ production(当日实时价)", "production_pipeline.py", True),
     ("⑤ 均线(趋势参考)", "holdings_ma_levels.py", False),
+    ("⑤b 20日价格序列(加仓闸后半条)", "prices_daily_build.py", False),  # W1(架构师裁定2026-07-25):嫁接回本地⑤b·产出『近20交易日不创新低』序列·治deep_render企稳判据【待接】/L44
     ("⑥ 估值分派", "valuation_dispatcher.py", False),
     ("⑦ 当日涨跌", "day_change_scan.py", False),
     ("⑦b 数据异常检查关", "data_sanity_gate.py", False),

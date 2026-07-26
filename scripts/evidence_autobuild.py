@@ -205,15 +205,21 @@ def rule_capital(snapshot: dict[str, Any] | None, curve: dict[str, Any] | None) 
     curve_note = "曲线数据缺"
     curve_src = "yield_curve 缺"
     if curve:
-        inverted = bool(curve["data"].get("inverted"))
-        # 口径统一：优先真2年美债(10Y-2Y·FRED DGS2/Yahoo备源)，与宏观表一致；无2年才退回3月^IRX
-        spread_2y = curve["data"].get("spread_10y_2y")
-        if spread_2y is not None:
-            curve_note = f"曲线{'倒挂' if inverted else '未倒挂'}(10Y-2Y={spread_2y})"
+        _cd = curve["data"]
+        _sp3 = _cd.get("spread_10y_3m"); _sp2 = _cd.get("spread_10y_2y")
+        # S1(董事长2026-07-25):曲线PENDING/值null → inverted=None(不bool()吞成False)·不做倒挂/未倒挂肯定断言·走"待定"
+        if str(_cd.get("status", "")) == "PENDING" or (_sp3 is None and _sp2 is None):
+            inverted = None
+            curve_note = "曲线待补·07-24真值未取到(fetch超时)→PENDING·不参与判定·不做倒挂/未倒挂断言"
+            curve_src = curve["file"] + "·PENDING"
         else:
-            spread = curve["data"].get("spread_10y_3m")
-            curve_note = f"曲线{'倒挂' if inverted else '未倒挂'}(10Y-3M={spread}·2年待接)"
-        curve_src = curve["file"] + ("" if curve["is_today"] else f"(最近可得 {curve['used_date']}·非当日)")
+            inverted = bool(_cd.get("inverted"))
+            # 口径统一：优先真2年美债(10Y-2Y·FRED DGS2/Yahoo备源)，与宏观表一致；无2年才退回3月^IRX
+            if _sp2 is not None:
+                curve_note = f"曲线{'倒挂' if inverted else '未倒挂'}(10Y-2Y={_sp2})"
+            else:
+                curve_note = f"曲线{'倒挂' if inverted else '未倒挂'}(10Y-3M={_sp3}·2年待接)"
+            curve_src = curve["file"] + ("" if curve["is_today"] else f"(最近可得 {curve['used_date']}·非当日)")
 
     spike = vix_chg_f is not None and vix_chg_f > RULES["VIX_SPIKE_PCT"]
     if spike or inverted:

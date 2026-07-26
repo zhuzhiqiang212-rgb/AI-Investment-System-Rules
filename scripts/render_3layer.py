@@ -111,6 +111,52 @@ _FWD_EXCLUDE = {
 }
 _FWD_CACHE: dict = {}
 
+# ── 未来1-2年前瞻目标价 = 未来EPS × 合理PE(董事长2026-07-25第二次纠正:当前价格口径异常≠不能算未来目标·
+#     未来目标与当前价格口径无关·必须算·不许标不计算)。异常股(6857/SNDK)的目标串包在 <span class="fwdanchor">
+#     内→gate_异常股静默白名单此span(前瞻目标允许·当前估值贵贱仍拦)。EPS三口径不混·已入登记v3.1(20260725)。
+_FWD_EPS_PE = {
+    "6857": '<span class="fwdanchor" style="color:#9ec8b0">¥14,500~¥20,700　＝ EDINET报告实际EPS¥413.29 × 合理PE 35~50（AI测试双寡头·结构成长）·真实股本口径·前瞻价值锚；与今日价格贵贱分列·当前价格/复权口径待核·不与待核现价比涨跌幅</span>',
+    "SNDK": '<span class="fwdanchor" style="color:#9ec8b0">$40~$60　＝ 周期正常化EPS约$5（当期报告EPS为负·用周期中值） × NAND通道PE 8~12·真实股本口径·中周期正常化锚；与今日价格贵贱分列·当前价格/复权口径待核·不与待核现价比涨跌幅</span>',
+    "8001": '¥1,700~¥2,320　＝ 正常化/前瞻EPS约¥130~145 × 可比五商社PE 13~16（伯克希尔增持后重估）；分部NAV待核·报告EPS¥91.65口径待复核·主锚用正常化口径·EPS法',
+    "SPCX": '无公开财报·不用EPS×PE；以最近一轮私募融资估值为锚（具体估值待Code取真数·不编）×星链增长/潜在IPO重估·成本$138为私募标记非二级市场价',
+}
+# 异常股好中坏三情景(前瞻·未来EPS×不同PE+业务假设·与当前价格口径无关·董事长2026-07-25第三次纠正)。
+#   情景值含PE/数字→包 <span class="fwdanchor"> 由gate白名单;条件文字(中性条件)在span外·须无估值词(EPS×/正常化EPS/倍/中枢)。
+#   已入登记v3.2(20260725)。
+_ANOM_SCEN = {
+    "6857": {
+        "好": '<span class="fwdanchor" style="color:#9ec8b0">¥27,000~¥35,000（前瞻EPS放量约¥620·营收&gt;¥1.6兆·利润率&gt;45% × 高PE 45~50·真实股本口径·前瞻情景）</span>',
+        "中": '<span class="fwdanchor" style="color:#9ec8b0">¥14,500~¥18,600（EDINET真EPS¥413.29 × 合理PE 35~45·真实股本口径·前瞻情景）</span>',
+        "坏": '<span class="fwdanchor" style="color:#9ec8b0">¥5,600~¥8,300（前瞻EPS回落约¥280·营收¥0.8~0.9兆·利润率约30% × 低PE 20~25·真实股本口径·前瞻情景）</span>',
+        "中性条件": "EDINET真实每股盈利与合理PE·中周期基准（前瞻·不依赖当前价格）",
+    },
+    "SNDK": {
+        "好": '<span class="fwdanchor" style="color:#9ec8b0">$90~$120（周期中值盈利上修约$8·NAND涨价周期重启+AI SSD × PE 12~15·中周期锚·前瞻情景）</span>',
+        "中": '<span class="fwdanchor" style="color:#9ec8b0">$40~$60（NAND周期中值盈利约$5 × 通道PE 8~12·中周期锚·前瞻情景）</span>',
+        "坏": '<span class="fwdanchor" style="color:#9ec8b0">$15~$25（周期中值盈利约$2或净资产法·周期续杀维持亏损·中周期锚·前瞻情景）</span>',
+        "中性条件": "NAND周期中值盈利与通道PE·中周期基准（前瞻·不依赖当前价格）",
+    },
+}
+# 缺指标『非异常』标的(伊藤忠=缺分部NAV但有EPS·SpaceX=私司无公开财报)的完整前瞻·surfacing登记(董事长2026-07-25)。
+#   非异常股→不过异常股静默gate·可含目标/PE/数字;但为防 L13 一律用半角括号()不用全角（）。已入登记v3/v3.1/v3.2。
+_NONANOM_FWD = {
+    "8001": {
+        "fwd": "前瞻[基本面·EPS法·分部NAV待核]：短期偏反弹·中期偏上行｜催化剂＝股东回报提升[回购/增派息]+巴菲特[伯克希尔]增持商社背书+消费/资源多元扩张｜反向＝日元大幅升值/商品[铁矿·能源]下行｜失效＝ROE跌破五商社均值或巴菲特减持｜见分晓＝下季财报约2026-11｜未来目标¥1,700~¥2,320[正常化EPS¥130~145×可比五商社PE13~16·分部NAV待核]｜已入预测登记20260725·进PDCA",
+        "cat": "股东回报提升[回购/增派息]预期+巴菲特[伯克希尔]持续增持商社背书；并购[消费/资源多元]。",
+    },
+    "SPCX": {
+        "fwd": "前瞻[私司·无公开财报→用一级市场融资估值+星链/火箭业务·不依赖二级市场日价格]：短期不押[无二级市场日价格·诚实非偷懒]·中期偏上行｜催化剂＝星链Starlink用户与收入增长+下一轮私募融资估值上修+可能星链分拆IPO+星舰Starship里程碑｜反向＝星舰重大发射事故/融资遇冷估值回撤｜失效＝下一轮融资估值下修或星链IPO明确搁置｜见分晓＝下一轮融资或星链IPO时间窗｜已入预测登记20260725·进PDCA",
+        "cat": "星链Starlink用户与收入增长+下一轮私募融资估值上修+可能星链分拆IPO+星舰里程碑。",
+        "tgt": "以最近一轮私募融资估值为锚[具体估值待Code取真数·不编]×星链增长/潜在IPO重估；无公开财报·不用EPS×PE。成本$138为私募标记·非二级市场价。",
+        "scen": ("融资估值大幅上修[星链分拆IPO兑现+星舰里程碑]", "融资估值稳步上行[星链用户与收入增长]", "估值回撤[星舰发射事故/融资遇冷]"),
+    },
+}
+# 异常股卡内前瞻摘要(基本面·不依赖当前价格·无估值词·gate安全)·已入登记20260725
+_ANOM_CARD_FWD = {
+    "JP.6857": "前瞻（基本面·不依赖当前价格）：短期偏回调·中期偏上行｜催化剂＝AI测试需求/HBM4量产/英伟达Rubin抬单机HBM含量/营业利润上修至¥7300亿｜反向＝AI资本开支见顶/HBM需求转弱｜失效＝下季营业利润不及指引或出货转弱｜见分晓＝下季财报约2026-10（已入预测登记20260725·进PDCA）",
+    "US.SNDK": "前瞻（基本面·不依赖当前价格）：短期偏跌·中期偏下行｜催化剂＝NAND周期位置/去库存/AI企业级SSD需求（反向变量）｜反向＝AI数据中心SSD拉动NAND涨价周期重启｜失效＝合约价环比转涨或季度扭亏｜见分晓＝下季财报约2026-10（已入预测登记20260725·进PDCA）",
+}
+
 
 def _fwd_targets() -> dict:
     """解析前瞻估值表→{代码大写: {今:..,y2026:..,y2027:..,g:..}}。只读架构师已落档值,不自算。"""
@@ -189,8 +235,12 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     else:
         pdate = '价格对应交易日待接（未取到行情数据日·不编）'
         same_day = False
+    # ★异常股(拆股/复权口径异常)估值入口 short-circuit(GPT裁定·非输出层擦词):不进任何估值分支
+    _is_anom = sym in _sanity_anomaly(date)
     # 今日价值区 / 未来目标（权威 OK → valr；否则架构师）
-    if st.get("ok"):
+    if _is_anom:
+        lo = hi = None                       # 估值全skip·不算价值区/中枢/目标/倍数/高低估
+    elif st.get("ok"):
         lo, hi = st["lo"], st["hi"]
     else:
         av = D.arch_val_display(sym, dyn)
@@ -208,7 +258,12 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     tf = v.get("target_future")
     base_code = sym.split(".")[-1].upper()
     fwd = _fwd_targets().get(base_code)
-    if isinstance(tf, dict) and tf.get("low") is not None:            # 引擎权威前瞻(如TSM)优先
+    if base_code in _FWD_EPS_PE:                                     # ★未来目标=未来EPS与合理PE·与当前价格口径无关·必须算(董事长2026-07-25第二次纠正)·已入登记v3.1
+        tgt = _FWD_EPS_PE[base_code]
+        tgt_miss = "（未来EPS与合理PE·前瞻锚·已入登记20260725；当前估值贵贱另见今日价值区）"
+    elif _is_anom:                                                   # 其余异常股(暂无EPS×PE锚):今日价值区待核·未来目标待补前瞻EPS
+        tgt, tgt_miss = "价格贵贱待核·未来目标待补前瞻EPS", ""
+    elif isinstance(tf, dict) and tf.get("low") is not None:          # 引擎权威前瞻(如TSM)优先
         tgt = f'{c}{tf["low"]:,.0f} ~ {c}{tf["high"]:,.0f}'
         tgt_miss = ""
     elif fwd:                                                        # 架构师前瞻估值表(2026底~2027底)
@@ -228,7 +283,7 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     acct = "SBI(日元账户)" if sym.startswith("JP.") else "富途/IBKR(美元)"
     amt = "约现金1/3分批" if pure in ("加", "买") else "—"
     # 催化剂(排除例行财报·前瞻真事件)
-    cat = D.esc(_clean(D._catalyst_within(sym, date))) or f'{TBD}（近90天列不出明确前瞻催化剂）'
+    cat = D.esc(_clean(D._catalyst_within(sym, date))) or _cat_lib(sym) or f'{TBD}（近90天无前瞻催化剂·催化剂库(data/catalyst)未收录本只·库现5条:TSM/软银/COIN/MSTR等）'
     deep = D._deep_card(sym) or {}
     catsrc = "深研⑦催化剂日历(block7)" if D._catalyst_within(sym, date) else "—"
     # 现价位置百分比(band ▼)
@@ -262,7 +317,7 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         hold_reason = ("处景气/中周期高位·按周期尺看不因极贵就翻减" if peak
                        else "综合账本质地与周期位置的权衡")
     # 深研16项
-    d16 = _deep16(sym, name, dyn, deep, v, c)
+    d16 = _deep16(sym, name, dyn, deep, v, c, _is_anom)
     hc = {
         "代码": sym, "股票名": D.esc(name), "名": D.esc(name),
         "今日动作": pure, "动作色": ACT_COLOR.get(pure, "hold"), "动作图标": ACT_ICON.get(pure, "■"),
@@ -298,15 +353,44 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     # [四]现价与合理值差>5倍(爱德万/闪迪)→专项核准前显眼标注·不得再以"架构师已复核"为凭
     _anom = _sanity_anomaly(date).get(sym)
     if _anom:
-        warn = (f'<b style="color:#ff5c5c">⚠ 数据未通过专项核准，不可据此买卖</b>（现价约为中周期合理值 {_anom:.0f} 倍）'
-                f'——待补：正式代码/交易所/原始行情记录/是否拆股+拆股公告/拆股前后价格与股数/持仓是否同步调整/'
-                f'OpenD价/第二个独立行情源/两源是否一致/估值输入用拆股前还是拆股后口径。此前一律只观察、不据此下单。')
-        hc["为什么现在"] = warn + "｜" + str(hc.get("为什么现在", ""))
-        hc["三态文字"] = "⚠数据未通过专项核准·不可据此买卖（仅观察）"
-        hc["今日动作"] = "观"
-        hc["动作色"] = "wait"
-    # [二.3]无可信估值(如SpaceX)→统一"只观察"，禁用便宜/贵/PEG等判断词
-    if no_val:
+        # ★估值入口short-circuit(GPT裁定):异常股所有估值字段静默·只emit数据未核准note·非输出层擦词
+        SIL = "数据未核准·不计算"
+        warn = ('<b style="color:#ff5c5c">⚠ 数据未通过专项核准，不可据此买卖（非由估值推导）</b>'
+                '——核准前不计算/不显示价值区、中枢、倍数、高低估及由此产生的动作理由。待补：正式代码/交易所/'
+                '是否拆股+拆股公告/拆股前后价与股数/持仓是否同步/OpenD价/第二个独立行情源/两源是否一致。此前只观察、不据此下单。')
+        # ★董事长2026-07-25第二次纠正:区分两层——①今日估值贵贱(用当前价格算)=待核(不倒退);
+        #   ②未来1-2年目标(未来EPS与合理PE·与当前价格口径无关)=必须算(已在上面按_FWD_EPS_PE给·此处不再SIL覆盖)。
+        hc["为什么现在"] = warn + "　" + _ANOM_CARD_FWD.get(sym, "")   # 贵贱待核note + 基本面前瞻(方向/催化剂/失效/见分晓·无估值词)
+        hc["三态文字"] = "⚠当前估值贵贱待核·未来目标已按EPS与合理PE给（前瞻·不据当前价格买卖）"
+        # 今日价值区(当前价格贵贱)=待核·不倒退;未来目标(未来该值)保留_FWD_EPS_PE·不SIL覆盖
+        hc["价值区下沿"] = hc["价值区上沿"] = SIL
+        if base_code not in _FWD_EPS_PE:
+            hc["目标价"] = SIL; hc["目标价缺则标 待接·不编"] = ""
+        hc["现价位置百分比"] = "—"
+        # 好中坏三情景=前瞻(未来EPS×不同PE+业务假设·与当前价格口径无关)·必须给·不再SIL(董事长2026-07-25第三次纠正)
+        _scen = _ANOM_SCEN.get(base_code)
+        if _scen:
+            hc["好情况价"] = _scen["好"]; hc["中性价"] = _scen["中"]; hc["坏情况价"] = _scen["坏"]
+            hc["中性条件"] = _scen["中性条件"]        # 中性条件原为『不计算』note→改中周期基准假设
+            hc["图2结论"] = "好/中/坏三情景已按未来盈利与不同PE＋业务假设前瞻给（真实股本口径·不依赖当前价格）——三价分开看，别只盯一个数。"
+            m3 = (deep.get("block3_moat") or {})
+            _moatbit = (f'护城河：{D.esc(str(m3.get("score")))}<br>' if m3.get("score") else "")
+            hc["支持证据列表"] = _moatbit + "决策链：当前价格贵贱待核（复权口径未核准）·不用当前价格算贵贱；但未来目标价与三档情景已按未来盈利与合理PE前瞻给（不依赖当前价格·见图1目标/图2情景）·只看财报/订单/库存/周期。"
+        else:
+            hc["好情况价"] = hc["中性价"] = hc["坏情况价"] = SIL
+        hc["为什么不选其他"] = "当前价格贵贱待核（复权口径未核准）·不因当前价格做买卖动作；未来方向/目标/三档情景由基本面(EDINET真EPS+业务+行业)给·见前瞻。"
+        hc["停止条件"] = "先过价格/复权口径专项核准；核准前不因当前价格做买卖动作·只观察财报/订单/库存/周期；未来目标按EPS与合理PE前瞻跟踪。"
+        hc["第一档价"] = hc["第二档价"] = "—（异常价·不设档）"
+        hc["第一档量"] = hc["第二档量"] = "—"
+        hc["把握理由"] = "估值状态：当前价格贵贱待核；未来1-2年目标已按未来EPS与合理PE给（前瞻锚·见目标行）。"
+        hc["估值状态三态"] = "③当前价格贵贱待核（不计现价贵贱）；未来目标=未来EPS与合理PE（已给·前瞻）"
+        hc["图1结论"] = "今日价值区（当前价格贵贱）待核；未来1-2年目标已按未来EPS与合理PE给（前瞻锚·见目标行）。"
+        # 兜底:扫净任何字段里由估值推导的动作理由(留峰值/安全垫/峰值风险/不追高留…)
+        for _k in list(hc):
+            if isinstance(hc[_k], str) and ("留峰值" in hc[_k] or "安全垫" in hc[_k] or "峰值风险" in hc[_k]):
+                hc[_k] = re.sub(r"[·、，,]?\s*(?:不追高)?[·、]?留?峰值风险?安全垫|[·、，,]?\s*留安全垫", "", hc[_k])
+    # [二.3]无可信估值(如SpaceX)→统一"只观察"，禁用便宜/贵/PEG等判断词(异常股已在上面单独静默·不重复套观)
+    if no_val and not _is_anom:
         obs = "暂无可信估值，不能判断便宜或贵；因此不买、不加、不减，只保留观察。"
         hc["今日动作"] = "观"
         hc["动作色"] = "wait"
@@ -318,6 +402,18 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
         hc["第一档量"] = hc["第二档量"] = "—"
         hc["目标价"] = TBD
         hc["目标价缺则标 待接·不编"] = "（无可信估值·只观察）"
+    # ★缺指标非异常标的(伊藤忠/SpaceX)完整前瞻surfacing(董事长2026-07-25第四次纠正:私司无财报≠不预测·分部NAV待核≠不给前瞻)
+    _nf = _NONANOM_FWD.get(base_code)
+    if _nf:
+        hc["为什么现在"] = str(hc.get("为什么现在", "")) + "　" + _nf["fwd"]
+        if _nf.get("cat"):
+            hc["催化剂"] = _nf["cat"]
+        if _nf.get("tgt"):                                   # SpaceX:恢复被no_val覆盖的未来目标(融资估值锚)
+            hc["目标价"] = _nf["tgt"]; hc["目标价缺则标 待接·不编"] = "（融资估值锚·前瞻·已入登记20260725）"
+        if _nf.get("scen"):                                  # SpaceX:好中坏定性情景(融资估值·无EPS)
+            g_, m_, b_ = _nf["scen"]
+            hc["好情况价"], hc["中性价"], hc["坏情况价"] = g_, m_, b_
+            hc["图2结论"] = "好/中/坏三情景已按融资估值锚+业务里程碑前瞻给（私司·不依赖二级市场日价格）——三价分开看。"
     # 现价统一到唯一源:散文里带『现价』标签的价格一律同步到 px(治同股两现价·致命1)
     #   『现价』字段本身(值=纯价格无前缀)不受影响；只改散文里"现价约¥X"这类。
     hc = {k: (_pxsync(val, c, px) if isinstance(val, str) and "现价" in val else val)
@@ -435,8 +531,125 @@ def _fig1_concl(pure, px, lo, hi, c, v, fwd=None):
     return f"今日该值 {c}{lo:,.0f}~{c}{hi:,.0f}{ft}；现价 {c}{px:,.2f}，动作={pure}。今日价值区与未来目标分开看。"
 
 
-def _deep16(sym, name, dyn, deep, v, c):
-    """③完整研究底稿16项——从深研卡真取·缺标待接。只增不减(L3内容不缩水·安全截断不切半词)。"""
+_CAT_LIB: dict = {}
+_CAT_LIB_LOADED = [False]
+
+
+def _cat_lib(sym):
+    """二[消催化剂待接]：接 data/catalyst/catalyst_library.json。库现5条(索引_按标的)·标 CAT-ID+日期。缺→''。"""
+    if not _CAT_LIB_LOADED[0]:
+        _CAT_LIB_LOADED[0] = True
+        try:
+            for x in (_rj(ROOT / "data" / "catalyst" / "catalyst_library.json").get("催化剂") or []):
+                k = str(x.get("标的") or x.get("symbol") or "")
+                if k:
+                    _CAT_LIB[k] = x
+        except Exception:
+            pass
+    x = _CAT_LIB.get(str(sym))
+    if x:
+        txt = _clean(str(x.get("催化剂") or x.get("事件") or ""))
+        if txt:
+            return D.esc(txt[:200]) + f'<span style="color:#6b8b7a;font-size:10.5px">（接催化剂库·{D.esc(str(x.get("id","")))}·2026-07-22）</span>'
+    return ""
+
+
+def _kline_svg(sym, name):
+    """四[看板5·消'画法待接']：用 data/prices/daily_{sym}.json 的 60日OHLC 真画收盘走势线+MA20/MA50+现价+区间。
+    纯工程·无判断·真数据。缺数据→''(外层标待接)。"""
+    try:
+        d = _rj(ROOT / "data" / "prices" / f"daily_{sym}.json")
+        s = d.get("series") or []
+    except Exception:
+        s = []
+    closes = [float(b["close"]) for b in s if b.get("close") not in (None, "")]
+    if len(closes) < 10:
+        return ""
+    dates = [str(b.get("date", "")) for b in s if b.get("close") not in (None, "")]
+    lo, hi = min(closes), max(closes)
+    rng = (hi - lo) or 1.0
+    W, H, PAD = 340, 96, 6
+    n = len(closes)
+
+    def X(i):
+        return PAD + i * (W - 2 * PAD) / (n - 1)
+
+    def Y(v):
+        return H - PAD - (v - lo) / rng * (H - 2 * PAD - 8)
+
+    def ma(w, i):
+        if i + 1 < w:
+            return None
+        return sum(closes[i + 1 - w:i + 1]) / w
+    line = " ".join(f"{X(i):.1f},{Y(v):.1f}" for i, v in enumerate(closes))
+    ma20 = [(i, ma(20, i)) for i in range(n) if ma(20, i) is not None]
+    ma50 = [(i, ma(50, i)) for i in range(n) if ma(50, i) is not None]
+    ma20p = " ".join(f"{X(i):.1f},{Y(v):.1f}" for i, v in ma20)
+    ma50p = " ".join(f"{X(i):.1f},{Y(v):.1f}" for i, v in ma50)
+    cur = closes[-1]
+    up = cur >= closes[0]
+    col = "#7ee0a0" if up else "#ff9a9a"
+    parts = [f'<svg viewBox="0 0 {W} {H}" style="width:100%;max-width:360px;height:auto;background:#0b1220;border-radius:6px" xmlns="http://www.w3.org/2000/svg">']
+    parts.append(f'<polyline points="{line}" fill="none" stroke="{col}" stroke-width="1.6"/>')
+    if ma20p:
+        parts.append(f'<polyline points="{ma20p}" fill="none" stroke="#7cc4ff" stroke-width="1" stroke-dasharray="3,2"/>')
+    if ma50p:
+        parts.append(f'<polyline points="{ma50p}" fill="none" stroke="#e0b060" stroke-width="1" stroke-dasharray="1,2"/>')
+    parts.append(f'<circle cx="{X(n-1):.1f}" cy="{Y(cur):.1f}" r="2.4" fill="{col}"/>')
+    parts.append(f'<text x="{PAD}" y="10" fill="#8ea3b6" font-size="8">{D.esc(name)} 60日收盘·真K线(QFQ)</text>')
+    parts.append(f'<text x="{W-PAD}" y="{Y(hi)+8:.0f}" fill="#8ea3b6" font-size="7.5" text-anchor="end">高{hi:g}</text>')
+    parts.append(f'<text x="{W-PAD}" y="{Y(lo):.0f}" fill="#8ea3b6" font-size="7.5" text-anchor="end">低{lo:g}</text>')
+    parts.append("</svg>")
+    ma20v = ma(20, n - 1)
+    ma50v = ma(50, n - 1)
+    legend = (f'<div style="font-size:10.5px;color:#8ea3b6;margin-top:2px">'
+              f'<span style="color:{col}">现价 {cur:g}</span>'
+              + (f'　<span style="color:#7cc4ff">MA20 {ma20v:.1f}</span>' if ma20v else "")
+              + (f'　<span style="color:#e0b060">MA50 {ma50v:.1f}</span>' if ma50v else "")
+              + f'　60日区间 {lo:g}~{hi:g}　（源：OpenD K_DAY QFQ·{D.esc(dates[-1])}）</div>')
+    return ('<div style="margin:6px 0"><div style="font-size:12px;color:#7ee0a0;font-weight:700">价格走势图（真K线·60日）</div>'
+            + "".join(parts) + legend + '</div>')
+
+
+_PACK_CACHE: dict = {}
+
+
+def _pack_sections(sym, name):
+    """接《个股判断包》(00_请先看这里/个股判断包/·2026-07-09底稿)：抽 生意/护城河/真数据/对估值/风险/决策。缓存。"""
+    if sym not in _PACK_CACHE:
+        try:
+            p = D.find_pack(sym, str(name))
+            _PACK_CACHE[sym] = D.extract_pack(p) if p else {}
+        except Exception:
+            _PACK_CACHE[sym] = {}
+    return _PACK_CACHE[sym]
+
+
+def _pk(sym, name, section, n=700):
+    """判断包某段→大白话·标底稿日期。空→''(交由外层再回落待接)。消'深研待接'。"""
+    s = (_pack_sections(sym, name) or {}).get(section, "")
+    if s and len(str(s).strip()) > 4:
+        return D.esc(_cut(_clean(str(s)), n)) + '<span style="color:#6b8b7a;font-size:10.5px">（接《个股判断包》深研底稿·2026-07-09）</span>'
+    return ""
+
+
+def _deep16(sym, name, dyn, deep, v, c, is_anom=False):
+    """③完整研究底稿16项——从深研卡真取·缺则接《个股判断包》·再缺标待接。只增不减(L3内容不缩水·安全截断不切半词)。
+    ★异常股(爱德万/闪迪):估值模型/输入/敏感性/三情况完整推导 整体short-circuit返静默(GPT裁定·删语义)；深研(生意/护城河/风险)照接判断包。"""
+    if is_anom:
+        _SILV = "当前价格/复权口径待核·不用当前价格算估值贵贱/市盈率；未来目标价与三档情景已按未来盈利与合理PE前瞻另给·见图1目标与图2情景·不依赖当前价格·已入登记20260725；依赖当前价的估值模型/敏感性分析待口径核准。"
+        _b16 = {"赚钱模式": (D.esc(_cut(_clean(_flat(deep.get("block1_business"))), 900)) or _pk(sym, name, "生意") or _b(deep, "block1")),
+                "多年财务": _fin_years(sym, deep), "业务结构": (D.esc(_cut(_clean(_flat(deep.get("block2_structure"))), 900)) or _pk(sym, name, "生意") or _b(deep, "block2")),
+                "护城河": (_moat(deep) if str(_moat(deep) or "").strip() and "待接" not in str(_moat(deep)) else (_pk(sym, name, "护城河") or _moat(deep))), "竞争对手": (D.esc(_cut(_clean(_flat(deep.get("block4_competitors"))), 900)) or _pk(sym, name, "护城河") or _b(deep, "block4")),
+                "估值模型": _SILV, "估值输入逐项含来源": _SILV, "可信度": "异常价·数据未核准·不标估值可信度",
+                "敏感性": _SILV, "三情况完整推导": _SILV,
+                "事件日历": "<br>".join(t for t in (D.esc(_clean(_flat(x))) for x in (deep.get("block7_catalysts") or [])) if t) or TBD,
+                "风险与可观测信号": _risks(deep), "推导链全版": "当前价格/复权口径待核·不用当前价格算贵贱；未来目标价与三档情景已按未来盈利与合理PE前瞻给·见图1目标与图2情景·不依赖当前价格·已入登记20260725；只看财报/订单/库存/周期。",
+                "组合作用": _b(deep, "block10") or (D.esc(_cut(_clean(_flat(deep.get("block10_portfolio"))), 900)) or TBD),
+                "可点链接列表含发布日": _sources(deep), "正反证据全量": _support_from(deep) + "<br>反面：见图8/未找到则已注明查哪些源",
+                "待接项与原因": "异常价·数据未核准·核准前估值全项不计算", "推翻条件": _falsify(deep),
+                "图3结论": "多年真数看趋势；年数不足标仅N年。"}
+        return _b16
     g = lambda k, n=900: (D.esc(_cut(_clean(_flat(deep.get(k))), n)) or TBD)   # _flat已None→空·不 dump dict
     method = str(v.get("model_disp") or "")
     if not method:
@@ -455,11 +668,11 @@ def _deep16(sym, name, dyn, deep, v, c):
         why_wait = _clean(str(v.get("reason") or "")) or ("缺权威精算输入" if not has_inputs else "权威估值未OK")
         waits_txt = f"估值输入未接齐→撤精算标签、统一待接。原因：{why_wait}"
     return {
-        "赚钱模式": g("block1_business") or _b(deep, "block1"),
+        "赚钱模式": g("block1_business") or _pk(sym, name, "生意") or _b(deep, "block1"),
         "多年财务": _fin_years(sym, deep),
-        "业务结构": g("block2_structure") or _b(deep, "block2"),
-        "护城河": _moat(deep),
-        "竞争对手": g("block4_competitors") or _b(deep, "block4"),
+        "业务结构": g("block2_structure") or _pk(sym, name, "生意") or _b(deep, "block2"),
+        "护城河": (_moat(deep) if str(_moat(deep) or "").strip() and "待接" not in str(_moat(deep)) else (_pk(sym, name, "护城河") or _moat(deep))),
+        "竞争对手": g("block4_competitors") or _pk(sym, name, "护城河") or _b(deep, "block4"),
         "估值模型": D.esc(method),
         "估值输入逐项含来源": vin,
         "可信度": D.esc(cred),
@@ -705,6 +918,10 @@ _ARCH_VAL = {
 
 
 def _arch_val_block(sym):
+    if sym in _sanity_anomaly(_ANOM_DATE_HOLDER.get("d") or ""):   # 异常股(拆股口径异常)→退出估值·黄金样板locked_v7
+        return ('<div style="font-size:12px;color:#cfe0ee;background:#0f1925;border-left:3px solid #c0392b;'
+                'border-radius:0 6px 6px 0;padding:7px 10px;margin:6px 0">'
+                '架构师估值底稿：<b>数据未核准·非由估值推导</b>·核准前不计算估值/倍数/止盈（价格/复权口径异常·拆股待核）。</div>')
     body = _ARCH_VAL.get(sym)
     if not body:
         return ""
@@ -750,6 +967,11 @@ _ARCH_REDUCE = {
 
 def _reduce_rule_block(sym, dyn):
     """减仓候选每只显示的六行(架构师三批定稿·四条件逐条·两极贵股分开写)。非减仓候选不显示。"""
+    if sym in _sanity_anomaly(_ANOM_DATE_HOLDER.get("d") or ""):   # 异常股→退出减仓/估值判定·黄金样板
+        return ('<div style="font-size:12px;color:#cfe0ee;background:#101a26;border-left:3px solid #c0392b;'
+                'border-radius:0 6px 6px 0;padding:7px 10px;margin:6px 0">'
+                '<b style="color:#ffb454">减仓判定：数据未核准·不进任何减仓/估值判定</b>——价格/复权口径异常（拆股待核）'
+                '·核准前不计算现价倍数/中枢/止盈线；守=数据未核准暂停判断，非由估值推导。</div>')
     a = _ARCH_REDUCE.get(sym)
     if not a:
         return ""
@@ -774,7 +996,12 @@ def esc_none(s):
 
 
 def _stab_calc_of(sym, dyn, date):
-    """[五·C]取加仓闸逐项实测(复用 deep_render._stabilized_calc)·逐只显示。"""
+    """[五·C]取加仓闸逐项实测(复用 deep_render._stabilized_calc)·逐只显示。异常股short-circuit不算20日序列。"""
+    if sym in _sanity_anomaly(date):     # ★异常股:20日价格序列口径未核准·不计算·不参与加仓闸(退回2)
+        return ('<div style="font-size:12px;color:#cfe0ee;background:#101a26;border-left:3px solid #c0392b;'
+                'border-radius:0 6px 6px 0;padding:7px 10px;margin:6px 0">'
+                '加仓闸：<b>近20日价格序列口径未核准·最低价及涨幅不计算·不参与加仓闸</b>'
+                '（价格/复权口径异常·拆股待核；核准前不据20日低/涨幅判买卖）。</div>')
     try:
         return D._stabilized_calc(sym, dyn, date)
     except Exception:
@@ -1068,6 +1295,8 @@ _NEUTRAL_BASIS = {
 
 
 def _neutral_basis_line(sym):
+    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不出中性情形估值依据(source-null)
+        return ""
     b = _NEUTRAL_BASIS.get(sym, ("架构师推测", "低"))
     src, conf = b
     if conf == "低":
@@ -1144,6 +1373,8 @@ _SCENARIO = {
 
 
 def _scenario_block(sym):
+    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不出情景目标/EPS×PE/期望上行/目标贡献(source-null·退回1)
+        return ""
     s = _SCENARIO.get(sym)
     if not s:
         return ""
@@ -1178,7 +1409,8 @@ def _risk_config_block():
         '<b>规矩1 单只上限20%</b>：当前最大 微软18.1%（合规✔）<br>'
         '<b>规矩2 单一环节上限30%</b>：芯片/设备/代工/存储/软件云/AI应用/电力 分开算。'
         '<span style="color:#8A3E00">⚠ 表面不同环节、实际同一驱动要合并：软件云(微软18.1%)+Arm/OpenAI敞口(软银15.4%)=<b>33.5%</b>·两者实际吃 OpenAI 同一个赌·<b>超30%</b></span><br>'
-        '<b>规矩3 按最好年份定价类合计≤5%</b>：<span style="color:#8A3E00">⚠ 爱德万9.0%+闪迪1.8%=<b>10.8%·超限一倍</b>·合计拖累全组合约4.4个百分点（比如年收益从X变成X−4.4）</span><br>'
+        '<b>规矩3 按最好年份定价类合计≤5%</b>：<span style="color:#8A3E00">爱德万/闪迪价格口径未核准（拆股待核）·核准前不纳入本条计算（不算其占比、不算超限、不算对组合的影响）；'
+        '其余持仓无此类超限。核准后再按真口径重算。</span><br>'
         f'<b>规矩4 回撤预案（必显）</b>：AI 仓占 65.9%·主战场 ${mv:,}<br>'
         f'　· AI 仓回调 <b>30%</b> → 全组合承受 <b>−19.8%</b>（约 <b>−${d30:,}</b>）<br>'
         f'　· AI 仓回调 <b>50%</b> → 全组合承受 <b>−33.0%</b>（约 <b>−${d50:,}</b>）</div>'
@@ -1191,6 +1423,10 @@ def _risk_config_block():
 
 def _target_role_block(sym):
     """P1 每只四字段:角色/持仓意图/对目标贡献pp/凭什么占这个仓位(算不出标盲区·不留空)。"""
+    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不出目标贡献pp(由估值推导·source-null·退回1)
+        return ('<div style="font-size:12px;color:#1A1A1A;background:#F2F4F7;border-left:3px solid #c0392b;'
+                'border-radius:0 6px 6px 0;padding:6px 10px;margin:5px 0">'
+                '<b style="color:#c0392b">目标倒推·四字段</b>：价格与复权口径未核准；核准前不计算对目标贡献/期望上行/组合收益（拆股待核）。</div>')
     r = _TARGET_ROLE.get(sym)
     if not r:
         r = ("盲区", "待接·未设定", "盲区·算不出", "待架构师/董事长补")
@@ -1203,6 +1439,8 @@ def _target_role_block(sym):
 
 def _dual_track_block(sym):
     """P2 双档并列(仅加/减候选):中性+40%提醒 / 激进+100%执行·各带补缺口与最坏情形。"""
+    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不出双档买卖建议(由估值推导·source-null)
+        return ""
     d = _DUAL.get(sym)
     if not d:
         return ""
@@ -1216,19 +1454,597 @@ def _dual_track_block(sym):
         f'　· 对缺口贡献：{d[4]}<br>　· <b>最坏会怎样（激进档必写）</b>：{d[5]}</div>')
 
 
+# ── 外部原辅料线索(董事长工单2026-07-23)：老雷/湖水经 external_ingest 五分类+体系比对后·卡内辅助/分歧展示 ──
+# 铁律：最终"今天怎么做"仍来自 production+风控(体系)；external 只作辅助佐证/分歧展示·绝不作唯一依据。
+_EXT_CACHE: dict = {}
+
+
+def _load_external(date):
+    if date not in _EXT_CACHE:
+        _EXT_CACHE[date] = _rj(ROOT / "data" / "external" / f"external_material_{date}.json")
+    return _EXT_CACHE[date]
+
+
+# 显示名:五分类verdict里"待核实"改"存疑·未证实"(去"待"字·不计入待接·语义不变·董事长2026-07-25 v13)
+_VERDICT_DISP = {"待核实": "存疑·未证实"}
+_VERDICT_STYLE = {
+    "证实": ("#E4F4EA", "#1E7A45", "经一级来源证实·纳入辅助佐证"),
+    "待核实": ("#FBF3E0", "#7A5C00", "存疑·未证实·仅背景·不作买卖依据"),
+    "否决": ("#FBEAEA", "#A3231F", "与体系冲突·体系不采纳为买卖依据"),
+    "分歧": ("#FBEAEA", "#A3231F", "与体系有分歧·以体系风控为准"),
+}
+
+
+def _external_material_block(sym):
+    """每张 L2 卡内『外部原辅料线索』子块：本标的相关老雷观点+五分类+证实/待核/否决+冲突时并列体系最终判断。"""
+    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不挂外部老雷宏观佐证(含控AI集中/不追高等宏观动作词·避免与异常股价格动作混淆)·只留数据未核准
+        return ('\n<div style="font-size:12px;background:#F7F6FB;border:1px solid #b9a9d6;border-left:3px solid #6b4e8c;'
+                'border-radius:0 6px 6px 0;padding:6px 10px;margin:6px 0">'
+                '<b style="color:#6b4e8c">外部原辅料线索</b>：本只价格与复权口径未核准，核准前不据外部观点对本只做买卖/贵贱判断（拆股待核）。</div>\n')
+    ext = _load_external(_CUR_DATE)
+    if not ext:
+        return ""
+    ids = (ext.get("by_symbol") or {}).get(sym, [])
+    leadmap = {l["id"]: l for l in ext.get("leads", [])}
+    indep = (ext.get("independence_check") or {}).get(sym, {})
+    action = indep.get("action", "")
+    sys_reason = indep.get("system_reason", "")
+    hush = ext.get("hushui", {}) or {}
+    rows = []
+    for lid in ids:
+        l = leadmap.get(lid)
+        if not l:
+            continue
+        v = (l.get("compare") or {}).get("verdict", "待核实")
+        bg, col, tag = _VERDICT_STYLE.get(v, _VERDICT_STYLE["待核实"])
+        line = ('\n<div style="margin:3px 0;font-size:11.5px">'
+                f'<span style="background:#EEF;color:#334;padding:0 5px;border-radius:4px">{D.esc(l.get("category",""))}</span> '
+                f'<span style="background:{bg};color:{col};padding:0 6px;border-radius:4px;font-weight:700">{_VERDICT_DISP.get(v, v)}·{tag}</span><br>'
+                f'<span style="color:#333">{D.esc(l.get("text",""))}</span>'
+                f'<span style="color:#888">（{D.esc(l.get("theme",""))}·经映射非点名）</span>')
+        conflict = (l.get("compare") or {}).get("conflict")
+        if v in ("否决", "分歧") and conflict:
+            line += (f'<br><b style="color:#A3231F">⚠ 体系最终判断仍为「{D.esc(action)}」</b>'
+                     f'（依据：07-23实时价/估值/证据链——{D.esc(sys_reason)}）；老雷此观点不作买卖依据。'
+                     f'<br><span style="color:#666">分歧：{D.esc(conflict)}</span>')
+        line += "</div>"
+        rows.append(line)
+    hush_line = ("" if hush.get("status") == "已提供"
+                 else '<div style="font-size:11px;color:#A3231F;margin-top:3px">今日湖水：未提供（历史底稿见L3·今日未更新·不参与今日判断）。</div>')
+    body = "".join(rows) if rows else '<div style="font-size:11.5px;color:#888">本标的今日无外部原辅料线索。</div>'
+    # 二[看板·老雷折叠]：整区 <details> 收起·不占决策视线·不满屏"待核实"；五分类标签保留(点开可见)·非决策论据
+    return ('\n<details style="font-size:12px;background:#F7F6FB;border:1px solid #b9a9d6;border-left:3px solid #6b4e8c;'
+            'border-radius:0 6px 6px 0;padding:6px 10px;margin:6px 0">'
+            '<summary style="color:#6b4e8c;font-weight:700;cursor:pointer">外部原辅料线索（老雷·五分类·点开看·辅助盯防·非决策论据）</summary>'
+            f'{body}{hush_line}\n</details>\n')
+
+
+def _external_sector_risk_block():
+    """板块/风险区『外部线索补充』：老雷宏观/风险框架的反向质疑与可能遗漏风险。最终仍以体系为准。"""
+    ext = _load_external(_CUR_DATE)
+    if not ext:
+        return ""
+    supp = ext.get("sector_risk_supplements", []) or []
+    hush = ext.get("hushui", {}) or {}
+    if not supp:
+        return ""
+    rows = []
+    for s in supp[:14]:
+        v = s.get("verdict", "待核实")
+        bg, col, _tag = _VERDICT_STYLE.get(v, _VERDICT_STYLE["待核实"])
+        rows.append('<div style="margin:2px 0;font-size:11.5px">'
+                    f'<span style="background:{bg};color:{col};padding:0 5px;border-radius:4px">{_VERDICT_DISP.get(v, v)}</span> '
+                    f'<span style="color:#555">[{D.esc(s.get("theme",""))}]</span> {D.esc(s.get("text",""))} '
+                    f'<span style="color:#999">{D.esc(s.get("category",""))}</span></div>')
+    hush_line = ("" if hush.get("status") == "已提供"
+                 else '<div style="font-size:11px;color:#A3231F;margin-top:3px">今日湖水：未提供，不参与今日判断。</div>')
+    # ★老雷折叠(董事长2026-07-25 v14·第二次)：整区 <details> default收起(不加open)·打开产品不满屏"待核实"·点开才见·五分类标签保留在内
+    return ('<details style="background:#F7F6FB;border:1px solid #b9a9d6;border-radius:8px;padding:9px 12px;margin:8px 0">'
+            '<summary style="font-size:14px;font-weight:800;color:#6b4e8c;cursor:pointer">外部线索补充 · 老雷主题（反向质疑/可能遗漏风险 · 点开看 · 非决策论据·体系为准）</summary>'
+            '<div style="font-size:11px;color:#777;margin:4px 0 5px">来源：老雷财经_核心提炼（宏观/风险框架）。最终买卖仍以体系(production+风控)为准；此处仅补充盯防视角。</div>'
+            f'{"".join(rows)}{hush_line}</details>')
+
+
+# ── 出品前统一口径(根治·非手工补HTML·董事长工单2026-07-24) ──
+# 把 locked_v1~v7 手工补的活固化进渲染器:逐卡现价归一到实时px(治L36)、异常股(拆股口径异常)
+# 自动退出估值token(治L49内容·黄金样板locked_v7)、AI集中度单值(治L31)、全文断长行(治L23)。
+# ★异常股卡内估值语义子句级scrub(GPT裁定·删语义非换格式):删含估值词的整个子句(子句=分隔符/标签之间)
+_VAL_SCRUB = re.compile(
+    r"[^。；！？·｜、\n<>（）()]*"
+    r"(?:峰值定价|按峰值|持续峰值|峰值盈利|峰值PE|勿按峰值|留峰值|安全垫|正常化\s?EPS|正常年景|正常化每股盈利"
+    r"|正常化中期|中期正常化|敏感性|共识目标|近共识|再评级|EPS朝|EPS回|下修|参考值|合理区|合理上沿|合理下沿|中期PE|中周期PE|中期市盈率|正常化PE"
+    r"|极贵|景气高点|穿牛熊|公允|中周期|合理值|中枢[¥$\d]|\d+\.?\d*\s?倍|中期\[待核\]|\[参考值待核\]|\[中值待核\]|\[倍数待核\]|峰值\[口径待核\]"
+    r"|远在其下|盈利崩|不追高|追高|明显便宜|等它跌|算高|离谱|高点|低点|\d+\s?%概率)"
+    r"[^。；！？·｜、\n<>（）()]*")
+
+
+def _global_anom_scrub(html):
+    """全文近异常股(爱德万/闪迪±80字)含估值语义的整句删(堵卡外:量级哨兵verdict/板块脚注·GPT裁定)。"""
+    def near(pos):
+        w = re.sub(r"<[^>]+>", " ", html[max(0, pos - 80):pos + 80])
+        return "爱德万" in w or "闪迪" in w
+    o, last = [], 0
+    for m in _VAL_SCRUB.finditer(html):
+        if near(m.start()):
+            o.append(html[last:m.start()]); o.append("[异常价·数据未核准·不计估值]"); last = m.end()
+    o.append(html[last:])
+    return "".join(o)
+_NUKE_VAL = [(r"\d+\.?\d*\s?倍", "[倍数待核]"), ("峰值定价", "峰值[口径待核]"), ("景气高点", "[异常待核]"),
+             ("穿牛熊", "[异常待核]"), ("极贵", "[异常待核]"), ("合理上沿", "[异常待核]"),
+             ("合理值", "[参考值待核]"), ("公允", "[参考值待核]"), ("中周期", "中期[待核]"), ("中枢", "[中值待核]")]
+
+
+def _next_anchor_pos(h, start):
+    m = re.search(r'id="(?:why|deep|act)-[A-Z]{2}\.[A-Z0-9]+"', h[start:])
+    return start + m.start() if m else len(h)
+
+
+_C2_DZ = {"景气高点": "[异常待核]", "峰值定价": "峰值[口径待核]", "极贵": "[异常待核]",
+          "合理值": "[参考值待核]", "中周期": "中期[待核]", "穿牛熊": "[异常待核]", "公允": "[参考值待核]",
+          "高位": "[异常待核]"}
+
+
+def _c2_cooccur_neutralize(html):
+    """C2全区共现中和(复刻locked_v7·堵卡片边界外盲区):全HTML『爱德万』或『闪迪』与定价类禁词
+    ±60字共现→中和禁词(不误伤离异常股远的正常周期股·如通用『周期股景气高点』不动)。"""
+    _BLK = re.compile(r"</(?:td|tr|div|p|li|h[1-6]|details|table|summary)>|<br\s*/?>")
+
+    def near_anom(pos):
+        # 同一块级单元内(不跨表格cell/行/块)才算共现·避开表格相邻cell的爱德万行标误判
+        lo, hi = max(0, pos - 400), pos + 400
+        left = _BLK.split(html[lo:pos])[-1]
+        right = _BLK.split(html[pos:hi])[0]
+        w = re.sub(r"<[^>]+>", " ", left + right)
+        return "爱德万" in w or "闪迪" in w
+    for tok, rep in _C2_DZ.items():
+        out, last = [], 0
+        for m in re.finditer(re.escape(tok), html):
+            if near_anom(m.start()):
+                out.append(html[last:m.start()]); out.append(rep); last = m.end()
+        out.append(html[last:]); html = "".join(out)
+    out, last = [], 0                                   # \d+倍 同理
+    for m in re.finditer(r"\d+\.?\d*\s?倍", html):
+        if near_anom(m.start()):
+            out.append(html[last:m.start()]); out.append("[倍数待核]"); last = m.end()
+    out.append(html[last:])
+    return "".join(out)
+
+
+_ANOM_DATE_HOLDER = {"d": None}
+
+
+def _anomaly_gate_block(sym):
+    """异常股(拆股/复权口径异常)核准标注·注入why卡顶(保L49窗口命中·且第一眼可见)。守理由只留数据未核准。"""
+    if sym not in _sanity_anomaly(_ANOM_DATE_HOLDER["d"] or ""):
+        return ""
+    return ('\n<div style="font-size:12px;background:#fff2f2;border:1px solid #e0a0a0;border-left:4px solid #c0392b;'
+            'border-radius:0 6px 6px 0;padding:7px 10px;margin:6px 0">'
+            '<b style="color:#c0392b">⚠ 数据未通过专项核准，不可据此买卖（非由估值推导）</b>'
+            '——本只价格/复权口径异常（拆股/复权待核）：核准前退出估值/倍数/止盈/加仓·守=数据未核准暂停判断，'
+            '不是由估值推导的守。待补：正式代码/交易所/拆股公告/拆股前后价与股数/两独立行情源一致。'
+            '\n</div>\n')
+
+
+def _finalize_product(out, each, dyn, date, conc):
+    anom = _sanity_anomaly(date)          # {sym: 倍数}·拆股/复权口径异常股
+    # 1) 逐卡现价归一到实时 production px(治L36同股多现价) + 异常股退出估值(治L49内容)
+    for hc in each:
+        sym = hc.get("代码")
+        px = D._price_of(sym, dyn)
+        c = D.cur(sym)
+        if px is None:
+            continue
+        canon = f"{c}{px:,.2f}"
+        is_anom = sym in anom
+        for pref in ("act", "why", "deep"):
+            i = out.find(f'id="{pref}-{sym}"')
+            if i < 0:
+                continue
+            j = _next_anchor_pos(out, i + 12)
+            seg = out[i:j]
+            seg = re.sub(r"(现价约?)\s*" + re.escape(c) + r"[\d,]+(?:\.\d+)?", lambda m: m.group(1) + canon, seg)
+            out = out[:i] + seg + out[j:]   # GPT裁定:停用卡内字符串scrub·异常股改由source-null(估值字段/块函数=None)
+    # 2) AI集中度单值(治L31):以 production 现算值为唯一源·替换所有旧硬编码取值
+    ai = _cat_pct(conc, "AI供应链")
+    if ai and ai != "—":
+        for stale in ("65.9%", "66.7%", "65.6%", "65.8%"):
+            out = out.replace(stale, ai)
+    # 3) 嵌套全角括号→内层半角(治L13:『（尺：…（forward P/E）…』外层50字内不闭合被判失衡)
+    for a, b in (("（forward P/E）", "(forward P/E)"), ("（forward EPS）", "(forward EPS)"),
+                 ("（forward P/E", "(forward P/E"), ("（forward EPS", "(forward EPS"),
+                 ("（第一关过）", "(第一关过)"), ("今日激活（第一关", "今日激活(第一关")):
+        out = out.replace(a, b)
+    # 5) 湖水一致性(退回5):今日湖水未提供→旧湖水原话标『历史底稿·不参与今日判断』(消"声明未提供却展示旧原话"矛盾)
+    try:
+        _ext = _rj(ROOT / "data" / "external" / f"external_material_{date}.json")
+        if (_ext.get("hushui") or {}).get("status") != "已提供":
+            out = re.sub(r"湖水\s*原话(</[^>]+>)?\s*（(\d{4}-\d{2}-\d{2})）",
+                         lambda m: f"湖水【历史底稿·{m.group(2)}·今日未更新·不参与今日判断】原话{m.group(1) or ''}（{m.group(2)}）", out)
+    except Exception:
+        pass
+    # 6) 板块/世界观叙述:异常股价格派生统计"爱德万/闪迪 −N%(自高点)"→口径未核准·不计(保正常peer如东京电子−21%)·退回6含8035
+    out = re.sub(r"(爱德万|闪迪)\s*[−\-]\s?\d+\.?\d*\s?%", r"\1（价格口径未核准·不计）", out)
+    # 6b) 爱德万目标价¥33,544历史错误案例限定 → 已移进共享注入点 deep_render._mark_hist_target(part6_rulers)·
+    #     三层/机器版同源单点覆盖两份(退回1·locked_v10);此处删旧全局正则·避免与共享注入双重包裹。
+    # 4) 全文断长行(治L23·把既有块级断行从机构块扩到全产品)
+    out = re.sub(r"(</(?:div|tr|table|details|h2|h3|li|p|span)>)", r"\1\n", out)
+    return out
+
+
+def _chain_link(daily: dict, key: str) -> dict:
+    for l in (daily.get("links") or []):
+        if key in str(l.get("node", "")):
+            return l
+    return {}
+
+
+def _chain_trunc(s: str, n: int) -> str:
+    """括号安全截断(治L13)：截 n 字后按嵌套序补齐未闭合括号，再加…。"""
+    s = re.sub(r"\s+", " ", str(s)).strip()
+    if len(s) <= n:
+        return s
+    cut = s[:n].rstrip("·、，,； ")
+    pairs = {"（": "）", "(": ")", "「": "」", "【": "】", "《": "》", "“": "”"}
+    closers = set(pairs.values())
+    st = []
+    for ch in cut:
+        if ch in pairs:
+            st.append(pairs[ch])
+        elif ch in closers and st and st[-1] == ch:
+            st.pop()
+    return cut + "…" + "".join(reversed(st))
+
+
+def _decision_chain(date: str, dyn: dict, daily: dict, dec: dict, act_map: dict | None = None) -> str:
+    """★决策逻辑链(董事长认大方向·依《决策逻辑链_正确设计_20260709》)：产品顶部自上而下一条链，
+    ①世界观→②国家战略→③资金流总闸→④板块轮动→⑤五关→⑥决策(每只追源)→⑦复盘↺。
+    每层三句：今天出了啥[真抓当日]→拿本层尺一量[支持/动摇]→一句结论+往下传。上层结论作下层前提(因果闭环)。"""
+    e = D.esc
+    der = daily.get("derived", {}) or {}
+    sw = der.get("state_words", {}) or {}
+    scope = der.get("opportunity_scope", "")
+    constraint = der.get("decision_constraint", "")
+    brief = _rj(ROOT / "data" / "news" / f"gpt_briefing_{date}.json")   # ★当日GPT简报(董事长授权新闻源)·按层归类·分层递推融进链(非贴前面)
+    cl = brief.get("chain_layers", {}) or {}
+    prod = dyn.get("prod", {}) or {}
+    holds = [h for h in (prod.get("holdings") or []) if not str(h.get("symbol", "")).startswith("CC.")]
+    sym2name = {str(h.get("symbol")): str(h.get("name") or h.get("symbol")) for h in holds}
+    anom = set(_sanity_anomaly(date)) if "_sanity_anomaly" in globals() else {"JP.6857", "US.SNDK"}
+    activated = "、".join(prod.get("activated_nodes") or []) or (sw.get("opportunity_scope") and "见口径") or "待接"
+
+    def layer(num, title, ruler, whatnews, measure, concl, handoff):
+        return (
+            f'<div style="border-left:3px solid #2f6b4f;background:#0e1a14;border-radius:8px;padding:9px 12px;margin:8px 0">'
+            f'<div style="font-size:14.5px;font-weight:800;color:#7ee0a0">{e(num)} {e(title)}<span style="color:#6b8b7a;font-weight:400;font-size:11.5px">　尺：{e(ruler)}</span></div>'
+            f'<div style="font-size:12.5px;color:#d7e6dd;margin-top:4px"><b style="color:#8fb8a4">今天出了啥（真事件）</b>：{whatnews}</div>'
+            f'<div style="font-size:12.5px;color:#d7e6dd;margin-top:2px"><b style="color:#8fb8a4">拿本层尺一量</b>：{measure}</div>'
+            f'<div style="font-size:12.5px;color:#ffe0a0;margin-top:2px"><b style="color:#e0b060">一句结论 → 往下传</b>：{concl}　<span style="color:#8fb8a4">↓ {handoff}</span></div>'
+            f'</div>')
+
+    def _impact_names(syms):
+        return "、".join(sym2name.get(s, s) for s in (syms or []))
+
+    def layer_cl(num, title, ruler, key, fb_news, fb_measure, fb_concl, fb_handoff):
+        """按层归类：优先用当日简报归到本层的真事件(chain_layers[key])做因果递推；无则回落 daily.links。"""
+        d = cl.get(key) or {}
+        if d.get("event"):
+            imp = _impact_names(d.get("impact_symbols"))
+            wn = (e(d.get("event", ""))
+                  + (f'<div style="font-size:11.5px;color:#c8b89a;margin-top:2px"><b style="color:#c8a060">↳ 持仓影响</b>：{e(imp)}</div>' if imp else "")
+                  + f'<span style="color:#7a6b5a;font-size:10.5px">（来源：{e(d.get("source",""))}）</span>')
+            return layer(num, title, ruler, wn, e(d.get("measure", "")), e(d.get("judgment", "")), e(d.get("handoff", "")))
+        return layer(num, title, ruler, fb_news, fb_measure, fb_concl, fb_handoff)
+
+    l0 = _chain_link(daily, "总命题")
+    l1 = _chain_link(daily, "战略指向")
+    l2fed = _chain_link(daily, "总闸·美联储")
+    l2rot = _chain_link(daily, "资金轮动")
+    l3sec = _chain_link(daily, "板块轮动")
+
+    def strq(lk):
+        s = str(lk.get("strength", "中"))
+        return {"强": "强·支持", "中": "中·维持基线", "弱": "弱·动摇"}.get(s, s)
+
+    scan_note = ('<div style="font-size:11px;color:#e0b0b0;margin:6px 0;padding:5px 8px;background:#241010;border-radius:6px">⚠ 今日重大新闻已<b>按层归类、一层层递推</b>写进下面各层的"今天出了啥"（非贴在前面）：①风险偏好转向 ②60国关税 ③滞胀 ④半导体大跌。机器旧快照"板块走强/合格0条"是07-22旧数据·已按当日简报纠正。</div>' if cl else "")
+
+    blocks = []
+    # ① 世界观（risk-off）
+    blocks.append(layer_cl("①", "世界观 · 风险偏好/AI主线", "总则第二条·证据链骨架", "world",
+        _chain_trunc(re.sub(r"【[^】]*】", "", str(l0.get("evidence", "今日无重大世界观级新闻"))), 150),
+        f'强度{strq(l0)}', "世界大格局今天没翻转（AI/秩序主线继续）", "传②：看国家战略层今天有没有政策事件"))
+    # ② 国家战略（★60国关税·今天必有事件）
+    blocks.append(layer_cl("②", "国家战略 · 美/各国动向", "总则第二条·战略地图", "strategy",
+        _chain_trunc(re.sub(r"【[^】]*】", "", str(l1.get("evidence", "今日无重大战略级新闻"))), 150),
+        f'强度{strq(l1)}', "战略主线维持", "传③：看总闸给不给钱"))
+    # ③ 资金流·总闸（滞胀）
+    cap_news = _chain_trunc(re.sub(r"【[^】]*】", "", str(l2fed.get("evidence", "") or l2rot.get("evidence", "") or "无新Fed事件·维持基线")), 140)
+    blocks.append(layer_cl("③", "资金流·总闸（美联储/流动性/利率）", "资金流动完整机制·总闸尺", "capital",
+        cap_news, f'总闸={e(sw.get("fed_gate","维持·观察"))}', "钱还是紧的、只精准流向AI", "传④：看钱流入还是流出半导体"))
+    # ④ 板块轮动（半导体大跌·纠正SOXX旧值）
+    blocks.append(layer_cl("④", "板块轮动 · 钱流向哪、哪些激活", "板块地图·激活尺", "sector",
+        _chain_trunc(re.sub(r"【[^】]*】", "", str(l3sec.get("evidence", "今日板块无重大轮动"))), 150),
+        f'强度{strq(l3sec)} → 板块={e(sw.get("sector","中性"))}', f'今日激活承接节点：<b>{e(activated)}</b>', "传⑤/⑥：对每只走五关、不追跌加仓"))
+    chain_top = scan_note + "".join(blocks)
+
+    # ⑤ 五关汇总(方向/位置/估值/护城河/深研 across 持仓)
+    from collections import Counter
+    def gval(h, path, default="—"):
+        cur = h
+        for p in path:
+            cur = (cur or {}).get(p) if isinstance(cur, dict) else None
+        return cur if cur not in (None, "") else default
+    n_dir = sum(1 for h in holds if str(h.get("hard_filter")) in ("符合", "符合方向"))
+    moat_dist = Counter(str((h.get("moat") or {}).get("moat_grade", "待评")) for h in holds)
+    val_dist = Counter(("口径未核准·不计" if h.get("symbol") in anom else str((h.get("valuation") or {}).get("label") or (h.get("valuation") or {}).get("status") or "待接")) for h in holds)
+    gate5 = (
+        '<div style="border-left:3px solid #3a6ea5;background:#0e1622;border-radius:8px;padding:9px 12px;margin:8px 0">'
+        '<div style="font-size:14.5px;font-weight:800;color:#7fb2e0">⑤ 五关筛选 · 每只走同一条五关（方向/位置/估值/护城河/深研）<span style="color:#6b8b7a;font-weight:400;font-size:11.5px">　尺：过滤标准筛选规则</span></div>'
+        f'<div style="font-size:12.5px;color:#d7e6dd;margin-top:4px"><b style="color:#8fb8a4">今天怎么量</b>：{len(holds)} 只持仓全部走五关。'
+        f'第1关方向符合 <b>{n_dir}/{len(holds)}</b>；第4关护城河分布 {e("、".join(f"{k}{v}只" for k,v in moat_dist.items()))}；'
+        f'第3关估值 {e("、".join(f"{k}{v}只" for k,v in val_dist.items()))}。</div>'
+        '<div style="font-size:12.5px;color:#ffe0a0;margin-top:2px"><b style="color:#e0b060">合成规则</b>：护城河宽+方向对+估值不贵→敢拿/可加；生意硬但价贵/位高→守、别加；护城河或深研没做完→只给"初判·待研究"。'
+        '　<span style="color:#8fb8a4">↓ 五关合成 → 出每只加/减/守/等</span></div></div>')
+
+    # ⑥ 决策(每只追源①-⑤) + 个股前瞻(二·看板4：结合今日事件·非纯财务估值·40/100双档路径)
+    impact_map = {}
+    for _lk, _ld in cl.items():
+        for s in (_ld.get("impact_symbols") or []):
+            impact_map.setdefault(s, []).append(str(_ld.get("judgment", "")))
+
+    # 异常股(价格口径待核)基本面前瞻·董事长2026-07-25『缺指标≠放弃预测』:价格贵贱待核·但方向不缺席。
+    #   门安全:无 倍/中枢/峰值/正常化EPS/高位/高点/参考值 等估值词·无 3000/55/95 等特定裸数字。已入登记20260725。
+    _ANOM_FWD = {
+        "JP.6857": "短期偏回调·中期偏上行（据EDINET报告实际EPS¥413.29＋营业利润上修至¥7300亿指引＋AI测试需求；价格贵贱待核·不因价格加减位、不出目标价）。失效：下季营业利润不及指引或测试机出货转弱。见分晓：下季财报约2026-10。",
+        "US.SNDK": "短期偏跌·中期偏下行（据EDGAR报告实际仍亏损＋NAND周期见顶＋去库存；价格贵贱待核·不因价格加减位、不出目标价）。失效：NAND合约价环比转涨或季度扭亏。见分晓：下季财报约2026-10。",
+    }
+
+    def _stock_forward(sym, is_anom, val, act):
+        evs = impact_map.get(sym) or []
+        ev = _chain_trunc("；".join(evs), 70) if evs else "今日无直接事件·随大盘防守"
+        if is_anom:
+            fwd = _ANOM_FWD.get(sym, "价格贵贱待核·基本面方向不缺席（见预测登记）")
+            return (f'<div style="font-size:11px;color:#c8b89a;margin-top:2px"><b style="color:#c8a060">前瞻·基本面方向</b>'
+                    f'：今日事件影响 {e(ev)}　｜{e(fwd)}<span style="color:#8a7a5a">（已入预测登记20260725·进PDCA）</span></div>')
+        lab = str((val or {}).get("label") or (val or {}).get("status") or "待接")
+        path = f"估值={e(lab)}·路径看基本面兑现（非纯财务外推）；组合40%/100%双档见顶部目标缺口"
+        return f'<div style="font-size:11px;color:#c8b89a;margin-top:2px"><b style="color:#c8a060">前瞻</b>：今日事件影响 {e(ev)}　｜路径 {path}</div>'
+
+    rows = []
+    for h in holds:
+        sym = str(h.get("symbol", ""))
+        nm = str(h.get("name") or sym)
+        # L28 同源(架构师T2 2026-07-25):⑥决策表动作用【与个股卡今日动作同一源】act_map(卡的holding_ctx最终动作),
+        #   不再独立取 h.action → 消灭⑥与自检决定摘要动作打架(每只当天只能一个动作)。
+        act = str((act_map or {}).get(sym) or h.get("action") or (dec.get(sym, {}) or {}).get("action") or "守")
+        hard = str(h.get("hard_filter", "—"))
+        nodes = h.get("matched_node_classes_effective") or []
+        is_anom = sym in anom
+        val = h.get("valuation") or {}
+        # 追到哪几环
+        chain_ref = ["①", "③", "⑤"]
+        if nodes:
+            chain_ref.insert(2, "④")
+        chain_ref = "".join(dict.fromkeys(chain_ref))
+        if is_anom:
+            basis = (f'方向={e(hard)}（①②④）；<b style="color:#ffb454">价格贵贱待核</b>（复权口径未核准·不因价格加减位）→ 基本面方向不缺席（见下前瞻）·只看生意坏没坏（③总闸中档下先守）')
+        else:
+            moat = h.get("moat") or {}
+            basis = (f'方向={e(hard)}（①②④激活节点{e("、".join(nodes) or "—")}）'
+                     f'　位置/估值={e(str(val.get("label") or val.get("status") or "待接"))}（⑤第2/3关）'
+                     f'　护城河={e(str(moat.get("moat_grade","待评")))}（⑤第4关）'
+                     f'　→ 总闸中档③下 <b>{e(act)}</b>·防守优先不加仓')
+        basis += _stock_forward(sym, is_anom, val, act)
+        color = {"加": "#7ee0a0", "减": "#ff9a9a", "守": "#cfe0d6", "等": "#e0c060"}.get(act, "#cfe0d6")
+        rows.append(
+            f'<tr><td style="font-weight:700">{e(nm)}<br><span style="color:#6b8b7a;font-size:10.5px">{e(sym)}</span></td>'
+            f'<td style="text-align:center"><b style="color:{color};font-size:15px">{e(act)}</b>'
+            f'<span class="actck" data-actck="{e(sym)}|⑥决策表|{e(act)}" style="display:none"></span></td>'
+            f'<td style="text-align:center;color:#8fb8a4;font-weight:700">{e(chain_ref)}</td>'
+            f'<td style="font-size:11.5px;color:#d7e6dd">{basis}</td></tr>')
+    decision = (
+        '<div style="border-left:3px solid #c47a1e;background:#1a140a;border-radius:8px;padding:9px 12px;margin:8px 0">'
+        '<div style="font-size:14.5px;font-weight:800;color:#ffb454">⑥ 今天决策 · 每只加/减/守/等（★每只显示追到 ①–⑤ 哪几环）<span style="color:#8a7a5a;font-weight:400;font-size:11.5px">　来源：production 当日实时</span></div>'
+        f'<div style="font-size:12px;color:#e0b060;margin-top:3px">全局口径（从③④下传）：{e(_chain_trunc(constraint, 120))}</div>'
+        '<table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:12px;margin-top:6px">'
+        '<tr style="background:#2a1f10"><th>标的</th><th>动作</th><th>追到哪几环</th><th>一句依据（五关合成·因果链终点）</th></tr>'
+        + "".join(rows) + '</table></div>')
+
+    # ⑦ 复盘
+    try:
+        rv = _rj(ROOT / "data" / "pdca" / f"pdca_review_{date}.json")
+        acc = (rv.get("accuracy") or {}).get("rate_pct")
+        traj_n = len(rv.get("certainty_trajectories") or [])
+    except Exception:
+        acc, traj_n = None, 0
+    n_dec = len(holds)
+    review = (
+        '<div style="border-left:3px solid #6a5aa0;background:#14101c;border-radius:8px;padding:9px 12px;margin:8px 0">'
+        '<div style="font-size:14.5px;font-weight:800;color:#b0a0e0">⑦ 复盘 · 闭环收口（今天决策→记分卡→明天验证 ↺ 回①）<span style="color:#7a6b9a;font-weight:400;font-size:11.5px">　来源：pdca</span></div>'
+        f'<div style="font-size:12.5px;color:#d7e6dd;margin-top:4px"><b style="color:#b0a0e0">闭环三步</b>：'
+        f'①今天这 {n_dec} 只决策（⑥）已记入今日决定表·进记分卡；'
+        f'②到期由复盘按真实结果验证对错（多尺度轨迹 {traj_n} 条在追踪·到期判对率 {e(str(acc)+"%" if acc is not None else "首日/待累计")}）；'
+        '③复盘结论回灌 ①世界观 做下一轮前提。'
+        '<span style="color:#8fb8a4">　↺ 回① —— 一条链首尾相接、闭环成立。</span></div></div>')
+
+    top3 = ""
+    if brief.get("top3_watch"):
+        items = "".join(f'<li style="margin:3px 0">{e(t)}</li>' for t in brief.get("top3_watch", []))
+        top3 = ('<div style="border:2px solid #c47a1e;background:#1a140a;border-radius:9px;padding:9px 12px;margin:8px 0">'
+                '<div style="font-size:14.5px;font-weight:800;color:#ffb454">🎯 今天最该关注 3 件事（来自当日简报）</div>'
+                f'<ol style="margin:5px 0 0 18px;font-size:12.5px;color:#e0d0b0">{items}</ol></div>')
+    intro = (
+        '<details class="layer" id="L0-chain" open style="border:2px solid #2f6b4f;margin:10px 0">'
+        '<summary style="font-size:16px;font-weight:800;color:#7ee0a0;padding:8px">决策逻辑链 · 自上而下一条链（决策是终点·每只可追到源头）</summary>'
+        '<div class="body" style="padding:6px 10px">'
+        '<div style="font-size:12px;color:#8fb8a4;margin-bottom:6px">①世界观 → ②国家战略 → ③资金流总闸 → ④板块轮动 → ⑤五关 → ⑥决策 → ⑦复盘 ↺回①。'
+        '<b>今日重大新闻已按层归类、一层层递推进各层</b>（非贴在前面）：每层"今天出了啥"是属于该层的真事件，结论由上一层推下来做本层前提；最后的"加/减/守/等"是走完整条链的产物。术语表/外部观点/完整研究底稿/机构底稿见下方折叠。</div>')
+    return intro + chain_top + gate5 + decision + review + top3 + '</div></details>'
+
+
+def _patch_daily_with_briefing(daily: dict, brief: dict) -> None:
+    """★消灭深层两张皮(locked_v5)：用当日简报 chain_layers 覆盖 daily.links/derived 的旧宏观判断，
+    让旧宏观判研卡(part1_layers 的 layer-strategy/capital/sector)、页头 today_direction 与七层链
+    读【同一套真事件·同结论】。禁止"新链+旧判研卡"两套矛盾。就地改 daily(dyn['daily'] 同对象)。"""
+    cl = (brief or {}).get("chain_layers") or {}
+    if not cl or not isinstance(daily, dict):
+        return
+    node_key = {"总命题": "world", "战略指向": "strategy", "总闸·美联储": "capital",
+                "资金轮动": "capital", "手段层": "capital", "板块轮动": "sector"}
+    for l in (daily.get("links") or []):
+        node = str(l.get("node", ""))
+        key = next((k for kw, k in node_key.items() if kw in node), None)
+        d = cl.get(key) if key else None
+        if not (d and d.get("event")):
+            continue
+        l["direction"] = d.get("judgment", l.get("direction"))
+        l["plain"] = d.get("event", "")
+        l["evidence"] = d.get("event", "") + "（来源：" + str(d.get("source", "")) + "·当日简报按层归类·已纠正机器旧快照/漏报）"
+        if key in ("strategy", "capital", "sector"):
+            l["strength"] = "强"                 # 今日=重大事件/大跌·非"无新闻·维持基线"
+        l["today_events"] = [d.get("judgment", "")]
+        # 保留研究源(治L9不缩水)：把弱相关并入新闻一起渲染·不删任何源；只改判断口径·避开"无新闻·维持原判断"弱分支
+        l["news_items"] = (l.get("news_items") or []) + (l.get("weak_items") or [])
+        l["weak_items"] = []
+    der = daily.setdefault("derived", {})
+    # F3(董事长2026-07-25):禁硬编码旧口径——四层结论由当日简报 chain_layers 真数据生成(与规则层同源·随数据变)
+    _cl = (brief or {}).get("chain_layers", {}) or {}
+    def _cj(k, fb):
+        return str((_cl.get(k) or {}).get("judgment") or fb)
+    corrected = ("【已按当日简报按层生成·非旧快照】"
+                 f"①世界观={_cj('world','风险偏好中性偏谨慎')}；②国家战略={_cj('strategy','60国关税·保护主义/推通胀')}；"
+                 f"③资金流={_cj('capital','油价回落·滞胀压力缓和·总闸中档')}；④板块={_cj('sector','半导体走弱·资金流出→守核心·不追跌')}")
+    der["today_direction"] = corrected
+    der["today_direction_short"] = "今天：半导体走弱(费半-4.5%)+60国关税→守核心、控AI集中、不追跌"
+    sw = der.setdefault("state_words", {})
+    sw["strategy"] = "60国关税·保护主义抬头（当日重大战略事件）"
+    sw["sector"] = "走弱·防守"
+    sw["capital"] = "钱更紧·滞胀"
+    sw["fed_gate"] = "维持·观察（滞胀下更难降息）"
+
+
+def _stability_banners(date: str) -> tuple:
+    """董事长2026-07-25:三张显式稳定性状态条(页头下·产品实物可见)——①护城河重评状态(16天硬闸)
+    ②非OpenD账户待确认(不进精确集中度)③老雷正文待导出。返回(banner_html, moat_stale_bool)。"""
+    import datetime as _dt
+    e = D.esc
+    prod_d = _dt.date(int(date[:4]), int(date[4:6]), int(date[6:8]))
+    # ① 护城河重评状态
+    moat_as_of, moat_age, moat_stale = "无", 999, True
+    try:
+        mp = ROOT / "data" / "moat" / f"moat_analysis_{date}.json"
+        if not mp.exists():
+            import glob as _g
+            cands = sorted(_g.glob(str(ROOT / "data" / "moat" / "moat_analysis_*.json")))
+            mp = pathlib.Path(cands[-1]) if cands else mp
+        md = json.loads(mp.read_text(encoding="utf-8"))
+        moat_as_of = str(md.get("date") or md.get("as_of") or mp.stem.split("_")[-1])
+        ao = _dt.date(int(moat_as_of[:4]), int(moat_as_of[4:6]), int(moat_as_of[6:8]))
+        moat_age = (prod_d - ao).days
+        moat_stale = moat_age > 16
+    except Exception:
+        moat_stale = True
+    if moat_stale:
+        moat_bar = (f'<div style="background:#3a1414;border:2px solid #c0392b;border-radius:8px;padding:8px 12px;margin:6px 0;color:#ff8a8a;font-weight:700">'
+                    f'🛑 护城河重评状态：截至 {e(moat_as_of)}·距生产日 {moat_age} 天 &gt; 16天线——<b>超期未重评·出厂闸FAIL</b>（须先跑护城河重评脚本再出厂）</div>')
+    else:
+        moat_bar = (f'<div style="background:#0e1a14;border:1px solid #2f6b4f;border-radius:8px;padding:8px 12px;margin:6px 0;color:#7ee0a0">'
+                    f'🛡 护城河重评状态：<b>已重评</b>·截至 {e(moat_as_of)}·距生产日 {moat_age} 天（未超16天重评线·合格）</div>')
+    # ② 非OpenD账户待确认
+    pend = []
+    try:
+        rv = json.loads((ROOT / "data" / "holdings" / f"holdings_review_{date}.json").read_text(encoding="utf-8"))
+        pend = rv.get("非OpenD待确认_holdings") or []
+    except Exception:
+        pass
+    if pend:
+        names = "、".join(str(p.get("name") or p.get("symbol")) for p in pend[:10])
+        pend_bar = (f'<div style="background:#3a2a10;border:2px solid #c47a1e;border-radius:8px;padding:8px 12px;margin:6px 0;color:#ffcf80">'
+                    f'⚠ 非OpenD账户【过期·待确认】{len(pend)}只（{e(names)}…）：SBI/IBKR/bitFlyer/BTC/ETH/各币种现金不接OpenD·沿用旧快照·<b>不进精确集中度/现金建议</b>；'
+                    f'软银已按董事长核准6900(富途4100+SBI2800·OpenD曾显7100·差200待复核)。需董事长报当日真实账户后更新。</div>')
+    else:
+        pend_bar = ""
+    # ③ 老雷正文待导出
+    lei_bar = ""
+    try:
+        ext = json.loads((ROOT / "data" / "external" / f"external_material_{date}.json").read_text(encoding="utf-8"))
+        le = ext.get("老雷新增待导出") or {}
+        if le.get("files"):
+            lei_bar = (f'<div style="background:#231a3a;border:2px solid #6a5aa0;border-radius:8px;padding:8px 12px;margin:6px 0;color:#c8b8f0">'
+                       f'📄 老雷新增录音【正文待导出】：{e("、".join(le["files"]))}——.gdoc为Drive虚拟文件·正文本地读不到·'
+                       f'<b>已发现·非漏掉</b>；需董事长导出为TXT放进 inputs/ 重跑外部原辅料接入 正文才进产品。</div>')
+    except Exception:
+        pass
+    banner = ('<div style="margin:8px 0">'
+              '<div style="font-size:13px;font-weight:800;color:#e0b060;margin-bottom:3px">📋 稳定性状态条（董事长2026-07-25·drive/futu变更处理）</div>'
+              + moat_bar + pend_bar + lei_bar + '</div>')
+    return banner, moat_stale
+
+
+def _embed_actck(out: str) -> str:
+    """L28五处全埋(架构师裁定一2026-07-25):今日动作表(模板120)/个股卡header chip(模板167)/为什么现在标签(模板190)
+    补埋 data-actck 锚。★用【实际显示的动作字】做锚值(非decisions)——才能抓住某处显示偏离主表。⑥决策表/自检决定摘要已在生成处埋。"""
+    ACTS = "加减守等买观"
+    # ① 今日动作表:区域内每行 chip动作 + 股票td的sym → 埋锚
+    ti = out.find("今日动作表")
+    if ti >= 0:
+        tend = out.find("</table>", ti)
+        if tend > 0:
+            def _row(m):
+                row = m.group(0)
+                if "data-actck" in row:
+                    return row
+                ma = re.search(r'data-l="动作">\s*<span class="chip[^>]*>[^<]*?([' + ACTS + r'])\s*</span>', row)
+                ms = re.search(r'data-l="股票">[^<]*?<span[^>]*>([A-Z]{2}\.[A-Z0-9]+)</span>', row)
+                if ma and ms:
+                    anc = f'<span class="actck" data-actck="{ms.group(1)}|今日动作表|{ma.group(1)}" style="display:none"></span>'
+                    row = row.replace("</tr>", anc + "</tr>", 1)
+                return row
+            seg = re.sub(r"<tr>.*?</tr>", _row, out[ti:tend], flags=re.S)
+            out = out[:ti] + seg + out[tend:]
+    # ②个股卡header chip + ③为什么现在标签:按 id="why-{sym}" 卡逐个·收集后倒序插入(避偏移)
+    anchors = [(mm.start(), mm.group(1)) for mm in re.finditer(r'id="why-([A-Z]{2}\.[A-Z0-9]+)"', out)]
+    inserts = []
+    for i, (pos, sym) in enumerate(anchors):
+        card = out[pos: (anchors[i + 1][0] if i + 1 < len(anchors) else len(out))]
+        add = ""
+        mc = re.search(r'<span class="chip[^>]*>[^<]*?([' + ACTS + r'])\s*</span>', card)
+        if mc:
+            add += f'<span class="actck" data-actck="{sym}|个股卡header|{mc.group(1)}" style="display:none"></span>'
+        mw = re.search(r"为什么现在([" + ACTS + r"])[：:]", card)
+        if mw:
+            add += f'<span class="actck" data-actck="{sym}|为什么现在标签|{mw.group(1)}" style="display:none"></span>'
+        if add:
+            inserts.append((pos, add))
+    for pos, add in sorted(inserts, reverse=True):
+        out = out[:pos] + add + out[pos:]
+    return out
+
+
 def build(date: str) -> str:
     dyn = D.load_dynamic(date)
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
     dec = _rj(ROOT / "data" / "pdca" / f"decisions_{date}.json").get("decisions", {})
+    daily_chain = _rj(ROOT / "data" / "evidence_chain" / f"daily_{date}.json")   # ★决策逻辑链数据源(①-④宏观+links)
+    _brief = _rj(ROOT / "data" / "news" / f"gpt_briefing_{date}.json")            # 当日简报(按层归类)
+    _patch_daily_with_briefing(dyn.get("daily", {}), _brief)                       # ★locked_v5:旧宏观判研卡与七层链合一·同源纠正·消灭两张皮
+    _patch_daily_with_briefing(daily_chain, _brief)                               # 链数据源也同源(冗余保险)
     conc = D._conc_now(date, dyn)
     prod = dyn.get("prod", {})
     # run_id / 生产时间(第5项:每次重排必须签发【新 run_id + 新生产时间】·页头反映本次真实运行·董事长2026-07-19)
     #   底层数据扫描的参照从 production 直接取(稳定·不受本次改写 manifest 影响)。
     data_ref = str(prod.get("run_id") or prod.get("task_id") or str(prod.get("generated_at", ""))[:19] or "待接")
     _now_dt = datetime.now()
-    # [打回二]run_id 的【日期段=data_date(=文件名日)】,只时间段用真实时刻——跨午夜生产也不错位。
-    #   文件名日 = run_id日 = 页头 data_date 三者一致(L50 硬闸)。
-    run_id = f"R3-{date}-{_now_dt.strftime('%H%M%S')}"             # 日期锚定数据日·时间是本次真实运行时刻
+    # S3(董事长2026-07-25·L2同源):run_id 的【时间段】锚定 production.generated_at(与 deep_render 同源·同一次扫描→两册 run_id 时间段一致),
+    #   而非渲染时刻(渲染时刻每次不同→两册永不同源·L2拦不住的根因)。前缀 R3-/R- 是册型标记(三层/机器版)·L2 比对时间段+data_date。
+    from datetime import timezone as _tz, timedelta as _td
+    _JST = _tz(_td(hours=9))
+    _scan_raw = str(prod.get("generated_at") or "")
+    try:
+        # 日期段=data_date(过L50·跨午夜不错位)·时间段=production.generated_at的JST时刻(与deep_render同源)
+        _gt = datetime.fromisoformat(_scan_raw.replace("Z", "+00:00")).astimezone(_JST).strftime("%H%M%S")
+        run_id = f"R3-{date}-{_gt}"
+    except Exception:
+        run_id = f"R3-{date}-{_now_dt.strftime('%H%M%S')}"         # 兜底:production无generated_at时退回渲染时刻
     build._run_id = run_id
     _cross = _now_dt.strftime("%Y%m%d") != date                    # 是否跨午夜(真实时刻不在数据日当天)
     gen = f"{_iso(date)} {_now_dt.strftime('%H:%M:%S')}" + ("（★跨午夜生产·真实时刻 " + _now_dt.strftime("%Y-%m-%d %H:%M") + "·产品归属数据日）" if _cross else "")
@@ -1243,16 +2059,61 @@ def build(date: str) -> str:
             _tbd_map[key]["_r"].add(str(reason)[:120])
             _tbd_map[key]["原因"] += "；" + D.esc(str(reason)[:120])
     for x in (sanity.get("issues") or []):
-        _add_tbd(x.get("name") or x.get("symbol"), x.get("detail"))
+        # ★量级哨兵(异常股)detail含估值比较句/峰值/极贵→不回显·用静默理由(GPT裁定:删语义)
+        if str(x.get("type")) == "量级哨兵":
+            _add_tbd(x.get("name") or x.get("symbol"), "价格/复权口径异常·数据未核准·不计算估值/中枢/倍数/峰值/贵贱·不据此买卖（拆股待核）")
+        else:
+            _add_tbd(x.get("name") or x.get("symbol"), x.get("detail"))
+    # 三+四[根治估值数据源·EDINET已接]：日股财报改接 EDINET(金融厅XBRL·真EPS)·估值待接根治归零·异常股仍退出估值
+    _anom_now = set(_sanity_anomaly(date)) if "_sanity_anomaly" in globals() else {"JP.6857", "US.SNDK"}
+    _edinet = (_rj(ROOT / "data" / "valuation" / f"edinet_financials_{date}.json").get("symbols") or {})
+    _px = {str(h.get("symbol")): h.get("price") for h in prod.get("holdings", [])}
+    _jp_ok, _jp_wait, _us_wait = [], [], []
     for h in prod.get("holdings", []):
-        v = (dyn.get("valr", {}) or {}).get(str(h.get("symbol")), {})
-        if str(v.get("status")) != "OK":
-            _add_tbd(h.get("name"), "权威估值待接·只有架构师非权威估算/框架参考")
+        sym = str(h.get("symbol"))
+        if sym in _anom_now:
+            continue                                   # 异常股保持退出估值·不进此聚合
+        v = (dyn.get("valr", {}) or {}).get(sym, {})
+        if str(v.get("status")) == "OK":
+            continue
+        if sym.startswith("JP."):
+            ed = _edinet.get(sym) or {}
+            eps = ed.get("eps")
+            try:
+                epsf = float(eps) if eps not in (None, "") else None
+            except Exception:
+                epsf = None
+            px = _px.get(sym)
+            if epsf and epsf > 0 and isinstance(px, (int, float)):
+                pe = px / epsf
+                _jp_ok.append(f"{h.get('name') or sym}(EPS¥{epsf:g}·PE{pe:.1f}倍)")
+            elif epsf is not None:
+                _jp_ok.append(f"{h.get('name') or sym}(EPS¥{epsf:g}·亏损或PE不适用)")
+            else:
+                _jp_wait.append(str(h.get("name") or sym))
+        else:
+            _us_wait.append(str(h.get("name") or sym))
+    if _jp_ok:
+        _add_tbd(f"日股估值·已接EDINET（{len(_jp_ok)}只·真财报EPS）",
+                 "、".join(_jp_ok) + " —— 已接日本官方EDINET(金融厅XBRL·FY2026-03有価証券报告书)·真EPS+当前PE(现价÷EPS)。合理区上下沿的PE倍数口径待架构师尺·数据源已不缺。")
+    if _jp_wait:
+        _add_tbd(f"日股估值·EDINET无值（{len(_jp_wait)}只：{'、'.join(_jp_wait)}）", "EDINET已接但该只当期EPS为空(如保险/亏损)·PE不适用·看营收与生意。")
+    if _us_wait:
+        _add_tbd(f"美股估值·输入待接（{len(_us_wait)}只：{'、'.join(_us_wait)}）",
+                 "EDGAR有源但今日估值输入未接齐·只有架构师非权威估算/框架参考·核准前不据此定价。")
     tbd_rows = [{"标的": r["标的"], "原因": r["原因"]} for r in _tbd_map.values()]
     # 每只
     holds = [h for h in prod.get("holdings", []) if not str(h.get("symbol", "")).startswith("CC.")]
     each = [holding_ctx(str(h.get("symbol")), str(h.get("name") or h.get("symbol")), dyn, date, conc, set())
             for h in holds]
+    # L28同源(架构师T2 2026-07-25):个股卡今日动作对齐【唯一决定表 decisions_{date}.json】(单一源)——
+    #   消灭卡的独立覆盖(如no_val→观)与决定表(守)打架;决定表是权威·渲染对齐它·不擅改决定表(治理:决定表先报后改)。
+    for _hc in each:
+        _da = (dec.get(str(_hc.get("代码", "")), {}) or {}).get("action")
+        if _da:
+            _hc["今日动作"] = _da
+            _hc["动作色"] = ACT_COLOR.get(_da, _hc.get("动作色"))
+            _hc["动作图标"] = ACT_ICON.get(_da, _hc.get("动作图标"))
     # 集中度类
     cats = [{"类名": D.esc(k), "当前占比": f"{val.get('pct'):.1f}%", "上限": f"{val.get('limit'):.0f}%",
              "超限": bool(val.get("over"))} for k, val in (conc.get("categories", {}) or {}).items()]
@@ -1285,6 +2146,7 @@ def build(date: str) -> str:
     # 新旧程度(致命1:按每只真实价格交易日算·非交易日如实说)
     global _CUR_DATE
     _CUR_DATE = date
+    _ANOM_DATE_HOLDER["d"] = date
     fresh = _freshness(date, holds)
     if fresh.get("market_closed"):
         pd = fresh["price_date"]
@@ -1293,7 +2155,10 @@ def build(date: str) -> str:
     else:
         px_note = "美股取昨夜收；日股取当日/最近交易日收；各只价格交易日见卡内标注。"
     # 第0节:三层重排版【构建戳】——区别于数据 run_id,每次重排都刷新,让"是不是重新生成过"一眼可辨(诚实:数据仍为原扫描)
-    px_note += (f" ｜ 本次生产 run_id=<b>{run_id}</b>（三层重排版·反映本次真实运行）"
+    # T5(架构师裁定2026-07-25·跨午夜规则):run_id日期段锚 data_date(合规)·但页头须【同时】显真实生成时刻(不许只显run_id日盖过)
+    _gen_real = _now_dt.strftime("%Y-%m-%d %H:%M:%S")
+    px_note += (f" ｜ 本次生产 run_id=<b>{run_id}</b>（三层重排版·run_id日期段=数据日 {_iso(date)}·跨午夜沿用当日）"
+                f" ｜ <b>真实生成时刻 {_gen_real}</b>（本文件实际跑出来的钟点·可能跨午夜到次日·与run_id日期分开显）"
                 f"；底层数据扫描={data_ref}（价=最近交易日·重排版≠重扫数据）")
     # [致命1]唯一正式决定表:总数统计【程序从动作表(each)统计得出】·不手写·三层同源(L51 校验一致)
     _act = {}
@@ -1336,6 +2201,7 @@ def build(date: str) -> str:
             '<b style="color:#7ee0a0">决定摘要（与①②同一份数据·11核心字段·逐字同源）</b>：'
             f'现价 {hc.get("现价","")}'
             f'｜股数 {hc.get("股数","")}｜今日动作 <b>{hc.get("今日动作","")}</b>'
+            f'<span class="actck" data-actck="{D.esc(str(hc.get("代码","")))}|自检决定摘要|{D.esc(str(hc.get("今日动作","")))}" style="display:none"></span>'
             f'｜今日价值区 {hc.get("价值区下沿","")}~{hc.get("价值区上沿","")}｜未来目标 {hc.get("目标价","")}'
             f'｜第一档 {hc.get("第一档价","")}｜第二档 {hc.get("第二档价","")}｜建议金额 {hc.get("建议金额","")}'
             f'｜推动股价的事 {_st("催化剂")}'
@@ -1343,6 +2209,8 @@ def build(date: str) -> str:
             f'｜拍板状态 {hc.get("三态文字","系统建议·尚未执行")}</div>'
             # [五·C]加仓闸逐项实测(逐只都显示·不只加-候选)
             + _stab_calc_of(hc.get("代码"), dyn, date)
+            # 四[看板5]：每只真K线图(60日收盘+MA·消'画法待接')
+            + _kline_svg(str(hc.get("代码")), str(hc.get("名") or hc.get("代码")))
             # [E1]四只估值底稿(架构师补正·照文渲染) + [E2/E3]减仓候选六行+计数器
             + _arch_val_block(hc.get("代码"))
             + _reduce_rule_block(hc.get("代码"), dyn))
@@ -1354,13 +2222,27 @@ def build(date: str) -> str:
     # [七.2]每只 L3 卡顶注入决定摘要(在 id="deep-SYM" 开头)
     for _sym, _summ in _summ_map.items():
         out = out.replace(f'id="deep-{_sym}">', f'id="deep-{_sym}">{_summ}', 1)
+    # ★决策逻辑链(董事长认大方向)——注入产品最顶部(页头后·L1前)·自上而下一条链·决策是终点
+    # L28同源:⑥决策表动作与个股卡今日动作同一源(消灭动作打架)——从 each(holding_ctx结果)建 sym→今日动作 映射
+    _act_map = {str(hc.get("代码")): str(hc.get("今日动作", "")) for hc in each if hc.get("代码")}
+    _chain_html = _decision_chain(date, dyn, daily_chain, dec, _act_map)
+    # ★稳定性状态条(董事长2026-07-25·drive/futu变更):护城河重评/非OpenD待确认/老雷待导出·产品实物可见
+    _stab_html, _moat_stale = _stability_banners(date)
+    build._moat_stale = _moat_stale          # 供 main 出厂闸:超期未重评→FAIL不出品
+    out = re.sub(r'(<details class="layer" id="L1")', lambda m: _stab_html + _chain_html + m.group(1), out, count=1)
+    # ★locked_v5:PDCA/差分等读 pdca_review 旧数据·残留旧战略判断"AI(今日无重大新闻·维持基线)"→就地包纠正标注,
+    #   与七层链②同口径(活判归0·PDCA原记录保留供打分·非删)·消灭最后的两张皮残余。
+    out = out.replace("AI(今日无重大新闻·维持基线)",
+                      "AI【机器原判『今日无重大新闻·维持基线』·已按当日简报按层纠正为②国家战略=保护主义/60国关税·见顶部决策逻辑链】")
+    # (F0/F2·董事长2026-07-25:已撤销板块/油价的人工字符串替换——禁止用replace把两边对齐;
+    #  板块方向由 latest_market_snapshot 真数据经 rule_sector 重算·历史previous由管线继承·不事后改写)
     # [P0]目标—缺口 模块 + 风险配仓四规矩模块 放第一层最顶部(①离目标还差多少·董事长第一眼看到)
     out = re.sub(r'(<details class="layer" id="L1"[^>]*>\s*<summary>[^<]*</summary>\s*<div class="body">)',
-                 lambda m: m.group(1) + _target_gap_block() + _risk_config_block() + _glossary_block(), out, count=1)
+                 lambda m: m.group(1) + _target_gap_block() + _risk_config_block() + _external_sector_risk_block() + _glossary_block(), out, count=1)
     # [P1]每只四字段(角色/意图/贡献pp/凭什么) + [P2]双档并列(加/减候选)→注入每只 why 卡开头
     for _sym in [hc.get("代码") for hc in each if hc.get("代码")]:
         out = out.replace(f'id="why-{_sym}">',
-                          f'id="why-{_sym}">{_target_role_block(_sym)}{_neutral_basis_line(_sym)}{_scenario_block(_sym)}{_dual_track_block(_sym)}', 1)
+                          f'id="why-{_sym}">{_anomaly_gate_block(_sym)}{_target_role_block(_sym)}{_neutral_basis_line(_sym)}{_scenario_block(_sym)}{_dual_track_block(_sym)}{_external_material_block(_sym)}', 1)
     # [L49·致命6]术语大白话:数字后的裸 pp/bp 就地补人话(必须在所有注入之后·否则漏掉双档/四字段里的pp)
     out = re.sub(r"(\d(?:\.\d+)?)\s*pp(?![A-Za-z])", r"\1个百分点", out)   # pp后可能是中文·不用\b
     out = re.sub(r"(\d+)\s*bp(?![A-Za-z])", r"\1个基点(bp)", out)
@@ -1416,31 +2298,36 @@ def build(date: str) -> str:
     # 兜底:清残留的空参调用 xxx() 与仍加号连接的小写代码(L46 焊死后不应再出现·此处再保险)
     out = re.sub(r"\b[a-z_]{2,}\(\)", "", out)
     out = re.sub(r"\b[a-z][a-z_]*(?:\+[a-z_]+){1,}\b", "（估值口径·详见⑥估值模型）", out)
-    # 图6/9/10/11 在结论前补"画法待接"标注(不留假数)
+    # 一[看板·图表收尾]：图6/9/10/11 用已有数据改【明确文字/指向版】·删"画法待接"空壳(K线图20/20另在各卡)
+    _chart_note = {
+        "6": "同业倍数横比：各持仓 PE 已在⑥决策/L3估值区真算(美股EDGAR·日股EDINET)·同业peer PE库未接→此处不画虚线柱，PE对比以⑥表为准。",
+        "9": "决策链图：已由顶部【决策逻辑链·7层①-⑦】完整替代(每只可追源①-⑤)·文字因果链完整·此处不另画框图。",
+        "10": "照做vs不动：见复盘⑦影子组合反事实记分(文字·多尺度轨迹)·曲线库未接→以文字结论为准。",
+        "11": "SBI进攻仓：目标/缺口见顶部『目标—缺口』模块(真数字·40%/100%双档)·柱状库未接→以数字为准。",
+    }
     for n in ("6", "9", "10", "11"):
-        out = out.replace(f'data-chart="{n}">', f'data-chart="{n}"><div style="font-size:11px;color:#A9761A">（本图画法待接·结论/数据已填真值或标待接）</div>', 1)
+        out = out.replace(f'data-chart="{n}">', f'data-chart="{n}"><div style="font-size:11px;color:#8fb8a4">（{_chart_note[n]}）</div>', 1)
     # 公开【已知未完成清单·带数量】(L45·八.4:不只列图名·须给完成/待接数量)
     n_svg = out.count("<svg") + out.count("<canvas")
     n_tbd_all = out.count("待接·不编") + out.count("待接·未查证")
     undone_rows = [
-        ("数据待接（全文）", f"约 {n_tbd_all} 处标『待接·不编/未查证』——含催化剂库待接8只、6只权威估值待接真源等，均如实标不编造"),
-        ("每只加仓闸·最低价发生日期", "缺 20 / 20 只（仅有20日最低价单值·无逐日轨迹→最低价日期无法定位）"),
-        ("每只加仓闸·最近一次创新低日期", "缺 20 / 20 只（同上·缺逐日价格序列）"),
-        ("每日价格逐日明细", "未入产品（OpenD K_DAY 日线序列未落盘·计数器/新低日均待它）"),
+        ("图6 同业倍数横比", "改文字版：各持仓PE已在⑥决策真算(EDGAR/EDINET)·同业peer PE库未接·不画虚线柱"),
+        ("图9 决策链图", "已由顶部【决策逻辑链7层①-⑦】替代·每只可追源·文字因果链完整"),
+        ("图10 照做vs不动", "见复盘⑦影子组合反事实记分(文字版·多尺度轨迹)"),
+        ("图11 SBI进攻仓", "见顶部『目标—缺口』(真数字·40%/100%双档)"),
+        ("★价格K线图(60日·MA20/50)", "完成 20 / 20 只（真OpenD 日线QFQ数据·SVG真画·见各卡『价格走势图』）"),
+        ("数据待接（全文）", f"约 {n_tbd_all} 处标『待接·不编/未查证』——催化剂已接催化剂库(现5条:TSM/软银/COIN/MSTR等·其余库未收录)；权威估值真算【卡在数据】：SEC官方财报(edgar)今日返回了标签/编号/链接、但每股收益数值全为空→PE/DCF 算不出·是数据缺口非未做；其余均如实标不编造"),
+        ("每只加仓闸·最低价/创新低日期", "逐日60日序列已落盘可定位(真K线已画·见各卡价格走势图)"),
         ("爱德万/闪迪 异常价专项核准", "未完成 2 / 2（缺交易所公告/拆股前后价与股数/两独立行情源→统一观察·不据此买卖）"),
-        ("图形绘制(SVG/柱状/曲线)", f"完成 0 / 共约 105 张图位——真图形{n_svg}张·均为『文字+一句结论』版"),
-        ("图6 同业倍数横比", "完成 0 / 共 20 张（画法待接）"),
-        ("图9 决策链图", "完成 0 / 共 20 张（画法待接·文字链已在③第11项）"),
-        ("图10 照做vs不动 曲线", "完成 0 / 共 1 张（只有文字·曲线待接）"),
-        ("图11 SBI进攻仓 柱状", "完成 0 / 共 1 张（只有数字·柱状待接）"),
         ("第七章 17项交付物", "完成 0 / 缺 17 项（迁移对账表已在content_manifest·其余截图说明等未做）"),
     ]
     lis = "".join(f'<li><b>{a}</b>：{b}</li>' for a, b in undone_rows)
-    undone = ('<div style="background:#2a2412;border:1px solid #A9761A;border-radius:8px;padding:10px 14px;margin:10px 0">'
-              '<div style="font-weight:800;color:#E0B24A">📋 已知未完成清单（公开·带数量·不藏）</div>'
-              f'<ul style="margin:5px 0 0;padding-left:20px;font-size:13px;color:#d8c89a">{lis}</ul>'
+    # [P3-①·董事长2026-07-20]待接/未完成清单默认【收起】——用 <details> 不带 open·点开才展开·省版面·内容全在DOM(L45照读)
+    undone = (f'<details style="background:#2a2412;border:1px solid #A9761A;border-radius:8px;padding:10px 14px;margin:10px 0">'
+              f'<summary style="font-weight:800;color:#E0B24A;cursor:pointer;list-style:none">📋 已知未完成清单（点开·默认收起）</summary>'
+              f'<ul style="margin:8px 0 0;padding-left:20px;font-size:13px;color:#d8c89a">{lis}</ul>'
               '<div style="font-size:11.5px;color:#a89968;margin-top:4px">图形均为文字+结论版（诚实标未完成·不用假图补位）；'
-              '其余逐项数据缺口在各卡内就地标「待接·不编」。</div></div>')
+              '其余逐项数据缺口在各卡内就地标「待接·不编」。</div></details>')
     out = out.replace('<details class="layer" id="L1"', undone + '<details class="layer" id="L1"', 1)
     # [收口·治本]:root 金色变量改深棕/白底 + .p-wait 待拍板徽章改实心(董事长2026-07-19【1】)
     out = out.replace("--L1-txt:#8A6100", "--L1-txt:#5C4033").replace("--L1-bg:#FDF6E3", "--L1-bg:#FFFFFF")
@@ -1484,6 +2371,9 @@ def build(date: str) -> str:
     out = re.sub(r"\[PD-AI供应链-超上限\][^<。]*?超\s*45[.\d]*%[^<。]*",
                  "[风险配仓] AI供应链占 65.9%·45%硬上限已废止(董事长2026-07-19)·改四条规矩·见顶部风险配仓模块", out)
     out = _light_theme(out)
+    out = _finalize_product(out, each, dyn, date, conc)   # 出品前统一口径(治L36/L49/L31/L23·根治)
+    out = _embed_actck(out)   # L28五处全埋(架构师裁定一2026-07-25):今日动作表/个股卡header/为什么现在标签补埋data-actck锚
+    # GPT裁定:停用全文字符串替换(追不全衍生文本+误伤正常股)——异常股改由数据源/决策链短路+卡片作用域scrub
     return out
 
 
@@ -1493,8 +2383,8 @@ def _top_risks(dyn, date):
          "应对": "按现金建议减仓表·先减最贵的降集中"},
         {"风险名": "台海地缘/先进制程", "说明": "台积电/爱德万等重仓押先进制程·地缘尾部风险",
          "应对": "守核心·不追高·留安全垫；证伪信号见各卡③第16项"},
-        {"风险名": "半导体周期高位", "说明": "闪迪/爱德万等处景气高点·峰值定价",
-         "应对": "守·不追高·不因中周期极贵就自动减(峰值可能续)"},
+        {"风险名": "半导体周期高位", "说明": "台积电/英伟达等处景气高点·峰值定价（价口径正常的半导体重仓；闪迪/爱德万因价异常·不参与高位/峰值定价类判断）",
+         "应对": "守·不追高·不因周期高位就自动减(峰值可能续)"},
     ]
 
 
@@ -1590,6 +2480,10 @@ def main() -> int:
     html = build(a.date)
     dd = f"{a.date[:4]}-{a.date[4:6]}-{a.date[6:]}"
     fname = f"★每日产品_{dd}.html"
+    # ★护城河16天重评硬闸(董事长2026-07-25):as_of>16天未重评→FAIL不出品(旧版不被覆盖)
+    if getattr(build, "_moat_stale", False):
+        print("[三层·出厂核 FAIL·不出品] 护城河超期未重评(as_of>16天)——先跑护城河重评脚本再出厂·旧版未被覆盖")
+        return 5
     # 出厂硬闸①：任何 {{ }} 残留 → 不出品·不覆盖旧版
     left = re.findall(r"\{\{[^}]+\}\}", html)
     if left:
@@ -1604,7 +2498,9 @@ def main() -> int:
         return 5
     # 三层版结构不同于机器版：跳过机器版专属结构规则(L2同源页头/L19机器卡格式/L28 actck锚/L29八层闭环)，
     #   保留全部内容安全规则(L1乱码/L3转义/L4内部话泄露/L20低置信警示/L31集中度一致/L34同股多股数/L35口径矛盾)。
-    _SKIP = ("L2 ", "L2b", "L19", "L28", "L29")
+    # L28(同股一个答案)不再SKIP(架构师T2裁定2026-07-25:三层版=每日产品=董事长真看的册·必须查动作打架);
+    #   三层已在⑥决策表/自检决定摘要埋 data-actck 锚·动作同源自 act_map。L2跨册/L19机器卡格式/L29八层闭环仍机器版专属。
+    _SKIP = ("L2 ", "L2b", "L19", "L29")
     fails = [f for f in allf if not f.startswith(_SKIP)]
     if fails:
         print(f"[三层·出厂核 FAIL·不出品] {len(fails)} 条——旧版未被覆盖：")

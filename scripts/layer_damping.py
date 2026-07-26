@@ -91,8 +91,8 @@ def damp(layer: str, raw_state: str, readings: list, date: str, threshold: float
     rd = "、".join(f'{r.get("name")} {r.get("value"):+.2f}' for r in readings
                    if isinstance(r.get("value"), (int, float)))
     return {"state": prev, "flipped": False, "prev": prev, "damped": True, "raw_state": raw_state,
-            "why": (f"今天的数（{rd}）按老规矩会翻成「{raw_state}」，但<b>只动了这一天、也没超两倍阈值</b>"
-                    f"→ 按阻尼规矩<b>先不翻</b>，维持「{prev}」。"
+            "why": (f"今天的数（{rd}）按老规矩会翻成「{raw_state}」，但只动了这一天、也没超两倍阈值"
+                    f"→ 按阻尼规矩先不翻，维持「{prev}」。"
                     f"要么明天还这样、要么动静再大一倍，才算数——治的就是天天变卦。"),
             "readings": readings, "hist": hist, "rule": "未达连续2日/未超2倍→压住"}
 

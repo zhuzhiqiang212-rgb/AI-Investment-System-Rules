@@ -485,13 +485,39 @@ def _price_asof_note(date: str) -> str:
             + '。<b>美股为最近美股交易日的盘前/收盘价</b>——JST 晚间美股尚未开盘（22:30 开），次日实时价以当日 OpenD 扫描为准；'
             '日股/港股/A股同理按各自市场时点标注。每只现价旁均有［市场·日期时点］标签，缺则标待接不编。</div>')
 
+_ANOM_SYMS_CACHE: dict = {}
+_CUR_ANOM: set = set()
+
+
+def _anom_syms(date: str) -> set:
+    """拆股/复权口径异常股(data_sanity 量级哨兵·现价vs中枢>5倍)。三层与机器版共用此判据。"""
+    if date not in _ANOM_SYMS_CACHE:
+        out = set()
+        try:
+            sg = json.loads((ROOT / "data" / "reports" / f"data_sanity_{date}.json").read_text(encoding="utf-8"))
+            for x in (sg.get("issues") or []):
+                if str(x.get("type")) == "量级哨兵":
+                    m = re.search(r"约\s*(\d+(?:\.\d+)?)\s*倍", str(x.get("detail", "")))
+                    if m and float(m.group(1)) > 5:
+                        out.add(str(x.get("symbol")))
+        except Exception:
+            pass
+        _ANOM_SYMS_CACHE[date] = out
+    return _ANOM_SYMS_CACHE[date]
+
+
 def load_dynamic(date: str) -> dict:
+    global _CUR_ANOM
     prod = rj(ROOT / "data" / "reports" / f"production_{date}.json")
     daily = rj(ROOT / "data" / "evidence_chain" / f"daily_{date}.json")
     ma = {x["symbol"]: x for x in (rj(ROOT / "data" / "holdings" / f"ma_levels_{date}.json").get("holdings") or [])}
     ht = {h["symbol"]: h for h in (rj(ROOT / "data" / "accounts" / f"holdings_true_{date}.json").get("holdings") or [])}
     # 估值单一源(valuation_results·分类型精算·R1 final.valuation 只从这里取)
     valr = {r["symbol"]: r for r in (rj(ROOT / "data" / "valuation" / f"valuation_results_{date}.json").get("results") or []) if r.get("symbol")}
+    # ★估值入口short-circuit(GPT裁定·数据级·两渲染器共用):异常股valr置空→build_final/_val_axis/机构块等所有下游不进任何估值分支
+    _CUR_ANOM = _anom_syms(date)
+    for s in _CUR_ANOM:
+        valr.pop(s, None)
     return {"prod": prod, "daily": daily, "ma": ma, "ht": ht, "valr": valr, "date": date}
 
 
@@ -527,6 +553,131 @@ def _scrub_valuation_stance(s: str) -> str:
     s = re.sub(r'(比|较)[^，。；、]{0,24}?(贵|便宜)(一大截|一截)?', '\\1（估值见决策条）', s)   # 比"净币值"贵一大截
     s = s.replace("便宜有便宜的道理", "（估值见决策条）")
     return s
+
+_DEEP_VAL_SCRUB = re.compile(
+    r"[^。；！？·｜、\n<>（）()]*"
+    r"(?:峰值定价|按峰值|持续峰值|峰值盈利|峰值PE|勿按峰值|留峰值|安全垫|正常化\s?EPS|正常年景|正常化每股盈利"
+    r"|正常化中期|中期正常化|敏感性|共识目标|近共识|再评级|EPS朝|EPS回|下修|参考值|合理区|合理上沿|合理下沿|中期PE|中周期PE|中期市盈率|正常化PE"
+    r"|极贵|景气高点|穿牛熊|公允|中周期|合理值|中枢[¥$\d]|\d+\.?\d*\s?倍|中期\[待核\]|\[参考值待核\]|\[中值待核\]|\[倍数待核\]|峰值\[口径待核\]"
+    r"|远在其下|盈利崩|不追高|追高|明显便宜|等它跌|算高|离谱|高点|低点|\d+\s?%概率)"
+    r"[^。；！？·｜、\n<>（）()]*")
+
+
+def _global_anom_scrub_deep(html):
+    """全文近异常股(爱德万/闪迪±80字)含估值语义整句删(堵卡外:量级哨兵verdict/板块脚注)。"""
+    def near(pos):
+        w = re.sub(r"<[^>]+>", " ", html[max(0, pos - 80):pos + 80])
+        return "爱德万" in w or "闪迪" in w
+    o, last = [], 0
+    for m in _DEEP_VAL_SCRUB.finditer(html):
+        if near(m.start()):
+            o.append(html[last:m.start()]); o.append("[异常价·数据未核准·不计估值]"); last = m.end()
+    o.append(html[last:])
+    return "".join(o)
+_DEEP_NUKE = [(r"\d+\.?\d*\s?倍", "[倍数待核]"), ("峰值定价", "峰值[口径待核]"), ("景气高点", "[异常待核]"),
+              ("穿牛熊", "[异常待核]"), ("极贵", "[异常待核]"), ("合理上沿", "[异常待核]"),
+              ("合理值", "[参考值待核]"), ("公允", "[参考值待核]"), ("中周期", "中期[待核]"), ("中枢", "[中值待核]")]
+
+
+def _finalize_deep(html: str, date: str) -> str:
+    """出品前统一口径(治L9/L31/L13·根治·同 render_3layer._finalize_product)。
+    逐 id="stock-SYM" 卡把现价归一到实时production px;异常股(拆股口径异常)退出估值token;AI集中度单值;括号。"""
+    try:
+        prod = json.loads((ROOT / "data" / "reports" / f"production_{date}.json").read_text(encoding="utf-8"))
+    except Exception:
+        return html
+    holds = prod.get("holdings", [])
+    anom = set()
+    try:
+        sg = json.loads((ROOT / "data" / "reports" / f"data_sanity_{date}.json").read_text(encoding="utf-8"))
+        for x in (sg.get("issues") or []):
+            if str(x.get("type")) == "量级哨兵":
+                m = re.search(r"约\s*(\d+(?:\.\d+)?)\s*倍", str(x.get("detail", "")))
+                if m and float(m.group(1)) > 5:
+                    anom.add(str(x.get("symbol")))
+    except Exception:
+        pass
+
+    # ★非交易日(周末)诚实化:『当日实时价』肯定断言→『最近交易日收盘价』(治L40·与 render_3layer._sanitize_inst 同口径·不冒充周末有盘中实时)
+    import datetime as _dt
+    try:
+        _wknd = _dt.date(int(date[:4]), int(date[4:6]), int(date[6:8])).weekday() >= 5
+    except Exception:
+        _wknd = False
+    if _wknd:
+        html = re.sub(r"(?<!非)当日实时价", "最近交易日收盘价", html)
+        html = html.replace("今日 OpenD 实时价", "最近交易日 OpenD 收盘价").replace("今天 OpenD 拉的实时", "最近交易日 OpenD 收盘的")
+
+    def _nextpos(h, s):
+        m = re.search(r'id="stock-[A-Z]{2}\.[A-Z0-9]+"', h[s:])
+        return s + m.start() if m else len(h)
+
+    for hh in holds:
+        sym = hh.get("symbol")
+        px = hh.get("price")
+        if px is None:
+            continue
+        c = "$" if sym.startswith("US.") else ("¥" if sym.startswith(("JP.", "CN.")) else "")
+        if not c:
+            continue
+        canon = f"{c}{px:,.2f}"
+        i = html.find(f'id="stock-{sym}"')
+        if i < 0:
+            continue
+        j = _nextpos(html, i + 12)
+        seg = html[i:j]
+        seg = re.sub(r"(现价约?)\s*" + re.escape(c) + r"[\d,]+(?:\.\d+)?", lambda m: m.group(1) + canon, seg)
+        html = html[:i] + seg + html[j:]   # GPT裁定:停用卡内scrub/C2字符串替换·异常股改由source-null(块⑤⑥/valr/arch_est/_deep16=None)
+    # AI集中度单值(治L31):从 production 现算·替换所有旧硬编码取值(65.x)与并存值
+    tot = sum(float(h.get("market_value") or 0) for h in holds)
+    aiv = sum(float(h.get("market_value") or 0) for h in holds
+              if (set(h.get("matched_node_classes_raw") or []) & {"算力", "半导体设备", "代工"})
+              or h.get("symbol") in ("US.MSFT", "US.META", "US.SNDK"))
+    if tot:
+        aip = f"{aiv / tot * 100:.1f}%"
+        for stale in ("65.9%", "65.6%", "65.8%", "66.7%", "66.0%"):
+            html = html.replace(stale, aip)
+    # 括号(治L13)
+    for a, b in (("（forward P/E）", "(forward P/E)"), ("（forward EPS）", "(forward EPS)"), ("（第一关过）", "(第一关过)")):
+        html = html.replace(a, b)
+    # 内部字段名→人话 + 残余snake清(治L46·避开HTML属性名)
+    _FIELD_ZH = {"adj_operating_margin": "调整后经营利润率", "ai_target_2026": "2026年AI目标",
+                 "architect_normalized_est_2026": "架构师2026正常化估算", "archived_fair_price": "存档合理价",
+                 "as_of": "截至", "operating_margin": "经营利润率", "forward_pe": "前瞻市盈率",
+                 "free_cash_flow": "自由现金流", "net_income": "净利润", "gross_margin": "毛利率",
+                 "revenue_growth": "营收增速", "book_value": "每股净资产", "dividend_yield": "股息率",
+                 "billings_growth": "开票增速", "backlog_total": "在手订单总额", "data_center": "数据中心",
+                 "fair_price": "合理价", "normalized_est": "正常化估算", "reasonable_low": "合理下沿",
+                 "reasonable_high": "合理上沿位", "moat_analysis": "护城河分析", "moat_grade": "护城河等级",
+                 "one_line_reason": "一句话理由", "matched_node_classes": "命中节点类", "quality_gate": "质量关",
+                 "hard_filter": "硬门槛", "soft_filter": "软门槛", "total_score": "总分", "market_value": "市值"}
+    for k, v in sorted(_FIELD_ZH.items(), key=lambda kv: -len(kv[0])):     # 长键先译·防子串误伤
+        html = html.replace(k, v)
+    # 残余snake泄漏清(治L46)·排除页头技术戳 data_date/run_id(白名单)·避开HTML属性名(=后带引号)
+    html = re.sub(r"(?<![\w\"'=-])(?!data_date\b|run_id\b)[a-z]{2,}(?:_[a-z0-9]+)+\b(?!\s*=\s*[\"'])", "", html)
+    # L41: 补『价格对应交易日』独立字段(与生产日分列;07-23交易日→价格日=生产日不违规)
+    if "价格对应交易日" not in html:
+        dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
+        field = (f'<div class="meta" style="font-size:12px;color:#7a8a99;margin:4px 0">价格对应交易日 {dd}'
+                 '（各只现价的行情交易日；与产品生产日分列显示，非交易日则标最近交易日收盘）</div>')
+        if "<body" in html:
+            html = re.sub(r"(<body[^>]*>)", lambda m: m.group(1) + field, html, count=1)
+        else:
+            html = field + html
+    # 湖水一致性(退回5):今日湖水未提供→旧湖水原话标『历史底稿·不参与今日判断』
+    try:
+        ext = json.loads((ROOT / "data" / "external" / f"external_material_{date}.json").read_text(encoding="utf-8"))
+        if (ext.get("hushui") or {}).get("status") != "已提供":
+            html = re.sub(r"湖水\s*原话(</[^>]+>)?\s*（(\d{4}-\d{2}-\d{2})）",
+                          lambda m: f"湖水【历史底稿·{m.group(2)}·今日未更新·不参与今日判断】原话{m.group(1) or ''}（{m.group(2)}）", html)
+    except Exception:
+        pass
+    # 窄替换(非全文scrub):板块/世界观叙述里异常股的价格派生统计"爱德万/闪迪 −N%(自高点)"→口径未核准·不计(保正常股如东京电子−21%)
+    html = re.sub(r"(爱德万|闪迪)\s*[−\-]\s?\d+\.?\d*\s?%", r"\1（价格口径未核准·不计）", html)
+    # GPT裁定:停用全文字符串替换——异常股改由数据源/决策链短路+卡片作用域scrub
+    # (F0/F2·董事长2026-07-25:已撤销板块/油价的人工字符串替换——板块由真数据经规则重算·历史不事后改写)
+    return html
+
 
 def _audit_financials(data: str, sym: str) -> str:
     """R8 财务数字口径审计：标注疑量级/单位错(缺真源不硬改·待核)。日本大盘股年营收多为万亿级，
@@ -619,6 +770,8 @@ def _load_deep_card(sym: str, dyn: dict | None = None):
         d = rj(p)
     except Exception:
         return None
+    if sym in ("JP.6857", "US.SNDK"):     # ★异常股:源头sanitize叙述估值(机器版build_final走此loader·非_deep_card)→下游读到待核
+        d = _sanitize_anom_deep(d)
     if dyn is not None:
         # 甲2：整卡一次性同步现价(所有块·含②⑤⑥⑨与source_note)→全卡现价唯一
         try:
@@ -798,6 +951,8 @@ _ARCH_CACHE: dict = {}
 
 
 def _arch_est(sym: str) -> dict | None:
+    if sym in _CUR_ANOM:        # ★异常股无架构师估算(短路·不emit ¥2,250~¥3,750/中枢¥3,000)
+        return None
     if "d" not in _ARCH_CACHE:
         try:
             p = sorted((ROOT / "data" / "valuation").glob("architect_normalized_est_*.json"))[-1]
@@ -820,9 +975,29 @@ def _rel_grade(rel: str) -> tuple:
 _DEEPCARD_CACHE: dict = {}
 
 
+_ANOM_VAL_PHRASE = re.compile(
+    r"倍|峰值|正常化|EPS|市盈率|中周期|中枢|参考值|合理[区值上下]|敏感性|情景|概率|算高|离谱|远在其下"
+    r"|盈利崩|目标价|按明年|前瞻P|再评级|近共识|下修|极贵|公允|贵|便宜|好[：:]|坏[：:]")
+_ANOM_DEEP_WAIT = ("当前价格/复权口径待核·不用当前价格算估值贵贱/市盈率；未来目标价与三档情景已按未来盈利与合理PE前瞻另给·见图1目标与图2情景·亦入预测登记20260725·不依赖当前价格；只看财报/订单/库存/周期。")
+
+
+def _sanitize_anom_deep(obj):
+    """★异常股deep叙述源头sanitize(GPT裁定·数据层非后处理):含估值短语的str值→整值替待核句·保结构化财报事实(无估值短语的数值/字段不动)。"""
+    if isinstance(obj, str):
+        return _ANOM_DEEP_WAIT if _ANOM_VAL_PHRASE.search(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_anom_deep(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_anom_deep(v) for v in obj]
+    return obj
+
+
 def _deep_card(sym: str) -> dict:
     if sym not in _DEEPCARD_CACHE:
-        _DEEPCARD_CACHE[sym] = rj(ROOT / "data" / "analysis" / "deep_cards" / f"{sym}.json")
+        d = rj(ROOT / "data" / "analysis" / "deep_cards" / f"{sym}.json")
+        if sym in ("JP.6857", "US.SNDK") or sym in _CUR_ANOM:  # 异常股(硬编码稳定集·不依赖加载序):源头sanitize叙述估值→下游读到待核
+            d = _sanitize_anom_deep(d)
+        _DEEPCARD_CACHE[sym] = d
     return _DEEPCARD_CACHE[sym] or {}
 
 
@@ -1177,6 +1352,8 @@ def _val_sensitivity(sym: str):
     成长股(growth_dcf)：增长±10pp、折现±2pp(复用two_stage_dcf)。
     周期股(mid_cycle)：正常盈利±10%、中周期PE±2(中枢=正常EPS×中周期PE)。
     缺真输入/不支持→None。"""
+    if sym in _CUR_ANOM:        # ★异常股不算敏感性(短路)
+        return None
     try:
         vi = rj(ROOT / "data" / "valuation" / "val_inputs.json").get("holdings", {}).get(sym, {})
         cur_sym = cur(sym)
@@ -1344,22 +1521,33 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
         _axis = _arch_axis   # 有架构师值→直接画它，不再挂"这只算不出该值多少钱"的原因块
     else:
         _axis = _val_wait_reason(sym, dyn)
-    out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
-               + _valfw_line(sym)
-               + _axis
-               + f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
-               '<table class="dt"><tr><th>要填的输入</th><th>大白话</th></tr>' + inrows + '</table>' + inval
-               + f'<p style="font-size:13px"><span class="k">③ 今日价值区（今日该值）</span>{rng}'
-               + (f'<span style="color:#8ea3b6">（{esc(HORIZON_NOTE)}）</span>' if low is not None else '')
-               + f'{_nd(v5.get("note",""))}</p>'
-               + _future_target_line(sym, dyn)
-               + senstbl)
+    if sym in _CUR_ANOM:     # ★异常股估值模块整体短路(GPT裁定·删语义非换格式):不算价值区/中枢/倍数/正常化EPS/PE/敏感性/情景/贵贱
+        out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
+                   '<div class="plain">用哪把尺：异常价·估值尺不适用（数据未核准）</div>'
+                   '<div class="plain" style="color:#c0392b"><b>数据未核准·不计算</b>（价格/复权口径异常·拆股待核）：'
+                   '核准前不出任何估值口径（不计区间/中值/倍数/贵贱/情景）。'
+                   '现价仅作市场事实展示（异常价·口径未核准），不据此买卖；守＝暂停判断，非由估值推导。</div>')
+    else:
+        out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
+                   + _valfw_line(sym)
+                   + _axis
+                   + f'<div class="plain"><b>怎么算</b>：{_nd(v5.get("method_plain",""))}</div>'
+                   '<table class="dt"><tr><th>要填的输入</th><th>大白话</th></tr>' + inrows + '</table>' + inval
+                   + f'<p style="font-size:13px"><span class="k">③ 今日价值区（今日该值）</span>{rng}'
+                   + (f'<span style="color:#8ea3b6">（{esc(HORIZON_NOTE)}）</span>' if low is not None else '')
+                   + f'{_nd(v5.get("note",""))}</p>'
+                   + _future_target_line(sym, dyn)
+                   + senstbl)
     # ⑥ 牛/基/熊三情景
     sc = deep.get("block6_scenarios", {})
     scrows = "".join(f'<tr><td class="{r.get("cls","base")}">{_nd(r.get("case",""))}</td><td>{_nd(r.get("assume",""))}</td><td>{_nd(r.get("value",""))}</td><td>{_nd(r.get("prob",""))}</td></tr>' for r in sc.get("rows", []))
-    out.append('<div class="blk">⑥ 好、中、坏三种情况分别值多少</div>'
-               '<table class="dt"><tr><th>情况</th><th>假设(人话)</th><th>值多少</th><th>大概几成可能</th></tr>' + scrows + '</table>'
-               f'<p style="font-size:13px"><span class="k">这告诉你</span>{_nd(sc.get("readout",""))}</p>')
+    if sym in _CUR_ANOM:     # 异常股情景价短路(好中坏均由估值推导)
+        out.append('<div class="blk">⑥ 好、中、坏三种情况分别值多少</div>'
+                   '<div class="plain" style="color:#c0392b">数据未核准·不计算情景价（价格/复权口径异常·拆股待核）。</div>')
+    else:
+        out.append('<div class="blk">⑥ 好、中、坏三种情况分别值多少</div>'
+                   '<table class="dt"><tr><th>情况</th><th>假设(人话)</th><th>值多少</th><th>大概几成可能</th></tr>' + scrows + '</table>'
+                   f'<p style="font-size:13px"><span class="k">这告诉你</span>{_nd(sc.get("readout",""))}</p>')
     # ⑦ 催化剂日历（甲6：当日已出报的那条不许再当"未来要盯的"）
     _d = dyn.get("date", "")
     _today_iso = f"{_d[:4]}-{_d[4:6]}-{_d[6:]}" if len(_d) == 8 else ""
@@ -1403,8 +1591,8 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
 # ══ 件一：每只卡收尾「今天你怎么办」四行人话(结论/为什么/什么价该动/什么信号变卦) ══
 # 估值算不出的原因(人话·不甩字段名)
 _NOVAL_WHY = {
-    "JP.6857": "这只是做芯片测试机的，生意大起大落（现在毛利64%是行情最好的时候），拿眼下的好光景去算它值多少钱，一定算高",
-    "US.SNDK": "这只做存储芯片，行业价格暴涨暴跌（毛利4个季度从22%冲到78%），拿现在的高点算价一定离谱",
+    "JP.6857": "这只是做芯片测试机的，生意大起大落；价格与复权口径未核准，核准前不计算它值多少钱，不因价格做买卖，只看财报/订单/库存/周期",
+    "US.SNDK": "这只做存储芯片，行业价格暴涨暴跌；价格与复权口径未核准，核准前不计算它值多少钱，不因价格做买卖，只看财报/订单/库存/周期",
     "US.TSM": "这只是芯片代工，眼下毛利66%是景气最高点，按现在的赚钱速度算价会高估",
     "JP.8001": "这是综合商社（一家公司下面几百个生意），公司不公布每块资产值多少，业内也不这么算",
     "US.COIN": "这只是加密交易所，行情好时暴赚、行情差时巨亏（2022年亏了26亿美元），没有一个'正常年份'可参照",
@@ -1520,7 +1708,10 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
         line3 = (_archv["why"] + (f'<div style="margin-top:3px;color:#8ea3b6">{esc(why)}</div>' if why else ''))
     else:
         why = _NOVAL_WHY.get(sym, "这只的赚钱方式没法用常规办法算出一个可信的合理价")
-        line3 = f'<span style="color:#ffb454">这只暂无可估值基础</span>——{esc(why)}。所以只能守着看、不主动加减；等它跌到明显便宜或基本面变坏再说。'
+        if sym in ("JP.6857", "US.SNDK"):    # 异常股:决策结论不由价格产生(不说等它跌/明显便宜)·只守着看观察基本面
+            line3 = f'<span style="color:#ffb454">这只价格与复权口径未核准</span>——{esc(why)}。核准前只守着看、不因价格做买卖，只观察财报/订单/库存/周期。'
+        else:
+            line3 = f'<span style="color:#ffb454">这只暂无可估值基础</span>——{esc(why)}。所以只能守着看、不主动加减；等它跌到明显便宜或基本面变坏再说。'
     # 4) 什么信号才变卦(董事长盯得住的)
     sig = None
     if deep:
@@ -3601,6 +3792,44 @@ def _scrub_archive_qty(inner: str, dyn: dict) -> str:
     return inner
 
 
+# ── 静态持仓档案·异常股(拆股/复权口径未核准)承接卡 源头短路(退回4·locked_v9) ──
+# 静态承接节点卡由 右栏_持仓完整档案.html(静态数据文件)注入·不经 _deep_card/_load_deep_card 的 sanitize，
+# 故爱德万/闪迪 的"买/加价位·减/走价位·身份·买入逻辑"仍指示"看估值见左栏⑤/到便宜位加/偏贵位减/勿按峰值估/等中周期点位"。
+# 在注入时对异常股卡内【含估值/价位动作词】的 td 就地换成待核句(整句·非标签·探针保0)；正常股与纯生意行不动。
+_ANOM_ARCH_SYMS = ("JP.6857", "US.SNDK")
+_ANOM_ARCH_WAIT = "价格与复权口径未核准·核准前不设买入/减仓/中周期点位·不按贵便宜动作·只看生意坏没坏"
+# 只抓真正的"按估值/价位做买卖"指示词(不含裸"估值"·避免误伤'见左栏⑨持仓卡为准'的指路行)
+_ANOM_ARCH_TERM = re.compile(r"看估值|便宜位|偏贵|峰值|中周期点位|估值区间与决策条")
+
+
+def _scrub_archive_anom(inner: str) -> str:
+    """异常股静态承接卡:含估值/价位动作词的 td → 待核句。逐张 <div class="card"> 卡定位·
+    仅 h2 含 JP.6857/US.SNDK 的卡内替换·正常股卡与非动作行(所属节点/成本锚/替换条件/纯生意)不动。"""
+    starts = [mm.start() for mm in re.finditer(r'<div class="card">', inner)]
+    if not starts:
+        return inner
+    edges = starts + [len(inner)]
+    out = [inner[:starts[0]]]
+    for k in range(len(starts)):
+        seg = inner[starts[k]:edges[k + 1]]
+        if any(sym in seg[:400] for sym in _ANOM_ARCH_SYMS):
+            seg = re.sub(
+                r"<td>((?:(?!</td>).)*?)</td>",
+                lambda m: ('<td><span style="color:#c9a86a">' + _ANOM_ARCH_WAIT + "</span></td>")
+                if _ANOM_ARCH_TERM.search(m.group(1)) else m.group(0),
+                seg, flags=re.S)
+        out.append(seg)
+    return "".join(out)
+
+
+# ── 右栏⑤过滤规则里"爱德万目标价¥33,544"历史结构缺陷案例·加限定(退回1·locked_v10) ──
+# 该句在右栏_过滤标准筛选规则.html静态尺·经 part6_rulers→_ruler_body 注入·三层与机器版【同源共用】。
+# 三层原靠自己的全局正则加限定(render_3layer:1488)·机器版无→跨文件不一致。改在共享注入点单点加·覆盖两份。
+# 只作历史方法缺陷案例·不进入今日估值/贵贱/买卖决策链;(?!【) 幂等·不重复包裹。
+def _mark_hist_target(inner: str) -> str:
+    return re.sub(r"¥33,?544(?!【)", "¥33,544【历史错误案例·非今日判断·价格及复权口径未核准】", inner)
+
+
 def part6_rulers(dyn: dict | None = None) -> str:
     RULERS = [
         ("右栏① 世界观 · 完整底子", "右栏_完整世界观描述.html", True),
@@ -3616,6 +3845,10 @@ def part6_rulers(dyn: dict | None = None) -> str:
         body = _ruler_body(fname)
         if fname == "右栏_持仓完整档案.html" and dyn is not None:
             body = _scrub_archive_qty(body, dyn)   # P0-1:股数动态覆盖·读同一底表
+        if fname == "右栏_持仓完整档案.html":
+            body = _scrub_archive_anom(body)       # 退回4·locked_v9:异常股承接卡估值动作行→待核
+        if fname == "右栏_过滤标准筛选规则.html":
+            body = _mark_hist_target(body)         # 退回1·locked_v10:¥33,544历史错误案例限定·同源单点覆盖两份
         # 硬链2：左栏各层"对应尺"→本册 #ruler-{i}
         folds.append(f'<details class="ruler-embed" id="ruler-{i}"{" open" if opened else ""}>'
                      f'<summary>{esc(title)}</summary>'
@@ -3794,6 +4027,23 @@ def pillars_now(date: str) -> dict:
             "start": hist[0].get("date") if hist else "", "cards": cards}
 
 
+def _safe_trunc(s: str, n: int) -> str:
+    """定长截断但不切在括号中间(治L13括号不闭合)。截到 n 字后·把仍未闭合的括号按嵌套序补齐·再加…。
+    如'…（状态维持「没变·但要盯(地缘/秩序信号增'[:44] → '…地缘/秩序信号增…)」）'(补 ) 」 ）·平衡)。"""
+    if len(s) <= n:
+        return s
+    cut = s[:n].rstrip("·、，,； ")
+    pairs = {"（": "）", "(": ")", "「": "」", "【": "】", "《": "》", "“": "”", "『": "』"}
+    closers = set(pairs.values())
+    stack = []
+    for ch in cut:
+        if ch in pairs:
+            stack.append(pairs[ch])
+        elif ch in closers and stack and stack[-1] == ch:
+            stack.pop()
+    return cut + "…" + "".join(reversed(stack))
+
+
 def part7_forecasts(date: str) -> str:
     """乙[记分卡预测式·董事长2026-07-17拍板]：每层每天一条有期限可结算的预测；
     **只有到期结算过的才进判对率**——旧的"状态当预测"口径已废弃。"""
@@ -3818,9 +4068,9 @@ def part7_forecasts(date: str) -> str:
         col = "#7ee0a0" if f["result"] == "对" else "#ff9a9a"
         hist += (f'<tr><td style="color:#8ea3b6">{esc(str(f.get("date")))}</td>'
                  f'<td>{esc(str(f.get("layer"))[:12])}</td>'
-                 f'<td style="font-size:12px">{esc(str(f.get("claim"))[:44])}</td>'
+                 f'<td style="font-size:12px">{esc(_safe_trunc(str(f.get("claim")), 44))}</td>'
                  f'<td><b style="color:{col}">{esc(f["result"])}</b></td>'
-                 f'<td style="font-size:11.5px;color:#8ea3b6">{esc(str(f.get("why", ""))[:60])}</td></tr>')
+                 f'<td style="font-size:11.5px;color:#8ea3b6">{esc(_safe_trunc(str(f.get("why", "")), 60))}</td></tr>')
     rate = acc.get("rate_pct")
     return ('<div class="blk">预测记分（新口径·只有"到期结算过的"才算数）</div>'
             '<div class="plain"><b>为什么换口径</b>：以前把"今天状态=走弱"当成一条预测记分——'
@@ -3991,7 +4241,8 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
     try:
         _dt = datetime.fromisoformat(scan_raw.replace("Z", "+00:00"))
         scan_jst = _dt.astimezone(JST).strftime("%Y-%m-%d %H:%M:%S JST")
-        run_id = "R-" + _dt.astimezone(JST).strftime("%Y%m%d-%H%M%S")
+        # S3(董事长2026-07-25·L2同源):日期段=data_date(过L50·跨午夜不错位)·时间段=generated_at的JST时刻(与render_3layer同源)
+        run_id = "R-" + date + "-" + _dt.astimezone(JST).strftime("%H%M%S")
     except Exception:
         scan_jst = "待接"; run_id = "R-" + date + "-nots"
     # 第一档4[验货戳每次重取]：行情快照戳=本次 production 的 generated_at(每次生产就是这次扫描的)，
@@ -4039,8 +4290,9 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
            f'编号 / 生产时间 / 数据来源（点开看·核对用）</summary>'
            f'<div style="font-size:11.5px;color:#9aa8b5;margin-top:5px;line-height:1.75">'
            f'· 数据日 data_date=<b>{esc(_dd)}</b>（这些数字取自哪一天）<br>'
-           f'· 生产于 <b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）——这份文件什么时候跑出来的<br>'
-           f'· 编号 run_id=<b>{esc(run_id)}</b>——这一次运行的号（用来回溯是哪次扫描出的）<br>'
+           f'· 数据扫描于 <b>{esc(scan_jst)}</b>（UTC {esc(scan_ts)}）——这次 production 扫描的钟点<br>'
+           f'· <b>真实生成时刻 {esc(datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S JST"))}</b>——本文件实际渲染跑出来的钟点（T5:跨午夜可能到次日·与run_id日期分开显）<br>'
+           f'· 编号 run_id=<b>{esc(run_id)}</b>（日期段=数据日 {esc(date)}·跨午夜沿用当日·T5架构师裁定合规）——回溯是哪次扫描<br>'
            + (f'· 行情快照日：{esc(md_note)}<br>' if md_note else '')
            + f'· 深研=个股判断包真源抽取 · 动态=production现算 · 均线仅趋势参考不作买卖线 · 缺不编'
            + _price_asof_note(date)
@@ -4172,14 +4424,15 @@ _JARGON_RE = [
     (r"US10Y\s*/\s*Real Yield", "美国十年期国债利率（含剔除通胀后的真实利率）"),
     (r"\bUS10Y\b", "美国十年期国债利率"),
     (r"\bUS3M\b", "美国三个月国债利率"),
-    (r"10Y-3M\s*=\s*([\d.]+)", r"十年期国债利率比三个月的高\1个百分点（长短端没有倒挂，属正常）"),
+    # S2(董事长2026-07-25):显示层只翻人话·不下"倒挂/正常"结论(那由资金环规则层从真数据算);含负值(-?)分支·不静默漏真倒挂
+    (r"10Y-3M\s*=\s*(-?[\d.]+)", r"十年期国债利率比三个月的相差\1个百分点（倒挂与否见资金环规则判定）"),
     (r"\bFEDFUNDS\b|\bFedFunds\b", "美联储基准利率"),
     (r"\bSOXX\b", "费城半导体指数（一篮子半导体股）"),
     (r"加权净分\s*=\s*([\-\d.]+)", r"综合研判得分\1（正数偏利多、负数偏利空）"),
     (r"\bregime\s*反转|regime反转", "世界大格局翻转"),
     (r"\bregime\b", "大格局"),
     (r"\bFIMA\b", "美联储给外国央行的美元窗口"),
-    (r"\bVIX\b", "市场恐慌指数VIX（越低越安心）"),
+    (r"\bVIX\b", "市场恐慌指数VIX(越低越安心)"),
     (r"\bDXY\b", "美元指数"),
     # A2 调试日志感 → 删/人话
     (r"过源白名单\+时效\(\d+h\)\+相关性闸后", "按“只认权威媒体+只要当天的”筛过后"),
@@ -4342,8 +4595,9 @@ def _scrub_leaks(html_txt: str, is_pool: bool = False) -> str:
     html_txt = re.sub(r"没变·但要盯\(([^()]{0,40})\)", r"没变，但要盯着点（\1）", html_txt)
     html_txt = re.sub(r"没变\(三支柱维持·([^()]{0,30})\)", r"没变（三支柱延续·\1）", html_txt)
     # 甲7：VIX那句三层括号 → 拆短句
-    html_txt = re.sub(r"（VIX\s*较昨([+\-][\d.]+)%、曲线未倒挂\(10Y-3M=([\d.]+)·2年待接\)）",
-                      r"：市场恐慌指数较昨天\1%，长短期利率没有倒挂，属正常", html_txt)
+    # S2:倒挂verdict(\2)由规则层传入·显示层只翻译不自下结论;PENDING(曲线待补)不匹配→原样透传"待补·不参与判定"
+    html_txt = re.sub(r"（VIX\s*较昨([+\-][\d.]+)%、曲线(未?倒挂)\(10Y-3M=(-?[\d.]+)·2年待接\)）",
+                      r"：市场恐慌指数较昨天\1%，长短期利率\2（10Y-3M=\3·倒挂与否由规则层判定）", html_txt)
     html_txt = _gloss_first(html_txt)          # 术语首次出现就地解释
     # 件二/件五：内部话与草稿语→人话/删(判断口径不变·只改措辞)
     for a, b in (("【状态机·事件驱动】", "【判断依据】"), ("状态机", "判断规则"), ("事件驱动", "按事件才改"),
@@ -4430,9 +4684,9 @@ def cant_rely_block(date: str, dyn: dict) -> str:
         sg = rj(ROOT / "data" / "reports" / f"data_sanity_{date}.json")
         for x in (sg.get("issues") or []):
             if x.get("type") == "量级哨兵":
-                # 待架构师复核(差>6倍未定)→🔴标红；已撤销(核价确认真价·估值改待接)→🟡
-                mk = "🔴" if "待架构师复核" in str(x.get("detail")) else "🟡"
-                items.append(f'{mk} <b>{esc(str(x.get("name") or x.get("symbol")))}</b>：{esc(str(x.get("detail")))}')
+                # ★detail含估值比较句/峰值PE/极贵→不回显·用静默理由(GPT裁定:删语义非换格式)
+                items.append(f'🔴 <b>{esc(str(x.get("name") or x.get("symbol")))}</b>：价格与复权口径未核准；'
+                             '核准前不计算估值、倍数、贵贱及价格动作。现价仅作市场事实·不据此买卖（拆股待核）。')
     except Exception:
         pass
     # 机会池后三关未接
@@ -4504,8 +4758,11 @@ def part_decision_top(date: str, dyn: dict, daily: dict, oneline: str) -> str:
         if red or yel:
             bg, bd, ti = (("#3a1414", "#d24b4b", f"⚠ 数据可能有异常（{len(red)} 处严重）——先核对，别急着按下面的建议动手")
                           if red else ("#2a1f10", "#c47a1e", f"提示：{len(yel)} 处数据要你确认一下"))
+            # ★量级哨兵(异常股)detail含估值比较句/峰值/留峰值→不回显·用静默句(GPT裁定:删语义)
             items = "".join(f'<div>· <b>{esc(str(x.get("type")))}</b> {esc(str(x.get("name") or x.get("symbol")))}：'
-                            f'{esc(str(x.get("detail")))}</div>' for x in (red + yel)[:6])
+                            + ("价格与复权口径未核准；核准前不计算估值、倍数、贵贱及价格动作（拆股待核）。"
+                               if str(x.get("type")) == "量级哨兵" else esc(str(x.get("detail")))) + '</div>'
+                            for x in (red + yel)[:6])
             sanity = (f'<div class="card" style="background:{bg};border:2px solid {bd}">'
                       f'<div style="font-size:15px;font-weight:800;color:#ff9a9a">{ti}</div>'
                       f'<div style="font-size:12.5px;color:#e6eef5;margin-top:3px">{items}</div>'
@@ -4695,6 +4952,7 @@ def main() -> int:
     vols = stats.get("volumes") or {}
     if vols and not only:
         # ── 丙4：单行超长HTML→按块加换行(体积几乎不变·便于核验与diff) ──
+        vols = {k: _finalize_deep(v, a.date) for k, v in vols.items()}   # 出品前统一口径(治L9/L31/L13·根治)
         vols = {k: _pretty(v) for k, v in vols.items()}
         # ── 丙1：出厂机械核 —— FAIL 即【不出品】(不落盘·不覆盖旧册) ──
         try:

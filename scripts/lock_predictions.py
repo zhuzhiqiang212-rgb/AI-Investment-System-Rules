@@ -111,6 +111,15 @@ def main():
             if isinstance(p.get(k), dict) and p.get(k):
                 return p[k]
         return {}
+    # v3(2026-07-25 缺指标≠放弃预测):把前瞻富字段带进登记投影(纯加性·不影响锁定/哈希/三铁律校验)
+    EXTRA_KEYS = ["依据", "催化剂", "反向证据", "失效条件", "缺指标标注", "尺度口径"]
+
+    def extra(blk, p):
+        out = {k: blk[k] for k in EXTRA_KEYS if blk.get(k) is not None}
+        for k in ("现价口径", "驱动类型"):
+            if p.get(k) is not None:
+                out[k] = p[k]
+        return out
     SHORT = ["短期预判_押方向_锁定记分", "短期走势预判_锁定记分"]
     LONG = ["长期预判_锁定记分", "长期目标价_锁定记分"]
     registered = []
@@ -127,14 +136,14 @@ def main():
                                "概率": st.get("概率"), "见分晓": st.get("见分晓"),
                                "PDCA核对日": str(st.get("PDCA核对日", ""))[:10] or st.get("PDCA核对日"),
                                "PDCA判据": st.get("PDCA判据", "核对日比 实际方向 vs 押的方向·对=命中"),
-                               **common})
+                               **extra(st, p), **common})
         if lt:
             registered.append({"标的": tgt, "尺度": "长期", "锁定日": d, "现价": p.get("现价"),
                                "方向": lt.get("方向"), "依据未来事件": lt.get("依据未来事件", lt.get("依据的未来事件(非过去财报)")),
                                "目标价": lt.get("目标价", lt.get("目标价框架")), "概率": lt.get("概率"),
                                "见分晓": lt.get("见分晓"), "PDCA核对日": lt.get("PDCA核对日"),
                                "PDCA判据": "事件兑现日比 实际 vs 目标价+事件是否发生·命中=事件发生且到目标价",
-                               **common})
+                               **extra(lt, p), **common})
 
     # 若锁v2:先给已登记的v1条目打标『含缺陷初版·保留』(不删·不改其SHA/内容·仅加注解)
     if str(version).lower() != "v1":

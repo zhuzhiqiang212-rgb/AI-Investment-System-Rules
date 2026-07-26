@@ -69,8 +69,14 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     for fn, h in vols.items():
         rid |= set(re.findall(r"run_id=<b>([^<]+)</b>", h))
         dd |= set(re.findall(r"data_date=<b>([^<]+)</b>", h))
-    if len(rid) != 1:
-        fails.append(f"L2 同源：run_id 不唯一 → {sorted(rid) or '一个都没有'}")
+    # S3(架构师2026-07-25 追认·原判据为完全一致，经架构师裁定放宽为剥册型前缀后同源):R3-(三层)/R-(机器版)是册型前缀·两册同源判据=剥前缀后的【时间段+日期段】一致
+    #   (两册须锚定同一次 production 扫描·render_3layer/deep_render 都取 production.generated_at)。
+    #   剥前缀后仍>1 → 两册是两次不同运行的产出·非同源 → FAIL(这正是上轮 L2 没拦住的漏)。
+    rid_core = {re.sub(r"^R3?-", "", r) for r in rid}
+    if not rid:
+        fails.append("L2 同源：run_id 一个都没有")
+    elif len(rid_core) != 1:
+        fails.append(f"L2 同源：两册 run_id 时间段不一致(非同一次运行·剥R3-/R-前缀后) → {sorted(rid)}")
     if len(dd) != 1:
         fails.append(f"L2 同源：data_date 不唯一 → {sorted(dd) or '一个都没有'}")
     # L2b 快照戳也要五册一致 + 必须等于本次 production 的 generated_at(不许旧快照顶充)
@@ -95,6 +101,16 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         if bad:
             fails.append(f"L3 转义渣：{fn} 正文出现字面量标签 ×{len(bad)}（示例 {bad[0]}）")
 
+    # ── L4b 大环境/板块模块错模板(架构师F4派工单2026-07-25·R2):板块/共同风险类模块的「②为什么」栏
+    #     不许出现个股专用的『护城河/五维/评级待补』(那是持仓卡③的内容·串进大环境模块=错模板) ──
+    for fn, h in vols.items():
+        for m in re.finditer(r'②\s*为什么\s*[（(]?\s*这么判的依据', h):
+            seg = _txt(h[m.start(): m.start() + 260])
+            hit = next((w for w in ("护城河五维", "五维待补", "评级待补", "③护城河五维") if w in seg), None)
+            if hit:
+                fails.append(f"L4b 错模板(大环境)：{fn} 板块/大环境模块『②为什么』栏出现个股专用『{hit}』——"
+                             f"{re.sub(r'[·\\s]+', ' ', seg)[:60].strip()}")
+                break
     # ── L4 持仓册套了候选专用模板 ──
     POOL_ONLY = ["不在你的持仓里", "不在你持仓里", "候选还没做估值", "这只候选还没做估值"]
     # 甲[A方案]合并单文件后：机会池与持仓卡在同一个文件里 → 只核【持仓卡区块内】不许有候选话
@@ -753,6 +769,56 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                                  f"卡内却无『数据未通过专项核准，不可据此买卖』标注——差>5倍且无拆股核准/两源前禁止发布")
     except Exception:
         pass
+
+    # ── L52 外部原辅料不得接管主线(董事长工单2026-07-23)：任一持仓"今天怎么做"的唯一依据是外部观点(无一级来源)→FAIL ──
+    try:
+        ext = json.loads((ROOT / "data" / "external" / f"external_material_{date}.json").read_text(encoding="utf-8"))
+        indep = ext.get("independence_check", {}) or {}
+        for sym, info in indep.items():
+            pb = str(info.get("primary_basis", ""))
+            role = str(info.get("external_role", ""))
+            if "production" not in pb or "体系" not in pb:
+                fails.append(f"L52 外部接管：{sym} 的 primary_basis={pb!r} 不是体系(production+风控)——'今天怎么做'一级依据必须是体系·外部不得当唯一依据")
+            if "辅助" not in role:
+                fails.append(f"L52 外部接管：{sym} external_role={role!r}——外部线索只能作辅助佐证/分歧展示,不得当唯一依据")
+        # HTML:含外部线索子块的 why 卡,必须同时含体系理由(为什么现在)·外部不能是卡内唯一依据
+        for fn, h in vols.items():
+            if 'id="L3"' not in h and "inst-top" not in h:
+                continue
+            _anchors = [mm.start() for mm in re.finditer(r'id="(?:why|deep|act)-[A-Z]{2}\.[A-Z0-9]+"', h)]
+            for m in re.finditer(r'id="why-([A-Z]{2}\.[A-Z0-9]+)"', h):
+                nxt = next((a for a in _anchors if a > m.start()), len(h))   # 到下一卡片anchor为卡边界
+                seg = h[m.start():nxt]
+                if "外部原辅料线索" in seg and "为什么现在" not in seg:
+                    fails.append(f"L52 外部接管：{fn} 的 {m.group(1)} 卡内有外部线索却无体系『为什么现在』理由——外部不得成为卡内唯一依据")
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        fails.append(f"L52 外部核异常：{type(e).__name__}: {e}")
+
+    # ── L53 五分类完整 + 观点/预测不当事实(董事长工单2026-07-23)：缺五分类、或②观点/③预测被当①事实陈述 → FAIL ──
+    try:
+        ext = json.loads((ROOT / "data" / "external" / f"external_material_{date}.json").read_text(encoding="utf-8"))
+        VALID = {"①可核验事实", "②作者观点", "③作者预测", "④操作建议", "⑤待核实线索"}
+        for l in ext.get("leads", []) or []:
+            if str(l.get("category")) not in VALID:
+                fails.append(f"L53 五分类缺失：线索 {l.get('id')} category={l.get('category')!r} 不在五分类内——每条外部线索必须强制五分类")
+        # HTML:含外部线索的产品,每条带 verdict 的线索都要有五分类标签(观点标为观点·不当事实陈述)。
+        # 全文档级计数(避免嵌套div正则误判):五分类标签总数 ≥ verdict 标签总数。
+        for fn, h in vols.items():
+            if 'id="L3"' not in h and "inst-top" not in h:
+                continue
+            if "外部原辅料线索" not in h:
+                continue
+            n_cat = sum(h.count(c) for c in VALID)
+            n_verdict = sum(h.count(v) for v in ("证实·经一级来源证实", "待核实·仅背景", "否决·与体系冲突", "分歧·与体系"))
+            if n_verdict and n_cat < n_verdict:
+                fails.append(f"L53 观点当事实：{fn} 外部线索带 verdict {n_verdict}条 但五分类标签仅{n_cat}个"
+                             f"——②观点/③预测必须显式标注五分类·不得当事实陈述")
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        fails.append(f"L53 五分类核异常：{type(e).__name__}: {e}")
 
     return fails
 
