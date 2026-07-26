@@ -46,6 +46,7 @@ STEPS = [
     ("⑤ 均线(趋势参考)", "holdings_ma_levels.py", False),
     ("⑤b 20日价格序列(加仓闸后半条)", "prices_daily_build.py", False),  # W1(架构师裁定2026-07-25):嫁接回本地⑤b·产出『近20交易日不创新低』序列·治deep_render企稳判据【待接】/L44
     ("⑥ 估值分派", "valuation_dispatcher.py", False),
+    ("⑥c 基准vintage过期告警闸", "vintage_gate.py", False),  # 轮13 D1(裁定2026-07-25):基准>90天未复核/vintage未记录/财报晚于复核→告警·补(A)类机制陈旧的根·非关键不阻断生产
     ("⑦ 当日涨跌", "day_change_scan.py", False),
     ("⑦b 数据异常检查关", "data_sanity_gate.py", False),
     ("⑧ 当日新闻+证据链", "evidence_autobuild.py", True, ["--with-macro-news"]),

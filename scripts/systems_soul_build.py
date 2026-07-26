@@ -282,7 +282,7 @@ def build_pending_decisions(date: str) -> dict:
             pid = f"PD-驱动组超限-{_g.get('id')}"
             items.append({
                 "id": pid, "date": date, "status": "待拍板",
-                "proposal": f"驱动组「{_g.get('id')}」集中度 {_g.get('pct'):.1f}% 超 {dg.get('threshold_pct')}% 阈值 → 是否降该组敞口？(同一点失败全组一起失败)",
+                "proposal": f"驱动组「{_g.get('id')}」集中度 {_g.get('pct'):.1f}% 超 {dg.get('threshold_pct')}% 阈值 → 是否降该组敞口？(同一点失败全组一起失败)　★超线触发的是【待拍板·提请你看一眼由你决定】·不是自动减仓;填阈值不等于会被强制减仓。",
                 "evidence_chain": [f"驱动组现算：{_g.get('id')}({_g.get('desc')}) 合计 {_g.get('pct'):.1f}% vs 阈值 {dg.get('threshold_pct')}%（成员{_g.get('members')}·同押{_g.get('desc')}）",
                                    "环节内部有竞争·驱动组是同一外部主体/事件失败则全组一起失败·风险性质不同",
                                    "个股卡⑩组合视角：降该组对组合的影响"],
