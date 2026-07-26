@@ -64,12 +64,23 @@ def run(date: str) -> dict:
     today = _parse(date) or _date.today()
     vi = _rj(ROOT / "data" / "valuation" / "val_inputs.json")
     cal = _rj(ROOT / "data" / "valuation" / "earnings_calendar.json")
-    alerts, ok, waiting = [], [], []
+    alerts, ok, waiting, intentional = [], [], [], []
     for sym, v in (vi.get("holdings") or {}).items():
         name = v.get("name", sym)
         pa = str(v.get("priced_at", "unknown"))
         lr = str(v.get("last_reviewed", "unknown"))
         reasons = []
+        # ★F5(裁定2026-07-26)通用规矩:vintage告警只说明"很久没动过"·不说明"错了"。处理告警必须先分清:
+        #   没人管(要更新) vs 有意保守(要保留·理由写进review_trigger)。有意保守=一个【判断】·不是疏漏·不许因闸响就改。
+        #   标记=val_inputs该只有 intentional_conservative{reason,decided_by,decided_on}→归"有意保守"单列·不当陈旧告警。
+        ic = v.get("intentional_conservative")
+        if ic:
+            intentional.append({"symbol": sym, "name": name, "priced_at": pa, "last_reviewed": lr,
+                                "state": "有意保守（非陈旧·是一个判断·保留）",
+                                "reason": ic.get("reason", ""), "decided_by": ic.get("decided_by", ""),
+                                "decided_on": ic.get("decided_on", ""),
+                                "review_trigger": v.get("review_trigger", "")})
+            continue
         # ② 诚实待接：从未产出基准·不算陈旧
         if pa.startswith("n/a") or lr.startswith("n/a"):
             waiting.append({"symbol": sym, "name": name,
@@ -97,10 +108,12 @@ def run(date: str) -> dict:
             ok.append({"symbol": sym, "name": name, "last_reviewed": lr})
     return {
         "as_of": date, "gate": "基准vintage过期告警闸", "stale_days_threshold": STALE_DAYS,
-        "summary": {"告警": len(alerts), "通过": len(ok), "待接不计": len(waiting), "总持仓": len(vi.get('holdings') or {})},
-        "alerts": alerts, "ok": ok, "waiting": waiting,
-        "note": ("只报警不改基准（重估口径=判据·架构师定）。unknown→告警是有意的：现有基准普遍无定价日记录，"
-                 "这正是要补的根。理解岗回填真实 priced_at/last_reviewed 后告警自动消。财报判据读 earnings_calendar.json。"),
+        "summary": {"告警": len(alerts), "通过": len(ok), "待接不计": len(waiting),
+                    "有意保守不计": len(intentional), "总持仓": len(vi.get('holdings') or {})},
+        "alerts": alerts, "ok": ok, "waiting": waiting, "intentional_conservative": intentional,
+        "note": ("只报警不改基准（重估口径=判据·架构师定）。★F5通用规矩:告警只说明久没动过·不说明错了——"
+                 "有意保守(intentional_conservative)是判断不是疏漏·单列不当陈旧·不许因闸响就改数。"
+                 "unknown→告警是有意的(现有基准普遍无定价日记录·要补的根)。理解岗回填真实priced_at后告警自动消。财报判据读earnings_calendar.json。"),
     }
 
 
@@ -114,9 +127,11 @@ def main() -> int:
     p = ROOT / "data" / "valuation" / f"vintage_alerts_{args.date}.json"
     p.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     s = out["summary"]
-    print(f"vintage闸 {args.date}: 告警{s['告警']} 通过{s['通过']} 待接{s['待接不计']} / 共{s['总持仓']}")
+    print(f"vintage闸 {args.date}: 告警{s['告警']} 通过{s['通过']} 待接{s['待接不计']} 有意保守{s['有意保守不计']} / 共{s['总持仓']}")
     for a in out["alerts"]:
         print(f"  ⚠ {a['name']}({a['symbol']}) [{a['severity']}]: {'；'.join(a['alerts'])}")
+    for a in out["intentional_conservative"]:
+        print(f"  ◇ {a['name']}({a['symbol']}) 有意保守(非陈旧): {a['reason'][:50]}")
     return 0
 
 
