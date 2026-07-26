@@ -1389,10 +1389,17 @@ def _scenario_block(sym):
         f'<span style="color:#8A3E00">★架构师更正：{s["更正"]}</span></div>')
 
 
-def _risk_config_block():
-    """废止45%上限→四条风险配仓(董事长2026-07-19)。四规矩合规状态+回撤预案+调整建议(待拍板)。"""
-    mv = _TARGET_CFG["主战场"]
-    d30 = int(mv * 0.198); d50 = int(mv * 0.330)
+def _risk_config_block(conc=None):
+    """废止45%上限→四条风险配仓(董事长2026-07-19)。四规矩合规状态+回撤预案+调整建议(待拍板)。
+    轮9 Z2①:回撤预案改【真算】——从真实持仓集中度(portfolio_concentration:AI供应链市值+total_usd)算·不再硬编码mv/系数。"""
+    # Z2① 回撤真算:AI仓市值=AI占比×全持仓折美元;最坏损失=AI仓市值×回调%;占总仓%=AI占比×回调%(与产品别处AI集中度同源·不撞L12/L31)
+    _ai = ((conc or {}).get("categories", {}) or {}).get("AI供应链") or {}
+    _tot = (conc or {}).get("total_usd")
+    _retreat_real = (_ai.get("pct") is not None and _tot)
+    if _retreat_real:
+        _aip = float(_ai["pct"]); _aimv = _aip / 100.0 * float(_tot)
+        d30 = int(_aimv * 0.30); d50 = int(_aimv * 0.50)
+        _p30 = _aip * 0.30; _p50 = _aip * 0.50
     adj = [
         ("待核准·暂不建议动作", "爱德万", "维持9.0%（不动）", "★致命2更正:异常价专项核准前『不可据此买卖』与『建议减仓』自相矛盾→架构师撤回减仓建议·统一观察·待交易所公告/拆股前后价与股数/两独立行情源核对后再重算"),
         ("待核准·暂不建议动作", "闪迪", "维持1.8%（不动）", "同上·专项核准前不出任何加/减建议·统一观察"),
@@ -1416,13 +1423,16 @@ def _risk_config_block():
         '<b>规矩3 按最好年份定价类合计≤5%</b>：<span style="color:#B00020;font-weight:800">⚠ 待接·硬编码·不可依赖</span>'
         '<span style="color:#8A3E00">（系统未真算峰值定价类合计占比·下列为文案说明·补真算前不作占比/超限判断）：'
         '<s style="color:#888">爱德万/闪迪价格口径未核准（拆股待核）·核准前不纳入本条计算；其余持仓无此类超限</s>。核准后再按真口径重算。</span><br>'
-        # Z1止血(轮9):以下回撤数字为写死常量(mv/AI占比65.9%/系数0.198,0.330均硬编码·非从真实持仓算)→标待接·Z2①改真算前不可据此决策
-        '<b>规矩4 回撤预案（必显）</b>：<span style="color:#B00020;font-weight:800">⚠ 待接·硬编码·不可依赖</span>'
-        '<span style="color:#8A3E00">（下列数字为写死常量·非从真实持仓/AI占比算出·补真算前不作数）</span><br>'
-        f'　· <s style="color:#888">AI 仓占 65.9%·主战场 ${mv:,}</s><br>'
-        f'　· <s style="color:#888">AI 仓回调 30% → 全组合承受 −19.8%（约 −${d30:,}）</s><br>'
-        f'　· <s style="color:#888">AI 仓回调 50% → 全组合承受 −33.0%（约 −${d50:,}）</s></div>'
-        '<div style="font-size:14px;font-weight:800;color:#12324E;margin-top:8px">📋 据四规矩产生的调整建议（系统建议·待董事长拍板·系统不自动执行）</div>'
+        # Z2① 回撤预案真算(轮9):从真实持仓AI占比与市值算·集中度缺则退回待接(绝不硬编码假数字)
+        + ((
+            f'<b>规矩4 回撤预案（必显·真算）</b>：AI 仓占 <b>{_aip:.1f}%</b>·AI仓市值 <b>${_aimv:,.0f}</b>（全持仓折美元 ${float(_tot):,.0f}·当日现算）<br>'
+            f'　· AI 仓回调 <b>30%</b> → 全组合承受 <b>−{_p30:.1f}%</b>（约 <b>−${d30:,}</b>）<br>'
+            f'　· AI 仓回调 <b>50%</b> → 全组合承受 <b>−{_p50:.1f}%</b>（约 <b>−${d50:,}</b>）</div>'
+          ) if _retreat_real else (
+            '<b>规矩4 回撤预案（必显）</b>：<span style="color:#B00020;font-weight:800">⚠ 待接·集中度数据缺</span>'
+            '<span style="color:#8A3E00">（portfolio_concentration 未取到AI仓市值/占比·补真实持仓后自动真算·绝不填假数字）</span></div>'
+          ))
+        + '<div style="font-size:14px;font-weight:800;color:#12324E;margin-top:8px">📋 据四规矩产生的调整建议（系统建议·待董事长拍板·系统不自动执行）</div>'
         '<table class="dt" style="width:100%;font-size:13px;margin-top:4px"><tr><th>动作</th><th>标的</th><th>仓位</th><th>理由</th></tr>'
         + arows + '</table>'
         '<div style="font-size:12.5px;color:#8A3E00;margin-top:5px">★ 爱德万/闪迪 <b>专项核准完成前统一「观察·不据此买卖」·不出加/减建议</b>（致命2更正：不能拿未核准的不可信价格提减仓）；'
@@ -2246,7 +2256,7 @@ def build(date: str) -> str:
     #  板块方向由 latest_market_snapshot 真数据经 rule_sector 重算·历史previous由管线继承·不事后改写)
     # [P0]目标—缺口 模块 + 风险配仓四规矩模块 放第一层最顶部(①离目标还差多少·董事长第一眼看到)
     out = re.sub(r'(<details class="layer" id="L1"[^>]*>\s*<summary>[^<]*</summary>\s*<div class="body">)',
-                 lambda m: m.group(1) + _target_gap_block() + _risk_config_block() + _external_sector_risk_block() + _glossary_block(), out, count=1)
+                 lambda m: m.group(1) + _target_gap_block() + _risk_config_block(conc) + _external_sector_risk_block() + _glossary_block(), out, count=1)
     # [P1]每只四字段(角色/意图/贡献pp/凭什么) + [P2]双档并列(加/减候选)→注入每只 why 卡开头
     for _sym in [hc.get("代码") for hc in each if hc.get("代码")]:
         out = out.replace(f'id="why-{_sym}">',
