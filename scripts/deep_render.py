@@ -3924,7 +3924,7 @@ def part7_pdca(date: str, daily: dict | None = None) -> str:
     _days, _start = track_days(date)
     _caveat = (f'<div class="card" style="background:#12261f;border-color:#4f9e7f">'
                f'<b style="color:#7ee0a0">先看这句：</b>这套记分系统<b>从 {esc(_start[:4])}-{esc(_start[4:6])}-{esc(_start[6:])} 起、'
-               f'到今天一共只追踪了 {_days} 天</b>，样本太少，'
+               f'到今天记分卡记录天数只有 {_days} 天</b>，样本太少，'
                f'下面的“判对率”数字<b>现在别当真</b>——攒够几个月历史再看才有意义。'
                f'现在它的用处是：把每天的判断记下来、以后能回头查，而不是拿来评价系统准不准。</div>') if _days < 30 else ""
     head = ('<h2 class="main">复盘记分卡（昨天判的、今天验）</h2>'
@@ -3985,7 +3985,8 @@ def _spark(trend: list) -> str:
         trend_txt = "在往下掉"
     else:
         trend_txt = "原地踏步"
-    return (f'有记录的这 {len(trend)} 天里：判对 {up} 天、判错 {down} 天、没变化 {flat} 天；'
+    # 轮9 Y3:这里的 len(trend)=支柱趋势点数(B·与记分卡记录天数A是两个指标·不再都叫"天")
+    return (f'有记录的这 {len(trend)} 个支柱趋势点里：判对 {up} 次、判错 {down} 次、没变化 {flat} 次；'
             f'累计分从 {first} 变成 {last}，{trend_txt}')
 
 _RIDS = ["worldview", "fed_gate", "strategy", "capital_flow", "sector_rotation"]
@@ -4108,11 +4109,12 @@ def part7_souls(date: str, daily: dict | None = None) -> str:
                       f'<td style="text-align:right">{esc(str(pl["today_score"]))}</td>'
                       f'<td>{esc(pl["trend_arrow"])}</td>'
                       f'<td style="font-size:12px">{esc(_spark(pl["trend"]))}</td>'
-                      f'<td style="color:#8ea3b6">{esc(str(pl["days_tracked"]))}日</td></tr>')
+                      f'<td style="color:#8ea3b6">{esc(str(pl["days_tracked"]))}点</td></tr>')
         out.append('<div class="blk">魂① 支柱确定性累积表（三支柱从"中"往"高"攒）</div>'
                    f'<div class="plain">确定性阶梯：{esc(ladder)}；每环每日按尺(支持+1/无变0/证伪-1)滚动累积——判对攒把握、判错减分。'
-                   f'本表的分数与天数与上面分环卡、①册摘要<b>同一个算子现算</b>（都数 scorecards 的真实历史），不会各报各的。</div>'
-                   '<table class="dt"><tr><th>支柱环</th><th>当前档</th><th>累计分</th><th>今日记分</th><th>走势</th><th>这些天怎么走的</th><th>追踪</th></tr>'
+                   f'本表的<b>分数</b>与上面分环卡、①册摘要<b>同一个算子现算</b>（都数 scorecards 的真实历史）。'
+                   f'（轮9 Y3:末列<b>趋势点数</b>=该支柱趋势序列点数·与顶部“记分卡记录天数”是两个指标·不混用）</div>'
+                   '<table class="dt"><tr><th>支柱环</th><th>当前档</th><th>累计分</th><th>今日记分</th><th>走势</th><th>这些天怎么走的</th><th>趋势点数</th></tr>'
                    + prows + '</table>')
     except Exception as e:
         out.append(f'<div class="card">魂①支柱确定性累积表·待接（scorecards.json 缺：{esc(e)}）</div>')

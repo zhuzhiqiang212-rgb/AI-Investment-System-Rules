@@ -192,15 +192,24 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 if (v[-1] - v[0]) / v[0] > 0.01:
                     fails.append(f"L9 现价打架：{fn} 的 {sym} 卡内出现多个现价 {sorted(px)}（必须全卡唯一·取实时源）")
 
-    # ── L10 记分卡同一指标全册一致(甲1·分环卡/魂①表/①册摘要曾报三个数) ──
-    days = set()
+    # ── L10 天数指标一致(轮9 Y3裁定)：A『记分卡记录天数』与B『支柱趋势点数』是两个不同指标·量的是两回事 ──
+    #     不再跨比这两个数是否相等(那会硬统丢信息)；改为【各自与自己的源核对】：
+    #       L10a 记分卡记录天数(track_days:两源记录日并集)=全册单值·出现多个不同值→FAIL;
+    #       L10b 支柱趋势点数(每支柱trend序列长度)=每支柱各自值·天生多值·不作单值比·只查它没被误当"天"。
+    rec_days = set()   # A：记分卡记录天数
     for h in vols.values():
         t = _txt(h)
-        days |= set(re.findall(r"一共只追踪了\s*(\d+)\s*天", t))
-        days |= set(re.findall(r"有记录的这\s*(\d+)\s*天里", t))
-        days |= set(re.findall(r"这\s*(\d+)\s*天里", t))
-    if len(days) > 1:
-        fails.append(f"L10 记分卡天数打架：全册出现多个'追踪天数' → {sorted(days)}")
+        rec_days |= set(re.findall(r"记分卡记录天数[^0-9]{0,4}(\d+)\s*天", t))
+    if len(rec_days) > 1:
+        fails.append(f"L10a 记分卡记录天数打架：全册出现多个 → {sorted(rec_days)}(同一指标须全册一致·与'支柱趋势点数'是两回事别混)")
+    # L10b：若还有旧口径把支柱点数写成"追踪了N天/这N天里"(=B误当天)→提示改口径,不与A比大小
+    legacy_b = set()
+    for h in vols.values():
+        t = _txt(h)
+        legacy_b |= set(re.findall(r"一共只追踪了\s*(\d+)\s*天", t))
+        legacy_b |= set(re.findall(r"有记录的这\s*(\d+)\s*天里", t))
+    if legacy_b:
+        fails.append(f"L10b 旧口径残留：仍有『追踪了N天/这N天里』把支柱趋势点数当'天' → {sorted(legacy_b)}(轮9已改名·应为『支柱趋势点数N点』/『N个支柱趋势点』)")
 
     # ── L16 标签闭合(清洗正则曾把 "</div></div>" 当叠词吃掉一个→迷你数轴每格漏闭合) ──
     for fn, h in vols.items():
