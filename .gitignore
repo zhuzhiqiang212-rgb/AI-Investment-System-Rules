@@ -35,6 +35,9 @@ Thumbs.db
 .cache/
 system/scripts/tmp_*
 
+# 数据+每日输出 → G盘为主，不进 GitHub（CLAUDE.md §1.5；轮8 裁定D2 根治"切分支把当日数据换成旧版")
+data/
+
 # Keep versioned when useful
 !README.md
 !docs/
