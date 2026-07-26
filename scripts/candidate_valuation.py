@@ -80,6 +80,11 @@ THIRD_CLASS_UNANCHORABLE = {
                "cycle_view": "①核电PPA长约签约进度(与AI数据中心供电协议) ②批发电价 ③核电稀缺性重估(牌照/延寿/新建)。"},
     "US.GEV": {"pe_span": "仅约2年历史(2024分拆)·样本不足·不宜用历史PE锚(E4轮14)",
                "cycle_view": "①订单簿(约1630亿美元)与订单增速(约+71%) ②燃气轮机/电网设备资本开支周期段 ③电力资本开支上行周期位置。"},
+    # 轮16 G2(2026-07-26研究·按尺三条规则明确命中·裁定授权自分):
+    "JP.285A": {"pe_span": "命中规则②(独立上市仅约1.5年·2024底IPO<3年)+③(2018从东芝分拆·历史PE均分拆前存储时代口径不可比)·当前TTM约65~89x(gurufocus/stockanalysis 2026-02)",
+                "cycle_view": "①NAND供需缺口(HBM/AI企业级SSD需求 vs 铠侠/三星/美光扩产) ②存储颗粒价(现货/合约价环比) ③产能周期段(涨价/去库存)。"},
+    "US.GFS":  {"pe_span": "命中规则①(5年PE 20.03~624.2·比值约31倍≥10·macrotrends)+③(2021 IPO早期低EPS基数$0.10致PE畸变·历史不可比)·当前约57.6x",
+                "cycle_view": "①成熟/特色制程产能利用率 ②汽车/工业客户资本开支周期段 ③特色工艺(FDX/射频)需求缺口在扩还是在收。"},
 }
 
 METHOD_NORM = "正常化中周期（穿周期均值盈利×板块PE）"
@@ -153,6 +158,11 @@ def build(date: str) -> dict:
         uni = json.loads((ROOT / "data" / "valuation" / "candidate_universe.json").read_text(encoding="utf-8"))
     except Exception as e:
         return {"error": f"candidate_universe.json 缺：{e}", "candidates": {}}
+    # 轮16 G1:前瞻EPS真输入(口径已定·LRCX/AMAT)·candidate_forward_eps.json
+    try:
+        FWD_EPS = json.loads((ROOT / "data" / "valuation" / "candidate_forward_eps.json").read_text(encoding="utf-8")).get("items", {})
+    except Exception:
+        FWD_EPS = {}
     cands = {}
     for node, cs in (uni.get("nodes", {}) or {}).items():
         for c in cs or []:
@@ -201,6 +211,27 @@ def build(date: str) -> dict:
             continue
         # ②′ 成长/设备/公用股 → forward P/E 口径，不套中周期正常化(修·董事长2026-07-18)
         if _method_of(tk, node) == "fwd":
+            # ★轮16 G1(裁定2026-07-26):有真前瞻EPS输入(candidate_forward_eps.json·口径已定)→机械现算forward PE vs 自身5年均PE。
+            #   reasonable PE=自身5年均值(有来源·非拍脑袋·记E1教训)。IBKR/ASML口径待接不在此(见config._待接)。
+            _fe = (FWD_EPS.get(tk) or {})
+            if _fe.get("forward_eps") is not None and px is not None:
+                _e = float(_fe["forward_eps"]); _rpe = float(_fe.get("reasonable_pe") or 0)
+                _fpe_now = px / _e if _e else None
+                _cc2 = "$" if tk.startswith("US.") else ("¥" if tk.startswith("JP.") else "")
+                if _rpe and _fpe_now is not None:
+                    _mid = _e * _rpe
+                    _vd = ("偏贵" if _fpe_now > _rpe * 1.25 else "偏便宜" if _fpe_now < _rpe * 0.8 else "大致合理")
+                    rec["valuation"] = {
+                        "source": "候选估值·forward P/E(前瞻EPS×自身5年均PE·G1机械现算)", "authoritative": True,
+                        "reliability": "候选级(前瞻EPS真源·reasonable PE=自身5年均值·可调)", "method": METHOD_FWD,
+                        "forward_eps": _e, "reasonable_pe": _rpe, "fwd_pe_now": round(_fpe_now, 1),
+                        "fair": {"cheap": round(_e * _rpe * 0.8, 1), "mid": round(_mid, 1), "rich": round(_e * _rpe * 1.25, 1)},
+                        "verdict": _vd,
+                        "note": (f"前瞻EPS {_cc2}{_e}({_fe.get('eps_fy','')}·{_fe.get('eps_source','')})；"
+                                 f"现价forward PE {_fpe_now:.1f}倍 vs 自身5年均PE {_rpe}倍({_fe.get('reasonable_pe_source','')})→{_vd}。"
+                                 f"合理中枢≈{_cc2}{_mid:.0f}(前瞻EPS×5年均PE)。{_fe.get('note_extra','')}")}
+                    out[tk] = rec
+                    continue
             av = archv.get(tk.split(".")[-1]) or {}
             averd = str(av.get("verdict") or "")
             if averd:

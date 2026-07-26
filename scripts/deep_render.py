@@ -1675,6 +1675,9 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
     # 软银：值双倍却只守——必须一句话解释，别让人误读成该重仓
     if sym == "JP.9984":
         bits2.append("虽然算出来它值得更高，但你押在AI上的钱已经超上限、纪律不许再加；真要降AI敞口，也是先减它")
+        # 轮16 G3(裁定2026-07-26):NAV两值都显示·被舍弃的信息也摆出来·让董事长看到差异
+        bits2.append("估值锚用了两个官方NAV里更保守的那个：<b>采用 ¥7,026</b>(2026-03-31官方值·用于判定) ｜ "
+                     "6月官方值曾达 <b>¥13,000</b>(<span style=\"color:#c9a86a\">官方值·未采用</span>——由Arm/OpenAI大涨推高、可持续性存疑，取保守值符合不接飞刀)。两值差近一倍，特意都摆出来给你看")
     line2 = esc("；".join(bits2) + "。") if bits2 else esc(_zh_common(_scrub_valuation_stance(raw))) or "待接"
     # 3) 什么价该动
     # 丙[工单2026-07-17]：这行原来自成一套措辞、会与决策条的 _action_of 打架，且容易读反。
