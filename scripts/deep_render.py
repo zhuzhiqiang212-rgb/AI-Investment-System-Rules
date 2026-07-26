@@ -571,7 +571,7 @@ def _global_anom_scrub_deep(html):
     o, last = [], 0
     for m in _DEEP_VAL_SCRUB.finditer(html):
         if near(m.start()):
-            o.append(html[last:m.start()]); o.append("[异常价·数据未核准·不计估值]"); last = m.end()
+            o.append(html[last:m.start()]); o.append("[价格已核准·中周期公允基准待重估·暂不计估值]"); last = m.end()
     o.append(html[last:])
     return "".join(o)
 _DEEP_NUKE = [(r"\d+\.?\d*\s?倍", "[倍数待核]"), ("峰值定价", "峰值[口径待核]"), ("景气高点", "[异常待核]"),
@@ -1523,10 +1523,10 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
         _axis = _val_wait_reason(sym, dyn)
     if sym in _CUR_ANOM:     # ★异常股估值模块整体短路(GPT裁定·删语义非换格式):不算价值区/中枢/倍数/正常化EPS/PE/敏感性/情景/贵贱
         out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
-                   '<div class="plain">用哪把尺：异常价·估值尺不适用（数据未核准）</div>'
-                   '<div class="plain" style="color:#c0392b"><b>数据未核准·不计算</b>（价格/复权口径异常·拆股待核）：'
-                   '核准前不出任何估值口径（不计区间/中值/倍数/贵贱/情景）。'
-                   '现价仅作市场事实展示（异常价·口径未核准），不据此买卖；守＝暂停判断，非由估值推导。</div>')
+                   '<div class="plain">用哪把尺：价格已核准·中周期公允基准待重估（旧基准不适用）</div>'
+                   '<div class="plain" style="color:#c0392b"><b>价格已核准 2026-07-25·中周期公允基准待重估</b>（现价经公开源核对无误·非价格错·分拆后未拆股）：'
+                   '问题在中周期公允基准仍是旧值（rally前/分拆前所定·系统无自动重估），拿过期基准判贵贱会失真，故基准重估前不出任何估值口径（不计区间/中值/倍数/贵贱/情景）。'
+                   '现价作已核准市场事实展示，但基准重估前不据此买卖；守＝暂停估值判断，非由估值推导。</div>')
     else:
         out.append('<div class="blk">⑤ 它到底值多少钱（算法+过程+区间+"如果变了"）</div>'
                    + _valfw_line(sym)
@@ -1543,7 +1543,7 @@ def render_deep_blocks(sym: str, name: str, dyn: dict, deep: dict, f: dict) -> s
     scrows = "".join(f'<tr><td class="{r.get("cls","base")}">{_nd(r.get("case",""))}</td><td>{_nd(r.get("assume",""))}</td><td>{_nd(r.get("value",""))}</td><td>{_nd(r.get("prob",""))}</td></tr>' for r in sc.get("rows", []))
     if sym in _CUR_ANOM:     # 异常股情景价短路(好中坏均由估值推导)
         out.append('<div class="blk">⑥ 好、中、坏三种情况分别值多少</div>'
-                   '<div class="plain" style="color:#c0392b">数据未核准·不计算情景价（价格/复权口径异常·拆股待核）。</div>')
+                   '<div class="plain" style="color:#c0392b">价格已核准·中周期公允基准待重估：基准重估前不计算情景价（现价无误·非价格错·问题在过期基准）。</div>')
     else:
         out.append('<div class="blk">⑥ 好、中、坏三种情况分别值多少</div>'
                    '<table class="dt"><tr><th>情况</th><th>假设(人话)</th><th>值多少</th><th>大概几成可能</th></tr>' + scrows + '</table>'
