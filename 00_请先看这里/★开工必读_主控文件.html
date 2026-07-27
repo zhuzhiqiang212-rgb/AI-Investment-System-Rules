@@ -29,16 +29,16 @@ code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#
 </head>
 <body>
 <!--PRODUCT_STATUS_START-->
-<div style="background:#0f2e1c;border:3px solid #4fbf87;border-radius:10px;padding:12px 16px;margin:10px 0"><div style="font-size:22px;font-weight:900;color:#1c6b45">当前正式产品 · 数据日 2026-07-19</div><div style="font-size:14px;margin-top:4px">生产于 <b>2026-07-19 11:27:45 JST</b>　｜　run_id <b>R-20260719-112745</b>　｜　本块由生产脚本每次自动回写（不是手填·不会过期）</div><ul style="font-size:13px;margin:6px 0 0 18px"><li><a href="★每日产品_2026-07-19.html">★每日产品_2026-07-19.html</a></li></ul><div style="font-size:12px;color:#555;margin-top:4px">五册的数据日/run_id 必须完全一致；不一致或找不到文件 → 跑 <code>python scripts/product_manifest.py --check</code> 查是不是被旧版覆盖了。</div></div>
+<div style="background:#0f2e1c;border:3px solid #4fbf87;border-radius:10px;padding:12px 16px;margin:10px 0"><div style="font-size:22px;font-weight:900;color:#1c6b45">当前正式产品 · 数据日 2026-07-27</div><div style="font-size:14px;margin-top:4px">生产于 <b>2026-07-27 18:42:07 JST</b>　｜　run_id <b>R-20260727-184207</b>　｜　本块由生产脚本每次自动回写（不是手填·不会过期）</div><ul style="font-size:13px;margin:6px 0 0 18px"><li><a href="综合底稿_机器版_2026-07-27.html">综合底稿_机器版_2026-07-27.html</a></li></ul><div style="font-size:12px;color:#555;margin-top:4px">五册的数据日/run_id 必须完全一致；不一致或找不到文件 → 跑 <code>python scripts/product_manifest.py --check</code> 查是不是被旧版覆盖了。</div></div>
 <!--PRODUCT_STATUS_END-->
 <!--AUTO_RUN_LOG_START-->
-<div style="background:#0f2e1c;border:2px solid #4fbf87;border-radius:8px;padding:10px 14px;margin:8px 0"><div style="font-size:16px;font-weight:800;color:#1c6b45">每日自动生产（AI投资系统_每日自动生产）：20260719 — ✔ 已出当天五册</div><div style="font-size:13px;margin-top:3px">跑于 2026-07-19 11:31:38 JST　｜　run_id <b>R-20260719-112745</b></div><div style="font-size:11.5px;color:#666;margin-top:3px">本块由 daily_auto_produce.py 每次自动回写。改跑的时间：<code>schtasks /Change /TN "AI投资系统_每日自动生产" /ST 08:00</code></div></div>
+<div style="background:#3a1414;border:2px solid #d24b4b;border-radius:8px;padding:10px 14px;margin:8px 0"><div style="font-size:16px;font-weight:800;color:#a11">每日自动生产（AI投资系统_每日自动生产）：20260727 — ✗ 当天未生产</div><div style="font-size:13px;margin-top:3px">跑于 2026-07-27 18:28:41 JST　｜　<b>原因：④ production(当日实时价) 失败(rc=1)：FileNotFoundError: 缺求证表: G:\我的云端硬盘\AI_Investment_System\data\evidence_chain\daily_20260727.json</b></div><div style="font-size:12px;color:#a11;margin-top:3px"><b>产品目录里没有留旧版冒充今天</b>（实时铁律）。修好后重跑即可。</div><div style="font-size:11.5px;color:#666;margin-top:3px">本块由 daily_auto_produce.py 每次自动回写。改跑的时间：<code>schtasks /Change /TN "AI投资系统_每日自动生产" /ST 08:00</code></div></div>
 <!--AUTO_RUN_LOG_END-->
 <div class="wrap">
 
 <div class="hdr">
   <h1>★ 开工必读 · 主控文件</h1>
-  <div class="sub">任何AI（Chat/Code/Cowork/GPT）接手本项目，第一件事必须读这份文件 ｜ 这是全项目的"单一真相源"入口 ｜ 最后更新 2026-07-19 11:53 JST</div>
+  <div class="sub">任何AI（Chat/Code/Cowork/GPT）接手本项目，第一件事必须读这份文件 ｜ 这是全项目的"单一真相源"入口 ｜ 最后更新 2026-07-27 22:00 JST</div>
 </div>
 
 <div class="truth">
@@ -120,6 +120,11 @@ code{background:#0d1620;padding:1px 5px;border-radius:4px;font-size:12px;color:#
   <b>七、当前进度（每次干完更新这里）</b>
   <p style="margin:6px 0;font-size:14px;">✅ A记分卡+确定性+复盘+元制度｜✅ B护城河6只｜✅ C右栏6块尺全定稿｜✅ 左栏外部/内部+今日事件结构(TASK-073)。</p>
   <p style="margin:6px 0;font-size:14px;">🔵 <b>当前=D阶段组装完整产品</b>。D1左右接通已完成(实物核实：右栏6块尺已接左栏 full_product_render.py L755-774,840-847、宏观 L832、左栏外部/内部+今日事件 L823-830、持仓成本 L785,813-818、判断包消费方 L15-19,838-843)。D1剩：个股研究空模板(2026-07-08 建)+数据刷到当日(机器侧OpenD)。板块状态自动更新=defer(缺板块代理指数小尺)、判断包接打分=不做(纯显示)。下一步 → D2图文决策卡 → D3决策到价 → D4巡检生成器 → D5数据全补+清粗糙边 → D6组装+七清单核+董事长验收★。</p>
+  <p style="margin:8px 0 4px 0;font-size:14px;">🟢 <b>2026-07-27 里程碑 · 代码主干接活了，每天能自己出产品了</b>（大白话四步）：</p>
+  <p style="margin:3px 0 3px 18px;font-size:13.5px;"><b>事实</b>：① 代码主干（GitHub main）从卡在半个月前的旧版更新到最新 <code>ccee690</code>——轮8到轮20 的全部改进都进主干了。② 每天早上的自动生产之前其实一直跑不通（求证表和机会池要人先手工建），现在改成会自己先建，07-27 已端到端自己跑通、没人插手。</p>
+  <p style="margin:3px 0 3px 18px;font-size:13.5px;"><b>为什么</b>：以前"每天自动出当天产品"是写在纸上、实际没兑现（任务被禁、台账停在07-19）；根子是求证表在第⑧步才建、可第④步就要用——顺序反了压根跑不通。前移就通了。</p>
+  <p style="margin:3px 0 3px 18px;font-size:13.5px;"><b>对你影响</b>：贵不贵的判断更靠谱——三类股分开看（尺能锚的给结论、爱德万这种分歧大的两把尺并列不硬下结论、美光这种锚不住的改看周期位置）；基准太久没更新会自己报警（爱德万基准依据一年多前的数据已被揪出）；"要不要加仓"的企稳判据从"算不出"变成"能算了"。</p>
+  <p style="margin:3px 0 8px 18px;font-size:13.5px;"><b>怎么办</b>：四条风控闸——单只20%/单环节30%真装了、回撤真算了；驱动组（微软+软银押 OpenAI≈33%）等你定阈值；规矩三（峰值定价）等基准重估完才能开。爱德万/闪迪的买卖建议在基准重估完前先不放。<b>唯一真孤儿 f2a4bf9（U2/L28）已存档 archive/f2a4bf9-p0round6-u2·功能已在主干·不丢。</b></p>
   <p style="margin:6px 0;font-size:14px;">🔴 <b>2026-07-15 董事长验收完整产品·打回→重做→拍板</b>：旧产品(骨架真但"给董事长看的层"不合格：满页术语英文、决策自打架均线当买卖线、"待理解岗补深"泛滥、机会池空转)已合并蓝图+总则+0709/0712老审计+董事长15条成 <b>《完整产品_统一问题清单_20260715》</b>(6根因·随时可复盘)。中途一版"大白话"矫枉过正砍成没说服力的废话，董事长打回；据此重做出<b>深度版</b>并拍板"先实现到这个程度"。</p>
   <p style="margin:6px 0;font-size:14px;">✅ <b>当前正式完整产品＝《完整产品_20260714_深度版.html》</b>(五层大环境+19只持仓+集中度+机会池+闭环，每条五要素讲透、术语当场译、价位只看估值不看均线、标把握、缺数说清)。深度锁进尺 <b>《完整产品_深度标准_v1.html》</b>——以后每天不得低于此。<b>根因①大白话、②决策不打架＝已解</b>；③(分析深度)＝已在深度版示范、待接每日流程自动；④机会对比/⑤右栏尺＝格式已给、数据缺口待补。旧的机器模板版《完整产品_20260714.html》《_v2.html》＝<b>已被深度版取代·待董事长签字后移_历史归档</b>。</p>
   <p style="margin:6px 0;font-size:14px;">🔵 <b>下一步（实现路径·见深度标准尺§五）</b>：把"分析岗深度分析"落成 data/analysis/deep_{date}.json + 渲染器套版，让深度版能每天自动出(现由分析岗当天手写保证)；并补机会池候选对比真数据、右栏6块尺接入。</p>
