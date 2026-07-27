@@ -41,10 +41,11 @@ DEFAULT_TIME = "07:30"          # 每交易日 07:30 JST：日股开盘前、美
 STEPS = [
     ("① 富途实时持仓(OpenD)", "futu_positions_sync.py", True),
     ("② 持仓真表", "holdings_true_autobuild.py", True),
+    # ★轮17 H4修+轮22 M1修:production④需【求证表+机会池链(双通道)】·且③审持仓也需【求证表】·原求证表在⑧才建(晚于④/③)→新日期必失败。
+    #   依赖真序(clone测试查实):②持仓真表 → 求证表(evidence·不依赖③) → ③审持仓(依赖求证表+持仓真表) → 机会池链(dual依赖③holdings_review) → ④production。
+    #   ★求证表必须在③【之前】(轮17误放③后·M1 clone测试暴露)。这几步critical:下游依赖它们。
+    ("②a 当日新闻+证据链(求证表)", "evidence_autobuild.py", True, ["--with-macro-news"]),
     ("③ 审持仓+权威价", "holdings_review_against_chain.py", True),
-    # ★轮17 H4修:production④需【求证表+机会池链(双通道)】·原在⑧才建(晚于④)→新日期必失败(07-27铁证:缺daily_20260727.json)。
-    #   把求证表+机会池链前移到production前建·让自动生产真自足(不再需人工预种)。这四步critical:production依赖它们。
-    ("③a 当日新闻+证据链(求证表)", "evidence_autobuild.py", True, ["--with-macro-news"]),
     ("③b 机会池链·链驱动扫描", "opportunity_chain_driven.py", True),
     ("③c 机会池链·估值闸", "opportunity_valuation_gate.py", True),
     ("③d 机会池链·双通道现价", "opportunity_dual_channel.py", True),
