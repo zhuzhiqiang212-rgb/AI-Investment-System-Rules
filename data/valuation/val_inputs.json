@@ -269,13 +269,13 @@
     "US.IBKR": {
       "name": "IBKR",
       "currency": "$",
-      "normalized_eps": 2.76,
+      "normalized_eps": 2.5,
       "pe_normal": 22,
-      "note": "券商·正常化PE法。★2026-07-21 Q2 2026 GAAP摊薄EPS $0.69(官方·reported与adjusted同·年比+35.3%)年化×4=$2.76 run-rate→normalized_eps由$2.40上修至$2.76(纳入最新财报)。正常化PE=22倍(优质高成长券商18~25取中枢)。得中枢≈$60.7。⚠年化单季偏run-rate高端·待Q1 2026 GAAP补TTM精调。★市场按约34倍前瞻定价(现价约$93~96)·正常化口径下仍偏贵。账户+34%/税前利润率77%。2024-06做过4拆1。换forward P/E待GAAP前瞻EPS(分开做)。",
+      "note": "券商·正常化PE法。★2026-07-21重估:normalized_eps=TTM GAAP摊薄EPS $2.5(Q3'25 $0.59+Q4'25 $0.63+Q1'26 $0.59+Q2'26 $0.69·官方GAAP·取代表性非端点·裁定O1/O2)。正常化PE=22倍。得中枢≈$55.0。★不用年化单季(Q2 $0.69同比+35.3%是强季·×4=把最好一季当全年常态·违正常化本意)。★市场按约34倍前瞻定价(现价约$93~96)·正常化口径下仍偏贵。账户+34%/税前利润率77%。2024-06做过4拆1。换forward P/E待GAAP前瞻EPS(分开做)。",
       "priced_at": "2026-07-21",
-      "priced_at_basis": "2026-07-21 Q2 2026 GAAP摊薄EPS $0.69实际数纳入·normalized_eps上修至$2.76(年化)。原:FY2025 GAAP$2.22+2026共识。",
+      "priced_at_basis": "2026-07-21 Q2财报后·normalized_eps改TTM GAAP $2.5(四季和·代表性)。原年化单季$2.76偏高端已纠。",
       "last_reviewed": "2026-07-21",
-      "review_trigger": "下一财季财报(Q3 2026约2026-10)出→更新;或Q1 2026 GAAP补齐后算TTM精调normalized_eps。换forward P/E待GAAP前瞻EPS。"
+      "review_trigger": "下一财季财报(Q3 2026约2026-10)出→TTM滚动更新normalized_eps。换forward P/E待GAAP前瞻EPS。"
     },
     "US.MSTR": {
       "name": "MSTR",

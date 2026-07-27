@@ -47,9 +47,18 @@ def _load_active_nodes():
         nodes = []
         for c in (d.get("板块") or []):
             if c.get("激活") in (True, "是", "激活"):
-                nm = c.get("承接节点") or _S2N.get(str(c.get("板块")))
-                if nm and nm not in nodes:
-                    nodes.append(nm)
+                cn = c.get("承接节点")   # ★O3(裁定):cell的承接节点=短名【数组】·优先;无则板块名crosswalk兜底
+                if isinstance(cn, list) and cn:
+                    for x in cn:
+                        if x and x not in nodes:
+                            nodes.append(x)
+                elif isinstance(cn, str) and cn:
+                    if cn not in nodes:
+                        nodes.append(cn)
+                else:
+                    nm = _S2N.get(str(c.get("板块")))
+                    if nm and nm not in nodes:
+                        nodes.append(nm)
         if not nodes:
             return _FALLBACK, f"⚠{Path(src).name}无板块映射到承接节点·回退兜底"
         return nodes, Path(src).name
