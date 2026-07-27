@@ -42,14 +42,19 @@ STEPS = [
     ("① 富途实时持仓(OpenD)", "futu_positions_sync.py", True),
     ("② 持仓真表", "holdings_true_autobuild.py", True),
     ("③ 审持仓+权威价", "holdings_review_against_chain.py", True),
+    # ★轮17 H4修:production④需【求证表+机会池链(双通道)】·原在⑧才建(晚于④)→新日期必失败(07-27铁证:缺daily_20260727.json)。
+    #   把求证表+机会池链前移到production前建·让自动生产真自足(不再需人工预种)。这四步critical:production依赖它们。
+    ("③a 当日新闻+证据链(求证表)", "evidence_autobuild.py", True, ["--with-macro-news"]),
+    ("③b 机会池链·链驱动扫描", "opportunity_chain_driven.py", True),
+    ("③c 机会池链·估值闸", "opportunity_valuation_gate.py", True),
+    ("③d 机会池链·双通道现价", "opportunity_dual_channel.py", True),
     ("④ production(当日实时价)", "production_pipeline.py", True),
     ("⑤ 均线(趋势参考)", "holdings_ma_levels.py", False),
-    ("⑤b 20日价格序列(加仓闸后半条)", "prices_daily_build.py", False),  # W1(架构师裁定2026-07-25):嫁接回本地⑤b·产出『近20交易日不创新低』序列·治deep_render企稳判据【待接】/L44
+    ("⑤b 20日价格序列(加仓闸后半条)", "prices_daily_build.py", False),  # W1(架构师裁定2026-07-25):嫁接回本地⑤b·产出『近20交易日不创新低』序列·治deep_render企稳判据【待接】/L44(轮17 H4:deep_render已接入·企稳可判)
     ("⑥ 估值分派", "valuation_dispatcher.py", False),
     ("⑥c 基准vintage过期告警闸", "vintage_gate.py", False),  # 轮13 D1(裁定2026-07-25):基准>90天未复核/vintage未记录/财报晚于复核→告警·补(A)类机制陈旧的根·非关键不阻断生产
     ("⑦ 当日涨跌", "day_change_scan.py", False),
     ("⑦b 数据异常检查关", "data_sanity_gate.py", False),
-    ("⑧ 当日新闻+证据链", "evidence_autobuild.py", True, ["--with-macro-news"]),
     ("⑨ 研报佐证(湖水资讯)", "research_corpus_ingest.py", False),
     ("⑨b 财报官方数(SEC EDGAR)", "edgar_financials.py", False),
     ("⑨c 机会池候选估值+研究", "candidate_valuation.py", False),

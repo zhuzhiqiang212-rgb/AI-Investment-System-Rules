@@ -1044,12 +1044,32 @@ def _catalyst_within(sym: str, date: str, days: int = 90) -> str:
     return ""
 
 
+_STAB_CACHE: dict = {}
+
+
+def _stab_data(date: str) -> dict:
+    """轮17 H4:读⑤b prices/_report_{date}.json逐日序列结论(no_new_low_recent20+last_new_low_date)。
+    ⑤b已算好『近20日不创新低』真判据+最近创新低日期→治原_stabilized【待接】。"""
+    if date in _STAB_CACHE:
+        return _STAB_CACHE[date]
+    out = {}
+    try:
+        d = json.loads((ROOT / "data" / "prices" / f"_report_{date}.json").read_text(encoding="utf-8"))
+        for x in (d.get("per_symbol") or []):
+            out[str(x.get("symbol"))] = x
+    except Exception:
+        pass
+    _STAB_CACHE[date] = out
+    return out
+
+
 def _stabilized(sym: str, dyn: dict) -> bool:
     """「加」闸·已企稳=近20交易日【不创新低】(客观过滤·非均线买卖线·董事长2026-07-19)。
-    ★真"不创新低"要看【近期是否还在续创新低】(需20日低发生的时点/轨迹)——当前只取到 low_20d 单值、
-      不足以确认(离20日低10%也可能是反弹后又阴跌)→按铁律保守·企稳判据【待接】·返回False(不能确认企稳就当没企稳·别接飞刀)。
-      low_20d 仍存进 ma_levels 供未来接入轨迹后启用。"""
-    return False
+    ★轮17 H4:⑤b(prices_daily_build)已落盘逐日序列并算出 no_new_low_recent20→接入(原只取low_20d单值判待接)。
+      缺(⑤b未产/该只待接)→按铁律保守返False(不能确认企稳就当没企稳·别接飞刀)。"""
+    rec = _stab_data(dyn.get("date", "")).get(sym) or {}
+    v = rec.get("no_new_low_recent20")
+    return bool(v) if v is not None else False
 
 
 def _stabilized_calc(sym: str, dyn: dict, date: str = "") -> str:
@@ -1069,8 +1089,29 @@ def _stabilized_calc(sym: str, dyn: dict, date: str = "") -> str:
     low_txt = f"{c}{low20:,.0f}" if isinstance(low20, (int, float)) else "待接（未取到20日低）"
     gap = (f"（现价高于20日低约 {((px-low20)/low20*100):+.1f}%）"      # 不印现价数值·避免与卡内唯一现价口径打架
            if isinstance(px, (int, float)) and isinstance(low20, (int, float)) and low20 else "")
-    # 只有 low_20d 单值、无逐日轨迹 → 最低价日期/最近创新低日期无法定位 → 保守判不通过
-    miss = "缺【最近一次创新低日期】(仅存20日低单值·未落盘逐日价格序列·无法确认近日是否仍在续创新低)"
+    # ★轮17 H4:接⑤b逐日序列结论(no_new_low_recent20+last_new_low_date)→企稳判据从【待接】变可判。
+    _sr = _stab_data(date).get(sym) or {}
+    _nn = _sr.get("no_new_low_recent20")           # True=近20日不创新低(企稳)·False=仍在续创新低·None=⑤b缺该只
+    _lnl = _sr.get("last_new_low_date")            # 最近一次创新低日期(⑤b已算)
+    if _nn is not None:
+        _lnl_txt = f"<b>{esc(str(_lnl))}</b>" if _lnl else "<b>近20日内无新低</b>"
+        _pass20 = "<b style=\"color:#7ee0a0\">是·近20日不创新低</b>" if _nn else "<b style=\"color:#ffb454\">否·近20日仍创过新低</b>"
+        # 企稳(不创新低)+催化剂 双条件:企稳是客观过滤·催化剂是前瞻理由(董事长2026-07-19原则:两者都要)
+        _final = ("<b style=\"color:#7ee0a0\">是（近20日不创新低＝已企稳 且 有已查实催化剂）</b>" if (_nn and cat)
+                  else "<b style=\"color:#ffb454\">否</b>——" + ("近20日仍在续创新低·未企稳(不接飞刀)" if not _nn else "已企稳但近90天无已查实前瞻催化剂·不硬加"))
+        return (
+            '<div style="font-size:11.5px;color:#9fb3c4;background:#0f1925;border-left:3px solid #3a5a8a;'
+            'border-radius:0 6px 6px 0;padding:6px 10px;margin:5px 0">'
+            '<b style="color:#8ec6ff">加仓闸·近20个交易日不创新低（逐项实测·⑤b逐日序列）</b><br>'
+            f'· 近20个交易日最低价：<b>{low_txt}</b>{gap}<br>'
+            f'· 最近一次创新低日期：{_lnl_txt}<br>'
+            f'· 是否满足「20日不创新低」：{_pass20}<br>'
+            f'· 所用每日价格序列：源 OpenD K_DAY 日线·⑤b prices_daily_build 已落盘逐日序列<br>'
+            f'· 推动股价的事情（名称·日期·来源）：{esc(str(cat)[:90]) if cat else "近90天列不出明确前瞻事件·待接"}<br>'
+            f'· 最终是否通过：{_final}。'
+            '</div>')
+    # ⑤b缺该只(未产/该只待接)→保守判不通过(保留原待接口径)
+    miss = "缺【最近一次创新低日期】(⑤b逐日序列未覆盖本只·无法确认近日是否仍在续创新低)"
     return (
         '<div style="font-size:11.5px;color:#9fb3c4;background:#0f1925;border-left:3px solid #3a5a8a;'
         'border-radius:0 6px 6px 0;padding:6px 10px;margin:5px 0">'
