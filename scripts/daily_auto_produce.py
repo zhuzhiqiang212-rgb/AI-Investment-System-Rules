@@ -55,6 +55,8 @@ STEPS = [
     ("⑥c 基准vintage过期告警闸", "vintage_gate.py", False),  # 轮13 D1(裁定2026-07-25):基准>90天未复核/vintage未记录/财报晚于复核→告警·补(A)类机制陈旧的根·非关键不阻断生产
     ("⑦ 当日涨跌", "day_change_scan.py", False),
     ("⑦b 数据异常检查关", "data_sanity_gate.py", False),
+    ("⑦c 数据层文案禁夹带HTML闸", "data_html_leak_gate.py", False),  # 轮20 J4(裁定2026-07-27):数据层不带样式(强调用「」)·防先不翻类HTML漏进esc渲染·非关键只告警
+
     ("⑨ 研报佐证(湖水资讯)", "research_corpus_ingest.py", False),
     ("⑨b 财报官方数(SEC EDGAR)", "edgar_financials.py", False),
     ("⑨c 机会池候选估值+研究", "candidate_valuation.py", False),
