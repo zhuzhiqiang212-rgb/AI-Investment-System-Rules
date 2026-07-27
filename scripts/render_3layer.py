@@ -2012,9 +2012,20 @@ def _stability_banners(date: str) -> tuple:
                        f'<b>已发现·非漏掉</b>；需董事长导出为TXT放进 inputs/ 重跑外部原辅料接入 正文才进产品。</div>')
     except Exception:
         pass
+    # ④ ★M1(裁定2026-07-27):持仓基表 bootstrap(首次自动生成·未经人工核对)→显著标注·不冒充已核对
+    boot_bar = ""
+    try:
+        ht = json.loads((ROOT / "data" / "accounts" / f"holdings_true_{date}.json").read_text(encoding="utf-8"))
+        if ht.get("bootstrap") is True:
+            boot_bar = ('<div style="background:#3a1414;border:2px solid #d24b4b;border-radius:8px;padding:8px 12px;margin:6px 0;color:#ff8a8a;font-weight:700">'
+                        '🔶 持仓基表【首次自动生成·未经人工核对】：本次无先前已核对基表→从富途实时持仓 bootstrap 生成；'
+                        '<b>仅富途账户·非富途账户(SBI/IBKR/bitFlyer)缺失待人工补全</b>；股数=当次富途实时(真·可回溯)·但整张基表未经人工核对'
+                        '——集中度/配仓判断以此为准需谨慎，待董事长核过持仓后转 confirmed。</div>')
+    except Exception:
+        pass
     banner = ('<div style="margin:8px 0">'
               '<div style="font-size:13px;font-weight:800;color:#e0b060;margin-bottom:3px">📋 稳定性状态条（董事长2026-07-25·drive/futu变更处理）</div>'
-              + moat_bar + pend_bar + lei_bar + '</div>')
+              + boot_bar + moat_bar + pend_bar + lei_bar + '</div>')
     return banner, moat_stale
 
 

@@ -51,6 +51,9 @@ def find_latest_confirmed_base(before_date: str) -> Path | None:
             data = _read_json(p)
         except Exception:
             continue
+        # ★M1:bootstrap基表(confirmed=false·未经人工核对)不许当confirmed沿用——人核过转confirmed后才被拾取
+        if data.get("bootstrap") is True or data.get("confirmed") is False:
+            continue
         if any(h.get("quantity_status") == "confirmed" for h in data.get("holdings", [])):
             cands.append((stem, p))
     if not cands:
@@ -160,16 +163,29 @@ def fetch_today_prices(symbols: list[str]) -> tuple[dict[str, dict[str, Any]], l
 
 def build(date: str) -> dict[str, Any]:
     base_path = find_latest_confirmed_base(date)
+    # ══ ★M1(裁定2026-07-27)bootstrap兜底：无 confirmed 基表 → 从当次富途实时持仓 bootstrap 首张基表 ══
+    #   解鸡生蛋："必须先有基表才能建基表"——①那步已取到实盘(现金/总资产在手)·数据就在手里却卡死;
+    #   更实际:一旦G盘出问题或换台机器·现在这套起不来·这是真实脆弱点。
+    #   ★两道保护:①标 bootstrap=true+confirmed=false·不冒充已核对 ②非富途账户(SBI/IBKR/bitFlyer)缺失如实标待补·
+    #   ③find_latest_confirmed_base 跳过 bootstrap 基表(不许拿未核对的当confirmed沿用)。可以自动·但不能假装有人看过。
+    bootstrap = False
     if base_path is None:
-        raise FileNotFoundError(f"找不到可沿用的 confirmed holdings_true 基表(早于 {date})")
-    base = _read_json(base_path)
-    base_date = base_path.stem.replace("holdings_true_", "")
-    base_holdings = base.get("holdings", [])
+        bootstrap = True
+        base = {}
+        base_date = None
+        base_holdings = _apply_futu_live([], date)   # 空基表+富途live→全富途持仓(走"新持仓"路径)
+        if not base_holdings:
+            raise FileNotFoundError(f"无 confirmed 基表·且富途实时持仓也取不到(futu_positions_{date}.json 缺/空/error)→无法 bootstrap·如实报未生产")
+    else:
+        base = _read_json(base_path)
+        base_date = base_path.stem.replace("holdings_true_", "")
+        base_holdings = base.get("holdings", [])
     # ══ 甲[P0·董事局工单2026-07-17]：富途那部分的股数改用 OpenD 当前实时持仓，不再沿用旧快照 ══
     #   根因：本函数原来只"沿用上一份 confirmed 股数 + 今日刷价"，股数从来没更新过 →
     #   董事长在富途的加减仓系统看不见 → 集中度/闲钱/加谁减谁全可能算错。
     #   SBI/IBKR/bitFlyer 不在 OpenD 里 → 保持沿用并标 needs_owner_confirm，不冒充实时。
-    base_holdings = _apply_futu_live(base_holdings, date)
+    if not bootstrap:
+        base_holdings = _apply_futu_live(base_holdings, date)
 
     symbols = [str(h.get("symbol")) for h in base_holdings if h.get("symbol")]
     price_map, attempts = fetch_today_prices(symbols)
@@ -204,8 +220,15 @@ def build(date: str) -> dict[str, Any]:
         "mode": "TRUE_HOLDINGS_BASE_TABLE",
         "date": date,
         "generated_at": datetime.now(JST).isoformat(),
+        # ★M1:bootstrap首张基表标记(未经人工核对·非富途账户缺失)。confirmed=false→下游产品显著标注·人核过才转confirmed。
+        "bootstrap": bootstrap,
+        "confirmed": (not bootstrap),
+        "bootstrap_note": ("★持仓基表首次自动生成·未经人工核对：仅富途账户(OpenD实时)·非富途账户(SBI/IBKR/bitFlyer)缺失待人工补全。"
+                           "股数=当次富途实时(真·可回溯)·但整张基表未经人工核对·产品处显著标注·待董事长核过才转confirmed。") if bootstrap else "",
         "fingerprint": {
-            "share_count_source": f"A8·股数沿用最近 confirmed 基表 {base_path.name}（非富途账户无交易则不变，未报新交易→沿用）",
+            "share_count_source": (f"★bootstrap·从当次富途实时持仓生成首张基表(无先前confirmed基表)·仅富途账户·未经人工核对·confirmed=false"
+                                   if bootstrap else
+                                   f"A8·股数沿用最近 confirmed 基表 {base_path.name}（非富途账户无交易则不变，未报新交易→沿用）"),
             "quote_source": f"今日 OpenD 实时价(realtime_price)·{ok}/{len(symbols)} 取到；未取到者价=null 如实标、不伪造",
             "built_by": "holdings_true_autobuild.py（机器自动·股数沿用+今日OpenD现价）",
             "no_trade": True,
