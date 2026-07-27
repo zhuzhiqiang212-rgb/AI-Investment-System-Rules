@@ -1106,7 +1106,7 @@ def _stabilized_calc(sym: str, dyn: dict, date: str = "") -> str:
             f'· 近20个交易日最低价：<b>{low_txt}</b>{gap}<br>'
             f'· 最近一次创新低日期：{_lnl_txt}<br>'
             f'· 是否满足「20日不创新低」：{_pass20}<br>'
-            f'· 所用每日价格序列：源 OpenD K_DAY 日线·⑤b prices_daily_build 已落盘逐日序列<br>'
+            f'· 所用每日价格序列：源 OpenD 日线·近20个交易日逐日序列已落盘（可核最近创新低日期）<br>'
             f'· 推动股价的事情（名称·日期·来源）：{esc(str(cat)[:90]) if cat else "近90天列不出明确前瞻事件·待接"}<br>'
             f'· 最终是否通过：{_final}。'
             '</div>')
@@ -1716,9 +1716,10 @@ def howto_block(sym: str, name: str, f: dict, dyn: dict, deep: dict | None) -> s
     # 软银：值双倍却只守——必须一句话解释，别让人误读成该重仓
     if sym == "JP.9984":
         bits2.append("虽然算出来它值得更高，但你押在AI上的钱已经超上限、纪律不许再加；真要降AI敞口，也是先减它")
-        # 轮16 G3(裁定2026-07-26):NAV两值都显示·被舍弃的信息也摆出来·让董事长看到差异
-        bits2.append("估值锚用了两个官方NAV里更保守的那个：<b>采用 ¥7,026</b>(2026-03-31官方值·用于判定) ｜ "
-                     "6月官方值曾达 <b>¥13,000</b>(<span style=\"color:#c9a86a\">官方值·未采用</span>——由Arm/OpenAI大涨推高、可持续性存疑，取保守值符合不接飞刀)。两值差近一倍，特意都摆出来给你看")
+        # 轮16 G3(裁定2026-07-26):NAV两值都显示·被舍弃的信息也摆出来·让董事长看到差异。
+        #   ★bits2会被 esc() 转义→此处只放纯文本·不放HTML标签(轮17 H4修L3转义渣)
+        bits2.append("估值锚用了两个官方NAV里更保守的那个：采用 ¥7,026（2026-03-31官方值·用于判定）｜ "
+                     "6月官方值曾达 ¥13,000（官方值·未采用——由Arm/OpenAI大涨推高、可持续性存疑，取保守值符合不接飞刀）。两值差近一倍，特意都摆出来给你看")
     line2 = esc("；".join(bits2) + "。") if bits2 else esc(_zh_common(_scrub_valuation_stance(raw))) or "待接"
     # 3) 什么价该动
     # 丙[工单2026-07-17]：这行原来自成一套措辞、会与决策条的 _action_of 打架，且容易读反。

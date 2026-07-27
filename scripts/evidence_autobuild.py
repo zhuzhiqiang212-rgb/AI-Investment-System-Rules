@@ -255,7 +255,7 @@ def rule_capital(snapshot: dict[str, Any] | None, curve: dict[str, Any] | None) 
         strength, direction = {"避险": ("弱", "避险"), "不避险": ("中", "不避险·钱没撤离风险资产"),
                                "中性": ("中", "中性")}.get(state, ("中", state))
         plain = (f"市场情绪今天的读数（{vix_txt}、{curve_note}）按老规矩会翻成「{d['raw_state']}」；"
-                 f"但只动了这一天、也没到两倍幅度 → <b>先不翻</b>，维持「{state}」（治天天变卦）。")
+                 f"但只动了这一天、也没到两倍幅度 → 「先不翻」，维持「{state}」（治天天变卦）。")
     return {
         "node": "资金轮动",
         "evidence": (f"【行情·主】{vix_txt}、{curve_note}（阈值 VIX>+{RULES['VIX_SPIKE_PCT']}%或倒挂→避险）"
@@ -314,7 +314,7 @@ def rule_sector(snapshot: dict[str, Any] | None, sector: dict[str, Any] | None) 
         state = d["state"]
         strength, direction = _sector_words(state)
         plain = (f"半导体板块今天读数是 SOXX {fmt_pct(chg)}，按老规矩会翻成「{d['raw_state']}」；"
-                 f"但只动了这一天、也没到两倍幅度 → <b>先不翻</b>，维持「{state}」。"
+                 f"但只动了这一天、也没到两倍幅度 → 「先不翻」，维持「{state}」。"
                  f"要么明天还这样、要么动静再大一倍才算数（治天天变卦）。")
     return {
         "node": "板块轮动",
