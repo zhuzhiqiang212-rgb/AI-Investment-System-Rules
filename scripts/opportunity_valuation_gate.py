@@ -18,7 +18,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(r"G:\我的云端硬盘\AI_Investment_System")
+ROOT = Path(__file__).resolve().parents[1]  # 轮22 M2:改相对ROOT(原硬编码G盘·clone/换机跑不通·M1 clone测试查出③d阻塞)
 OPPORTUNITY_DIR = ROOT / "data" / "opportunities"
 HOST = "127.0.0.1"
 PORT = 11111
