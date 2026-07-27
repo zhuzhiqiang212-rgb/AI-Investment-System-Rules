@@ -3784,7 +3784,8 @@ def part4_funnel(date: str, daily: dict, dyn: dict) -> str:
                 pricerow = f'现价 {cc}{v.get("price")}｜合理 {cc}{f.get("cheap")}~{cc}{f.get("rich")}'
             else:
                 pricerow = f'现价 {cc}{v.get("price")}'
-            valcell = (pricerow + f'<br><b style="color:{vcol}">{esc(str(val["verdict"]))}</b>{mlabel}{auth}')
+            _posln = (f'<br><span style="color:#c9a86a;font-size:10.5px">{esc(str(val.get("position","")))}</span>' if val.get("position") else "")  # 轮17 H2:位置比结论诚实
+            valcell = (pricerow + f'<br><b style="color:{vcol}">{esc(str(val["verdict"]))}</b>{mlabel}{_posln}{auth}')
         else:
             n_wait += 1
             valcell = f'<span class="need">仍待接</span>{mlabel}<br><span style="color:#8ea3b6;font-size:10.5px">{esc(str(val.get("reason", "缺真源·不编"))[:60])}</span>'

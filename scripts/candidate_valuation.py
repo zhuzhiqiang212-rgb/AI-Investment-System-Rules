@@ -219,17 +219,30 @@ def build(date: str) -> dict:
                 _fpe_now = px / _e if _e else None
                 _cc2 = "$" if tk.startswith("US.") else ("¥" if tk.startswith("JP.") else "")
                 if _rpe and _fpe_now is not None:
-                    _mid = _e * _rpe
+                    _mid = _e * _rpe   # reasonable PE=5年中位数(裁定H2)
+                    _lo5, _hi5 = _fe.get("pe_5y_low"), _fe.get("pe_5y_high")
+                    # ★裁定H2:位置比结论诚实——现价PE落在近5年哪个位置(不只给"偏贵"二元结论)
+                    if _lo5 and _hi5:
+                        if _fpe_now > _hi5:
+                            _pos = f"★现价forward PE {_fpe_now:.1f} 已【高于近5年最高 {_hi5}】→处自身历史顶部区(约第100百分位·据现价vs5年max·25/75分位待接)"
+                        elif _fpe_now < _lo5:
+                            _pos = f"★现价forward PE {_fpe_now:.1f} 已【低于近5年最低 {_lo5}】→处自身历史底部区"
+                        else:
+                            _pct = (_fpe_now - _lo5) / (_hi5 - _lo5) * 100
+                            _pos = f"★现价forward PE {_fpe_now:.1f} 落在近5年区间[{_lo5}~{_hi5}]约第{_pct:.0f}百分位(线性近似·精确25/75分位待接)"
+                    else:
+                        _pos = f"现价forward PE {_fpe_now:.1f} vs 5年中位数 {_rpe}(5年区间待接)"
                     _vd = ("偏贵" if _fpe_now > _rpe * 1.25 else "偏便宜" if _fpe_now < _rpe * 0.8 else "大致合理")
                     rec["valuation"] = {
-                        "source": "候选估值·forward P/E(前瞻EPS×自身5年均PE·G1机械现算)", "authoritative": True,
-                        "reliability": "候选级(前瞻EPS真源·reasonable PE=自身5年均值·可调)", "method": METHOD_FWD,
+                        "source": "候选估值·forward P/E(前瞻EPS×自身5年PE中位数·G1/H2机械现算)", "authoritative": True,
+                        "reliability": "候选级(前瞻EPS真源·reasonable PE=自身5年中位数·裁定H2)", "method": METHOD_FWD,
                         "forward_eps": _e, "reasonable_pe": _rpe, "fwd_pe_now": round(_fpe_now, 1),
+                        "pe_5y_low": _lo5, "pe_5y_high": _hi5, "position": _pos,
                         "fair": {"cheap": round(_e * _rpe * 0.8, 1), "mid": round(_mid, 1), "rich": round(_e * _rpe * 1.25, 1)},
                         "verdict": _vd,
                         "note": (f"前瞻EPS {_cc2}{_e}({_fe.get('eps_fy','')}·{_fe.get('eps_source','')})；"
-                                 f"现价forward PE {_fpe_now:.1f}倍 vs 自身5年均PE {_rpe}倍({_fe.get('reasonable_pe_source','')})→{_vd}。"
-                                 f"合理中枢≈{_cc2}{_mid:.0f}(前瞻EPS×5年均PE)。{_fe.get('note_extra','')}")}
+                                 f"{_pos}。参考:5年中位数PE {_rpe}({_fe.get('reasonable_pe_source','')})·合理中枢≈{_cc2}{_mid:.0f}。"
+                                 f"{_fe.get('note_extra','')}")}
                     out[tk] = rec
                     continue
             av = archv.get(tk.split(".")[-1]) or {}
