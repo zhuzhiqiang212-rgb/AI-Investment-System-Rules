@@ -1,0 +1,30 @@
+{
+  "symbol": "JP.4568",
+  "name": "第一三共",
+  "model_type": "医药管线DCF",
+  "模型类型": "医药管线DCF",
+  "instance_role": "首个实例",
+  "可迭代": true,
+  "source": "日报_20260702_完整版.html 第9层",
+  "method": "医药管线情景法",
+  "inputs": {
+    "current_price": "¥2,664",
+    "core_asset": "Enhertu峰值销售加ADC管线减专利悬崖",
+    "bear_forward_EPS": 140,
+    "bear_multiple": 18,
+    "base_forward_EPS": 165,
+    "base_multiple": 20,
+    "bull_forward_EPS": 190,
+    "bull_multiple": 24
+  },
+  "valuation_bands": {
+    "bear": "¥2,520",
+    "base": "¥3,300",
+    "bull": "¥4,560",
+    "reasonable_range": "¥2,600-3,300",
+    "cheap": "<¥2,520",
+    "expensive": ">¥3,800"
+  },
+  "conclusion": "现价已近熊市情景远低于基准，Enhertu仍+25%高增加FY26再+21%爬坡加5个ADC管线在后，相对管线价值偏便宜被专利悬崖担忧压制，持有观察拐点；隐患专利悬崖加ADC能否接棒加单药依赖，属非战略持仓受检不加码。",
+  "dynamic_dispatch_note": "本实例供 valuation_dispatcher.py 从 model_instances 目录动态扫描引用，不构成固定标的名单。"
+}

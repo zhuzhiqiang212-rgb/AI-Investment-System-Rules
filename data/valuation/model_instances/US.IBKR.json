@@ -1,0 +1,18 @@
+{
+  "symbol": "US.IBKR",
+  "name": "IBKR",
+  "model_type": "相对估值·财报锚·非精算·可信度C",
+  "valuation_bands": {
+    "cheap": 78.2,
+    "base": 91.55,
+    "expensive": 119.2
+  },
+  "conclusion": "合理（券商·EPS+12%·受益高利率）",
+  "source": "派工单_P3估值关补全_20260709（理解岗财报锚·按今日现价锚区间）",
+  "price_P": 95.36,
+  "factors": {
+    "cheap": 0.82,
+    "base": 0.96,
+    "expensive": 1.25
+  }
+}

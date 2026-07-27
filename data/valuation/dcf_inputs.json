@@ -1,0 +1,21 @@
+{
+  "_说明": "DCF 精算输入（派工单§2.3）。eps0=真实 forward EPS（来源 valuation 实例/研究包）；增长/折现=明标假设（DCF 本需假设、非编造），列进结果供审。",
+  "_覆盖边界": "两段式 EPS-DCF 只对【稳定成长股】(EPS≈可分配现金流)有效，已铺满能算的成长股(NVDA/MSFT/第一三共)。不纳入本模型的：周期股峰值盈利(爱德万·EPS-DCF算出¥10k vs现价¥29k荒谬)、保险(东京海上·EPS≠FCF)、控股公司(软银·用NAV模型)——它们保持各自估值方法、标'待DCF(EPS代理不适用·用相对/NAV)'；缺 forward EPS 输入的其余持仓标'待DCF(缺EPS输入)'。扩覆盖=在能用此模型且值合理的股里加、不硬套出错值。",
+  "holdings": [
+    {
+      "symbol": "US.NVDA", "name": "英伟达", "currency": "$",
+      "eps0": 8.5, "g_stage1": 0.20, "years": 5, "terminal_g": 0.04, "wacc": 0.11,
+      "note": "eps0=FY27 non-GAAP EPS $8.5(valuation实例·真)；一阶段增速取20%（较近期+85%大幅保守、承认减速），永续4%、折现11%。大仓·AI核心。"
+    },
+    {
+      "symbol": "US.MSFT", "name": "微软", "currency": "$",
+      "eps0": 19.09, "g_stage1": 0.12, "years": 5, "terminal_g": 0.035, "wacc": 0.10,
+      "note": "eps0=FY27 EPS $19.09(valuation实例·真)；一阶段12%、永续3.5%、折现10%(稳健)。大仓·软件AI核心。"
+    },
+    {
+      "symbol": "JP.4568", "name": "第一三共", "currency": "¥",
+      "eps0": 165, "g_stage1": 0.08, "years": 5, "terminal_g": 0.025, "wacc": 0.09,
+      "note": "eps0=base forward EPS ¥165(valuation实例·真)；医药成长·一阶段取8%(保守·计入专利到期风险)、永续2.5%、折现9%。DCF内在≈¥3300、与其管线DCF估值实例(base¥3300)吻合·可信度A。"
+    }
+  ]
+}

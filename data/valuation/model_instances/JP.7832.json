@@ -1,0 +1,18 @@
+{
+  "symbol": "JP.7832",
+  "name": "万代",
+  "model_type": "相对估值·财报锚·非精算·可信度C",
+  "valuation_bands": {
+    "cheap": 3213.6,
+    "base": 3816.15,
+    "expensive": 5222.1
+  },
+  "conclusion": "合理（IP营收20年新高）",
+  "source": "派工单_P3估值关补全_20260709（理解岗财报锚·按今日现价锚区间）",
+  "price_P": 4017.0,
+  "factors": {
+    "cheap": 0.8,
+    "base": 0.95,
+    "expensive": 1.3
+  }
+}

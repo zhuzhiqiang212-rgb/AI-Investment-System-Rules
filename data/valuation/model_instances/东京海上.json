@@ -1,0 +1,30 @@
+{
+  "symbol": "JP.8766",
+  "name": "东京海上",
+  "model_type": "保险内含价值EV",
+  "模型类型": "保险内含价值EV",
+  "instance_role": "首个实例",
+  "可迭代": true,
+  "source": "日报_20260702_完整版.html 第9层",
+  "method": "保险利润回报法",
+  "inputs": {
+    "current_price": "¥7,583",
+    "method_basis": "调整后净利加PER加股东回报",
+    "bear_EPS": 477,
+    "bear_PER": 13,
+    "base_EPS": 490,
+    "base_PER": 14,
+    "bull_EPS": 520,
+    "bull_PER": 16
+  },
+  "valuation_bands": {
+    "bear": "¥6,200",
+    "base": "¥6,860",
+    "bull": "¥8,320",
+    "reasonable_range": "¥6,200-6,860",
+    "cheap": "<¥6,200",
+    "expensive_or_reduce": ">¥7,500"
+  },
+  "conclusion": "现价已高于基准也高于分析师目标¥6,759，是6只重仓里唯一现价偏贵透支的，公司质地好连14年增息加ESR155资本强加巴菲特持股，但价格跑在价值前，浮盈+39厚，属非战略持仓受检，守浮盈不加码偏贵可波段减；隐患巨灾加北美社会通胀加亚洲寿险利率下行。",
+  "dynamic_dispatch_note": "本实例供 valuation_dispatcher.py 从 model_instances 目录动态扫描引用，不构成固定标的名单。"
+}

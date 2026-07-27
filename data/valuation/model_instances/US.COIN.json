@@ -1,0 +1,18 @@
+{
+  "symbol": "US.COIN",
+  "name": "Coinbase",
+  "model_type": "相对估值·财报锚·非精算·可信度C",
+  "valuation_bands": {
+    "cheap": 134.94,
+    "base": 163.51,
+    "expensive": 214.31
+  },
+  "conclusion": "合理偏便宜（目标$360·转型中）",
+  "source": "派工单_P3估值关补全_20260709（理解岗财报锚·按今日现价锚区间）",
+  "price_P": 158.75,
+  "factors": {
+    "cheap": 0.85,
+    "base": 1.03,
+    "expensive": 1.35
+  }
+}

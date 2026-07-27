@@ -84,3 +84,28 @@ reports/validation/
 /docs/gen_report_V3_20260617.py
 /docs/V6_线程快照_20260618.md
 
+
+# === 轮21 L2(裁定二·2026-07-27):静态配置类 data 属尺→进 git ===
+# 规则:带日期 *_YYYYMMDD.json = 运行数据仍不进;不带日期且属判据/配置 = 尺·进 git。
+# 标准 re-include 模式:先放行父目录·再逐个放行属尺文件(账户/持仓/现金 dir 不放行·维持敏感排除)。
+!data/
+data/*
+!data/valuation/
+data/valuation/*
+!data/valuation/model_instances/
+data/valuation/model_instances/*
+!data/valuation/val_inputs.json
+!data/valuation/valuation_ruler_class.json
+!data/valuation/earnings_calendar.json
+!data/valuation/candidate_universe.json
+!data/valuation/candidate_forward_eps.json
+!data/valuation/security_types.json
+!data/valuation/dcf_inputs.json
+!data/valuation/quality_inputs.json
+!data/valuation/model_instances/*.json
+!data/screen/
+data/screen/*
+!data/screen/driver_groups.json
+!data/catalyst/
+data/catalyst/*
+!data/catalyst/catalyst_library.json

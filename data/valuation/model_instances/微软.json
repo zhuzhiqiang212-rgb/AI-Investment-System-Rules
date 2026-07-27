@@ -1,0 +1,23 @@
+{
+  "symbol": "US.MSFT",
+  "name": "微软",
+  "模型类型": "成长情景PE",
+  "instance_role": "首个实例",
+  "可迭代": true,
+  "source": "日报_20260702_完整版.html 第9层",
+  "inputs": {
+    "FY27_EPS": "$19.09",
+    "bear_PE": 18,
+    "base_PE": 22,
+    "bull_PE": 26
+  },
+  "valuation_bands": {
+    "bear": "$344",
+    "base": "$420",
+    "bull": "$496",
+    "reasonable": "$382-420",
+    "cheap": "<$360",
+    "expensive": ">$460"
+  },
+  "conclusion": "现价约20倍前瞻PE在历史区间偏低、营收+18%Azure+39%订单$392B，不贵略便宜可持有；隐患$190B资本开支压毛利。"
+}

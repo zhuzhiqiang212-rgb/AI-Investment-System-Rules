@@ -1,0 +1,18 @@
+{
+  "symbol": "US.SNDK",
+  "name": "闪迪",
+  "model_type": "相对估值·财报锚·非精算·可信度C",
+  "valuation_bands": {
+    "cheap": 1132.8,
+    "base": 1510.4,
+    "expensive": 1736.96
+  },
+  "conclusion": "贵（NAND周期高位·年内+737%）",
+  "source": "派工单_P3估值关补全_20260709（理解岗财报锚·按今日现价锚区间）",
+  "price_P": 1888.0,
+  "factors": {
+    "cheap": 0.6,
+    "base": 0.8,
+    "expensive": 0.92
+  }
+}

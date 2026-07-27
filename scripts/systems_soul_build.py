@@ -275,9 +275,9 @@ def build_pending_decisions(date: str) -> dict:
                 "decided_at": old.get(pid, {}).get("decided_at"),
             })
     # 轮11 B4(裁定):同一驱动组>阈值 接进正式待拍板——名单由架构师维护driver_groups_{date}.json(机器只读)·阈值默认留空(None)=不触发·逻辑先写好等董事长拍板填
-    # ★轮17 H4修:driver_groups是架构师维护的【配置】·不按日变→缺当日不许硬炸(原rj硬读致07-27生产失败)。
-    #   缺当日则回退到≤当日的最新一份(找不到→空dict不触发)。配置沿用·不是数据·回退是正确行为。
-    _dgp = ROOT / "data" / "screen" / f"driver_groups_{date}.json"
+    # ★轮21 L2(裁定):driver_groups改常驻配置driver_groups.json(不带日期·内部记as_of·属尺进git)。
+    #   优先读常驻;缺则回退旧带日期文件(兼容历史)·再缺→空dict不触发。配置沿用·非数据。
+    _dgp = ROOT / "data" / "screen" / "driver_groups.json"
     if not _dgp.exists():
         _cands = sorted(p for p in (ROOT / "data" / "screen").glob("driver_groups_*.json")
                         if p.stem.split("_")[-1] <= date)

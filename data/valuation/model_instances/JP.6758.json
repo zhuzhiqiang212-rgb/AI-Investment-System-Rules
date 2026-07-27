@@ -1,0 +1,18 @@
+{
+  "symbol": "JP.6758",
+  "name": "索尼",
+  "model_type": "相对估值·财报锚·非精算·可信度C",
+  "valuation_bands": {
+    "cheap": 2687.2,
+    "base": 3191.05,
+    "expensive": 4366.7
+  },
+  "conclusion": "合理（多引擎·利润创纪录）",
+  "source": "派工单_P3估值关补全_20260709（理解岗财报锚·按今日现价锚区间）",
+  "price_P": 3359.0,
+  "factors": {
+    "cheap": 0.8,
+    "base": 0.95,
+    "expensive": 1.3
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "symbol": "US.META",
+  "name": "META",
+  "model_type": "相对估值·财报锚·非精算·可信度C",
+  "valuation_bands": {
+    "cheap": 511.49,
+    "base": 607.39,
+    "expensive": 799.2
+  },
+  "conclusion": "合理（广告强·巨额capex压FCF）",
+  "source": "派工单_P3估值关补全_20260709（理解岗财报锚·按今日现价锚区间）",
+  "price_P": 639.36,
+  "factors": {
+    "cheap": 0.8,
+    "base": 0.95,
+    "expensive": 1.25
+  }
+}

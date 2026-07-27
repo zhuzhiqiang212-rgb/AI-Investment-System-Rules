@@ -1,0 +1,26 @@
+{
+  "_说明": "轮16 G1(裁定2026-07-26):第一类换forward P/E的前瞻EPS真输入(口径已定)。★reasonable PE=自身5年均值(E4轮14来源·可调)·非拍脑袋(记E1教训:PE必须有来源)。forward_eps口径由架构师G1逐只定。candidate_valuation.py 'fwd'路径读此·现算forward PE vs 5年均PE给verdict。",
+  "date": "20260726",
+  "items": {
+    "US.LRCX": {
+      "forward_eps": 5.68, "eps_fy": "FY2026", "currency": "$",
+      "eps_source": "Yahoo/finance预览2026·较FY2025 $4.14 +37.2%·口径一致(研究核实2026-07-26)",
+      "reasonable_pe": 26.7, "reasonable_pe_source": "★自身5年PE【中位数】(gurufocus财年口径·裁定H2:中位数替均值·对周期顶底极端值稳健)",
+      "pe_5y_low": 11.76, "pe_5y_high": 36.45, "pe_5y_p25": null, "pe_5y_p75": null,
+      "pe_percentile_note": "25/75分位待接(无站公开·需原始月度序列自算);现价forward PE已高于近5年最高36.45→约处自身历史顶部(第~100百分位·据现价vs5年max推导·非直接来源)",
+      "note_extra": "FY2027 $7.86仅note参考·不进算(裁定G1:近端更可靠·远期不确定)"
+    },
+    "US.AMAT": {
+      "forward_eps": 11.10, "eps_fy": "FY2026", "currency": "$",
+      "eps_source": "stockanalysis/Yahoo·较FY2025 $9.42 +17.8%(研究核实2026-07-26)",
+      "reasonable_pe": 20.1, "reasonable_pe_source": "★自身5年PE【中位数】(gurufocus财年口径·裁定H2:中位数替均值)",
+      "pe_5y_low": 11.4, "pe_5y_high": 26.56, "pe_5y_p25": null, "pe_5y_p75": null,
+      "pe_percentile_note": "25/75分位待接(需原始序列);现价forward PE已高于近5年最高26.56→约处自身历史顶部(第~100百分位·推导·非直接来源)",
+      "note_extra": "★裁定G1:eps0用FY2026 $11.10不用FY2027;FY2027出现$14.03/$13.00两值本身说明远期不确定→两值仅note区间参考·不进计算"
+    }
+  },
+  "_待接不进算": {
+    "US.IBKR": "裁定G1用GAAP不用adjusted。但研究只找到adjusted前瞻$2.57~2.65·GAAP前瞻EPS待接(未查到可追溯单一共识)→GAAP forward待接·换尺待接·维持现normalized_pe(已是GAAP口径$2.22·可比)。不用adjusted顶替(守口径)。",
+    "US.ASML": "裁定G1用报表本币欧元算再折美元比ADR。但研究FY2026仅USD口径$34~36.62(欧元EPS待接)+FY2027仅单一分析师非共识→欧元EPS待接·避免币种错配(EPS欧元/股价ADR美元直接混=币种错·同data_date打架一类错)。待接欧元EPS真源。"
+  }
+}

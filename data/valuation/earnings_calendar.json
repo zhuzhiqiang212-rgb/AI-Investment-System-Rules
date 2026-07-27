@@ -1,0 +1,124 @@
+{
+  "_说明": "财报日历(理解岗出报后维护·目标毕业接财报源API)。events 列持仓+候选池谁哪天出财报;status=预定/已出;confirm=已确认(公司官方公告)/预计(聚合源·财报周前一周复核)。某只【已出】后，理解岗同步把新财报数更新进 val_inputs.json 的真输入→估值引擎按同一类型模型自动重算区间/买卖价(不换方法)，并把 reported_on 填上。缺真源→标待接、不编财报日、不编财报数。",
+  "_填写人": "工程师建位(种子:台积电7/16·用户给)2026-07-14 · 理解岗2026-07-14补登其余持仓18只+候选4只(带来源;预计者需临近复核)",
+  "generated_at": "2026-07-14T00:00:00+09:00",
+  "upcoming_window_days": 10,
+  "events": [
+    {
+      "symbol": "US.TSM", "name": "台积电", "report_date": "2026-07-16", "session": "盘后",
+      "status": "预定", "confirm": "已确认", "fiscal": "2026Q2", "reported_on": null,
+      "note": "季度法说会·关注N2进度/毛利/AI订单指引。出报后理解岗更新 val_inputs(周期股·中周期盈利真输入:正常年景EPS+中周期PE)→自动重算。"
+    },
+    {
+      "symbol": "US.IBKR", "name": "IBKR", "report_date": "2026-07-21", "session": "盘后(约16:00 ET发布·16:30电话会)",
+      "status": "预定", "confirm": "已确认", "fiscal": "2026Q2", "reported_on": null,
+      "note": "公司新闻稿已确认(StockTitan转载)。"
+    },
+    {
+      "symbol": "US.MSFT", "name": "微软", "report_date": "2026-07-29", "session": "盘后(电话会14:30 PT)",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2026Q4", "reported_on": null,
+      "note": "微软官方2026-07-08公告。"
+    },
+    {
+      "symbol": "US.META", "name": "META", "report_date": "2026-07-29", "session": "盘后(电话会17:00 ET)",
+      "status": "预定", "confirm": "已确认", "fiscal": "2026Q2", "reported_on": null,
+      "note": "Meta IR安排。"
+    },
+    {
+      "symbol": "JP.6857", "name": "爱德万", "report_date": "2026-07-29", "session": "15:30 JST",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2026Q1(2027/3期)", "reported_on": null,
+      "note": "公司FY2025决算资料载明。出报后核book-to-bill待接项。"
+    },
+    {
+      "symbol": "US.COIN", "name": "Coinbase", "report_date": "2026-07-30", "session": "盘后",
+      "status": "预定", "confirm": "预计", "fiscal": "2026Q2", "reported_on": null,
+      "note": "Investing.com/TipRanks聚合·临近复核。"
+    },
+    {
+      "symbol": "US.MSTR", "name": "Strategy", "report_date": "2026-07-30", "session": "盘后(网络会17:00 ET)",
+      "status": "预定", "confirm": "已确认", "fiscal": "2026Q2", "reported_on": null,
+      "note": "公司公告。"
+    },
+    {
+      "symbol": "JP.4568", "name": "第一三共", "report_date": "2026-07-31", "session": "待接",
+      "status": "预定", "confirm": "预计", "fiscal": "FY2026Q1", "reported_on": null,
+      "note": "kabutore决算预定日历·公司IR页未直接核到·临近复核。出报后重点核FCF是否走在转正路径(FY2025 FCF−¥71.3B·扩产期)。"
+    },
+    {
+      "symbol": "JP.7203", "name": "丰田", "report_date": "2026-08-03", "session": "待接",
+      "status": "预定", "confirm": "预计", "fiscal": "FY2027Q1", "reported_on": null,
+      "note": "Seeking Alpha/MarketBeat聚合·公司IR尚未正式公布·临近复核。"
+    },
+    {
+      "symbol": "JP.8001", "name": "伊藤忠", "report_date": "2026-08-03", "session": "13:00 JST",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2026Q1(2027/3期)", "reported_on": null,
+      "note": "公司IR日历。"
+    },
+    {
+      "symbol": "US.SNDK", "name": "闪迪", "report_date": "2026-08-05", "session": "电话会13:30 PT",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2026Q4", "reported_on": null,
+      "note": "公司2026-07-09新闻稿;另8/13投资者日。"
+    },
+    {
+      "symbol": "JP.9984", "name": "软银", "report_date": "2026-08-06", "session": "待接",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2026Q1", "reported_on": null,
+      "note": "软银集团官网Q1 FY2026决算说明会通知(2026-07-02)。出报后补ROE页码级复核。"
+    },
+    {
+      "symbol": "JP.6758", "name": "索尼", "report_date": "2026-08-06", "session": "待接",
+      "status": "预定", "confirm": "预计", "fiscal": "FY2026Q1", "reported_on": null,
+      "note": "Investing.com聚合·公司未正式公告·临近复核。"
+    },
+    {
+      "symbol": "JP.7832", "name": "万代", "report_date": "2026-08-06", "session": "待接",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2026Q1(2027/3期)", "reported_on": null,
+      "note": "公司IR日历'8月6日(木)'。出报后补精确有息负债。"
+    },
+    {
+      "symbol": "JP.7974", "name": "任天堂", "report_date": "2026-08-06", "session": "待接",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2027Q1", "reported_on": null,
+      "note": "任天堂IR页面。"
+    },
+    {
+      "symbol": "JP.8766", "name": "东京海上", "report_date": "2026-08-12", "session": "待接",
+      "status": "预定", "confirm": "预计", "fiscal": "FY2026Q1", "reported_on": null,
+      "note": "公司IR日历仅写'8月'·具体日为Investing.com预计·临近复核。"
+    },
+    {
+      "symbol": "US.CRCL", "name": "Circle", "report_date": "2026-08-18", "session": "待接",
+      "status": "预定", "confirm": "预计", "fiscal": "2026Q2", "reported_on": null,
+      "note": "Investing.com聚合·临近复核。"
+    },
+    {
+      "symbol": "US.NVDA", "name": "英伟达", "report_date": "2026-08-26", "session": "盘后",
+      "status": "预定", "confirm": "预计", "fiscal": "FY2027Q2", "reported_on": null,
+      "note": "TipRanks/Calendarial等多源一致·公司IR未见原文公告·临近复核。"
+    },
+    {
+      "symbol": "US.AVGO", "name": "博通", "report_date": "2026-09-03", "session": "盘后",
+      "status": "预定", "confirm": "预计", "fiscal": "FY2026Q3", "reported_on": null,
+      "note": "TipRanks/MarketBeat/Investing聚合·公司未发正式通知·临近复核。"
+    },
+    {
+      "symbol": "KR.000660", "name": "SK海力士(候选)", "report_date": "2026-07-22", "session": "待接",
+      "status": "预定", "confirm": "预计", "fiscal": "2026Q2", "reported_on": null,
+      "note": "Investing.com预计;韩媒称7/23暂定·公司未正式确认·临近复核。"
+    },
+    {
+      "symbol": "JP.8035", "name": "东京电子(候选)", "report_date": "2026-07-30", "session": "待接",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2026Q1(2027/3期)", "reported_on": null,
+      "note": "公司IR日历(予定)。"
+    },
+    {
+      "symbol": "KR.005930", "name": "三星电子(候选)", "report_date": "2026-07-30", "session": "电话会10:00 KST",
+      "status": "预定", "confirm": "已确认", "fiscal": "2026Q2", "reported_on": null,
+      "note": "公司正式通知;7/7已发初步业绩。"
+    },
+    {
+      "symbol": "US.MU", "name": "美光(候选)", "report_date": "2026-09-29", "session": "盘后",
+      "status": "预定", "confirm": "已确认", "fiscal": "FY2026Q4", "reported_on": null,
+      "note": "Investing.com/WallStreetHorizon标注confirmed。"
+    }
+  ],
+  "_待接": "无全缺项。4只为聚合源'预计'(丰田/索尼/东京海上/SK海力士+COIN/CRCL/NVDA/AVGO)·财报周前一周复核;session标'待接'者发布时刻未核到·不编。"
+}

@@ -1,0 +1,18 @@
+{
+  "symbol": "JP.7203",
+  "name": "丰田",
+  "model_type": "相对估值·财报锚·非精算·可信度C",
+  "valuation_bands": {
+    "cheap": 2399.55,
+    "base": 2907.69,
+    "expensive": 3669.9
+  },
+  "conclusion": "合理偏便宜（混动毛利38-50%·价值仓）",
+  "source": "派工单_P3估值关补全_20260709（理解岗财报锚·按今日现价锚区间）",
+  "price_P": 2823.0,
+  "factors": {
+    "cheap": 0.85,
+    "base": 1.03,
+    "expensive": 1.3
+  }
+}

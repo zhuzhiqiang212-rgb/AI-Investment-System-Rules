@@ -1,0 +1,33 @@
+{
+  "symbol": "US.MSTR",
+  "name": "Strategy(MSTR)",
+  "model_type": "加密mNAV",
+  "模型类型": "加密mNAV",
+  "instance_role": "首个实例",
+  "可迭代": true,
+  "source": "理解岗真估值 2026-07-02",
+  "method": "加密mNAV法：持币净值×mNAV溢价倍数",
+  "inputs": {
+    "current_price": "$100.77",
+    "btc_holdings": "约845256 BTC",
+    "avg_cost_per_btc": "$76056",
+    "current_mnav": "约0.8x跌破1",
+    "bear_mnav": 0.6,
+    "base_mnav": 1.0,
+    "bull_mnav": 1.5
+  },
+  "valuation_note": "mNAV现约0.8x跌破1，市值低于持币净值，表面便宜实为飞轮停转的压力信号；命绑BTC，持币214%于市值",
+  "conclusion": "加密高Beta非战略持仓受检，现深亏，mNAV跌破1是基本面转坏非捡便宜；守不追不越跌越补，等BTC站稳成本线加mNAV回1才是降风险信号；仓位控制比估值更重要",
+  "key_signals": "危险BTC破60k或mNAV破0.6x；修复BTC站稳76k加mNAV回1x",
+  "dynamic_dispatch_note": "本实例供valuation_dispatcher.py从model_instances目录动态扫描引用，不构成固定标的名单",
+  "valuation_bands": {
+    "bear": "$70",
+    "base": "$95",
+    "bull": "$125",
+    "reasonable": "$85-100",
+    "cheap": "<$78",
+    "expensive": ">$118",
+    "method_note": "现价锚·相对估值·非精算·mNAV(市值/持币NAV)溢价框架：mNAV>1为溢价、追高危险；现价约$94.9。精算待BTC持仓NAV接入。"
+  },
+  "valuation_status": "相对估值·非精算·mNAV现价锚"
+}

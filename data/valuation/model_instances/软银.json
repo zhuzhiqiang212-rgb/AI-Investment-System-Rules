@@ -1,0 +1,25 @@
+{
+  "symbol": "JP.9984",
+  "name": "软银",
+  "模型类型": "NAV折价",
+  "instance_role": "首个实例",
+  "可迭代": true,
+  "source": "日报_20260702_完整版.html 第9层",
+  "inputs": {
+    "current_price": "¥6,051",
+    "NAV_per_share": "¥13,000",
+    "current_discount": "约53%",
+    "bear_discount": "55%",
+    "base_discount": "45%",
+    "bull_discount": "35%"
+  },
+  "valuation_bands": {
+    "bear": "¥5,850",
+    "base": "¥7,150",
+    "bull": "¥8,450",
+    "reasonable": "¥6,000-7,150",
+    "cheap": "<¥5,850",
+    "expensive": ">¥8,000"
+  },
+  "conclusion": "折价偏宽加LTV仅10-17%财务稳健加手握Arm与OpenAI，相对NAV偏便宜可持有守盯NAV；隐患NAV高度依赖Arm加OpenAI，二者回调则NAV缩水。"
+}

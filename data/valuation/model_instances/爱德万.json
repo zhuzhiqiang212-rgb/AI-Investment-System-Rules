@@ -1,0 +1,25 @@
+{
+  "symbol": "JP.6857",
+  "name": "爱德万",
+  "模型类型": "周期PE",
+  "instance_role": "首个实例",
+  "可迭代": true,
+  "source": "日报_20260702_完整版.html 第9层",
+  "inputs": {
+    "current_price": "¥29,205",
+    "forward_EPS": "¥629",
+    "current_forward_PE": "约46倍",
+    "bear_PE": 28,
+    "base_PE": 44,
+    "bull_PE": 46
+  },
+  "valuation_bands": {
+    "bear": "¥17,600",
+    "base": "¥27,700",
+    "bull": "¥35,900",
+    "reasonable": "¥25,000-28,000",
+    "low_buy": "<¥23,000年线附近",
+    "expensive": ">¥30,000"
+  },
+  "conclusion": "虽是符合战略的AI设备核心，但周期股正处峰值盈利加PE46倍，现价已略高于基准，是6只重仓里唯一偏贵的，守已持有但绝不追高；最大隐患是周期股峰值盈利加高PE的双杀。"
+}

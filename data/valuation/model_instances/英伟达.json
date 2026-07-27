@@ -1,0 +1,23 @@
+{
+  "symbol": "US.NVDA",
+  "name": "英伟达",
+  "模型类型": "成长情景PE",
+  "instance_role": "首个实例",
+  "可迭代": true,
+  "source": "日报_20260702_完整版.html 第9层",
+  "inputs": {
+    "FY27_non_GAAP_EPS": "$8.5",
+    "bear_PE": 20,
+    "base_PE": 26,
+    "bull_PE": 32
+  },
+  "valuation_bands": {
+    "bear": "$170",
+    "base": "$221",
+    "bull": "$272",
+    "reasonable": "$195-221",
+    "cheap": "<$175",
+    "expensive": ">$260"
+  },
+  "conclusion": "现价约23倍前瞻PE对+85%增速不贵偏合理、数据中心+92%$1万亿需求，守核心不追高；隐患大数定律加中国归零加定制芯片竞争。"
+}

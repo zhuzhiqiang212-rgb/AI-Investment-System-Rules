@@ -1,0 +1,519 @@
+{
+  "_说明": "基本面质量关输入位(尺=基本面质量关框架.html·试行)。理解岗填五项真财务:gross_margin(毛利率·小数如0.55)/fcf(自由现金流·为正填正数)/pricing_power(订价权:强/中/弱)/balance_sheet(净负债EBITDA等或强/中/弱)/order_visibility(backlog/book-to-bill/续约或强/中/弱);每项 value+trend(改善/恶化/持平)。缺→null=待接/待评/NA·不编。门槛分行业在 quality_gate.py(试行·待董事长校准)。BTC/ETH不在此(资产口径)。",
+  "_填写人": "工程师建位·全待理解岗填真财务 · 2026-07-14",
+  "holdings": {
+    "JP.4568": {
+      "name": "第一三共",
+      "type": "成长股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.NVDA": {
+      "name": "英伟达",
+      "type": "成长股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.MSFT": {
+      "name": "微软",
+      "type": "成长股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.MSTR": {
+      "name": "MSTR",
+      "type": "控股公司",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.COIN": {
+      "name": "Coinbase",
+      "type": "券商",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "JP.9984": {
+      "name": "软银",
+      "type": "控股公司",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "JP.8766": {
+      "name": "东京海上",
+      "type": "保险",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "JP.6758": {
+      "name": "索尼",
+      "type": "成长股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "JP.6857": {
+      "name": "爱德万",
+      "type": "周期股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "JP.7203": {
+      "name": "丰田",
+      "type": "周期股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "JP.8001": {
+      "name": "伊藤忠",
+      "type": "综合商社",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "JP.7832": {
+      "name": "万代",
+      "type": "成长股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "JP.7974": {
+      "name": "任天堂",
+      "type": "成长股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.AVGO": {
+      "name": "博通",
+      "type": "成长股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.CRCL": {
+      "name": "Circle",
+      "type": "券商",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.SNDK": {
+      "name": "闪迪",
+      "type": "周期股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.TSM": {
+      "name": "台积电",
+      "type": "周期股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.META": {
+      "name": "META",
+      "type": "成长股",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    },
+    "US.IBKR": {
+      "name": "IBKR",
+      "type": "券商",
+      "indicators": {
+        "gross_margin": {
+          "value": null,
+          "trend": null
+        },
+        "fcf": {
+          "value": null,
+          "trend": null
+        },
+        "pricing_power": {
+          "value": null,
+          "trend": null
+        },
+        "balance_sheet": {
+          "value": null,
+          "trend": null
+        },
+        "order_visibility": {
+          "value": null,
+          "trend": null
+        }
+      },
+      "note": "待理解岗填真财务(毛利率/自由现金流/资产负债表来自财报;订价权理解岗判;订单可见度财报电话会)。value+trend(改善/恶化/持平);缺→null=待接不编。"
+    }
+  }
+}

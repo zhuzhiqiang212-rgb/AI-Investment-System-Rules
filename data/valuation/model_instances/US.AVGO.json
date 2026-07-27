@@ -1,0 +1,18 @@
+{
+  "symbol": "US.AVGO",
+  "name": "博通",
+  "model_type": "相对估值·财报锚·非精算·可信度C",
+  "valuation_bands": {
+    "cheap": 340.93,
+    "base": 413.12,
+    "expensive": 521.42
+  },
+  "conclusion": "合理偏便宜（目标$470-500·上行）",
+  "source": "派工单_P3估值关补全_20260709（理解岗财报锚·按今日现价锚区间）",
+  "price_P": 401.09,
+  "factors": {
+    "cheap": 0.85,
+    "base": 1.03,
+    "expensive": 1.3
+  }
+}
