@@ -109,3 +109,6 @@ data/screen/*
 !data/catalyst/
 data/catalyst/*
 !data/catalyst/catalyst_library.json
+!data/market/
+data/market/*
+!data/market/regime_events.json

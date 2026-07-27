@@ -29,8 +29,35 @@ RULES = {
     "SOXX_WEAK_PCT": -1.0,     # 跌>1% → 走弱
 }
 
-# 标准 AI 承接节点（写进 today_direction，供 production_pipeline 激活筛选）
-ACTIVE_NODES = ["算力", "半导体设备", "代工", "存储", "盟友链"]
+# ★N1(裁定2026-07-27)激活清单单一源：承接节点从 data/market/sector_activation_*.json【读】·不再代码写死。
+#   判定权仍在架构师(手写sector_activation)·代码只负责把它传下去。缺文件/读失败→回退硬编码兜底(记警·不静默)。
+def _load_active_nodes():
+    """读最新 sector_activation_*.json 的【激活】板块→承接节点短名。优先读cell的『承接节点』字段;
+    无则用板块名→短名crosswalk(架构师核·同gate1_trace)。缺文件/无映射→回退FALLBACK并记警。"""
+    import glob as _glob
+    _FALLBACK = ["算力", "半导体设备", "代工", "存储", "盟友链"]
+    _S2N = {"AI算力·AI芯片": "算力", "AI半导体设备": "半导体设备", "AI代工": "代工",
+            "AI存储": "存储", "盟友链节点·日韩半导体": "盟友链"}
+    try:
+        cands = sorted(_glob.glob(str(ROOT / "data" / "market" / "sector_activation_*.json")))
+        if not cands:
+            return _FALLBACK, "⚠缺sector_activation·回退硬编码兜底(须架构师出激活清单)"
+        src = cands[-1]
+        d = json.loads(Path(src).read_text(encoding="utf-8"))
+        nodes = []
+        for c in (d.get("板块") or []):
+            if c.get("激活") in (True, "是", "激活"):
+                nm = c.get("承接节点") or _S2N.get(str(c.get("板块")))
+                if nm and nm not in nodes:
+                    nodes.append(nm)
+        if not nodes:
+            return _FALLBACK, f"⚠{Path(src).name}无板块映射到承接节点·回退兜底"
+        return nodes, Path(src).name
+    except Exception as e:
+        return _FALLBACK, f"⚠读sector_activation失败({e})·回退兜底"
+
+
+ACTIVE_NODES, _ACTIVE_NODES_SRC = _load_active_nodes()
 
 
 def read_json(path: Path) -> dict[str, Any]:
