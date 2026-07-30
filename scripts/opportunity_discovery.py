@@ -38,8 +38,15 @@ def gate_S1(cand, w_legal):
     return "PASS", None, contrib
 
 def gate_S2(cand, group_weight_after, same_group_as_top):
+    # v1.2(规范升级):低相关从并列条件升为硬门槛——④驱动组≤30%(已破限则该组一律FAIL) ⑤加入后跨度不得扩大
+    grp_cur = cand.get("driver_group_current_weight")
+    if grp_cur is not None and grp_cur > GROUP_MAX:
+        return "FAIL", "S2④(v1.2):驱动组已破30%%(当前%.1f%%)·降回30%%内前该组不得再加任何新仓位" % (grp_cur * 100), 1.0
     if group_weight_after > GROUP_MAX:
-        return "FAIL", "S2:加入后驱动组权重%.0f%%>30%%" % (group_weight_after * 100), 1.0
+        return "FAIL", "S2④:加入后驱动组权重%.0f%%>30%%" % (group_weight_after * 100), 1.0
+    sb, sa = cand.get("span_before"), cand.get("span_after")
+    if sb is not None and sa is not None and sa > sb + 1e-9:
+        return "FAIL", "S2⑤(v1.2):加入后账户S1−S3跨度扩大(%.2f→%.2fpp)·无论补多少缺口一律出局" % (sb * 100, sa * 100), 1.0
     factor = 0.5 if same_group_as_top else 1.0     # 与最大贡献来源同驱动组→0.5折算
     if not cand.get("driver_basis"):
         return "FAIL", "S2:驱动组归组无依据(不许只按行业标签)", factor
@@ -101,8 +108,12 @@ def process(cand, ctx):
     dd = cand.get("downside", {})
     worst_dd_pp = w_legal * abs(dd.get("drop_pct", 0)) * 100 or 0.01
     conf = CONF.get(cand.get("fair_value", {}).get("confidence", "C"), 0.4)
-    priority = round(contrib_adj * conf / worst_dd_pp, 3)
+    # v1.2 排序:优先度 = 补缺口pp × 置信度 ÷ 最坏回撤pp × 跨度改善系数(加入前跨度÷加入后跨度·>1改善)
+    sb, sa = cand.get("span_before"), cand.get("span_after")
+    span_improve = round(sb / sa, 3) if (sb and sa and sa > 0) else 1.0
+    priority = round(contrib_adj * conf / worst_dd_pp * span_improve, 3)
     passed = {
+        "跨度改善系数": span_improve,
         "ticker": cand.get("ticker"), "name": cand.get("name"), "account_fit": cand.get("account_fit"),
         "sector_cell": cand.get("sector_cell"), "driver_group": cand.get("driver_group"), "driver_basis": cand.get("driver_basis"),
         "gate_trace": trace, "max_legal_weight": w_legal,
@@ -196,6 +207,18 @@ def self_test():
     p_no = process({**base, "same_group_as_top": False}, ctx)[0]
     p_yes = process({**base, "same_group_as_top": True}, ctx)[0]
     res["R3_同驱动组0.5折算后移"] = (p_no and p_yes and abs(p_yes["gap_contrib_pp_after_S2折算"] - p_no["gap_contrib_pp_after_S2折算"] * 0.5) < 1e-6 and p_yes["priority"] < p_no["priority"])
+    # R1-v1.2 高AI beta 补缺口5pp的候选 → 该组已破限(36%>30%)→ S2④ 挡住(证硬门槛生效)
+    r5 = process({"ticker": "R5高AI", "sector_cell": "AI电力", "max_legal_weight": 0.5,
+                  "fair_value": {"value": 20, "method": "PE", "as_of": "2026-07-30", "confidence": "A"}, "price": 10,
+                  "driver_group": "高AI beta", "driver_basis": "AI capex", "driver_group_current_weight": 0.36,
+                  "group_weight_after": 0.41, "downside": {"drop_pct": 20, "trigger": "x"}}, ctx)
+    res["R1v1.2_高AIbeta补5pp被S2④挡"] = (r5[1] and r5[1]["failed_gate"] == "S2" and "S2④" in (r5[1].get("reason") or ""))
+    # R1-v1.2 跨度扩大的候选 → S2⑤ 挡住
+    r6 = process({"ticker": "R6扩跨度", "sector_cell": "AI电力", "max_legal_weight": 0.1,
+                  "fair_value": {"value": 30, "method": "PE", "as_of": "2026-07-30", "confidence": "A"}, "price": 10,
+                  "driver_group": "低相关", "driver_basis": "x", "group_weight_after": 0.1,
+                  "span_before": 0.70, "span_after": 0.78, "downside": {"drop_pct": 20, "trigger": "x"}}, ctx)
+    res["R1v1.2_跨度扩大被S2⑤挡"] = (r6[1] and r6[1]["failed_gate"] == "S2" and "S2⑤" in (r6[1].get("reason") or ""))
     # R4 rejected为空 → run 报FAIL(退出码非0)
     out_allpass = run("20260730", {**ctx, "candidate_pool": [base | {"same_group_as_top": False}], "activation_file": ""})
     res["R4_rejected空则FAIL"] = (out_allpass["self_check"]["rejected_non_empty"] is False)  # 空→非空False→主流程据此FAIL
