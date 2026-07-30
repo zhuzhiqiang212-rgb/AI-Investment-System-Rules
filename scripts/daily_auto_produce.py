@@ -61,6 +61,7 @@ STEPS = [
     ("⑥d 尺A·利润指引大幅变动重估(41号)", "valuation_ruler_guidance_revision.py", False),
     ("⑥e 尺B·控股型净资产估值(41号)", "valuation_ruler_holdco.py", False),
     # 46号D2③候选池生产者(按当日激活板块逐格取龙头·上游未就绪据实报未产出)→ 43号C2机会发现·估值后渲染前·非关键(失败只告警不停链)
+    ("⑥e1 估值重估触发巡检(49号E2·估值后·发现摆清单不改fair)", "valuation_review_trigger_gate.py", False),
     ("⑥e2 候选池生产者(激活板块·46号)", "candidate_pool_producer.py", False),
     ("⑥f 机会发现(从缺口出发·43号)", "opportunity_discovery.py", False),
     ("⑦ 当日涨跌", "day_change_scan.py", False),

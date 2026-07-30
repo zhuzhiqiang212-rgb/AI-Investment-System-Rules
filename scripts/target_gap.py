@@ -138,6 +138,8 @@ def build_futu_authoritative(date):
             add = round(r["market_value_usd"] / A * ((top["upside_pct"] - r["upside_pct"]) / 100) * 100, 3)
             swap.append({"卖": r["name"], "换成": top["name"], "能补pp": add, "说明": "卖%s换%s·补%.2fpp" % (r["name"], top["name"], add)})
     return {"账户": "富途", "当日总资产A_USD": round(A, 2), "股票市值_USD": round(mval, 2), "现金_USD": cash,
+            "_fx_0730": fx, "_price_0730_local": {p["symbol"]: p.get("broker_nominal_price") for p in fp["futu_positions"]},
+            "price_vintage": tstamp, "fair_vintage": "见 data/valuation/val_inputs.json 各只 priced_at",
             "★单一权威源": "futu_positions_%s.json · OpenD accinfo_query(REAL·USD) · 取数时刻 %s" % (date, tstamp),
             "★口径说明": "A/现金/每股市值均取OpenD 07:30同一快照·同一时点;JP按OpenD隐含FX≈%s换USD;不用daily_scan盘中价·不取平均·不挑顺眼值。轮39差$18,731来源已查实=价格时点(07:30快照 vs daily_scan 12:03盘中)+FX(162.536沿用 vs OpenD 07:30≈%s)双重差·本轮统一到07:30单一源消除" % (fx, fx),
             "现金说明": "OpenD accinfo实测 $%.2f(07:30·非沿用)" % cash,
@@ -157,10 +159,50 @@ def build(date):
     nm_map = {h["symbol"]: h.get("name", "") for h in hold}
     sbi_pos = [{"code": c, "name": nm_map.get(c, ""), "qty": float(q)} for c, q in SBI_SHARES_0718.items()]
     sbi_cash_jpy = 17895950
-    sbi = compute_account("SBI", sbi_pos, px, usdjpy, cash_usd=sbi_cash_jpy / usdjpy,
-                          cash_note="买付余力 ¥17,895,950(07-18·12天前·沿用)→ $%.0f@%.3f" % (sbi_cash_jpy / usdjpy, usdjpy))
-    sbi["数据来源说明"] = "★股数=07-18截图(SBI持仓(私)/IMG_3519.PNG·12天未交易稳定) · 价=daily_scan当日实测 · 余力=¥17,895,950(07-18沿用·12天前)"
+    # E3(49号)vintage同源:SBI 价与FX统一到与富途同一时点(07:30 OpenD)·消除同一份里第一三共两价两汇率的L5打架。
+    #   ★不反向改富途(富途已核平·是对的)。SBI在futu快照里的只(第一三共/软银)用07:30 broker价;SBI独有只用daily_scan(标时点)。
+    fx_0730 = futu.get("_fx_0730")
+    price_0730 = futu.get("_price_0730_local", {})
+    px_sbi = dict(px)
+    for c in SBI_SHARES_0718:
+        if c in price_0730:
+            px_sbi[c] = price_0730[c]                # 与富途同一07:30价(第一三共→2886.5)
+    usd = usdjpy if not fx_0730 else fx_0730          # FX统一到富途07:30隐含值
+    sbi = compute_account("SBI", sbi_pos, px_sbi, usd, cash_usd=sbi_cash_jpy / usd,
+                          cash_note="买付余力 ¥17,895,950(07-18·沿用12天·无实时源)→ $%.0f@%.3f" % (sbi_cash_jpy / usd, usd))
+    sbi["数据来源说明"] = "★股数=07-18截图(12天未交易稳定)·价=与富途同一07:30时点(在futu快照的只)/daily_scan(SBI独有只)·FX统一=%s(富途07:30隐含)·余力=¥17,895,950(07-18沿用12天·无实时源)" % usd
     sbi["盲区"] = False
+    sbi["gap_denominator_gate"] = "★无快照·不可核(SBI未接OpenD·无当日账户快照·A由07-18股数×07:30价+沿用余力推算·非OpenD实测total)"
+    # E2(49号)重估触发接入:命中标review_due·命中权重>10%→gap_reliability不可信(用现值算·整块标不可信·不剔分子)
+    rd = ROOT / "data" / "valuation" / f"review_due_{date}.json"
+    due_codes = set(json.loads(rd.read_text(encoding="utf-8")).get("命中重估", [])) if rd.exists() else set()
+    for acc in (futu, sbi):
+        A = acc.get("当日总资产A_USD") or 0
+        hit_mv = 0.0
+        for r in acc.get("逐只(按贡献pp降序)", []):
+            r["review_due"] = r["code"] in due_codes
+            if r["review_due"] and r.get("market_value_usd"):
+                hit_mv += r["market_value_usd"]
+        hit_w = round(hit_mv / A * 100, 2) if A else None
+        acc["重估触发_命中权重pct"] = hit_w
+        acc["gap_reliability"] = ("不可信·待重估(命中重估权重%.1f%%>10%%·用现值继续算·整块标不可信·未把待重估当盲区剔出分子)" % hit_w) if (hit_w and hit_w > 10) else "可信(命中重估权重≤10%)"
+        acc["命中重估标的"] = [r["code"] for r in acc.get("逐只(按贡献pp降序)", []) if r.get("review_due")]
+    # E3 vintage_gap_days:账户级fair vintage最旧龄(today−priced_at最大值·当前实测应28天=MSFT等07-02)
+    import datetime as _dt2
+    try:
+        vi = json.loads((ROOT / "data" / "valuation" / "val_inputs.json").read_text(encoding="utf-8")).get("holdings", {})
+        td = _dt2.date(int(date[:4]), int(date[4:6]), int(date[6:8]))
+        ages = []
+        for c, h in vi.items():
+            pa = h.get("priced_at", "")
+            try: ages.append((td - _dt2.date(int(pa[:4]), int(pa[5:7]), int(pa[8:10]))).days)
+            except Exception: pass
+        vgap = max(ages) if ages else None
+    except Exception:
+        vgap = None
+    for acc in (futu, sbi):
+        acc["vintage_gap_days"] = vgap
+        acc["vintage_gate"] = ("★>30天不可信告警" if (vgap and vgap > 30) else ("合格(≤30天)·当前%s天" % vgap if vgap is not None else "无fair vintage"))
     return {
         "_说明": "目标—缺口·2026-07-30·依据正式尺 目标倒推框架_定稿_1年双档_20260719·Code照算法实现未改投资判断",
         "date": date, "生成": datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S"),
