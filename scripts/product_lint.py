@@ -865,6 +865,20 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
         if tilde:
             _ti = html.find("~~")
             fails.append(f"L13 字面波浪号泄露：{fn} 出现字面 ~~ ×{tilde}（示例「{html[_ti:_ti+24]}」）——markdown 删除线在 HTML/<pre> 内不生效·须改 <del>…</del>")
+        # ── L14(61号)更正连带/变体残留：已被更正取代的废弃值若以【未划删且无「已更正/订正」标注】形态出现 → FAIL ──
+        #    ★精确 span 判据(落在 <del>..</del> 或 【已更正..】 或 （订正..） 内=已覆盖·不因隔壁误判)——回应轮44「检法别比问题窄」。
+        #    含 I1 无逗号变体(32161)与 I2 连带金额(20,018)——L12/L13 都抓不到这两类。
+        def _covered(s, pos):
+            return (s.rfind("<del>", 0, pos) > s.rfind("</del>", 0, pos)
+                    or s.rfind("【已更正", 0, pos) > s.rfind("】", 0, pos)
+                    or s.rfind("（订正", 0, pos) > s.rfind("）", 0, pos))
+        _SUPERSEDED = ["¥32,161", "¥32161", "32,161", "32161", "35,734", "35734", "20,018", "+$20,018"]
+        for _lit in _SUPERSEDED:
+            for _m in _re2.finditer(_re2.escape(_lit), html):
+                if not _covered(html, _m.start()):
+                    _seg = _re2.sub(r"<[^>]+>", "", html[max(0, _m.start() - 30):_m.start() + 20])
+                    fails.append(f"L14 更正连带/变体残留：{fn} 废弃值「{_lit}」以未划删未标注形态出现（…{_seg}…）——须划删+订正为新值")
+                    break  # 每个废弃值报一次即可
 
     return fails
 
