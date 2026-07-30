@@ -32,9 +32,31 @@ def _holdings_codes(date_compact: str) -> list:
     return out
 
 
+def selftest_denominator():
+    """K2-2 常设回归:用【已知答案】样例测 E[上行] 公式——中性=当日价、乐观悲观对称 → E[上行] 必 ≈0。
+    超出 ±1% 即说明分母被换成了锚/别的值(轮47 软银 bug 的复现防线)。返回 (ok, msg)。"""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from target_gap import compute_expected_upside
+    cur = 4622.0  # 任取一个"当日价"(此处用软银轮47实测价)
+    scen = [
+        {"name": "乐观", "range": [round(cur * 1.05), round(cur * 1.15)], "prob": 0.2},
+        {"name": "中性", "range": [round(cur * 0.98), round(cur * 1.02)], "prob": 0.6},
+        {"name": "悲观", "range": [round(cur * 0.85), round(cur * 0.95)], "prob": 0.2},
+    ]
+    _, e_up = compute_expected_upside(scen, cur)          # 分母=当日价
+    ok = abs(e_up) <= 1.0
+    # 反向:若误用锚(≠当日价)当分母,E[上行]应显著偏离0(证公式对分母敏感)
+    _, e_up_wrong = compute_expected_upside(scen, cur * 3.2)   # 模拟锚=3.2×当日价(软银bug)
+    return ok, "中性=当日价·对称样例 E[上行]=%.2f%%(须∈±1%%)·误用锚分母则 E[上行]=%.1f%%(应显著≠0)" % (e_up, e_up_wrong)
+
+
 def check(date_hyphen: str):
     """返回 (fails:list, stats:dict)。date_hyphen 形如 2026-07-30。"""
     fails = []
+    # K2-2 常设回归:每次跑闸先自测 E[上行] 公式(已知答案样例)·分母被换成锚立刻 FAIL
+    st_ok, st_msg = selftest_denominator()
+    if not st_ok:
+        fails.append("K2-2 公式回归失败(E[上行] 分母疑被换成锚)：" + st_msg)
     date_compact = date_hyphen.replace("-", "")
     fp = ROOT / "data/forecast" / f"forecast_{date_hyphen}.json"
     if not fp.exists():
@@ -51,7 +73,9 @@ def check(date_hyphen: str):
             if e.get("forecast_id"):
                 reg_ids.add(e["forecast_id"])
 
-    have = {(f.get("account"), f.get("ticker")) for f in forecasts}
+    # account 归一:尺§六用 FUTU|SBI·持仓用 富途|SBI(中文)→ 统一到中文比对
+    _acc = {"FUTU": "富途", "SBI": "SBI", "富途": "富途"}
+    have = {(_acc.get(f.get("account"), f.get("account")), f.get("ticker")) for f in forecasts}
 
     # ① 每持仓有预测(含盲区/待重估·无豁免)
     holds = _holdings_codes(date_compact)

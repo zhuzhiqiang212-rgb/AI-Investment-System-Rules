@@ -217,6 +217,15 @@ def build(date):
         "IBKR_bitFlyer": "不做目标管理(07-19尺+07-30确认)·仅附录·被清算/强制处置时提醒",
     }
 
+def compute_expected_upside(scenarios, px_today):
+    """K1(尺v1.1)权威公式:E[价格]=Σ(情景概率×情景中值);E[上行]=E[价格]÷【当日价】−1。
+    ★分母一律 px_today(当日价)·任何分支不许换锚。px_today 缺失→抛错(K1-2)。返回 (E价格, E上行pct)。"""
+    if not px_today:
+        raise ValueError("E[上行] 分母缺当日价(price_local_0730/price_local)·不许用锚或其它值兜底")
+    e_price = sum(s.get("prob", 0) * (sum(s.get("range", [0, 0])) / 2) for s in scenarios)
+    return e_price, round((e_price / px_today - 1) * 100, 2)
+
+
 def augment_forecast_koujing(date):
     """J1-3(尺§六)新口径:E[上行]=Σ(情景概率×情景中值上行);贡献pp_新=权重×E[上行]。
     ★附加式:只加新字段·旧单点口径(contribution_pp)完全不动·两套并列一轮便于核。
@@ -237,11 +246,20 @@ def augment_forecast_koujing(date):
         new_total = 0.0; n_have = 0
         for r in acc.get("逐只(按贡献pp降序)", []):
             f = fmap.get((a_cn, r.get("code")))
-            e_up = f.get("expected_upside_pct") if f else None   # 已是%
-            if f and A and e_up is not None:
+            scen = (f.get("scenarios") if f else None) or []
+            # K1(尺v1.1):E[上行] 分母【一律当日价】price_local_0730(富途)/price_local(SBI)·任何分支不许换锚
+            px_today = r.get("price_local_0730", r.get("price_local"))
+            if f and A and scen and px_today:
+                # K1-2 断言:分母必须来自当日价字段·否则抛错不静默
+                assert ("price_local_0730" in r or "price_local" in r), \
+                    "E[上行] 分母缺当日价字段(price_local_0730/price_local): %s/%s" % (a_cn, r.get("code"))
+                e_price, e_up = compute_expected_upside(scen, px_today)   # K1 权威公式(分母=当日价)
                 w = (r.get("market_value_usd") or 0) / A
-                contrib_new = round(w * e_up, 3)                 # 贡献pp_新=权重×E[上行]×100(e_up已%→即权重×e_up)
+                contrib_new = round(w * e_up, 3)                                                     # 贡献pp=权重×E[上行]
+                r["情景中值_E价格"] = round(e_price, 1)
+                r["当日价(E上行分母)"] = px_today
                 r["E上行_pct_新口径"] = e_up
+                r["权重_新口径"] = round(w, 4)
                 r["贡献pp_新口径"] = contrib_new
                 r["预测置信度"] = f.get("confidence")
                 r["forecast_id"] = f.get("forecast_id")
