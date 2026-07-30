@@ -38,7 +38,8 @@ def scan_scripts() -> list:
                 or p.name.startswith("_diag") or p.name.startswith("_") or "stage" in p.name
                 or p.name.startswith("gate") or "manifest" in p.name
                 or "hardcheck" in p.name or "auto_produce" in p.name
-                or "product_gate" in p.name or "dashboard" in p.name):   # 测试fixture/主控HTML/产品解析闸/仪表盘→合法豁免
+                or "product_gate" in p.name or "dashboard" in p.name
+                or "worklist" in p.name):   # 测试fixture/主控HTML/产品解析闸/仪表盘/填报工单→合法豁免
             continue
         try:
             lines = p.read_text(encoding="utf-8").splitlines()
