@@ -859,6 +859,12 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                 around = html[max(0, idx - 24): idx + len(old) + 36]
                 if "<del>" not in around and "已更正" not in around:
                     fails.append(f"L12 更正未生效：{fn} 被更正原句以未标注形态出现「{old[:28]}」（登记表 {c.get('id')}）——须划删+紧跟新句+标已更正")
+        # ── L13(58号)字面 markdown 波浪号泄露：页面出现字面 ~~ → 董事长看到两个波浪号而非划掉的字 ──
+        #    ★核的是「字面 ~~ 是否出现」本身(不是更窄的『~~~~空叠』)。<pre> 内 markdown 不转 → 一律用 <del>。
+        tilde = html.count("~~")
+        if tilde:
+            _ti = html.find("~~")
+            fails.append(f"L13 字面波浪号泄露：{fn} 出现字面 ~~ ×{tilde}（示例「{html[_ti:_ti+24]}」）——markdown 删除线在 HTML/<pre> 内不生效·须改 <del>…</del>")
 
     return fails
 
