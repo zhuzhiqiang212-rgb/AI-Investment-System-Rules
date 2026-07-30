@@ -217,8 +217,74 @@ def build(date):
         "IBKR_bitFlyer": "不做目标管理(07-19尺+07-30确认)·仅附录·被清算/强制处置时提醒",
     }
 
+def augment_forecast_koujing(date):
+    """J1-3(尺§六)新口径:E[上行]=Σ(情景概率×情景中值上行);贡献pp_新=权重×E[上行]。
+    ★附加式:只加新字段·旧单点口径(contribution_pp)完全不动·两套并列一轮便于核。
+    读现有 target_gap_{date}.json + forecast_{date}.json,新口径写回(不重跑 build·不需实时源)。"""
+    tp = ROOT / "data" / "target" / f"target_gap_{date}.json"
+    date_h = date if "-" in date else f"{date[:4]}-{date[4:6]}-{date[6:8]}"   # 尺§六:forecast 用连字符名
+    fp = ROOT / "data" / "forecast" / f"forecast_{date_h}.json"
+    if not tp.exists() or not fp.exists():
+        return None
+    tg = json.loads(tp.read_text(encoding="utf-8"))
+    fc = json.loads(fp.read_text(encoding="utf-8"))
+    acc_map = {"FUTU": "富途", "SBI": "SBI"}
+    fmap = {(acc_map.get(f.get("account"), f.get("account")), f.get("ticker")): f
+            for f in fc.get("forecasts", [])}
+    for a_cn in ("富途", "SBI"):
+        acc = tg.get(a_cn, {})
+        A = acc.get("当日总资产A_USD") or 0
+        new_total = 0.0; n_have = 0
+        for r in acc.get("逐只(按贡献pp降序)", []):
+            f = fmap.get((a_cn, r.get("code")))
+            e_up = f.get("expected_upside_pct") if f else None   # 已是%
+            if f and A and e_up is not None:
+                w = (r.get("market_value_usd") or 0) / A
+                contrib_new = round(w * e_up, 3)                 # 贡献pp_新=权重×E[上行]×100(e_up已%→即权重×e_up)
+                r["E上行_pct_新口径"] = e_up
+                r["贡献pp_新口径"] = contrib_new
+                r["预测置信度"] = f.get("confidence")
+                r["forecast_id"] = f.get("forecast_id")
+                r["样例标记"] = f.get("★样例标记", False)
+                new_total += contrib_new; n_have += 1
+            else:
+                r["E上行_pct_新口径"] = None
+                r["贡献pp_新口径"] = None
+                r["预测状态_新口径"] = "待Opus5填预测(本轮仅样例)"
+        # J2-2:gap_reliability 措辞换口径(65号推翻旧『不可信·待重估』→不因基准过期停判·只降置信度)
+        hits = len(acc.get("命中重估标的", []) or [])
+        wt = acc.get("重估触发_命中权重pct", 0) or 0
+        acc["gap_reliability_旧措辞_已废"] = acc.get("gap_reliability")
+        acc["gap_reliability"] = ("现值基准过期(命中 %d 只·权重 %.0f%%)→ 相关只置信度降为 B/C·预测照出"
+                                  "(65号裁定:不因基准过期停判/不给动作)" % (hits, wt))
+        acc["账户预期贡献合计pp_新口径(仅有预测的只)"] = round(new_total, 3)
+        acc["有预测只数_新口径"] = n_have
+        acc["★口径并列说明"] = ("新口径=Σ(情景概率×情景中值上行)×权重(尺§六);旧口径=单点公允上行×权重。"
+                              "本轮仅 %d 只有预测(结构样例)·其余待 Opus5 填全量。" % n_have)
+    tg["★两口径并列(J1-3)"] = "新口径(概率加权E[上行])与旧单点口径并列一轮·便于核换口径有没有算错。新口径仅覆盖已有预测的只。"
+    tp.write_text(json.dumps(tg, ensure_ascii=False, indent=2), encoding="utf-8")
+    return tg
+
+
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--date", required=True); a = ap.parse_args()
+    ap = argparse.ArgumentParser(); ap.add_argument("--date", required=True)
+    ap.add_argument("--attach-forecast", action="store_true", help="J1-3:附加新口径E[上行](不重跑build)")
+    a = ap.parse_args()
+    if a.attach_forecast:
+        tg = augment_forecast_koujing(a.date)
+        if tg is None:
+            print("attach-forecast: 缺 target_gap 或 forecast 文件"); return
+        for a_cn in ("富途", "SBI"):
+            acc = tg[a_cn]
+            print("%s 新口径合计 %.2fpp(有预测%d只) vs 旧口径合计 %.2fpp" %
+                  (a_cn, acc["账户预期贡献合计pp_新口径(仅有预测的只)"], acc["有预测只数_新口径"],
+                   acc.get("账户预期贡献合计pp(盲区不计)", 0)))
+            for r in acc["逐只(按贡献pp降序)"]:
+                if r.get("贡献pp_新口径") is not None:
+                    print("   %s: 新 %.3fpp(E上行%.2f%%·%s) vs 旧 %s" %
+                          (r.get("code"), r["贡献pp_新口径"], r["E上行_pct_新口径"], r.get("预测置信度"),
+                           r.get("contribution_pp")))
+        return
     out = ROOT / "data" / "target" / f"target_gap_{a.date}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     res = build(a.date)
