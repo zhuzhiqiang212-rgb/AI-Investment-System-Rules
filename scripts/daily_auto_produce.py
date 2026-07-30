@@ -60,7 +60,8 @@ STEPS = [
     # 41号两把尺:尺A(利润指引≥15%变动重估·当日新闻/财报后自动检测重算)·尺B(控股型净资产·对normal_eps=null或双口径差>30%套用)·结果→data/valuation·供target_gap引用
     ("⑥d 尺A·利润指引大幅变动重估(41号)", "valuation_ruler_guidance_revision.py", False),
     ("⑥e 尺B·控股型净资产估值(41号)", "valuation_ruler_holdco.py", False),
-    # 43号C2机会发现(从缺口出发)·估值之后渲染之前·非关键(失败只告警不停链·当轮机会层标未产出·原因)
+    # 46号D2③候选池生产者(按当日激活板块逐格取龙头·上游未就绪据实报未产出)→ 43号C2机会发现·估值后渲染前·非关键(失败只告警不停链)
+    ("⑥e2 候选池生产者(激活板块·46号)", "candidate_pool_producer.py", False),
     ("⑥f 机会发现(从缺口出发·43号)", "opportunity_discovery.py", False),
     ("⑦ 当日涨跌", "day_change_scan.py", False),
     ("⑦b 数据异常检查关", "data_sanity_gate.py", False),

@@ -103,12 +103,53 @@ def _load_ruler_valuations(date):
         except Exception:
             pass
 
+def build_futu_authoritative(date):
+    """D1(46号)分母核平:富途A统一到单一权威源 futu_positions_{date}.json(OpenD accinfo·07:30·同一时点)。
+    A=total_assets·cash=futu_cash.cash·每股市值/价=broker_market_val/broker_nominal_price(同07:30时点·不用daily_scan盘中价·不取平均)。"""
+    fp = json.loads((ROOT / "data" / "accounts" / f"futu_positions_{date}.json").read_text(encoding="utf-8"))
+    fc = fp["futu_cash"]; A = fc["total_assets"]; cash = fc["cash"]; mval = fc["market_val"]
+    tstamp = fp.get("generated_at", "")
+    # 隐含FX(OpenD口径):market_val = ΣUS_mv + ΣJP_mv/FX
+    us = sum(p["broker_market_val"] for p in fp["futu_positions"] if p["symbol"].startswith("US."))
+    jp_local = sum(p["broker_market_val"] for p in fp["futu_positions"] if p["symbol"].startswith("JP."))
+    fx = round(jp_local / (mval - us), 3) if (mval - us) else None
+    rows = []
+    for p in fp["futu_positions"]:
+        code = p["symbol"]; px_local = p.get("broker_nominal_price"); mv_local = p.get("broker_market_val")
+        mv_usd = mv_local if code.startswith("US.") else (mv_local / fx if fx else None)
+        fair, blind = FAIR.get(code, (None, "未登记公允"))
+        if fair is None or not px_local:
+            up = None; contrib = None; bl = True; br = blind or "公允算不出"
+        else:
+            up = (fair - px_local) / px_local; contrib = round(mv_usd / A * up * 100, 3); bl = False; br = None
+        rows.append({"code": code, "name": next((h.get("name") for h in json.loads((ROOT / "data" / "accounts" / f"holdings_true_{date}.json").read_text(encoding="utf-8"))["holdings"] if h["symbol"] == code), ""),
+                     "qty": p["quantity"], "price_local_0730": px_local, "market_value_usd": round(mv_usd, 2) if mv_usd else None,
+                     "fair": fair, "upside_pct": round(up * 100, 2) if up is not None else None,
+                     "contribution_pp": contrib, "blind": bl, "blind_reason": br})
+    total_contrib = round(sum(r["contribution_pp"] for r in rows if r["contribution_pp"] is not None), 3)
+    blind_mv = sum(r["market_value_usd"] for r in rows if r["blind"] and r["market_value_usd"])
+    rows.sort(key=lambda r: (r["contribution_pp"] is None, -(r["contribution_pp"] or -999)))
+    valid = [r for r in rows if r["contribution_pp"] is not None]
+    swap = []
+    if valid:
+        top = max(valid, key=lambda r: r["contribution_pp"])
+        for r in sorted(valid, key=lambda r: r["contribution_pp"])[:3]:
+            if r["code"] == top["code"]: continue
+            add = round(r["market_value_usd"] / A * ((top["upside_pct"] - r["upside_pct"]) / 100) * 100, 3)
+            swap.append({"卖": r["name"], "换成": top["name"], "能补pp": add, "说明": "卖%s换%s·补%.2fpp" % (r["name"], top["name"], add)})
+    return {"账户": "富途", "当日总资产A_USD": round(A, 2), "股票市值_USD": round(mval, 2), "现金_USD": cash,
+            "★单一权威源": "futu_positions_%s.json · OpenD accinfo_query(REAL·USD) · 取数时刻 %s" % (date, tstamp),
+            "★口径说明": "A/现金/每股市值均取OpenD 07:30同一快照·同一时点;JP按OpenD隐含FX≈%s换USD;不用daily_scan盘中价·不取平均·不挑顺眼值。轮39差$18,731来源已查实=价格时点(07:30快照 vs daily_scan 12:03盘中)+FX(162.536沿用 vs OpenD 07:30≈%s)双重差·本轮统一到07:30单一源消除" % (fx, fx),
+            "现金说明": "OpenD accinfo实测 $%.2f(07:30·非沿用)" % cash,
+            "目标": {"+40%需赚_USD": round(A * 0.40, 2), "+100%需赚_USD": round(A * 1.00, 2)},
+            "账户预期贡献合计pp(盲区不计)": total_contrib, "距+40%缺口pp": round(40 - total_contrib, 3), "距+100%缺口pp": round(100 - total_contrib, 3),
+            "盲区占比%": round(blind_mv / A * 100, 2), "逐只(按贡献pp降序)": rows, "换仓测算(卖低贡献三只换最高贡献只)": swap}
+
 def build(date):
     _load_ruler_valuations(date)
     px, usdjpy, hold = load(date)
-    # 富途现金:沿用值(标注)·当日实测未接→用已知$167,531为全账户找到现金·此处保守用富途部分沿用值41,103.99(07-22)
-    futu = compute_account("富途", acct_positions(hold, ["富通", "富途"]), px, usdjpy,
-                           cash_usd=41103.99, cash_note="沿用$41,103.99(07-22·当日实测现金未接·标沿用)")
+    # D1(46号)分母核平:富途改用单一权威源 futu_positions(OpenD 07:30·现金实测$34,279.21·非沿用)
+    futu = build_futu_authoritative(date)
     # SBI(38号续①②):盲区已解——股数取07-18权威截图(12天未交易·稳定)·价取当日实测·余力¥17,895,950(07-18沿用)
     #   ★07-18权威股数(SBI持仓(私)/IMG_3519.PNG):第一三共3400/索尼1000/爱德万800/丰田800/伊藤忠900/东京海上1000/软银2800
     SBI_SHARES_0718 = {"JP.4568": 3400, "JP.6758": 1000, "JP.6857": 800, "JP.7203": 800,

@@ -123,32 +123,40 @@ def run(date, ctx):
     out = {
         "run_id": ctx.get("run_id", date + "_000000"), "data_date": ctx.get("data_date", ""),
         "account_scope": ["FUTU", "SBI"], "gap": ctx.get("gap", {}),
-        "source_gate1": {"activation_file": ctx.get("activation_file", ""), "activated_sectors": ctx["activated_sectors"]},
+        "source_gate1": {"activation_file": ctx.get("activation_file", ""), "activated_sectors": ctx["activated_sectors"],
+                         "activation_stale": ctx.get("activation_stale")},
         "candidates": passed, "rejected": rejected,
-        "self_check": {"nine_fields_complete": all("nine_fields" in c for c in passed),
-                       "no_hardcoded_fair_value": all(not c["fair_value"].get("hardcoded") for c in passed),
-                       "gate1_upstream_ok": bool(ctx["activated_sectors"]),
-                       "rerunnable": True, "rejected_non_empty": len(rejected) > 0},
+        "self_check": {
+            # D2④:零候选时 nine_fields_complete = null(不是空真true)
+            "nine_fields_complete": (None if not passed else all("nine_fields" in c for c in passed)),
+            "no_hardcoded_fair_value": (None if not passed else all(not c["fair_value"].get("hardcoded") for c in passed)),
+            "gate1_upstream_ok": bool(ctx["activated_sectors"]),   # 激活清单作废/空→False→整轮FAIL出声
+            "rerunnable": True, "rejected_non_empty": len(rejected) > 0,
+            "activation_stale_note": ctx.get("activation_stale")},
     }
     return out
 
 def load_ctx(date):
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
-    act = {}
     import glob as _g
     sa = sorted(_g.glob(str(ROOT / "data" / "market" / "sector_activation_*.json")))
-    activated, actfile = [], ""
+    activated, actfile, stale_note = [], "", None
+    # D2②(46号)新鲜度闸:激活清单 data_date 必须=当日;sorted(glob)[-1]不算当日。真结构=顶层「板块」=数组·每项「激活":true。
+    #   ★删除轮39兜底 activated=list(cells.keys())——取不到就置空→self_check.gate1_upstream_ok=False→整轮FAIL出声(不许换个东西凑非空)。
     if sa:
         actfile = sa[-1]
         try:
             aj = json.loads(pathlib.Path(actfile).read_text(encoding="utf-8"))
-            cells = aj.get("cells") or aj.get("sectors") or aj
-            if isinstance(cells, dict):
-                activated = [k for k, v in cells.items() if (isinstance(v, dict) and v.get("activated")) or v == "activated" or v is True]
-            if not activated and isinstance(cells, dict):
-                activated = list(cells.keys())
+            act_date = aj.get("data_date", "")
+            if act_date != dd:
+                stale_note = ("激活清单 data_date=%s ≠ 当日 %s → 新鲜度闸 FAIL:清单非当日(sorted(glob)[-1]不算当日)。"
+                              "该清单『下一步』条款自写『2026-07-29 FOMC 之后必须重判·本清单届时作废重出』·FOMC 已开完 → 清单已作废。"
+                              "本轮据实报『激活清单已作废·待重出』·不拿作废清单当第1关尺。") % (act_date, dd)
+                activated = []          # 作废/非当日→置空(不兜底)→gate1_upstream_ok=False→FAIL出声
+            else:
+                activated = [b.get("板块") for b in aj.get("板块", []) if b.get("激活") is True]
         except Exception:
-            pass
+            activated = []
     gap = {}
     tgp = ROOT / "data" / "target" / f"target_gap_{date}.json"
     if tgp.exists():
@@ -162,7 +170,8 @@ def load_ctx(date):
     if pp.exists():
         pool = json.loads(pp.read_text(encoding="utf-8")).get("candidates", [])
     return {"data_date": dd, "run_id": date + "_" + datetime.now(JST).strftime("%H%M%S"),
-            "activated_sectors": activated, "activation_file": actfile, "gap": gap, "candidate_pool": pool}
+            "activated_sectors": activated, "activation_file": actfile, "activation_stale": stale_note,
+            "gap": gap, "candidate_pool": pool}
 
 def self_test():
     """R1~R4 回归(反向样本)。返回 (通过bool, 明细)。"""
