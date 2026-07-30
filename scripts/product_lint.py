@@ -829,6 +829,37 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     except Exception as e:
         fails.append(f"L53 五分类核异常：{type(e).__name__}: {e}")
 
+    # ── G5(55号)成品四条:L9占位符 / L10 dict-repr / L11句子截断 / L12更正未生效 ──
+    import re as _re2, json as _json2, pathlib as _pl2
+    _corr = []
+    try:
+        _corr = _json2.loads((_pl2.Path(__file__).resolve().parents[1] / "data/corrections/corrections_registry.json").read_text(encoding="utf-8")).get("corrections", [])
+    except Exception:
+        pass
+    for fn, html in vols.items():
+        ph = _re2.findall(r"\{\{[^}]{0,40}\}\}", html)
+        if ph:
+            fails.append(f"L9 占位符未填：{fn} 出现 {{}} 占位符 ×{len(ph)}（示例 {ph[0]}）——产品不许留占位符")
+        reprs = _re2.findall(r"\{['\"][^'\"{}]{1,30}['\"]\s*:\s*['\"]", html)
+        if reprs:
+            fails.append(f"L10 dict/list-repr 泄露：{fn} 出现 Python 字典/列表打印形态 ×{len(reprs)}（示例 {reprs[0][:30]}）——须转人话")
+        # L11 真截断:行内标签悬空(：</b>等·标签内『：』收尾无内容)或半截到文末。
+        #   ★不误伤『标题：』后接 ul/ol/table/p 内容的合法标签行大白话(块级 </p></div> 不算截断)。
+        # 真截断=『：』后到 </body> 之间【只有闭合标签·无任何内容】(文末悬空)。
+        #   ★『标题：』后接 ul/table/pre/p 内容块的合法标签行不算(冒号与内容之间有开标签)。
+        cut = _re2.findall(r"[：:](?:\s*</[a-zA-Z0-9]+>)*\s*</body>", html)
+        if html.count("「") != html.count("」"):
+            fails.append(f"L11 句子截断：{fn} 中文引号未配对 「×{html.count('「')} 」×{html.count('」')}")
+        if cut:
+            fails.append(f"L11 句子截断：{fn} 「：」到文末之间无内容(真截断) ×{len(cut)}")
+        for c in _corr:
+            old = c.get("原句", "")
+            if old and old in html:
+                idx = html.find(old)
+                around = html[max(0, idx - 24): idx + len(old) + 36]
+                if "<del>" not in around and "已更正" not in around:
+                    fails.append(f"L12 更正未生效：{fn} 被更正原句以未标注形态出现「{old[:28]}」（登记表 {c.get('id')}）——须划删+紧跟新句+标已更正")
+
     return fails
 
 

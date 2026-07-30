@@ -103,19 +103,23 @@ def _load_ruler_valuations(date):
         except Exception:
             pass
 
-def build_futu_authoritative(date):
-    """D1(46号)分母核平:富途A统一到单一权威源 futu_positions_{date}.json(OpenD accinfo·07:30·同一时点)。
-    A=total_assets·cash=futu_cash.cash·每股市值/价=broker_market_val/broker_nominal_price(同07:30时点·不用daily_scan盘中价·不取平均)。"""
+def build_futu_authoritative(date, px_close=None):
+    """D1(46号)+F1(52号)分母核平+日股价时点修正:富途A用OpenD 07:30实测total_assets(别动·轮40已核平)。
+    ★F1:跨市场无单一时点——日股价改用 daily_scan 07-30 东证收盘(07:30快照里的日股价其实是07-29收盘·因07:30早于09:00开盘)·美股价用 07:30 broker(=07-29收盘)。price_vintage 按市场分列。"""
     fp = json.loads((ROOT / "data" / "accounts" / f"futu_positions_{date}.json").read_text(encoding="utf-8"))
     fc = fp["futu_cash"]; A = fc["total_assets"]; cash = fc["cash"]; mval = fc["market_val"]
     tstamp = fp.get("generated_at", "")
-    # 隐含FX(OpenD口径):market_val = ΣUS_mv + ΣJP_mv/FX
+    px_close = px_close or {}
     us = sum(p["broker_market_val"] for p in fp["futu_positions"] if p["symbol"].startswith("US."))
     jp_local = sum(p["broker_market_val"] for p in fp["futu_positions"] if p["symbol"].startswith("JP."))
     fx = round(jp_local / (mval - us), 3) if (mval - us) else None
     rows = []
     for p in fp["futu_positions"]:
-        code = p["symbol"]; px_local = p.get("broker_nominal_price"); mv_local = p.get("broker_market_val")
+        code = p["symbol"]
+        if code.startswith("JP.") and px_close.get(code):
+            px_local = px_close[code]; mv_local = px_local * p["quantity"]     # F1:日股用07-30东证收盘
+        else:
+            px_local = p.get("broker_nominal_price"); mv_local = p.get("broker_market_val")   # 美股07-29收盘
         mv_usd = mv_local if code.startswith("US.") else (mv_local / fx if fx else None)
         fair, blind = FAIR.get(code, (None, "未登记公允"))
         if fair is None or not px_local:
@@ -137,11 +141,16 @@ def build_futu_authoritative(date):
             if r["code"] == top["code"]: continue
             add = round(r["market_value_usd"] / A * ((top["upside_pct"] - r["upside_pct"]) / 100) * 100, 3)
             swap.append({"卖": r["name"], "换成": top["name"], "能补pp": add, "说明": "卖%s换%s·补%.2fpp" % (r["name"], top["name"], add)})
-    return {"账户": "富途", "当日总资产A_USD": round(A, 2), "股票市值_USD": round(mval, 2), "现金_USD": cash,
+    mv_f1 = round(sum(r["market_value_usd"] for r in rows if r.get("market_value_usd")), 2)  # G4:F1逐只市值合计(日股07-30收盘)·非过期07:30的mval
+    return {"账户": "富途", "当日总资产A_USD": round(A, 2), "股票市值_USD": mv_f1,
+            "股票市值_07:30快照值": round(mval, 2), "股票市值_口径": "F1逐只合计=日股07-30东证收盘+美股07-29收盘·与07:30快照值$%.2f的差=日股价时点差" % mval, "现金_USD": cash,
             "_fx_0730": fx, "_price_0730_local": {p["symbol"]: p.get("broker_nominal_price") for p in fp["futu_positions"]},
-            "price_vintage": tstamp, "fair_vintage": "见 data/valuation/val_inputs.json 各只 priced_at",
+            "price_vintage": {"JP": "2026-07-30 15:00 东证收盘(daily_scan)", "US": "2026-07-29 close + after-hours(OpenD 07:30 broker)",
+                              "现金与A": "OpenD accinfo 07:30实测 total_assets(%s·轮40已核平·别动)" % tstamp},
+            "fair_vintage": "见 data/valuation/val_inputs.json 各只 priced_at",
+            "★F1口径(唯一·G4删旧互斥)": "跨市场无单一时点:日股07-30东证收盘(daily_scan)·美股07-29收盘(07:30 broker)·现金与A用OpenD 07:30实测total_assets(轮40核平·别动)。逐只市值=各市场收盘价·股票市值_USD据此。轮40『均取07:30·不用daily_scan』旧口径已删(与本条互斥)。",
             "★单一权威源": "futu_positions_%s.json · OpenD accinfo_query(REAL·USD) · 取数时刻 %s" % (date, tstamp),
-            "★口径说明": "A/现金/每股市值均取OpenD 07:30同一快照·同一时点;JP按OpenD隐含FX≈%s换USD;不用daily_scan盘中价·不取平均·不挑顺眼值。轮39差$18,731来源已查实=价格时点(07:30快照 vs daily_scan 12:03盘中)+FX(162.536沿用 vs OpenD 07:30≈%s)双重差·本轮统一到07:30单一源消除" % (fx, fx),
+            "★现金与A口径": "现金与总资产A取OpenD 07:30实测(轮40核平·JP隐含FX≈%s)。★注:股票逐只市值改用各市场收盘价(F1)·不再『均取07:30』(轮40那条已删·见★F1口径)·同文件不留互斥口径。" % fx,
             "现金说明": "OpenD accinfo实测 $%.2f(07:30·非沿用)" % cash,
             "目标": {"+40%需赚_USD": round(A * 0.40, 2), "+100%需赚_USD": round(A * 1.00, 2)},
             "账户预期贡献合计pp(盲区不计)": total_contrib, "距+40%缺口pp": round(40 - total_contrib, 3), "距+100%缺口pp": round(100 - total_contrib, 3),
@@ -150,8 +159,9 @@ def build_futu_authoritative(date):
 def build(date):
     _load_ruler_valuations(date)
     px, usdjpy, hold = load(date)
-    # D1(46号)分母核平:富途改用单一权威源 futu_positions(OpenD 07:30·现金实测$34,279.21·非沿用)
-    futu = build_futu_authoritative(date)
+    # D1+F1:富途A用OpenD 07:30实测·日股价用daily_scan 07-30东证收盘(px)·美股07-29收盘
+    px_jp_close = {c: v for c, v in px.items() if c.startswith("JP.")}
+    futu = build_futu_authoritative(date, px_close=px_jp_close)
     # SBI(38号续①②):盲区已解——股数取07-18权威截图(12天未交易·稳定)·价取当日实测·余力¥17,895,950(07-18沿用)
     #   ★07-18权威股数(SBI持仓(私)/IMG_3519.PNG):第一三共3400/索尼1000/爱德万800/丰田800/伊藤忠900/东京海上1000/软银2800
     SBI_SHARES_0718 = {"JP.4568": 3400, "JP.6758": 1000, "JP.6857": 800, "JP.7203": 800,
@@ -162,15 +172,11 @@ def build(date):
     # E3(49号)vintage同源:SBI 价与FX统一到与富途同一时点(07:30 OpenD)·消除同一份里第一三共两价两汇率的L5打架。
     #   ★不反向改富途(富途已核平·是对的)。SBI在futu快照里的只(第一三共/软银)用07:30 broker价;SBI独有只用daily_scan(标时点)。
     fx_0730 = futu.get("_fx_0730")
-    price_0730 = futu.get("_price_0730_local", {})
-    px_sbi = dict(px)
-    for c in SBI_SHARES_0718:
-        if c in price_0730:
-            px_sbi[c] = price_0730[c]                # 与富途同一07:30价(第一三共→2886.5)
-    usd = usdjpy if not fx_0730 else fx_0730          # FX统一到富途07:30隐含值
-    sbi = compute_account("SBI", sbi_pos, px_sbi, usd, cash_usd=sbi_cash_jpy / usd,
+    # F1(52号):SBI日股价一律用 daily_scan 07-30 东证收盘(px)·与富途同一价·FX统一到富途07:30隐含(163.425)→第一三共双价+双汇率彻底消除
+    usd = usdjpy if not fx_0730 else fx_0730
+    sbi = compute_account("SBI", sbi_pos, px, usd, cash_usd=sbi_cash_jpy / usd,
                           cash_note="买付余力 ¥17,895,950(07-18·沿用12天·无实时源)→ $%.0f@%.3f" % (sbi_cash_jpy / usd, usd))
-    sbi["数据来源说明"] = "★股数=07-18截图(12天未交易稳定)·价=与富途同一07:30时点(在futu快照的只)/daily_scan(SBI独有只)·FX统一=%s(富途07:30隐含)·余力=¥17,895,950(07-18沿用12天·无实时源)" % usd
+    sbi["数据来源说明"] = "★股数=07-18截图(12天未交易稳定)·价=daily_scan 07-30东证收盘(与富途同价)·FX统一=%s(富途07:30隐含)·余力=¥17,895,950(07-18沿用12天·无实时源)" % usd
     sbi["盲区"] = False
     sbi["gap_denominator_gate"] = "★无快照·不可核(SBI未接OpenD·无当日账户快照·A由07-18股数×07:30价+沿用余力推算·非OpenD实测total)"
     # E2(49号)重估触发接入:命中标review_due·命中权重>10%→gap_reliability不可信(用现值算·整块标不可信·不剔分子)
