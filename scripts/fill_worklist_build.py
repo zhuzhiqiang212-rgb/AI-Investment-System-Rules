@@ -114,16 +114,17 @@ def build(date_h):
                     "是" if r["review_due命中"] else "否", esc("／".join(r["review_due类型"]) or "—"),
                     "是" if r["blind"] else "否", esc("<br>".join(r["可用证据文件"]) or "—") if False else "<br>".join(esc(p) for p in r["可用证据文件"]) or "—",
                     evs))
-    page = ("<!doctype html><meta charset='utf-8'><title>预测填报工单 %s</title>"
-            "<style>body{font-family:'Microsoft YaHei',sans-serif;max-width:1400px;margin:0 auto;padding:20px}"
-            "table{border-collapse:collapse;width:100%%;font-size:13px}th,td{border:1px solid #bbb;padding:5px 7px;text-align:left}"
-            "th{background:#2c3e50;color:#fff}h2{color:#2c3e50}</style>"
-            "<h2>预测填报工单 · %s · 尚未填预测 %d 只（权重降序）</h2>"
-            "<p style='color:#c0392b'>★ 本表只给客观事实与路径·不含建议/判断/情景/概率。填报只需给：情景区间／概率／依据／证伪信号／见分晓日期／置信度；E[上行]／权重／贡献pp 机器算。</p>"
-            "<table><tr><th>代码</th><th>名称</th><th>账户</th><th>股数</th><th>当日价</th><th>price_vintage</th>"
-            "<th>权重(机器)</th><th>市值$</th><th>锚fair</th><th>锚龄天</th><th>review_due</th><th>命中类型</th>"
-            "<th>blind</th><th>可用证据文件</th><th>下一事件日</th></tr>%s</table>" % (
-                date_h, date_h, len(rows), trs))
+    # O3(轮52):豁免收窄到函数级——只对本函数写 .html 的行加 '# html-ok'(整脚本不再豁免·若往 json 写标签仍会被拦)
+    _pg = ("<!doctype html><meta charset='utf-8'><title>预测填报工单 %s</title>"  # html-ok
+           "<style>body{font-family:'Microsoft YaHei',sans-serif;max-width:1400px;margin:0 auto;padding:20px}"  # html-ok
+           "table{border-collapse:collapse;width:100%%;font-size:13px}th,td{border:1px solid #bbb;padding:5px 7px;text-align:left}"  # html-ok
+           "th{background:#2c3e50;color:#fff}h2{color:#2c3e50}</style>"  # html-ok
+           "<h2>预测填报工单 · %s · 尚未填预测 %d 只（权重降序）</h2>"  # html-ok
+           "<p style='color:#c0392b'>★ 本表只给客观事实与路径·不含建议/判断/情景/概率。填报只需给：情景区间／概率／依据／证伪信号／见分晓日期／置信度；E[上行]／权重／贡献pp 机器算。</p>"  # html-ok
+           "<table><tr><th>代码</th><th>名称</th><th>账户</th><th>股数</th><th>当日价</th><th>price_vintage</th>"  # html-ok
+           "<th>权重(机器)</th><th>市值$</th><th>锚fair</th><th>锚龄天</th><th>review_due</th><th>命中类型</th>"  # html-ok
+           "<th>blind</th><th>可用证据文件</th><th>下一事件日</th></tr>%s</table>")  # html-ok
+    page = _pg % (date_h, date_h, len(rows), trs)
     hp = ROOT / "data/forecast" / f"fill_worklist_{date_h}.html"
     hp.write_text(page, encoding="utf-8")
     return jp, hp, len(rows)

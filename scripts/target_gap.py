@@ -285,9 +285,42 @@ def augment_forecast_koujing(date):
                                   "(65号裁定:不因基准过期停判/不给动作)" % (hits, wt))
         acc["账户预期贡献合计pp_新口径(仅有预测的只)"] = round(new_total, 3)
         acc["有预测只数_新口径"] = n_have
-        acc["★口径并列说明"] = ("新口径=Σ(情景概率×情景中值上行)×权重(尺§六);旧口径=单点公允上行×权重。"
-                              "本轮 %d 只有预测·其余待 Opus5 填全量。" % n_have)
-    tg["★两口径并列(J1-3)"] = "新口径(概率加权E[上行])与旧单点口径并列一轮·便于核换口径有没有算错。新口径仅覆盖已有预测的只。"
+        # O2(轮52):新旧口径对照必须标覆盖只数·N≠M不可比
+        m_have = sum(1 for r in acc.get("逐只(按贡献pp降序)", []) if r.get("contribution_pp") is not None)
+        acc["旧口径覆盖只数"] = m_have
+        acc["★口径并列说明"] = ("★新口径覆盖 %d 只 / 旧口径覆盖 %d 只·%s。新口径=Σ(情景概率×情景中值上行)×权重(尺§六);"
+                              "旧口径=单点公允上行×权重。" % (
+                                  n_have, m_have,
+                                  "N=M 可作账户级对照" if n_have == m_have else "N≠M 覆盖只数不同·两合计不可直接并排比"))
+    tg["★两口径并列(J1-3)"] = "新口径(概率加权E[上行])与旧单点口径并列。★账户级合计须看『口径并列说明』的覆盖只数(N≠M不可比)。"
+    # 三(轮52)组合层面三情景收益率(逐只加总算不出·董事长真正要):情景收益率=Σ(权重×情景中值相对当日价涨跌);现金记0
+    acc_map2 = {"FUTU": "富途", "SBI": "SBI"}
+    fmap1y = {(acc_map2.get(f.get("account"), f.get("account")), f.get("ticker")): f
+              for f in fc.get("forecasts", []) if f.get("horizon") == "1y"}
+    port = {}
+    for a_cn in ("富途", "SBI"):
+        A = tg[a_cn].get("当日总资产A_USD") or 0
+        srets = [0.0, 0.0, 0.0]; cov = 0
+        for r in tg[a_cn].get("逐只(按贡献pp降序)", []):
+            f = fmap1y.get((a_cn, r.get("code")))
+            px = r.get("price_local_0730", r.get("price_local"))
+            if not (f and px and A):
+                continue
+            w = (r.get("market_value_usd") or 0) / A
+            for i, s in enumerate(f.get("scenarios", [])[:3]):
+                srets[i] += w * (sum(s.get("range", [0, 0])) / 2 / px - 1)
+            cov += 1
+        s1, s2, s3 = [round(x * 100, 2) for x in srets]
+        pw = round((0.3 * srets[0] + 0.4 * srets[1] + 0.3 * srets[2]) * 100, 2)
+        q1 = ("S1 可达 +40%(超 " + format(round(s1 - 40, 2)) + "pp)") if s1 >= 40 else ("S1 达不到 +40%·差 " + format(round(40 - s1, 2)) + "pp")
+        q2 = "S3 组合收益 " + format(s3) + "% · 金额约 $" + format(int(round(srets[2] * A)), ",")
+        q3 = "期望 " + format(pw) + "% · 距 +40% 还差 " + format(round(40 - pw, 2)) + "pp"
+        port[a_cn] = {
+            "S1收益率pct": s1, "S2收益率pct": s2, "S3收益率pct": s3, "概率加权合计pct": pw, "覆盖持仓位": cov,
+            "①+40%目标在S1能否达成": q1, "②S3最坏亏多少": q2, "③概率加权期望·距+40%": q3,
+            "口径": "情景收益率=Σ(每只权重×情景中值相对当日价涨跌)·现金记0(权重和<1·差额=现金·不贡献收益)",
+        }
+    tg["★组合三情景收益率(三·轮52)"] = port
     # L3(72号)换仓测算重算:旧口径「卖COIN换NVDA补pp」基于168天前公允·新口径COIN贡献转正→结论变
     coin = next((r for r in tg["富途"]["逐只(按贡献pp降序)"] if r.get("code") == "US.COIN"), None)
     if coin and coin.get("贡献pp_新口径") is not None:
