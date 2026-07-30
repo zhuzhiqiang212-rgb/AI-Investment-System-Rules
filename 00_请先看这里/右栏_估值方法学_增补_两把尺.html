@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>右栏·估值方法学增补·两把尺</title><style>body{font-family:"Microsoft YaHei",sans-serif;max-width:980px;margin:0 auto;padding:24px;line-height:1.75;color:#1a1a1a}h1{border-bottom:3px solid #c0392b;padding-bottom:8px}h2{border-left:5px solid #2c3e50;padding-left:10px;margin-top:26px}pre{background:#f6f8fa;border:1px solid #ddd;border-radius:6px;padding:10px;white-space:pre-wrap}table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #bbb;padding:6px 9px;text-align:left}th{background:#2c3e50;color:#fff}hr{border:none;border-top:1px solid #ddd;margin:18px 0}</style></head><body><div style="background:#0f2e1c;color:#eafff2;border:2px solid #4fbf87;border-radius:8px;padding:12px 16px;margin-bottom:14px"><b>右栏·估值方法学增补 —— 两把尺(静态·机器可反复用)</b><br>尺A 利润指引大幅变动重估 · 尺B 控股型/净资产驱动估值 · 签发 Opus 5 · 2026-07-30 · 实现脚本 valuation_ruler_guidance_revision.py / valuation_ruler_holdco.py</div><h1>41 · Opus 5 · 新增两把尺（静态·机器可反复用）· 2026-07-30</h1>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>右栏·估值方法学增补·两把尺</title><style>body{font-family:"Microsoft YaHei",sans-serif;max-width:980px;margin:0 auto;padding:24px;line-height:1.75}h1{border-bottom:3px solid #c0392b;padding-bottom:8px}h2{border-left:5px solid #2c3e50;padding-left:10px;margin-top:26px}pre{background:#f6f8fa;border:1px solid #ddd;border-radius:6px;padding:10px;white-space:pre-wrap}table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:6px 9px}th{background:#2c3e50;color:#fff}</style></head><body><div style="background:#0f2e1c;color:#eafff2;border:2px solid #4fbf87;border-radius:8px;padding:12px 16px;margin-bottom:14px"><b>右栏·估值方法学增补 —— 两把尺(静态·机器可反复用)</b><br>尺A 利润指引大幅变动重估 · 尺B 控股型/净资产驱动估值 · 签发 Opus 5 · 2026-07-30 · 脚本 valuation_ruler_guidance_revision.py / valuation_ruler_holdco.py · 爱德万采用档公允=¥32,156(脚本值·C3已核平)</div><h1>41 · Opus 5 · 新增两把尺（静态·机器可反复用）· 2026-07-30</h1>
 <pre>签发 = Opus 5　模型 = claude-opus-5
 ★ 董事长 2026-07-30 纠正：修机器应修静态的说明/指导书/尺/模板，
 　 不得指定个股去推理；一切动态内容应由生产流程产出。
@@ -53,7 +53,14 @@ P_base = 25,200 × 1.418 = ¥35,734
 → 100% − 10% = 90%
 
 公允值 = 35,734 × 0.90 = ¥32,161　｜　上行 +14.5%（对当日 ¥28,095）
-四档并列：100%→¥35,734(+27.2%) / 90%→¥32,161(+14.5%) / 80%→¥28,587(+1.8%) / 70%→¥25,014(−11.0%)</pre>
+四档并列：100%→¥35,734(+27.2%) / 90%→¥32,161(+14.5%) / 80%→¥28,587(+1.8%) / 70%→¥25,014(−11.0%)
+
+★ C3-2 数字核平（2026-07-30·以脚本跑出值为准·L5数字打架闸）：
+　 上面 ¥32,161 是手算把比值取整成 1.418（25,200×1.418=35,734.9）。
+　 尺A脚本 valuation_ruler_guidance_revision.py 用精确比值 660,000÷465,500 = 1.417830
+　 → P_base = 25,200×1.417830 = 35,729 → 90% = **¥32,156**（差 ¥5，纯四舍五入口径）。
+　 ★ 一律以脚本值为准：爱德万采用档公允 = **¥32,156**；四档 = 100%¥35,729 / 90%¥32,156 / 80%¥28,583 / 70%¥25,011。
+　 target_gap_20260730.json 已用 ¥32,156，两处一致，不再打架。</pre>
 <p><b>★ 注意：这个结果是【尺跑出来的】，不是我拍的。同一把尺明天对任何公布财报的标的都能跑。</b></p>
 <hr>
 <h1>尺 B · 控股型／净资产驱动标的估值尺</h1>
