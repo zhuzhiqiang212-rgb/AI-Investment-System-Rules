@@ -238,8 +238,12 @@ def augment_forecast_koujing(date):
     tg = json.loads(tp.read_text(encoding="utf-8"))
     fc = json.loads(fp.read_text(encoding="utf-8"))
     acc_map = {"FUTU": "富途", "SBI": "SBI"}
-    fmap = {(acc_map.get(f.get("account"), f.get("account")), f.get("ticker")): f
-            for f in fc.get("forecasts", [])}
+    # 一只多条预测(短/长)→ 贡献pp用【目标期1y】(目标缺口是1年口径);无1y则取任一
+    fmap = {}
+    for f in fc.get("forecasts", []):
+        k = (acc_map.get(f.get("account"), f.get("account")), f.get("ticker"))
+        if k not in fmap or f.get("horizon") == "1y":
+            fmap[k] = f
     for a_cn in ("富途", "SBI"):
         acc = tg.get(a_cn, {})
         A = acc.get("当日总资产A_USD") or 0
@@ -278,8 +282,20 @@ def augment_forecast_koujing(date):
         acc["账户预期贡献合计pp_新口径(仅有预测的只)"] = round(new_total, 3)
         acc["有预测只数_新口径"] = n_have
         acc["★口径并列说明"] = ("新口径=Σ(情景概率×情景中值上行)×权重(尺§六);旧口径=单点公允上行×权重。"
-                              "本轮仅 %d 只有预测(结构样例)·其余待 Opus5 填全量。" % n_have)
+                              "本轮 %d 只有预测·其余待 Opus5 填全量。" % n_have)
     tg["★两口径并列(J1-3)"] = "新口径(概率加权E[上行])与旧单点口径并列一轮·便于核换口径有没有算错。新口径仅覆盖已有预测的只。"
+    # L3(72号)换仓测算重算:旧口径「卖COIN换NVDA补pp」基于168天前公允·新口径COIN贡献转正→结论变
+    coin = next((r for r in tg["富途"]["逐只(按贡献pp降序)"] if r.get("code") == "US.COIN"), None)
+    if coin and coin.get("贡献pp_新口径") is not None:
+        old_swap = next((s for s in tg["富途"].get("换仓测算(卖低贡献三只换最高贡献只)", [])
+                         if "Coinbase" in s.get("卖", "") or "COIN" in s.get("卖", "")), None)
+        tg["★换仓测算重算(L3·新口径)"] = {
+            "旧口径结论": (old_swap.get("说明") if old_swap else "卖 Coinbase 换英伟达补 pp") +
+                        "（基于 COIN 旧单点贡献 %.2fpp·公允 $74.58·priced_at 2026-02-12·168天前）" % (coin.get("contribution_pp") or 0),
+            "新口径": "COIN 概率加权贡献 = %+.2fpp（转正）→ COIN 不再是必卖候选·『卖 COIN 换 X 补 pp』结论在新口径下不成立" % coin["贡献pp_新口径"],
+            "完整新口径换仓测算": "待换入标的(NVDA 等)预测填全后可算全量·当前仅 MSFT/COIN 两只有预测",
+            "保留旧口径对照": "见 富途.换仓测算(卖低贡献三只换最高贡献只)（旧单点·未删·供对照）",
+        }
     tp.write_text(json.dumps(tg, ensure_ascii=False, indent=2), encoding="utf-8")
     return tg
 
