@@ -268,11 +268,15 @@ def augment_forecast_koujing(date):
                 r["预测置信度"] = f.get("confidence")
                 r["forecast_id"] = f.get("forecast_id")
                 r["样例标记"] = f.get("★样例标记", False)
+                r["预测状态_新口径"] = "已填真预测" if not f.get("★样例标记") else "结构样例"
                 new_total += contrib_new; n_have += 1
             else:
+                # M1(74号):有预测的行不许留样例期字面量·状态按实际生成(与数据一致·防L6)
                 r["E上行_pct_新口径"] = None
                 r["贡献pp_新口径"] = None
-                r["预测状态_新口径"] = "待Opus5填预测(本轮仅样例)"
+                r["预测状态_新口径"] = "待填预测"
+                for _k in ("情景中值_E价格", "当日价(E上行分母)", "权重_新口径", "预测置信度", "样例标记"):
+                    r.pop(_k, None)
         # J2-2:gap_reliability 措辞换口径(65号推翻旧『不可信·待重估』→不因基准过期停判·只降置信度)
         hits = len(acc.get("命中重估标的", []) or [])
         wt = acc.get("重估触发_命中权重pct", 0) or 0
@@ -287,6 +291,10 @@ def augment_forecast_koujing(date):
     # L3(72号)换仓测算重算:旧口径「卖COIN换NVDA补pp」基于168天前公允·新口径COIN贡献转正→结论变
     coin = next((r for r in tg["富途"]["逐只(按贡献pp降序)"] if r.get("code") == "US.COIN"), None)
     if coin and coin.get("贡献pp_新口径") is not None:
+        # M2(74号):旧换仓表里作废的 COIN 条目就地加标(不只在L3块宣告)
+        for s in tg["富途"].get("换仓测算(卖低贡献三只换最高贡献只)", []):
+            if "Coinbase" in s.get("卖", "") or "COIN" in s.get("卖", ""):
+                s["★已作废"] = "COIN 新口径贡献转正(%+.2fpp)·『卖COIN补pp』不成立·见 ★换仓测算重算(L3·新口径)" % (coin.get("贡献pp_新口径") or 0)
         old_swap = next((s for s in tg["富途"].get("换仓测算(卖低贡献三只换最高贡献只)", [])
                          if "Coinbase" in s.get("卖", "") or "COIN" in s.get("卖", "")), None)
         tg["★换仓测算重算(L3·新口径)"] = {

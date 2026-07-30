@@ -77,6 +77,16 @@ def check(date_hyphen: str):
     _acc = {"FUTU": "富途", "SBI": "SBI", "富途": "富途"}
     have = {(_acc.get(f.get("account"), f.get("account")), f.get("ticker")) for f in forecasts}
 
+    # M3(74号):当日价映射(用于重算 E[上行]·验 expected_upside_pct 是机器算不是手给)
+    _px = {}
+    _tp = ROOT / "data/target" / f"target_gap_{date_compact}.json"
+    if _tp.exists():
+        _tg = json.loads(_tp.read_text(encoding="utf-8"))
+        for _a in ("富途", "SBI"):
+            for _r in (_tg.get(_a, {}).get("逐只(按贡献pp降序)", []) or []):
+                _px[(_a, _r.get("code"))] = _r.get("price_local_0730", _r.get("price_local"))
+    _FORBID = ("opus5_given_upside_pct", "weight", "权重", "贡献pp", "contribution_pp", "手给贡献pp", "手给权重")
+
     # ① 每持仓有预测(含盲区/待重估·无豁免)
     holds = _holdings_codes(date_compact)
     miss = [hc for hc in holds if hc not in have]
@@ -91,6 +101,20 @@ def check(date_hyphen: str):
         s = round(sum(x.get("prob", 0) for x in scen), 6)
         if abs(s - 1.0) > 1e-6:
             fails.append(f"闸② {tag} 三情景概率合计 {s*100:.1f}% ≠ 100%")
+        # M3 手给pp/权重路径已关闭:填报出现手给字段 → FAIL(不静默采用/丢弃)
+        _hit = [k for k in _FORBID if k in f]
+        if _hit:
+            fails.append(f"M3 {tag} 含手给字段 {_hit}——E[上行]/权重/贡献pp 一律机器算·填报只给区间/概率/依据/证伪/日期/置信度")
+        # M3 expected_upside_pct 必须=机器复算(分母=当日价)·防手给蒙混
+        _acccn = _acc.get(f.get("account"), f.get("account"))
+        _pt = _px.get((_acccn, f.get("ticker")))
+        _stored = f.get("expected_upside_pct")
+        if scen and _pt and _stored is not None:
+            sys.path.insert(0, str(ROOT / "scripts"))
+            from target_gap import compute_expected_upside
+            _, _re = compute_expected_upside(scen, _pt)
+            if abs(_re - _stored) > 0.02:
+                fails.append(f"M3 {tag} expected_upside_pct={_stored} ≠ 机器复算 {_re}(分母=当日价 {_pt})——疑手给/未用当日价")
         # ③ 粗档
         for x in scen:
             if x.get("prob") not in COARSE:
