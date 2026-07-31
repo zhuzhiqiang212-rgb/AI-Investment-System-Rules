@@ -33,10 +33,10 @@ def load_codes(date):
     return out
 
 def scan_prices(codes):
-    """OpenD 快照:last_price/prev_close_price/update_time。返回(rows, ok, err)。"""
+    """OpenD 取价:日股用快照(东证收盘后=收盘价);★美股用 K_DAY 正式收盘价(轮71 AJ2·非盘后延时快照)。返回(rows, ok, err)。"""
     try:
         from realtime_price import connect_quote_context
-        from futu import RET_OK
+        from futu import RET_OK, KLType, AuType
     except Exception as e:
         return {}, False, "futu 导入失败: %s" % e
     ctx, attempts = connect_quote_context(max_retries=3, wait_seconds=3)
@@ -45,7 +45,7 @@ def scan_prices(codes):
     rows = {}
     try:
         cl = [c["code"] for c in codes]
-        # 分批快照(每批≤30·避配额)
+        # 分批快照(每批≤30·避配额)——日股取此(东证收盘后即收盘价);美股下面用 K_DAY 覆盖
         for i in range(0, len(cl), 20):
             ret, data = ctx.get_market_snapshot(cl[i:i + 20])
             if ret != RET_OK:
@@ -59,8 +59,37 @@ def scan_prices(codes):
                     "sec_status": r.get("sec_status"),
                 }
             time.sleep(1)
+        # ★轮71 AJ2:美股一律用 K_DAY【最新完整交易日正式收盘价】覆盖快照(盘后快照=after-hours延时价·非16:00 EDT正式收盘)。
+        #   time_key 的日期盖进 update_time(收盘日)→与 scan_date 闸(时间感知)同口径。
+        import datetime as _dt
+        _start = (_dt.date.today() - _dt.timedelta(days=10)).strftime("%Y-%m-%d")
+        for c in cl:
+            if not str(c).startswith("US."):
+                continue
+            try:
+                ret, kl, _ = ctx.request_history_kline(c, start=_start, ktype=KLType.K_DAY, autype=AuType.QFQ)
+                if ret != RET_OK:
+                    rows.setdefault(c, {})["kday_err"] = "request_history_kline 失败: %s" % str(kl)[:80]
+                    continue
+                recs = kl.to_dict("records") if hasattr(kl, "to_dict") else []
+                if not recs:
+                    rows.setdefault(c, {})["kday_err"] = "K_DAY 无数据"
+                    continue
+                last = recs[-1]                      # 最新完整交易日 K 线(收盘后=当日;收盘前=最近完整日)
+                prev = recs[-2] if len(recs) >= 2 else {}
+                tk = str(last.get("time_key", ""))[:10]   # 收盘日 YYYY-MM-DD
+                r = rows.setdefault(c, {})
+                r.update({
+                    "last_price": last.get("close"), "prev_close_price": prev.get("close"),
+                    "open_price": last.get("open"), "high_price": last.get("high"), "low_price": last.get("low"),
+                    "update_time": tk, "sec_status": "K_DAY_CLOSE",
+                    "取价方式": "K_DAY正式收盘(轮71 AJ2·非盘后快照)", "收盘日": tk,
+                })
+                time.sleep(0.3)
+            except Exception as e:
+                rows.setdefault(c, {})["kday_err"] = "K_DAY异常: %s" % e
     except Exception as e:
-        return rows, False, "快照异常: %s" % e
+        return rows, False, "取价异常: %s" % e
     finally:
         try: ctx.close()
         except Exception: pass

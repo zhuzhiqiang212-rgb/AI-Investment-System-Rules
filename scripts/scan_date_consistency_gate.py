@@ -14,6 +14,8 @@ daily_scan_{YYYYMMDD}.json 里每条 update_time 的日期必须与文件名日�
 import argparse, json, sys, datetime
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
+JST = datetime.timezone(datetime.timedelta(hours=9))
+US_CLOSE_JST_HOUR = 5   # ★轮71 AJ1:美股 fn_date 收盘(16:00 EDT)≈ fn_date+1 的 05:00 JST
 
 
 def _iter_rows(d):
@@ -33,22 +35,38 @@ def _iter_rows(d):
             yield x.get("code") or x.get("symbol"), x.get("update_time"), None
 
 
-def _latest_complete_us_trading_day(fn_date):
-    """V1-2(裁定A):文件名日期(JST早晨)对应的【最新完整美股交易日】=从前一日起回退·跳周末。
-    ★美国假日未接(仅周末顺延)→遇假日可能误判·已在报告注明待接假日历。"""
-    d = fn_date - datetime.timedelta(days=1)
+def _us_close_jst(fn_date):
+    """fn_date 的美股正式收盘时刻(JST)= fn_date+1 的 05:00 JST(16:00 EDT≈次日05:00 JST)。"""
+    return datetime.datetime.combine(fn_date + datetime.timedelta(days=1),
+                                     datetime.time(US_CLOSE_JST_HOUR, 0), tzinfo=JST)
+
+
+def _latest_complete_us_trading_day(fn_date, now=None):
+    """★轮71 AJ1(时间感知·非放宽):文件名日期对应的【最新完整美股交易日】。
+    · 若 now(JST) ≥ fn_date 的美股收盘时刻(fn_date+1 的 05:00 JST) 且 fn_date 是交易日 → = fn_date(当日已收盘·当日收盘价合法)。
+    · 否则(收盘前/早晨跑) → = fn_date−1(美股当日未收盘·拒盘中价·保住轮69 保护)。
+    再从起点向前跳周末。★美国假日未接(仅周末顺延)→遇假日可能误判·报告注明待接假日历。"""
+    if now is None:
+        now = datetime.datetime.now(JST)
+    if fn_date.weekday() < 5 and now >= _us_close_jst(fn_date):
+        d = fn_date               # 收盘后:当日=最新完整交易日
+    else:
+        d = fn_date - datetime.timedelta(days=1)   # 收盘前:回退前一日
     while d.weekday() >= 5:  # 周六/周日非交易
         d -= datetime.timedelta(days=1)
     return d
 
 
-def check(date_compact):
+def check(date_compact, now=None):
     p = ROOT / "data/market" / f"daily_scan_{date_compact}.json"
     if not p.exists():
         return ["daily_scan_%s.json 不存在" % date_compact], {}
     d = json.loads(p.read_text(encoding="utf-8"))
     fn_date = datetime.date(int(date_compact[:4]), int(date_compact[4:6]), int(date_compact[6:8]))
-    latest_us = _latest_complete_us_trading_day(fn_date)
+    if now is None:
+        now = datetime.datetime.now(JST)
+    latest_us = _latest_complete_us_trading_day(fn_date, now)
+    before_close = now < _us_close_jst(fn_date)      # ★轮71:是否在 fn_date 美股收盘前
     fails = []; n = 0
     for code, ut, shidian in _iter_rows(d):
         if not code or not ut:
@@ -63,13 +81,17 @@ def check(date_compact):
         if is_us:
             # V1-2:美股 update_time 必须 = 最新完整美股交易日(周末顺延)·不超过1个完整交易日
             if ud != latest_us:
-                td = (latest_us - ud).days
-                # ★轮70 AI2:只改措辞不动判定——ud>latest_us 不是"数据太新是异常",而是"该美股交易日尚未收盘·抓到的是盘中价"。
-                if ud < latest_us:
+                # ★轮71 AJ1-1:两种情形分别措辞。
+                if before_close and ud == fn_date:
+                    # 收盘前抓到当日盘中价(该交易日尚未收盘)
+                    fails.append(f"{code}(美股) 取到 {ud} 盘中价，但该美股交易日尚未收盘"
+                                 f"（收盘 05:00 JST）→ 不可当完整交易日数据用。请于收盘后重跑，或改用 {latest_us} 收盘价。")
+                elif ud < latest_us:
+                    td = (latest_us - ud).days
                     fails.append(f"{code}(美股) update_time {ud} ≠ 最新完整美股交易日 {latest_us}·陈旧 {td} 天(超1个完整交易日→FAIL)")
                 else:
-                    fails.append(f"{code}(美股) 取到 {ud} 盘中价，但该美股交易日尚未收盘"
-                                 f"（收盘时刻 05:00 JST）→ 不可当完整交易日数据用。请于收盘后重跑，或改用 {latest_us} 收盘价。")
+                    # 收盘后但日期对不上
+                    fails.append(f"{code}(美股) 取到 {ud}·与最新完整美股交易日 {latest_us} 不符")
             # V1-1:时点标注须写明「最新完整美股交易日」不许只写日期
             elif shidian and "完整" not in str(shidian) and "收盘" not in str(shidian):
                 fails.append(f"{code}(美股) 时点标注「{shidian}」未写明=最新完整美股交易日(V1-1)")
