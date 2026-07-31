@@ -218,11 +218,15 @@ def build(date):
     }
 
 def compute_expected_upside(scenarios, px_today):
-    """K1(尺v1.1)权威公式:E[价格]=Σ(情景概率×情景中值);E[上行]=E[价格]÷【当日价】−1。
-    ★分母一律 px_today(当日价)·任何分支不许换锚。px_today 缺失→抛错(K1-2)。返回 (E价格, E上行pct)。"""
+    """K1(尺v1.1)+AB1(轮64)权威公式:E[价格]=Σ(情景概率×【point_value点值】);E[上行]=E[价格]÷【当日价】−1。
+    ★AB1-2:每档有 point_value 用点值(PE×EPS中枢)·无则回落区间中值。区间只用于记分/无缝校验(AB1-3)。
+    ★分母一律 px_today(当日价)·任何分支不许换锚。px_today 缺失→抛错。返回 (E价格, E上行pct)。"""
     if not px_today:
         raise ValueError("E[上行] 分母缺当日价(price_local_0730/price_local)·不许用锚或其它值兜底")
-    e_price = sum(s.get("prob", 0) * (sum(s.get("range", [0, 0])) / 2) for s in scenarios)
+    def _mid(s):
+        pv = s.get("point_value")
+        return pv if pv is not None else (sum(s.get("range", [0, 0])) / 2)
+    e_price = sum(s.get("prob", 0) * _mid(s) for s in scenarios)
     return e_price, round((e_price / px_today - 1) * 100, 2)
 
 

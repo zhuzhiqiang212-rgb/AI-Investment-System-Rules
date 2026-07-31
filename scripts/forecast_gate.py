@@ -124,6 +124,13 @@ def check(date_hyphen: str):
             _, _re = compute_expected_upside(scen, _pt)
             if abs(_re - _stored) > 0.02:
                 fails.append(f"M3 {tag} expected_upside_pct={_stored} ≠ 机器复算 {_re}(分母=当日价 {_pt})——疑手给/未用当日价")
+        # AB1-4(轮64):point_value 必须落在该档 range 之内·否则 FAIL(区间扩得不对称·需重画)
+        for _s in scen:
+            _pv = _s.get("point_value")
+            if _pv is not None and _s.get("range"):
+                _lo, _hi = min(_s["range"]), max(_s["range"])
+                if not (_lo <= _pv <= _hi):
+                    fails.append(f"AB1-4 {tag} 点值 {_pv} 不在该档区间[{_lo},{_hi}]内({_s.get('name')})——区间扩得不对称·须重画")
         # W4-1(轮59尺修正):三情景区间必须无缝相接(悲观上沿=中性下沿·中性上沿=乐观下沿)·有间隙或重叠→FAIL
         if len(scen) == 3 and all(len(s.get("range", [])) == 2 for s in scen):
             lo_o, hi_o = sorted(scen[0]["range"]); lo_m, hi_m = sorted(scen[1]["range"]); lo_p, hi_p = sorted(scen[2]["range"])
