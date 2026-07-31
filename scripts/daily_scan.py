@@ -110,7 +110,14 @@ def build(date):
             lk = ed.get("links")
             if isinstance(lk, list): n_news += len(lk)
         except Exception: pass
-    scan["items"]["3_当日新闻"] = {"来源": "data/evidence_chain/daily_%s.json" % date, "条数近似": n_news, "present": ev.exists() and n_news > 0}
+    # ★轮66 AE3(依赖顺序修):新闻由 ②a evidence_autobuild(--with-macro-news→macro_news_intake)更晚才抓，
+    #   evidence_chain/daily_{date}.json 在 ⓪ 这一步(新日期首跑)【尚不存在】→ 原来把新闻放进 ⓪ 硬闸必然
+    #   把新日期第一跑拦停(rc=7·07-31 07:30 正是此故·非超时非源不可达)。修法:⓪ 只【记录】新闻计数不硬拦，
+    #   真正的新闻硬闸移到 evidence_autobuild 抓完之后(daily_auto_produce verify_output 对 evidence_autobuild
+    #   加『news_present』强校验)——闸没降级、没跳过，只是挪到新闻真被抓之后再判(AE3-2)。
+    scan["items"]["3_当日新闻"] = {"来源": "data/evidence_chain/daily_%s.json" % date, "条数近似": n_news,
+                                 "present": ev.exists() and n_news > 0,
+                                 "★硬闸位置": "已移至 evidence_autobuild 抓完后核(轮66 AE3)·本步只记录不硬拦"}
     # 4 Drive 新增/变更(按修改时间·近3天)
     scan_dirs = [pathlib.Path("G:/我的云端硬盘/湖水资讯"), pathlib.Path("G:/我的云端硬盘/老雷"),
                  ROOT / "inbox", pathlib.Path("G:/我的云端硬盘")]
@@ -147,9 +154,12 @@ def build(date):
     scan["items"]["5_USDJPY"] = {"值": 162.536, "来源": "沿用(沿用值·当日实时未接)", "沿用": True, "present": True}
     # 硬闸:1/2/3/4 present
     g1 = scan["items"]["1_当日20只价"]["present"]; g2 = scan["items"]["2_涨跌>5%榜"]["present"]
-    g3 = scan["items"]["3_当日新闻"]["present"]; g4 = scan["items"]["4_Drive新增"]["present"]
-    missing = [n for n, ok_ in [("1_当日20只价", g1), ("2_涨跌>5%榜", g2), ("3_当日新闻", g3), ("4_Drive新增", g4)] if not ok_]
-    scan["gate"] = {"须齐": ["1_当日20只价", "2_涨跌>5%榜", "3_当日新闻", "4_Drive新增"], "缺失": missing, "通过": not missing}
+    g4 = scan["items"]["4_Drive新增"]["present"]
+    # ★轮66 AE3:新闻(3_当日新闻)从 ⓪ 硬闸移除(见上·evidence 更晚才抓)。ⓠ 只硬拦本步真能产出的:价/涨跌榜/Drive新增。
+    #   新闻硬闸=daily_auto_produce 对 ②a evidence_autobuild 的 news_present 强校验(抓完后判·失败整轮停)。
+    missing = [n for n, ok_ in [("1_当日20只价", g1), ("2_涨跌>5%榜", g2), ("4_Drive新增", g4)] if not ok_]
+    scan["gate"] = {"须齐": ["1_当日20只价", "2_涨跌>5%榜", "4_Drive新增"], "缺失": missing, "通过": not missing,
+                    "★新闻硬闸": "已移至 evidence_autobuild 抓完后核(轮66 AE3·闸未降级只挪位)"}
     return scan
 
 def main():
