@@ -115,6 +115,15 @@ def check(date_hyphen: str):
             _, _re = compute_expected_upside(scen, _pt)
             if abs(_re - _stored) > 0.02:
                 fails.append(f"M3 {tag} expected_upside_pct={_stored} ≠ 机器复算 {_re}(分母=当日价 {_pt})——疑手给/未用当日价")
+        # W4-1(轮59尺修正):三情景区间必须无缝相接(悲观上沿=中性下沿·中性上沿=乐观下沿)·有间隙或重叠→FAIL
+        if len(scen) == 3 and all(len(s.get("range", [])) == 2 for s in scen):
+            lo_o, hi_o = sorted(scen[0]["range"]); lo_m, hi_m = sorted(scen[1]["range"]); lo_p, hi_p = sorted(scen[2]["range"])
+            if abs(hi_p - lo_m) > 1e-6:
+                seg = f"[{min(hi_p,lo_m):.0f}~{max(hi_p,lo_m):.0f}]"
+                fails.append(f"W4 {tag} 悲观上沿({hi_p:.0f})≠中性下沿({lo_m:.0f})·{'间隙' if hi_p<lo_m else '重叠'}{seg}(区间须无缝相接)")
+            if abs(hi_m - lo_o) > 1e-6:
+                seg = f"[{min(hi_m,lo_o):.0f}~{max(hi_m,lo_o):.0f}]"
+                fails.append(f"W4 {tag} 中性上沿({hi_m:.0f})≠乐观下沿({lo_o:.0f})·{'间隙' if hi_m<lo_o else '重叠'}{seg}(区间须无缝相接)")
         # ③ 粗档
         for x in scen:
             if x.get("prob") not in COARSE:
