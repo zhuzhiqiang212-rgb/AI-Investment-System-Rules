@@ -87,8 +87,10 @@ def check(date_hyphen: str):
                 _px[(_a, _r.get("code"))] = _r.get("price_local_0730", _r.get("price_local"))
     _FORBID = ("opus5_given_upside_pct", "weight", "权重", "贡献pp", "contribution_pp", "手给贡献pp", "手给权重")
 
-    # ① 每持仓有预测(含盲区/待重估·无豁免)
-    holds = _holdings_codes(date_compact)
+    # Z2-4:退出标的(★退出字段)不进情景·从持仓覆盖豁免(董事长拍板退出)
+    _exit_codes = {f.get("ticker") for f in forecasts if f.get("★退出")}
+    # ① 每持仓有预测(含盲区/待重估·无豁免;退出标的豁免——已退出不进情景)
+    holds = [hc for hc in _holdings_codes(date_compact) if hc[1] not in _exit_codes]
     miss = [hc for hc in holds if hc not in have]
     if miss:
         fails.append(f"闸① 持仓无预测 ×{len(miss)}(含盲区/待重估无豁免)：{['%s/%s'%(a,c) for a,c in miss][:6]}{' …' if len(miss)>6 else ''}")
@@ -96,6 +98,12 @@ def check(date_hyphen: str):
     new_cnt = 0
     for f in forecasts:
         tag = f"{f.get('account')}/{f.get('ticker')}"
+        if f.get("★退出"):
+            continue  # 退出标的不校验(不进情景计算)
+        _grade = f.get("参数出处等级")
+        # Z3-3(轮62):B/C级不得出现 E[上行] 数值(无出处不出数)
+        if _grade in ("B", "C") and f.get("expected_upside_pct") is not None:
+            fails.append(f"Z3-3 {tag} {_grade}级不得输出E[上行]数值(无出处不出数)——当前={f.get('expected_upside_pct')}")
         scen = f.get("scenarios", []) or []
         # ② 概率合计=100%
         s = round(sum(x.get("prob", 0) for x in scen), 6)
@@ -140,9 +148,10 @@ def check(date_hyphen: str):
         if not fid or fid not in reg_ids:
             fails.append(f"闸⑤ {tag} 预测未写入 locked_predictions_registry(forecast_id={fid})")
         # ⑥ 只有现值核算而无前瞻:有 anchor 却无情景/expected_upside
+        #   ★B/C级豁免E[上行]要求(Z3-2:无出处不出数·B级只报PE·C级不输估值)——只要有三情景即可
         has_anchor = bool((f.get("fair_value_anchor") or {}).get("value"))
         has_forward = bool(scen) and (f.get("expected_upside_pct") is not None)
-        if has_anchor and not has_forward:
+        if _grade not in ("B", "C") and has_anchor and not has_forward:
             fails.append(f"闸⑥ {tag} 结论只有现值核算(fair_value_anchor)而无前瞻情景/expected_upside")
         if not scen:
             fails.append(f"闸⑥ {tag} 无三情景(前瞻判断缺失)")
