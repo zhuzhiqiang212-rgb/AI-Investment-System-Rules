@@ -1986,7 +1986,7 @@ def _stability_banners(date: str) -> tuple:
         if not mp.exists():
             import glob as _g
             cands = sorted(_g.glob(str(ROOT / "data" / "moat" / "moat_analysis_*.json")))
-            mp = pathlib.Path(cands[-1]) if cands else mp
+            mp = Path(cands[-1]) if cands else mp   # ★轮71:修 NameError(只导入了 Path·pathlib 模块名未导入→原 pathlib.Path 抛异常→moat 每次误判超期·⑬b 每次FAIL)
         md = json.loads(mp.read_text(encoding="utf-8"))
         moat_as_of = str(md.get("date") or md.get("as_of") or mp.stem.split("_")[-1])
         ao = _dt.date(int(moat_as_of[:4]), int(moat_as_of[4:6]), int(moat_as_of[6:8]))
