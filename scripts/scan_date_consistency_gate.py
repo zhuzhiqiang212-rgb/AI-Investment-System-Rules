@@ -33,12 +33,22 @@ def _iter_rows(d):
             yield x.get("code") or x.get("symbol"), x.get("update_time"), None
 
 
+def _latest_complete_us_trading_day(fn_date):
+    """V1-2(裁定A):文件名日期(JST早晨)对应的【最新完整美股交易日】=从前一日起回退·跳周末。
+    ★美国假日未接(仅周末顺延)→遇假日可能误判·已在报告注明待接假日历。"""
+    d = fn_date - datetime.timedelta(days=1)
+    while d.weekday() >= 5:  # 周六/周日非交易
+        d -= datetime.timedelta(days=1)
+    return d
+
+
 def check(date_compact):
     p = ROOT / "data/market" / f"daily_scan_{date_compact}.json"
     if not p.exists():
         return ["daily_scan_%s.json 不存在" % date_compact], {}
     d = json.loads(p.read_text(encoding="utf-8"))
     fn_date = datetime.date(int(date_compact[:4]), int(date_compact[4:6]), int(date_compact[6:8]))
+    latest_us = _latest_complete_us_trading_day(fn_date)
     fails = []; n = 0
     for code, ut, shidian in _iter_rows(d):
         if not code or not ut:
@@ -49,15 +59,21 @@ def check(date_compact):
         except Exception:
             fails.append(f"{code} update_time 无法解析日期：{ut}")
             continue
-        diff = (fn_date - ud).days
         is_us = str(code).startswith("US.")
         if is_us:
-            if diff not in (0, 1):  # 美股允许当日或前一日(收盘时区滞后)
-                fails.append(f"{code}(美股) update_time {ud} 与文件名 {fn_date} 差 {diff} 天（美股仅允许 0/1 天·>1=陈旧）")
+            # V1-2:美股 update_time 必须 = 最新完整美股交易日(周末顺延)·不超过1个完整交易日
+            if ud != latest_us:
+                td = (latest_us - ud).days
+                fails.append(f"{code}(美股) update_time {ud} ≠ 最新完整美股交易日 {latest_us}"
+                             + (f"·陈旧 {td} 天(超1个完整交易日→FAIL)" if ud < latest_us else "·晚于最新交易日(异常)"))
+            # V1-1:时点标注须写明「最新完整美股交易日」不许只写日期
+            elif shidian and "完整" not in str(shidian) and "收盘" not in str(shidian):
+                fails.append(f"{code}(美股) 时点标注「{shidian}」未写明=最新完整美股交易日(V1-1)")
         else:
-            if diff != 0:  # 日股必须同日
-                fails.append(f"{code}(日股) update_time {ud} 与文件名 {fn_date} 差 {diff} 天（日股必须同日）")
-    return fails, {"条目数": n, "文件名日期": str(fn_date)}
+            if ud != fn_date:  # V1-3:日股严格同日
+                fails.append(f"{code}(日股) update_time {ud} ≠ 文件名 {fn_date}（日股必须同日·差{(fn_date-ud).days}天）")
+    return fails, {"条目数": n, "文件名日期": str(fn_date), "最新完整美股交易日": str(latest_us),
+                   "★假日历": "未接·仅周末顺延·遇美国假日可能误判(待接)"}
 
 
 def main():

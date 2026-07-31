@@ -36,6 +36,61 @@ def _actual_close(code, dc):
     return None, f"取不到·daily_scan_{dc}.json 无 {code}·未记分"
 
 
+def _next_trading_day(d):
+    """下一交易日(跳周末·★美国假日未接·仅周末顺延)。"""
+    import datetime as _dt
+    d = d + _dt.timedelta(days=1)
+    while d.weekday() >= 5:  # 5=周六 6=周日
+        d += _dt.timedelta(days=1)
+    return d
+
+
+def min_legal_verdict_date(report_date, session, is_us):
+    """V2-3(裁定V2):事件档 verdict_date 必须 ≥ 事件后【首个完整交易日的收盘可得日】(JST计)。
+    盘后财报→反应交易日=次一交易日→其收盘再跨时区顺延。返回最早合法 verdict_date(date) 或 None。"""
+    import datetime as _dt
+    try:
+        D = _dt.date(int(report_date[:4]), int(report_date[5:7]), int(report_date[8:10]))
+    except Exception:
+        return None
+    s = session or ""
+    if is_us:
+        # 美股盘后→反应=次一美股交易日;其收盘16:00 EDT ≈ 次日 JST 早晨可得→再+1(JST)
+        react = _next_trading_day(D) if "盘后" in s else D
+        return react + _dt.timedelta(days=1)  # 收盘可得日(JST)=反应交易日收盘16:00EDT→次日JST早晨
+    else:
+        # 日股盘后→反应次一交易日收盘(同日EOD可得);盘中→当日收盘可得
+        return _next_trading_day(D) if "盘后" in s else D
+
+
+def check_verdict_dates():
+    """V2-3 登记时合法性检查:遍历已登记事件档·对照 earnings_calendar·verdict_date < 最早合法 → FAIL。"""
+    reg_p = ROOT / "data/forecast/locked_predictions_registry.json"
+    reg = json.loads(reg_p.read_text(encoding="utf-8")) if reg_p.exists() else {"已登记预测": []}
+    ec = {}
+    ecp = ROOT / "data/valuation/earnings_calendar.json"
+    if ecp.exists():
+        for e in json.loads(ecp.read_text(encoding="utf-8")).get("events", []):
+            ec[e.get("symbol")] = e
+    import datetime as _dt
+    fails = []
+    for e in reg.get("已登记预测", []):
+        code = e.get("ticker"); ev = ec.get(code)
+        if not ev or not ev.get("report_date"):
+            continue
+        is_us = str(code).startswith("US.")
+        mn = min_legal_verdict_date(ev["report_date"], ev.get("session"), is_us)
+        vd = (e.get("verdict_date") or "")[:10]
+        if mn and vd:
+            try:
+                vdd = _dt.date(int(vd[:4]), int(vd[5:7]), int(vd[8:10]))
+                if vdd < mn:
+                    fails.append(f"{code} verdict_date {vd} < 最早合法 {mn}(财报 {ev['report_date']}·{ev.get('session')})——事件反应收盘尚不可得·会拿财报前价假判")
+            except Exception:
+                pass
+    return fails
+
+
 def _forecasts_by_id():
     out = {}
     for fp in glob.glob(str(ROOT / "data/forecast/forecast_*.json")):
@@ -107,7 +162,21 @@ def run(asof):
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
-    ap = argparse.ArgumentParser(); ap.add_argument("--asof", required=True); a = ap.parse_args()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--asof")
+    ap.add_argument("--check-verdict-dates", action="store_true", help="V2-3:校验事件档 verdict_date 合法性(登记时用)")
+    a = ap.parse_args()
+    if a.check_verdict_dates:
+        fails = check_verdict_dates()
+        if fails:
+            print(f"[verdict_date合法性 FAIL] {len(fails)} 条")
+            for x in fails:
+                print("  ✗", x)
+            return 8
+        print("[verdict_date合法性 PASS] 所有事件档 verdict_date ≥ 事件后首个完整交易日收盘可得日")
+        return 0
+    if not a.asof:
+        ap.error("--asof 必填(除非 --check-verdict-dates)")
     verdicts, vp = run(a.asof)
     print(f"[pdca_verdict] asof {a.asof} · 到期 {len(verdicts)} 条 → {vp.name}")
     for v in verdicts:
