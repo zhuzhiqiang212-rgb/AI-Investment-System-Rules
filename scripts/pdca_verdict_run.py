@@ -20,12 +20,19 @@ def _actual_close(code, dc):
     if not p.exists():
         return None, f"取不到·daily_scan_{dc}.json 不存在(该日未扫描)·未记分"
     d = json.loads(p.read_text(encoding="utf-8"))
+    # 兼容两种 daily_scan 结构:旧 items[].last_price / 新(轮57重扫) 逐只[].当日价(标时点)
     for it in d.get("items", []):
         if it.get("code") == code or it.get("symbol") == code:
             lp = it.get("last_price")
             if lp is not None:
                 return lp, f"daily_scan_{dc}.json.items[{code}].last_price"
             return None, f"取不到·daily_scan 有 {code} 但 last_price 为空·未记分"
+    for it in d.get("逐只", []):
+        if it.get("code") == code:
+            lp = it.get("当日价")
+            if lp is not None:
+                return lp, f"daily_scan_{dc}.json.逐只[{code}].当日价（时点：{it.get('时点')}）"
+            return None, f"取不到·daily_scan 有 {code} 但当日价为空·未记分（{it.get('时点')}）"
     return None, f"取不到·daily_scan_{dc}.json 无 {code}·未记分"
 
 
