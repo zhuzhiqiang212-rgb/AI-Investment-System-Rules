@@ -13,6 +13,15 @@ CONF = {"A": 1.0, "B": 0.7, "C": 0.4}
 SINGLE_MAX, GROUP_MAX, PEAK_MAX, DEF_MIN = 0.20, 0.30, 0.05, 0.15
 S1_MIN_PP, S1_SWAP_MIN_PP = 1.5, 1.0
 
+def _exposure_cap():
+    """Y1-1:生效上限从 data/config/risk_caps.json 读(默认0.30·不硬编码·董事长偏好可调)。"""
+    import json as _j
+    p = ROOT / "data" / "config" / "risk_caps.json"
+    try:
+        return float(_j.loads(p.read_text(encoding="utf-8")).get("exposure_cap", GROUP_MAX))
+    except Exception:
+        return GROUP_MAX
+
 def gate_S0(cand, activated_sectors):
     ok = cand.get("sector_cell") in activated_sectors
     return ("PASS" if ok else "FAIL"), (None if ok else "S0:候选板块[%s]不在当日第1关激活清单→漏斗合规否决(严禁自下而上)" % cand.get("sector_cell"))
@@ -38,16 +47,32 @@ def gate_S1(cand, w_legal):
     return "PASS", None, contrib
 
 def gate_S2(cand, group_weight_after, same_group_as_top):
-    # v1.2(规范升级):低相关从并列条件升为硬门槛——④驱动组≤30%(已破限则该组一律FAIL) ⑤加入后跨度不得扩大
+    # Y1(轮61裁定·修v1.2错规则):S2④改三分支——上限是董事长偏好·规则不替他否决主线
+    cap = _exposure_cap()
     grp_cur = cand.get("driver_group_current_weight")
-    if grp_cur is not None and grp_cur > GROUP_MAX:
-        return "FAIL", "S2④(v1.2):驱动组已破30%%(当前%.1f%%)·降回30%%内前该组不得再加任何新仓位" % (grp_cur * 100), 1.0
-    if group_weight_after > GROUP_MAX:
-        return "FAIL", "S2④:加入后驱动组权重%.0f%%>30%%" % (group_weight_after * 100), 1.0
+    intra = cand.get("is_intra_group_swap", False)         # ①组内换仓(卖组内一只买组内另一只·净权重不增)
+    net_add = cand.get("net_weight_add")                    # 净增权重(组内换仓=0或≤0)
+    factor = 0.5 if same_group_as_top else 1.0
+    # ① 组内换仓·净权重不增 → 允许(不受上限限制)
+    if intra and (net_add is None or net_add <= 1e-9):
+        pass  # 直接过 S2④(组内换仓不增暴露)
+    elif group_weight_after is not None and group_weight_after > cap + 1e-9:
+        # ③ 净增且超生效上限 → ★不判FAIL·判「需董事长拍板抬高上限」并附S3代价(百分比+金额)
+        over_pp = (group_weight_after - cap) * 100
+        s3_drop = cand.get("s3_drop_pct")                  # 该候选/组在S3下的跌幅(小数·如0.25)
+        A = cand.get("account_A")
+        cost_line = ""
+        if s3_drop is not None and net_add is not None:
+            loss_pct = net_add * s3_drop * 100             # 净增暴露在S3下的组合亏损(pp)
+            cost_line = "·S3代价≈%.2fpp" % loss_pct + (("(约$%s)" % format(int(net_add * s3_drop * A), ",")) if A else "")
+        return ("NEED_DECISION",
+                "S2④(Y1):加入后组权重%.1f%%>生效上限%.0f%%(超%.1fpp)→【需董事长拍板抬高上限】·非规则否决%s" % (
+                    group_weight_after * 100, cap * 100, over_pp, cost_line), factor)
+    # ② 净增但增后 ≤ 生效上限 → 允许(落到此处即合规)
+    # ⑤ 跨度不得扩大(v1.2保留)
     sb, sa = cand.get("span_before"), cand.get("span_after")
     if sb is not None and sa is not None and sa > sb + 1e-9:
-        return "FAIL", "S2⑤(v1.2):加入后账户S1−S3跨度扩大(%.2f→%.2fpp)·无论补多少缺口一律出局" % (sb * 100, sa * 100), 1.0
-    factor = 0.5 if same_group_as_top else 1.0     # 与最大贡献来源同驱动组→0.5折算
+        return "FAIL", "S2⑤(v1.2):加入后账户S1−S3跨度扩大(%.2f→%.2fpp)·无论补多少缺口一律出局" % (sb * 100, sa * 100), factor
     if not cand.get("driver_basis"):
         return "FAIL", "S2:驱动组归组无依据(不许只按行业标签)", factor
     return "PASS", None, factor
@@ -93,6 +118,10 @@ def process(cand, ctx):
     s2, r2, factor = gate_S2(cand, cand.get("group_weight_after", 0), cand.get("same_group_as_top", False)); trace["S2"] = s2
     if s2 == "FAIL":
         return None, {"ticker": cand.get("ticker"), "failed_gate": "S2", "reason": r2}, trace
+    if s2 == "NEED_DECISION":
+        # Y1③:超上限不否决·标「需董事长拍板」并附S3代价·不进rejected(不是被否)也不直接进passed
+        return None, {"ticker": cand.get("ticker"), "gate": "S2④", "verdict": "需董事长拍板抬高上限", "reason": r2,
+                      "★非否决": "上限是董事长偏好·规则不替他否决主线(裁定Y1)"}, trace
     s3, r3 = gate_S3(cand, w_legal, cand.get("is_peak", False), cand.get("def_ratio_after")); trace["S3"] = s3
     if s3 == "FAIL":
         return None, {"ticker": cand.get("ticker"), "failed_gate": "S3", "reason": r3}, trace
@@ -207,18 +236,24 @@ def self_test():
     p_no = process({**base, "same_group_as_top": False}, ctx)[0]
     p_yes = process({**base, "same_group_as_top": True}, ctx)[0]
     res["R3_同驱动组0.5折算后移"] = (p_no and p_yes and abs(p_yes["gap_contrib_pp_after_S2折算"] - p_no["gap_contrib_pp_after_S2折算"] * 0.5) < 1e-6 and p_yes["priority"] < p_no["priority"])
-    # R1-v1.2 高AI beta 补缺口5pp的候选 → 该组已破限(36%>30%)→ S2④ 挡住(证硬门槛生效)
-    r5 = process({"ticker": "R5高AI", "sector_cell": "AI电力", "max_legal_weight": 0.5,
-                  "fair_value": {"value": 20, "method": "PE", "as_of": "2026-07-30", "confidence": "A"}, "price": 10,
-                  "driver_group": "高AI beta", "driver_basis": "AI capex", "driver_group_current_weight": 0.36,
-                  "group_weight_after": 0.41, "downside": {"drop_pct": 20, "trigger": "x"}}, ctx)
-    res["R1v1.2_高AIbeta补5pp被S2④挡"] = (r5[1] and r5[1]["failed_gate"] == "S2" and "S2④" in (r5[1].get("reason") or ""))
-    # R1-v1.2 跨度扩大的候选 → S2⑤ 挡住
-    r6 = process({"ticker": "R6扩跨度", "sector_cell": "AI电力", "max_legal_weight": 0.1,
-                  "fair_value": {"value": 30, "method": "PE", "as_of": "2026-07-30", "confidence": "A"}, "price": 10,
-                  "driver_group": "低相关", "driver_basis": "x", "group_weight_after": 0.1,
-                  "span_before": 0.70, "span_after": 0.78, "downside": {"drop_pct": 20, "trigger": "x"}}, ctx)
-    res["R1v1.2_跨度扩大被S2⑤挡"] = (r6[1] and r6[1]["failed_gate"] == "S2" and "S2⑤" in (r6[1].get("reason") or ""))
+    # Y1-2a 组内换仓(净权重不增) → S2④ PASS(允许)
+    base_s2 = {"sector_cell": "AI电力", "max_legal_weight": 0.15, "driver_group": "高AI beta", "driver_basis": "AI capex",
+               "fair_value": {"value": 15, "method": "PE", "as_of": "2026-07-30", "confidence": "A"}, "price": 10,
+               "downside": {"drop_pct": 20, "trigger": "x"},
+               "nine_fields": {"earn": "e", "lose": "l", "verdict_date": "2026-08", "invalidation": "i",
+                               "today_action": "换", "driver": "AI", "why_this_weight": "w", "sources": ["s"], "forecast_id": "F-x"}}
+    ra = process({**base_s2, "ticker": "Ya组内换", "is_intra_group_swap": True, "net_weight_add": 0.0,
+                  "group_weight_after": 0.36}, ctx)
+    res["Y1a_组内换仓PASS"] = (ra[0] is not None and ra[2].get("S2") == "PASS")
+    # Y1-2b 净增但增后≤生效上限(0.30) → PASS
+    rb = process({**base_s2, "ticker": "Yb净增不超", "is_intra_group_swap": False, "net_weight_add": 0.03,
+                  "group_weight_after": 0.28}, ctx)
+    res["Y1b_净增不超上限PASS"] = (rb[0] is not None and rb[2].get("S2") == "PASS")
+    # Y1-2c 净增且超生效上限 → 需拍板(NEED_DECISION)+附S3代价
+    rc = process({**base_s2, "ticker": "Yc净增超限", "is_intra_group_swap": False, "net_weight_add": 0.05,
+                  "group_weight_after": 0.41, "s3_drop_pct": 0.25, "account_A": 1000000}, ctx)
+    res["Y1c_净增超限需拍板"] = (rc[2].get("S2") == "NEED_DECISION" and rc[1] and rc[1].get("verdict") == "需董事长拍板抬高上限"
+                            and "S3代价" in (rc[1].get("reason") or ""))
     # R4 rejected为空 → run 报FAIL(退出码非0)
     out_allpass = run("20260730", {**ctx, "candidate_pool": [base | {"same_group_as_top": False}], "activation_file": ""})
     res["R4_rejected空则FAIL"] = (out_allpass["self_check"]["rejected_non_empty"] is False)  # 空→非空False→主流程据此FAIL
