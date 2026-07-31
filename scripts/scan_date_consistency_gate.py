@@ -64,8 +64,12 @@ def check(date_compact):
             # V1-2:美股 update_time 必须 = 最新完整美股交易日(周末顺延)·不超过1个完整交易日
             if ud != latest_us:
                 td = (latest_us - ud).days
-                fails.append(f"{code}(美股) update_time {ud} ≠ 最新完整美股交易日 {latest_us}"
-                             + (f"·陈旧 {td} 天(超1个完整交易日→FAIL)" if ud < latest_us else "·晚于最新交易日(异常)"))
+                # ★轮70 AI2:只改措辞不动判定——ud>latest_us 不是"数据太新是异常",而是"该美股交易日尚未收盘·抓到的是盘中价"。
+                if ud < latest_us:
+                    fails.append(f"{code}(美股) update_time {ud} ≠ 最新完整美股交易日 {latest_us}·陈旧 {td} 天(超1个完整交易日→FAIL)")
+                else:
+                    fails.append(f"{code}(美股) 取到 {ud} 盘中价，但该美股交易日尚未收盘"
+                                 f"（收盘时刻 05:00 JST）→ 不可当完整交易日数据用。请于收盘后重跑，或改用 {latest_us} 收盘价。")
             # V1-1:时点标注须写明「最新完整美股交易日」不许只写日期
             elif shidian and "完整" not in str(shidian) and "收盘" not in str(shidian):
                 fails.append(f"{code}(美股) 时点标注「{shidian}」未写明=最新完整美股交易日(V1-1)")
