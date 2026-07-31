@@ -880,7 +880,52 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
                     fails.append(f"L14 更正连带/变体残留：{fn} 废弃值「{_lit}」以未划删未标注形态出现（…{_seg}…）——须划删+订正为新值")
                     break  # 每个废弃值报一次即可
 
+    # ── L15(轮68 AG2-4)渲染器源码硬编码个股判断闸：render_3layer.py 里【以标的代码为 key 的字典值】
+    #    含【数字(价格/贡献pp/概率/倍数/EPS)或判断词(维持/加/减/买/卖/不算贵/便宜/贵/剔除/止盈…)】→ FAIL。
+    #    G2 禁止在渲染器里写死个股推理·且绕过 forecast_gate。允许保留:不含个股判断的模板文字/字段名/样式。
+    fails += _l15_hardcoded_stock_judgment()
+
     return fails
+
+
+def _l15_hardcoded_stock_judgment() -> list:
+    """L15:扫 scripts/render_3layer.py 源码，找【标的代码 key 的字典值】里的硬编码数字/判断词。"""
+    import pathlib as _pl, re as _r
+    src = _pl.Path(__file__).resolve().parent / "render_3layer.py"
+    if not src.exists():
+        return []
+    lines = src.read_text(encoding="utf-8").splitlines()
+    JUDGE = _r.compile(r"维持|不算贵|便宜|剔除|止盈|换出候选|减仓|加仓|该减|该加|观察减|超上沿|拖累|正贡献|盲区")
+    # 数字:价格¥/$、百分比、pp/个百分点、×PE/PE数、EPS数、±数
+    NUM = _r.compile(r"[¥$][\d,]{2,}|[-+]?\d+(?:\.\d+)?\s*(?:%|pp|个百分点)|×?PE\s*\d|EPS\s*\d|\d{3,}×|[-+]\d+(?:\.\d+)?")
+    TICKER_KEY = _r.compile(r'"(?:(?:JP|US)\.[A-Z0-9]{2,6}|\d{4})"\s*:')
+    RESET = _r.compile(r"^\s*(def |class |return |[A-Za-z_][\w]*\s*=\s*[^{(\[]|@)")
+    hits = []
+    cur = None            # 当前所在的 标的代码 key
+    cur_line = 0
+    for i, ln in enumerate(lines, 1):
+        stripped = ln.strip()
+        code = stripped.lstrip("#").strip()
+        is_comment = stripped.startswith("#")
+        mk = TICKER_KEY.search(ln)
+        if mk:
+            cur = mk.group(0).split('"')[1]
+            cur_line = i
+        elif RESET.match(ln) and not mk:
+            cur = None
+        if cur and not is_comment:
+            j = JUDGE.search(ln)
+            n = NUM.search(ln)
+            if j or n:
+                sample = (n.group(0) if n else j.group(0)) if (n or j) else ""
+                why = ("数字「%s」" % n.group(0)) if n else ("判断词「%s」" % j.group(0))
+                hits.append((cur, i, why, stripped[:70]))
+                cur = None      # 同一 key 报一次即可(报首个命中行)
+    out = []
+    for code, ln, why, samp in hits:
+        out.append(f"L15 渲染器硬编码个股判断：render_3layer.py:{ln} {code} 字典值含{why}——"
+                   f"须改从 forecast/target_gap 读取·读不到显示「未产出·原因」（…{samp}…）")
+    return out
 
 
 def main() -> int:

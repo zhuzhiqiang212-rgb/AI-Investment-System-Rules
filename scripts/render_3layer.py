@@ -23,6 +23,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import deep_render as D  # noqa: E402
 
+
+def esc(s):  # ★轮68:模块级 esc(=D.esc)·供数据驱动个股块统一转义
+    return D.esc(str(s))
+
 TPL = ROOT / "00_请先看这里" / "三层骨架模板_给Code填数据_20260719.html"
 ACT_COLOR = {"加": "add", "买": "add", "减": "cut", "守": "hold", "等": "wait"}
 ACT_ICON = {"加": "▲", "买": "▲", "减": "▼", "守": "■", "等": "…"}
@@ -111,63 +115,19 @@ _FWD_EXCLUDE = {
 }
 _FWD_CACHE: dict = {}
 
-# ── 未来1-2年前瞻目标价 = 未来EPS × 合理PE(董事长2026-07-25第二次纠正:当前价格口径异常≠不能算未来目标·
-#     未来目标与当前价格口径无关·必须算·不许标不计算)。异常股(6857/SNDK)的目标串包在 <span class="fwdanchor">
-#     内→gate_异常股静默白名单此span(前瞻目标允许·当前估值贵贱仍拦)。EPS三口径不混·已入登记v3.1(20260725)。
-_FWD_EPS_PE = {
-    "6857": '<span class="fwdanchor" style="color:#9ec8b0">¥14,500~¥20,700　＝ EDINET报告实际EPS¥413.29 × 前瞻PE 35~50（★来源:半导体行业前瞻PE中位约37[gurufocus2026]/泰瑞达TER前瞻约52/爱德万自身前瞻约53[valueinvesting.io2026-03]·35~50取当前可比区间偏保守端;★爱德万5年PE 11~100+无稳定正常化锚·此PE取的是当前峰值周期水平）·真实股本口径·前瞻价值锚；与今日价格贵贱分列·当前价格/复权口径待核·不与待核现价比涨跌幅</span>',
-    "SNDK": '<span class="fwdanchor" style="color:#9ec8b0">$40~$60　＝ 周期正常化EPS约$5（当期报告EPS为负·用周期中值） × NAND通道PE 8~12·真实股本口径。★【参考锚·不是公允基准·不参与贵贱判定】（轮13裁定四）：分拆后&lt;3年、carve-out亏损期数据不可靠→穿周期基准维持「待接真源」门槛；此值只给方向感、绝不进intrinsic/verdict/任何闸·不与现价比贵贱。接真源门槛＝分拆后≥3年稳定NAND段 或 WDC时代分部还原。</span>',
-    "8001": '¥1,700~¥2,320　＝ 正常化/前瞻EPS约¥130~145 × 可比五商社PE 13~16（伯克希尔增持后重估）；分部NAV待核·报告EPS¥91.65口径待复核·主锚用正常化口径·EPS法',
-    "SPCX": '无公开财报·不用EPS×PE；以最近一轮私募融资估值为锚（具体估值待Code取真数·不编）×星链增长/潜在IPO重估·成本$138为私募标记非二级市场价',
-}
-# 异常股好中坏三情景(前瞻·未来EPS×不同PE+业务假设·与当前价格口径无关·董事长2026-07-25第三次纠正)。
-#   情景值含PE/数字→包 <span class="fwdanchor"> 由gate白名单;条件文字(中性条件)在span外·须无估值词(EPS×/正常化EPS/倍/中枢)。
-#   已入登记v3.2(20260725)。
-_ANOM_SCEN = {
-    "6857": {
-        "好": '<span class="fwdanchor" style="color:#9ec8b0">¥27,000~¥35,000（前瞻EPS放量约¥620·营收&gt;¥1.6兆·利润率&gt;45% × 高PE 45~50·真实股本口径·前瞻情景）</span>',
-        "中": '<span class="fwdanchor" style="color:#9ec8b0">¥14,500~¥18,600（EDINET真EPS¥413.29 × 合理PE 35~45·真实股本口径·前瞻情景）</span>',
-        "坏": '<span class="fwdanchor" style="color:#9ec8b0">¥5,600~¥8,300（前瞻EPS回落约¥280·营收¥0.8~0.9兆·利润率约30% × 低PE 20~25·真实股本口径·前瞻情景）</span>',
-        "中性条件": "EDINET真实每股盈利与合理PE·中周期基准（前瞻·不依赖当前价格）",
-    },
-    "SNDK": {
-        "好": '<span class="fwdanchor" style="color:#9ec8b0">$90~$120（周期中值盈利上修约$8·NAND涨价周期重启+AI SSD × PE 12~15·中周期锚·前瞻情景）</span>',
-        "中": '<span class="fwdanchor" style="color:#9ec8b0">$40~$60（NAND周期中值盈利约$5 × 通道PE 8~12·中周期锚·前瞻情景）</span>',
-        "坏": '<span class="fwdanchor" style="color:#9ec8b0">$15~$25（周期中值盈利约$2或净资产法·周期续杀维持亏损·中周期锚·前瞻情景）</span>',
-        "中性条件": "NAND周期中值盈利与通道PE·中周期基准（前瞻·不依赖当前价格）",
-    },
-}
-# 缺指标『非异常』标的(伊藤忠=缺分部NAV但有EPS·SpaceX=私司无公开财报)的完整前瞻·surfacing登记(董事长2026-07-25)。
-#   非异常股→不过异常股静默gate·可含目标/PE/数字;但为防 L13 一律用半角括号()不用全角（）。已入登记v3/v3.1/v3.2。
-_NONANOM_FWD = {
-    "8001": {
-        "fwd": "前瞻[基本面·EPS法·分部NAV待核]：短期偏反弹·中期偏上行｜催化剂＝股东回报提升[回购/增派息]+巴菲特[伯克希尔]增持商社背书+消费/资源多元扩张｜反向＝日元大幅升值/商品[铁矿·能源]下行｜失效＝ROE跌破五商社均值或巴菲特减持｜见分晓＝下季财报约2026-11｜未来目标¥1,700~¥2,320[正常化EPS¥130~145×可比五商社PE13~16·分部NAV待核]｜已入预测登记20260725·进PDCA",
-        "cat": "股东回报提升[回购/增派息]预期+巴菲特[伯克希尔]持续增持商社背书；并购[消费/资源多元]。",
-    },
-    "SPCX": {
-        "fwd": "前瞻[私司·无公开财报→用一级市场融资估值+星链/火箭业务·不依赖二级市场日价格]：短期不押[无二级市场日价格·诚实非偷懒]·中期偏上行｜催化剂＝星链Starlink用户与收入增长+下一轮私募融资估值上修+可能星链分拆IPO+星舰Starship里程碑｜反向＝星舰重大发射事故/融资遇冷估值回撤｜失效＝下一轮融资估值下修或星链IPO明确搁置｜见分晓＝下一轮融资或星链IPO时间窗｜已入预测登记20260725·进PDCA",
-        "cat": "星链Starlink用户与收入增长+下一轮私募融资估值上修+可能星链分拆IPO+星舰里程碑。",
-        "tgt": "以最近一轮私募融资估值为锚[具体估值待Code取真数·不编]×星链增长/潜在IPO重估；无公开财报·不用EPS×PE。成本$138为私募标记·非二级市场价。",
-        "scen": ("融资估值大幅上修[星链分拆IPO兑现+星舰里程碑]", "融资估值稳步上行[星链用户与收入增长]", "估值回撤[星舰发射事故/融资遇冷]"),
-    },
-}
-# 异常股卡内前瞻摘要(基本面·不依赖当前价格·无估值词·gate安全)·已入登记20260725
-_ANOM_CARD_FWD = {
-    "JP.6857": "前瞻（基本面·不依赖当前价格）：短期偏回调·中期偏上行｜催化剂＝AI测试需求/HBM4量产/英伟达Rubin抬单机HBM含量/营业利润上修至¥7300亿｜反向＝AI资本开支见顶/HBM需求转弱｜失效＝下季营业利润不及指引或出货转弱｜见分晓＝下季财报约2026-10（已入预测登记20260725·进PDCA）",
-    "US.SNDK": "前瞻（基本面·不依赖当前价格）：短期偏跌·中期偏下行｜催化剂＝NAND周期位置/去库存/AI企业级SSD需求（反向变量）｜反向＝AI数据中心SSD拉动NAND涨价周期重启｜失效＝合约价环比转涨或季度扭亏｜见分晓＝下季财报约2026-10（已入预测登记20260725·进PDCA）",
-}
+# ★轮68 AG2:未来1-2年目标价(未来EPS×合理PE)——不再在渲染器写死(硬编码¥14,500~¥20,700 等已与 forecast 中性值不一致·陈旧)。
+#   改由 _fwd_target_fc(sym) 从 forecast.scenarios 读(中性 point_value/range·经 forecast_gate·点值口径)·包 fwdanchor 过 gate 白名单。
+#   实现董事长铁律「异常股未来目标必须算」而不写死个股推理(G2/L15);forecast 无该只→显示「未来目标未产出·原因」。
+_FWD_EPS_PE: dict = {}       # 作废清空·未来目标改 _fwd_target_fc 从 forecast 读
+_ANOM_SCEN: dict = {}        # 作废清空·异常股好中坏改 _scenario_block/forecast(仅已算清出)或未产出
+_NONANOM_FWD: dict = {}      # 作废清空·非异常前瞻改 forecast 读或未产出
+_ANOM_CARD_FWD: dict = {}    # 作废清空·异常股卡内前瞻摘要(叙述/催化剂无结构化数据源)→不显示硬编码
 # ── 轮13 D3(架构师裁定2026-07-25):爱德万【双口径并列】·不在中周期/前瞻间二选一 ──
 #   两把尺给出相反结论·分歧本身=这只的投资分歧(AI测试需求台阶还是峰值)。含¥2940/极贵/倍→必须包 <span class="dualtrack">
 #   由 gate_anomaly_silence 白名单(同 fwdanchor 机制)。★答案前不给单一贵贱结论——两把尺都摆出来·由基本面回答。
-_ANOM_DUALTRACK = {
-    "6857": ('<span class="dualtrack" style="color:#c9a86a">★这只股用两把尺算出相反结论（分歧本身就是它的投资分歧）：'
-             '① 中周期尺（回望均值·FY22-26【含峰含谷·中立口径】·含FY26真EPS¥513.30·normal_eps¥220.2×PE20）：公允约¥4,404 → 现价¥28,945＝偏贵（约6.6倍）；'
-             '② 前瞻尺（EDINET真实EPS¥413.29 × 前瞻PE）：PE取【当前可比区间·有来源】——半导体行业前瞻PE中位约37（gurufocus 2026）、'
-             '泰瑞达TER（ATE双寡头另一半）前瞻约52、爱德万自身前瞻约53（valueinvesting.io 2026-03）→ 公允约¥15,300~¥21,500 → 现价约1.35~1.9倍＝偏贵非极端。'
-             '★中周期侧已改含峰含谷中立口径（原剔FY26峰值=偷偷替"台阶还是峰值"答了"峰值"·裁定H1已纠）；两把尺分歧收窄（6.6倍 vs 1.4~1.9倍）但方向一致偏贵。'
-             '★爱德万自身5年PE区间11~100+·无稳定"正常化PE"锚→前瞻尺的PE也只能取当前峰值周期水平；若周期回落到历史低PE（11~17），前瞻公允将降到约¥5,000~7,000。'
-             '分歧点＝AI测试设备需求是【结构性台阶】还是【周期峰值】——两把尺、连前瞻尺的PE，最终都压在这一个问题上，下几个季度订单/财报会回答。答案出来前不给单一贵贱结论。</span>'),
-}
+# ★轮68 AG2:_ANOM_DUALTRACK 爱德万双口径并列(硬编码中枢¥4,404/现价¥28,945/倍数/前瞻公允)已【作废清空】(G2/L15)。
+#   双口径分歧须由 forecast(前瞻)+valuation(中周期)数据源产出·当前无结构化并列字段→不显示硬编码(消费函数降级)。
+_ANOM_DUALTRACK: dict = {}
 
 
 def _fwd_targets() -> dict:
@@ -270,11 +230,12 @@ def holding_ctx(sym, name, dyn, date, conc, sanity_syms):
     tf = v.get("target_future")
     base_code = sym.split(".")[-1].upper()
     fwd = _fwd_targets().get(base_code)
-    if base_code in _FWD_EPS_PE:                                     # ★未来目标=未来EPS与合理PE·与当前价格口径无关·必须算(董事长2026-07-25第二次纠正)·已入登记v3.1
-        tgt = _FWD_EPS_PE[base_code]
-        tgt_miss = "（未来EPS与合理PE·前瞻锚·已入登记20260725；当前估值贵贱另见今日价值区）"
-    elif _is_anom:                                                   # 其余异常股(暂无EPS×PE锚):今日价值区待核·未来目标待补前瞻EPS
-        tgt, tgt_miss = "价格贵贱待核·未来目标待补前瞻EPS", ""
+    _fc_fwd = _fwd_target_fc(sym)                                    # ★轮68:未来目标从 forecast 读(点值口径·不再硬编码)
+    if _fc_fwd:                                                      # ★未来目标=未来EPS与合理PE·与当前价格口径无关·必须算(董事长2026-07-25)
+        tgt = _fc_fwd
+        tgt_miss = "（未来EPS与合理PE·前瞻锚·源预测表·经预测闸；当前估值贵贱另见今日价值区）"
+    elif _is_anom:                                                   # 其余异常股(forecast无该只):今日价值区待核·未来目标未产出
+        tgt, tgt_miss = "价格贵贱待核·<b>未来目标未产出</b>·原因：forecast 无该只前瞻情景", ""
     elif isinstance(tf, dict) and tf.get("low") is not None:          # 引擎权威前瞻(如TSM)优先
         tgt = f'{c}{tf["low"]:,.0f} ~ {c}{tf["high"]:,.0f}'
         tgt_miss = ""
@@ -902,39 +863,9 @@ def _light_theme(out: str) -> str:
     return out
 
 
-# [E1]四只估值底稿(架构师2026-07-19补正·Code照文渲染·数值一字不改)
-_ARCH_VAL = {
-    "US.COIN": (
-        '<b style="color:#7ee0a0">估值底稿·架构师补正（COIN·保留「中·精算」不升级）</b><br>'
-        '逐年GAAP摊薄EPS（SEC EDGAR CIK 1679788·10-K）：FY2021 $14.50（牛市峰值）／FY2022 −$11.83（熊市巨亏·不剔除）／'
-        'FY2023 $0.37／FY2024 $9.48／FY2025 $4.45。<br>'
-        '穿牛熊简单平均（不剔异常年）=(14.50−11.83+0.37+9.48+4.45)/5=<b>$3.39</b>；同业倍数22× → 合理中枢 $74.6（区间 $67~82）；现价$157≈中枢2.1倍。<br>'
-        '为何只给「中」：单一周期内EPS从+14.5摆到−11.8·任何点估值可能上下差一倍·仅一轮完整样本 → 框架参考，不宜单独据此下单。'),
-    "JP.6857": (
-        '<b style="color:#ffb454">估值底稿·架构师补正（爱德万·<u>撤销精算→框架参考</u>）</b><br>'
-        '逐年摊薄EPS（stockanalysis/S&P·财年Apr–Mar）：FY2022 ¥111.81／FY2023 ¥173.67／FY2024 ¥84.16（周期谷）／FY2025 ¥218.01／'
-        'FY2026 ¥513.30（AI/HBM超级景气峰值·已剔除）。<br>'
-        '4年均=587.65/4=¥146.9 ×中周期PE20=¥2,938（区间¥2,646~3,234）。<br>'
-        '<b>为何降级</b>：半导体测试设备强周期(完整周期5–8年)·现仅FY22-25四年·缺FY19-21(恰覆盖上轮低谷)→用不完整周期算「正常年景」不可靠。'
-        '<b style="color:#ff5c5c">撤销「中高·精算」→「框架参考·样本不足一个完整周期」</b>；且现价¥27,505≈中枢9倍·须先过异常价专项核准。'),
-    "US.TSM": (
-        '<b style="color:#7ee0a0">估值底稿·架构师补正（台积电·补敏感性+分年目标）</b><br>'
-        '口径=P/E+PEG（成熟成长）；基准FY2026E ADR EPS≈$18·前瞻P/E≈23.5·净利增速≈40%→PEG≈0.6；合理倍数22×。<br>'
-        '敏感性九宫格（EPS±20%×倍数±20%）：<br>'
-        '<table class="dt" style="max-width:520px"><tr><th>合理价</th><th>17.6×(−20%)</th><th>22.0×(基准)</th><th>26.4×(+20%)</th></tr>'
-        '<tr><td>EPS $14.4(−20%)</td><td>$253</td><td>$317</td><td>$380</td></tr>'
-        '<tr><td>EPS $18.0(基准)</td><td>$317</td><td><b>$396</b></td><td>$475</td></tr>'
-        '<tr><td>EPS $21.6(+20%)</td><td>$380</td><td>$475</td><td>$570</td></tr></table>'
-        '最坏$253／基准$396／最好$570·现价$397.75落基准格附近。<br>'
-        '<b>分年目标</b>：2026年底 $18×22=<b>$396</b>／2027年底 $22×22=<b>$484</b>（高盛TWD3,000≈$475–500与2027底一致·仅作对照）。<br>'
-        '$18假设失效信号：月营收连续两月低于季度指引隐含值／3nm·2nm订单被下修／超大规模AI资本开支放缓／新台币大幅升值／台海事件断供 → 任一出现即重算作废。'),
-    "US.IBKR": (
-        '<b style="color:#ffb454">估值底稿·架构师补正（IBKR·保留「框架参考」不升级）</b><br>'
-        '正常化EPS $2.40来源：FY2025 GAAP摊薄$2.22(已按2024-06 4拆1还原)＋2026共识$2.46~2.49·取中$2.40；合理倍数22× → 中枢$52.8（区间$48~58）·现价$90.78≈1.7倍。<br>'
-        '<b>利率高峰处理</b>：利润含大量客户存款净利息(NII)·随利率走·2023-25高利率期·<u>不外推高利率年</u>·用FY25实际＋次年共识取中作中性利率代理。<br>'
-        '<b>降息情景</b>：基准$2.40→$52.8；降100bp→EPS $2.05~2.15→$45~47；降200bp→EPS $1.75~1.90→$39~42（每降100bp约削EPS$0.25~0.35·架构师估算·非公司披露→故不给精算）。<br>'
-        '市场按~37×前瞻给到$90(为30%+账户增长与77%税前利润率付成长溢价)·「正常化券商倍数」与「成长定价」是两把尺·本估值只说按前者偏贵·不等于该卖。'),
-}
+# ★轮68 AG2:_ARCH_VAL 四只估值底稿(硬编码逐年EPS/中枢/倍数/现价/分年目标·个股估值推理)已【作废清空】(G2/L15)。
+#   估值底稿须由 forecast/valuation 数据源产出·当前无结构化字段→个股卡不显示硬编码底稿(消费函数返回空)。
+_ARCH_VAL: dict = {}
 
 
 def _arch_val_block(sym):
@@ -951,38 +882,9 @@ def _arch_val_block(sym):
 
 # [E2/E3]统一减仓规则(架构师2026-07-19三批定稿)——每只六行·四条件逐条·两极贵股分开写(不共用模板话)
 #   四条件:①上涨理由失效 ②利润趋势转弱(连续两季低于指引/共识) ③仓位超限 ④超上沿30%且连续10个交易日
-_ARCH_REDUCE = {
-    # 博通/Meta:45%上限已废止→不再因超限判减(现为『等』·风险配仓建议反而加/维持观察)·故不再列减仓块
-    "US.IBKR": {"标识": "好公司涨太多·等回调",
-                "四条件": "①否(账户+31%/客户权益+38%/保证金+65%/NII+17%·基本面在加速) ②否 ③否 ④待计数(超上沿约1.6倍)",
-                "六行": ("<b>守。好公司涨太多、基本面在加速，贵是市场给的成长溢价，守是对的（不是变差）。</b>",
-                         "④现价高于合理上沿30%且连续10个交易日",
-                         "现价$90.78·上沿$58·超+57%（已过30%线）；最近验证点 Q2财报 2026-07-21 盘后（距今2天）",
-                         "<b>待接</b>（★缺日线逐日序列·计数器接口已就位·不编假天数）",
-                         "④连续满10日且仍在线上 → 提请拍板『要不要止盈减一点』（系统不自动减）",
-                         "跌回上沿内、或④天数不满足即取消。反向风险=降息每25bp减年度NII约$80M")},
-    "US.COIN": {"标识": "已现裂缝·再miss一次就该减",
-                "四条件": "①否(多元化在加强:订阅$584M占44%/12产品各年化过亿/稳定币收入占近1/5/USDC留存$19B创新高) ②【已现裂缝·仅一季】Q1营收与调整后盈利双双低于预期 ③— ④待计数(超上沿约1.9倍)",
-                "六行": ("<b>守。但已出现裂缝——Q1 2026营收与调整后盈利双双低于预期（已 miss 一个季度）。比IBKR更接近减仓线。</b>",
-                         "②再 miss（连续两季低于共识·现仅一季）＋④连续天数累计",
-                         "现价$157·上沿$82·超+92%（已过30%线）；②:Q1已miss·Q2财报(约8月)为确认点",
-                         "<b>待接</b>（★缺日线逐日序列·计数器接口已就位·不编假天数）",
-                         "Q2 再 miss 即构成②→提请减仓；或④满10日→提请止盈（系统不自动减）",
-                         "Q2 未再 miss 且价格跌回上沿内即取消")},
-    "JP.6857": {"四条件": "异常价未通过专项核准 → 核准前不进任何减仓判定",
-                "六行": ("异常价未通过专项核准→在核准完成前，本只不进任何减仓判定。",
-                         "先过异常价专项核准（拆股公告/拆股前后价与股数/两独立行情源一致）",
-                         "现价¥27,505·中枢¥2,938·约9倍（须先过异常价专项核准）",
-                         "—（未核准·不计数）", "异常价专项核准完成后再评估", "核准完成即进入常规判定")},
-    "US.TSM": {"四条件": "未达30%止盈线(现价$397·上沿$360·超+10%)→不进减仓；且 PEG 0.6 属成长便宜",
-               "六行": ("未达止盈线(未高于合理上沿30%)→本就不进减仓判定；且 PEG 0.6 属成长便宜。",
-                        "④尚未触发（未过30%止盈线）", "现价$397.75·上沿$360·超+10%（未过30%线）",
-                        "—（未过30%线·不计数）", "达到30%止盈线并开始计数后再谈", "价格回落即无需评估")},
-    "JP.7974": {"四条件": "未达30%止盈线(现价¥7,294·上沿¥5,923·超+23%)→不进减仓；另有净现金约¥1,940/股缓冲",
-                "六行": ("未达止盈线→本就不进减仓判定；另有净现金约¥1,940/股缓冲。",
-                         "④尚未触发（未过30%止盈线）", "现价¥7,294·上沿¥5,923·超+23%（未过30%线）",
-                         "—（未过30%线·不计数）", "达到30%止盈线并开始计数后再谈", "价格回落即无需评估")},
-}
+# ★轮68 AG2:_ARCH_REDUCE 硬编码减仓四条件/现价/止盈线/判断(¥7,294/$90.78/该减/成长便宜等)已【作废清空】(G2/L15)。
+#   减仓判定须由 forecast/target_gap/风控数据源产出·当前无结构化字段→减仓块不显示硬编码(消费函数返回空)。
+_ARCH_REDUCE: dict = {}
 
 
 def _reduce_rule_block(sym, dyn):
@@ -1256,75 +1158,115 @@ _TARGET_CFG = {
     "need40": 608126, "need100": 1520314, "预期年化": "约+12.1%（架构师更正任天堂/爱德万后上修·原+10.3%）",
     "缺40": "27.9个百分点（上修后·原29.7）", "缺100": "约83个百分点", "盲区占比": "36.6%",
 }
-_TARGET_ROLE = {   # 角色/持仓意图/对目标贡献pp/凭什么占这个仓位(定稿第五节·算不出标盲区不留空)
-    "US.NVDA": ("主攻", "核心持有·45%上限已废止→可加（风险配仓建议加至18%·仍在单只20%内）", "+7.73pp", "AI算力龙头·Rubin下季贡献·上行最大的单一来源"),
-    "US.MSFT": ("主攻", "核心持有", "主攻组内（组合+16.8pp）", "Copilot变现+Azure+38%·现金流龙头"),
-    "JP.4568": ("主攻", "等回调上车→系统建议已转『加』", "主攻组内", "ADC龙头+I-DXd催化·便宜且有催化"),
-    "US.AVGO": ("主攻", "今日=等回落到便宜位再加（现价略高于合理上沿·未到加仓位·45%上限已废止但不追高）", "压舱转主攻组内", "定制AI芯片$73B订单·6大客户至2031"),
-    "JP.8766": ("压舱", "核心持有", "压舱组内", "保险压舱·低波动·稳"),
-    "JP.7832": ("压舱", "核心持有", "压舱组内", "IP护城河·稳"),
-    "JP.7974": ("正贡献", "维持·含每股约¥1,940净现金·已从减仓/替换名单剔除（架构师更正:原漏算净现金）", "+0.58pp", "扣净现金后约19.8倍不算贵·Switch2放量+软件6000万本·公司FY2027指引"),
-    "JP.7203": ("拖累", "换出候选", "拖累组内", "低增速·占仓不贡献目标"),
-    "US.IBKR": ("拖累", "观察减仓（好公司涨太多·等回调）", "拖累组内", "极贵约1.6倍·占仓对缺口贡献有限"),
-    "US.META": ("低效占仓", "观察（资本开支上调是隐忧）", "+0.25pp", "贵+资本开支隐忧·观察"),
-    "JP.9984": ("盲区", "限期接真数据（最急·权重15.4%）", "盲区·算不出", "NAV折价但到期上行算不出→盲区"),
-    "JP.6857": ("盲区", "异常价专项核准前不动（次急·权重9.0%）", "盲区·算不出", "异常价未通过专项核准"),
-    "US.MSTR": ("盲区", "限期接真数据", "盲区·算不出", "依BTC币价·算不出到期上行"),
-    "US.COIN": ("盲区", "观察减仓（已现裂缝）", "盲区·算不出", "低置信·穿牛熊·算不出"),
-    "US.SNDK": ("盲区", "异常价专项核准前不动", "盲区·算不出", "异常价未通过专项核准"),
-    "US.CRCL": ("盲区", "限期接真数据", "盲区·算不出", "低置信·待接"),
-    "JP.8001": ("盲区", "限期接真数据", "盲区·算不出", "商社·NAV待接"),
-    "US.SPCX": ("盲区", "无操作意图（只观察·无可信估值）", "盲区·算不出", "暂无可信估值"),
-    "US.TSM": ("待建仓", "等回调上车：第一档$360／第二档$325（PEG0.6·分档不死等）", "待建仓·—", "董事长曾重仓·止盈卖出·现1股非零头·等回调再上"),
-}
-# P2 双档并列(定稿第三节·加/减候选各给中性+40%提醒/激进+100%执行·激进必带最坏情形)
-_DUAL = {
-    "JP.4568": ("第一档 ¥2,959 分批买入·约用现金1/3", "约 +0.4~0.6pp",
-                "若 I-DXd 审批被拒·回 ¥2,300 附近·这笔亏约 −20%·对总组合影响约 −0.3%",
-                "第一档 ¥2,959 买入约现金2/3·不等第二档", "约 +0.8~1.2pp",
-                "同情形亏约 −20%·因仓位翻倍对总组合影响约 −0.6%；且现金消耗后若他标出现更好机会将无钱可用"),
-    "JP.6758": ("到便宜位分批买·约用现金1/3", "约 +0.3~0.5pp",
-                "若游戏事业增益不及预期·回落约 −15%·对总组合影响约 −0.2%",
-                "分批买约现金2/3·偏重", "约 +0.6~1.0pp", "同情形亏约 −15%·仓位翻倍对总组合影响约 −0.4%·占用后续机会现金"),
-    "US.NVDA": ("加至约现金1/3（仍在单只20%内·风险配仓建议加至18%）", "约 +1.0~1.5pp",
-                "若 Rubin 出货延期/超大规模厂资本开支放缓·回调约 −25%·对总组合影响约 −0.9%",
-                "加至约现金2/3·偏重", "约 +2.0~3.0pp", "同情形回调 −25%·仓位翻倍：最坏损失约 −$68,000·对总组合影响约 −1.8%·并消耗现金错失他标机会"),
-    "JP.9984": ("到便宜位小幅加·约现金1/4（NAV折价49.4%·有OpenAI/Arm催化）", "约 +0.5~0.8pp",
-                "若 OpenAI IPO 推迟或估值下修·回落约 −25%·对总组合影响约 −0.6%",
-                "加至约现金1/2", "约 +1.0~1.6pp", "同情形回落 −25%·仓位翻倍：最坏损失约 −$45,000·对总组合影响约 −1.2%；且软银本身是盲区(NAV算不出到期上行)·激进加需自担不确定"),
-    "US.AVGO": ("今日=等（未到便宜位·不追高）；跌回便宜位($362以下)再加·约现金1/4", "约 +0.6~1.0pp",
-                "若大客户自研替代/订单转化下滑·回调约 −20%·对总组合影响约 −0.5%",
-                "跌回便宜位后加至约现金1/2·偏重", "约 +1.2~1.8pp", "同情形回调 −20%·仓位翻倍：最坏损失约 −$30,000·对总组合影响约 −0.8%（★今日动作=等·此为回落到便宜位后的偏激进加·待拍板）"),
-    "US.TSM": ("建仓·第一档 $360 约现金1/4（PEG0.6便宜·分档不死等）", "约 +0.5~0.8pp",
-                "若 $18 EPS 假设失效(先进制程订单下修等)·跌破 $325·这笔亏约 −12%·对总组合影响约 −0.2%",
-                "建仓·第一档 $360 买约现金1/2·第二档 $325 再加", "约 +1.0~1.5pp", "同情形亏约 −12%·仓位翻倍：最坏损失约 −$18,000·对总组合影响约 −0.5%·占用后续机会现金"),
-}
-# [致命5]每只中性情形依据来源(三选一·标推测的醒目提示可信度低)
-_NEUTRAL_BASIS = {
-    "JP.4568": ("公司 FY2027 指引 + I-DXd PDUFA 官方审批", "高"), "JP.6758": ("公司 FY2026/3 已上调指引", "高"),
-    "US.MSFT": ("公司 FY26 Q4 指引 + 分析师共识", "高"), "US.NVDA": ("公司指引 + GTC 官方 + 分析师共识", "高"),
-    "US.TSM": ("公司月度营收 + FY2026 指引", "高"), "US.AVGO": ("公司 Q3 指引 + FY2027 目标", "高"),
-    "US.META": ("公司 Q2 指引 + 分析师共识", "高"), "US.IBKR": ("公司 Q2 指引 + 2026 共识", "中"),
-    "US.COIN": ("分析师共识（周期极端·穿牛熊试算）", "低"), "JP.6857": ("公司 FY2027/3 指引", "高"),
-    "JP.7974": ("公司 FY2027/3 指引", "高"), "JP.9984": ("架构师推测（NAV 依 Arm/OpenAI·算不出）", "低"),
-    "US.MSTR": ("架构师推测（依 BTC 币价·算不出）", "低"), "US.CRCL": ("架构师推测（低置信·待接）", "低"),
-    "US.SNDK": ("架构师推测（异常价·未核准）", "低"), "US.SPCX": ("无可信估值（只观察）", "低"),
-    "JP.8001": ("架构师推测（商社 NAV·待接）", "低"), "JP.7203": ("分析师共识", "中"),
-    "JP.7832": ("分析师共识", "中"), "JP.8766": ("分析师共识", "中"),
-}
+# ★轮68 AG2:_TARGET_ROLE/_DUAL/_NEUTRAL_BASIS 硬编码个股角色/买卖档/来源等级已【作废清空】(G2/L15)——
+#   对目标贡献 → _target_role_block 从 target_gap.贡献pp_新口径 读;情景 → _scenario_block 从 forecast 读;
+#   来源等级 → _neutral_basis_line 从 forecast.PE来源+参数出处等级 读;买卖档=个股判断·不再写死(不显示)。
+_TARGET_ROLE: dict = {}
+_DUAL: dict = {}
+_NEUTRAL_BASIS: dict = {}
+
+
+# ══ ★轮68 AG2:个股判断一律从 forecast/target_gap 读·读不到显示「未产出·原因」(不在渲染器写死个股推理·G2/L15) ══
+_TG_CACHE: dict = {}
+_FC_CACHE: dict = {}
+
+
+def _tg_row(sym):
+    """读 target_gap_{date} 逐只(按 code)。含 贡献pp_新口径/参数出处等级/E上行_pct_新口径/预测状态_新口径/blind/当日价(E上行分母)。"""
+    d = _CUR_DATE
+    if d not in _TG_CACHE:
+        tg = _rj(ROOT / "data" / "target" / f"target_gap_{d}.json")
+        m = {}
+        for acc in ("富途", "SBI"):
+            for r in (tg.get(acc, {}) or {}).get("逐只(按贡献pp降序)", []):
+                m[r.get("code")] = r
+        _TG_CACHE[d] = m
+    return _TG_CACHE[d].get(sym)
+
+
+def _fc_1y(sym):
+    """读最新工作版 forecast_YYYY-MM-DD 的 1y 条目(按 ticker)。含 scenarios/参数出处等级/★退出/PE来源/expected_upside_pct。"""
+    import glob as _g, os as _os, re as _re
+    d = _CUR_DATE
+    if d not in _FC_CACHE:
+        cands = _g.glob(str(ROOT / "data" / "forecast" / "forecast_*.json"))
+        dated = [(m.group(1), _os.path.basename(p)) for p in cands
+                 if (m := _re.match(r"forecast_(\d{4}-\d{2}-\d{2})\.json$", _os.path.basename(p)))]
+        m = {}
+        if dated:
+            fc = _rj(ROOT / "data" / "forecast" / sorted(dated)[-1][1])
+            for f in (fc.get("forecasts") or []):
+                if f.get("horizon") == "1y":
+                    m[f.get("ticker")] = f
+        _FC_CACHE[d] = m
+    return _FC_CACHE[d].get(sym)
+
+
+def _fwd_target_fc(sym):
+    """★轮68 AG2:未来目标(未来EPS×合理PE)从 forecast scenarios 读(中性 point_value/range·经 forecast_gate·点值口径)。
+    实现董事长铁律「异常股未来目标必须算」而【不在渲染器写死】——且修正硬编码陈旧锚(如爱德万旧¥14,500~¥20,700 vs forecast中性27330)。
+    返回 fwdanchor span(过异常股 gate 白名单)·读不到=None。"""
+    f = _fc_1y(sym)
+    if not f or not f.get("scenarios"):
+        return None
+    mid = next((s for s in f["scenarios"] if str(s.get("name", "")).startswith(("中", "中性", "S2"))), None)
+    if mid is None and f["scenarios"]:
+        mid = f["scenarios"][len(f["scenarios"]) // 2]
+    if not mid:
+        return None
+    rg = mid.get("range"); pv = mid.get("point_value")
+    if rg:
+        lo, hi = min(rg), max(rg)
+        core = f"{lo:,.0f} ~ {hi:,.0f}（中性区间·点值 {esc(pv)}）" if pv is not None else f"{lo:,.0f} ~ {hi:,.0f}（中性区间）"
+    elif pv is not None:
+        core = f"点值 {esc(pv)}（中性）"
+    else:
+        return None
+    grade = f.get("参数出处等级") or ""
+    return ('<span class="fwdanchor" style="color:#9ec8b0">'
+            f'{core}　＝ 未来EPS×合理PE·前瞻价值锚（源预测表·点值口径·经预测闸·等级{esc(grade)}）·'
+            '与今日价格贵贱分列·不与待核现价比涨跌幅</span>')
+
+
+def _undelivered(what, reason):
+    """AG2-2:读不到数据→统一「未产出·原因」(不写死个股判断)。"""
+    return ('<div style="font-size:11.5px;color:#8A3E00;background:#FBF3E6;border-left:3px solid #C99A2E;'
+            f'border-radius:0 6px 6px 0;padding:5px 9px;margin:4px 0">{what}：<b>未产出</b>·原因：{reason}</div>')
 
 
 def _neutral_basis_line(sym):
-    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不出中性情形估值依据(source-null)
+    """★轮68:中性情形依据来源/可信度——从 forecast 读(PE来源+参数出处等级→可信度)·读不到=未产出。不再用 _NEUTRAL_BASIS 硬编码。"""
+    if sym in _sanity_anomaly(_CUR_DATE):
         return ""
-    b = _NEUTRAL_BASIS.get(sym, ("架构师推测", "低"))
-    src, conf = b
+    f = _fc_1y(sym)
+    if not f:
+        return ""
+    src = _humanize_src(f.get("PE来源") or f.get("参数出处") or "")   # ★过滤内部英文字段名(L46)·转人话
+    grade = f.get("参数出处等级") or ""
+    conf = "高" if grade in ("特级", "A") else ("中" if grade in ("A-", "B") else "低")
+    srcnote = ("·依据" + esc(src)[:50]) if src else ""
     if conf == "低":
-        badge = '<span style="background:#FBEAEA;color:#A3231F;padding:1px 7px;border-radius:5px;font-weight:800">中性情形依据＝' + src + '·⚠可信度低</span>'
+        badge = ('<span style="background:#FBEAEA;color:#A3231F;padding:1px 7px;border-radius:5px;font-weight:800">'
+                 f'中性情形依据＝参数出处等级{esc(str(grade))}{srcnote}·⚠可信度低</span>')
     else:
         col = "#1E7A45" if conf == "高" else "#7A5C00"
-        badge = f'<span style="background:#E4F4EA;color:{col};padding:1px 7px;border-radius:5px">中性情形依据＝{src}·可信度{conf}</span>'
+        badge = (f'<span style="background:#E4F4EA;color:{col};padding:1px 7px;border-radius:5px">'
+                 f'中性情形依据＝参数出处等级{esc(str(grade))}{srcnote}·可信度{conf}</span>')
     return f'<div style="font-size:11.5px;margin:3px 0">{badge}</div>'
+
+
+def _humanize_src(s):
+    """★轮68:把来源字段里的内部英文标识(priced_at_basis/intentional_conservative/val_inputs/forecast_gate/target_gap 等)
+    转人话或删——防 L46 内部字段泄漏印给董事长。只保留中文/公司/指引/共识等人话部分。"""
+    import re as _r
+    s = str(s or "")
+    repl = {"priced_at_basis": "定价基准", "intentional_conservative": "刻意保守", "val_inputs": "估值输入",
+            "forecast_gate": "预测闸", "target_gap": "缺口表", "forecast": "预测表", "normal_eps": "正常化每股盈利",
+            "pe_mid": "中周期市盈率", "fair_locked": "锁定公允"}
+    for k, v in repl.items():
+        s = s.replace(k, v)
+    s = _r.sub(r"[A-Za-z][A-Za-z0-9_]{2,}", "", s)   # 去残余裸英文标识
+    return s.strip(" ·-—/")
 
 
 def _target_gap_block():
@@ -1367,6 +1309,11 @@ def _z4_forecast_note(date):
         if note:
             notes.append('<div style="border:1px solid #c0392b;background:#fff4f4;border-radius:6px;padding:8px 12px;margin:6px 0;font-size:13px">'
                          f'<b>★ {D.esc(str(f.get("name","")))} 口径提示</b>：{D.esc(str(note))}</div>')
+        # ★轮68 item4:净现金扣减标注(事实·从 forecast「净现金标注」字段读·不再在渲染器写死¥1,940)
+        ncash = f.get("净现金标注")
+        if ncash:
+            notes.append('<div style="border:1px solid #2e7d32;background:#eef7ee;border-radius:6px;padding:8px 12px;margin:6px 0;font-size:13px">'
+                         f'<b>★ {D.esc(str(f.get("name","")))} 净现金扣减</b>：{D.esc(str(ncash))}</div>')
     return "".join(notes)
 
 
@@ -1445,38 +1392,38 @@ def _glossary_block():
             '<table class="dt" style="width:100%;font-size:12.5px">' + rows + '</table></details>')
 
 
-# [更正1/2 + 新规矩]情景表(好/中/坏+概率+★中性依据来源·董事长2026-07-20)。架构师上修任天堂/爱德万。
-_SCENARIO = {
-    "JP.7974": {"依据": "公司 FY2027/3 指引（非架构师推测·可信度高）",
-                "行": [("坏 30%", "EPS230×PE20+净现金 = ¥6,540（−10%）"),
-                       ("中 45%", "EPS271×PE22+净现金 = ¥7,902（+8%）"),
-                       ("好 25%", "EPS320×PE25+净现金 = ¥9,940（+36%）")],
-                "期望": "+9.7%", "贡献": "+0.58个百分点",
-                "更正": "架构师原漏算每股约¥1,940净现金→由『拖累−12.1%』更正为『正贡献+9.7%』·已从减仓/替换名单剔除"},
-    "JP.6857": {"依据": "公司 FY2027/3 指引（营收1兆4,200億+25.8%·营业利润6,275億+25.7%·非架构师推测）",
-                "行": [("坏 30%", "EPS450×PE25 = ¥11,250（−59%）"),
-                       ("中 45%", "EPS645×PE30 = ¥19,350（−30%）"),
-                       ("好 25%", "EPS645×PE45 = ¥29,025（+5.5%）")],
-                "期望": "−29.7%", "贡献": "−2.67个百分点",
-                "更正": "架构师原按峰值回落设中性EPS¥400(低于FY2026实际¥513)·未核公司指引→上修为期望−29.7%(原−42.3%)·仍最大拖累·仍触规矩3"},
-}
+# ★轮68 AG2:_SCENARIO 硬编码好中坏(45%/25%非粗档·EPS×PE·期望/贡献·绕过forecast_gate)已【作废清空】。
+#   情景表改由 _scenario_block 从 forecast.scenarios(prob/point_value·粗档·经forecast_gate)读·仅已算清才出。
+_SCENARIO: dict = {}
 
 
 def _scenario_block(sym):
-    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不出情景目标/EPS×PE/期望上行/目标贡献(source-null·退回1)
+    """★轮68 AG2:情景表(好/中/坏×概率)——从 forecast.scenarios 读(prob/point_value/range)·target_gap 读期望/贡献。
+    不再用 _SCENARIO 硬编码 45%/25%/EPS×PE/期望/贡献(那绕过 forecast_gate 且概率非粗档·G2/L15)。
+    ★仅【已算清(特+A级·非盲区)】才出情景;未算清/盲区→不出(与第一屏「未算清·不出预期收益」同口径·消灭两说法)。"""
+    if sym in _sanity_anomaly(_CUR_DATE):
         return ""
-    s = _SCENARIO.get(sym)
-    if not s:
+    f = _fc_1y(sym); r = _tg_row(sym)
+    if not f or not f.get("scenarios"):
         return ""
-    rows = "".join(f'<tr><td>{a}</td><td>{b}</td></tr>' for a, b in s["行"])
+    grade = f.get("参数出处等级") or (r or {}).get("参数出处等级")
+    if grade not in ("特级", "A", "A-") or (r or {}).get("blind") or f.get("★退出"):
+        return ""     # 未算清/盲区/退出→不出情景(不出预期收益)
+    rows = ""
+    for sc in f["scenarios"]:
+        nm = sc.get("name", ""); pb = sc.get("prob"); pv = sc.get("point_value")
+        rg = sc.get("range")
+        pct = ("%.0f%%" % (pb * 100)) if isinstance(pb, (int, float)) else "—"
+        val = ("点值 %s" % esc(pv)) if pv is not None else ("区间 %s" % esc(rg))
+        rows += f'<tr><td>{esc(nm)}·{pct}</td><td>{val}</td></tr>'
+    eu = (r or {}).get("E上行_pct_新口径"); pp = (r or {}).get("贡献pp_新口径")
+    tail = (f'期望上行 <b>{esc(eu)}%</b>·对目标贡献 <b>{esc(pp)}个百分点</b>（点值口径·源缺口表）。'
+            if eu is not None else '期望上行/对目标贡献：<b>未产出</b>·原因：target_gap 无该只新口径值。')
     return (
         '<div style="font-size:12px;color:#1A1A1A;background:#F2F4F7;border-left:3px solid #12324E;'
         'border-radius:0 6px 6px 0;padding:7px 10px;margin:5px 0">'
-        '<b style="color:#12324E">情景表（好/中/坏×概率）</b>　'
-        f'<span style="background:#E4F4EA;padding:1px 7px;border-radius:5px;color:#1E7A45">中性情形依据＝{s["依据"]}</span>'
-        f'<table class="dt" style="width:100%;margin-top:4px"><tr><th>情景</th><th>算法→合理价（对现价）</th></tr>{rows}</table>'
-        f'期望上行 <b>{s["期望"]}</b>·对目标贡献 <b>{s["贡献"]}</b>。<br>'
-        f'<span style="color:#8A3E00">★架构师更正：{s["更正"]}</span></div>')
+        '<b style="color:#12324E">情景表（好/中/坏×概率·源 forecast）</b>'
+        f'<table class="dt" style="width:100%;margin-top:4px"><tr><th>情景·概率</th><th>点值/区间</th></tr>{rows}</table>{tail}</div>')
 
 
 def _risk_config_block(conc=None):
@@ -1530,36 +1477,35 @@ def _risk_config_block(conc=None):
 
 
 def _target_role_block(sym):
-    """P1 每只四字段:角色/持仓意图/对目标贡献pp/凭什么占这个仓位(算不出标盲区·不留空)。"""
-    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不出目标贡献pp(由估值推导·source-null·退回1)
+    """★轮68 AG2:对目标贡献pp——从 target_gap 读(贡献pp_新口径)·不再用 _TARGET_ROLE 硬编码 pp/维持/买卖判断。
+    未算清(B/C级/盲区/预测状态非已算清)→显式「未算清·不出预期收益」(与第一屏 Z4 同口径·消灭同产品两说法)。
+    角色/持仓意图/买卖判断=渲染器不再写死(G2)——须由 forecast/target_gap 提供·当前无字段→标未产出。"""
+    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不计算对目标贡献(拆股待核)
         return ('<div style="font-size:12px;color:#1A1A1A;background:#F2F4F7;border-left:3px solid #c0392b;'
                 'border-radius:0 6px 6px 0;padding:6px 10px;margin:5px 0">'
-                '<b style="color:#c0392b">目标倒推·四字段</b>：价格与复权口径未核准；核准前不计算对目标贡献/期望上行/组合收益（拆股待核）。</div>')
-    r = _TARGET_ROLE.get(sym)
-    if not r:
-        r = ("盲区", "待接·未设定", "盲区·算不出", "待架构师/董事长补")
-    role, intent, pp, why = r
+                '<b style="color:#c0392b">目标倒推·对目标贡献</b>：价格与复权口径未核准；核准前不计算对目标贡献/期望上行/组合收益（拆股待核）。</div>')
+    r = _tg_row(sym)
+    grade = (r or {}).get("参数出处等级")
+    pp = (r or {}).get("贡献pp_新口径")
+    eu = (r or {}).get("E上行_pct_新口径")
+    blind = (r or {}).get("blind")
+    if r is None:
+        inner = '对目标贡献：<b>未产出</b>·原因：该只不在缺口表逐只（未持仓或未算）'
+    elif grade in ("特级", "A", "A-") and pp is not None and not blind:
+        inner = f'对目标贡献 <b>{esc(pp)}个百分点</b>（E[上行] {esc(eu)}%·等级{esc(grade)}·点值口径·源缺口表）'
+    else:
+        why = "无可用估值锚（B/C级）" if grade in ("B", "C") else ("盲区·算不出到期上行" if blind else "未定级")
+        inner = f'<b>未算清·不出预期收益</b>（{esc(why)}·与第一屏「未算清」同口径）'
     return (
         '<div style="font-size:12px;color:#1A1A1A;background:#F2F4F7;border-left:3px solid #5C4033;'
         'border-radius:0 6px 6px 0;padding:6px 10px;margin:5px 0">'
-        f'<b style="color:#5C4033">目标倒推·四字段</b>：角色 <b>{role}</b>｜持仓意图 {intent}｜对目标贡献 <b>{pp}</b>｜凭什么占这个仓位：{why}</div>')
+        f'<b style="color:#5C4033">目标倒推·对目标贡献</b>：{inner}</div>')
 
 
 def _dual_track_block(sym):
-    """P2 双档并列(仅加/减候选):中性+40%提醒 / 激进+100%执行·各带补缺口与最坏情形。"""
-    if sym in _sanity_anomaly(_CUR_DATE):    # 异常股:不出双档买卖建议(由估值推导·source-null)
-        return ""
-    d = _DUAL.get(sym)
-    if not d:
-        return ""
-    return (
-        '<div style="font-size:12px;color:#1A1A1A;background:#FFFFFF;border:1px solid #5C4033;'
-        'border-radius:7px;padding:7px 10px;margin:6px 0">'
-        '<b style="color:#5C4033">买卖建议·双档并列（董事长自己选一档·系统不替他选）</b><br>'
-        f'<span style="background:#EAF2FA;padding:1px 6px;border-radius:5px"><b>【中性档·+40%】提醒</b></span>：{d[0]}<br>'
-        f'　· 对缺口贡献：{d[1]}<br>　· 最坏会怎样：{d[2]}<br>'
-        f'<span style="background:#F5EFE0;padding:1px 6px;border-radius:5px"><b>【激进档·+100%】执行</b></span>：{d[3]}<br>'
-        f'　· 对缺口贡献：{d[4]}<br>　· <b>最坏会怎样（激进档必写）</b>：{d[5]}</div>')
+    """★轮68 AG2:买卖档(加/减·买卖价位)=个股判断·渲染器不再写死(原 _DUAL 硬编码 ¥2,959/$360/pp 已作废·G2/L15)。
+    买卖档须来自 forecast/target_gap·当前无该字段→不显示（避免伪精确·机会层/工单另出）。"""
+    return ""
 
 
 # ── 外部原辅料线索(董事长工单2026-07-23)：老雷/湖水经 external_ingest 五分类+体系比对后·卡内辅助/分歧展示 ──
@@ -1901,10 +1847,7 @@ def _decision_chain(date: str, dyn: dict, daily: dict, dec: dict, act_map: dict 
 
     # 异常股(价格口径待核)基本面前瞻·董事长2026-07-25『缺指标≠放弃预测』:价格贵贱待核·但方向不缺席。
     #   门安全:无 倍/中枢/峰值/正常化EPS/高位/高点/参考值 等估值词·无 3000/55/95 等特定裸数字。已入登记20260725。
-    _ANOM_FWD = {
-        "JP.6857": "短期偏回调·中期偏上行（据EDINET报告实际EPS¥413.29＋营业利润上修至¥7300亿指引＋AI测试需求；价格贵贱待核·不因价格加减位、不出目标价）。失效：下季营业利润不及指引或测试机出货转弱。见分晓：下季财报约2026-10。",
-        "US.SNDK": "短期偏跌·中期偏下行（据EDGAR报告实际仍亏损＋NAND周期见顶＋去库存；价格贵贱待核·不因价格加减位、不出目标价）。失效：NAND合约价环比转涨或季度扭亏。见分晓：下季财报约2026-10。",
-    }
+    _ANOM_FWD: dict = {}   # ★轮68 AG2:异常股基本面方向硬编码(含EPS¥413.29/¥7300亿数字)已作废清空→用下方默认「方向不缺席」占位·不写死个股数字(G2/L15)
 
     def _stock_forward(sym, is_anom, val, act):
         evs = impact_map.get(sym) or []
