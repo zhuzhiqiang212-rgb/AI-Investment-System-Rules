@@ -74,6 +74,9 @@ STEPS = [
     ("⑥h target_gap(缺口·目标层)", "target_gap.py", False, [], {}),
     ("⑥i gap分母核平闸(A vs 快照total≤0.5%)", "gap_denominator_gate.py", True, [], {}),
     ("⑥j gap vintage同源闸(>30天告警)", "gap_vintage_gate.py", False, [], {}),
+    # ★轮67 AF1:Z4两段缺口(点值口径·已算清/未算清·四等级)→ 产 data/risk/z4_two_segment_{date}.json 供 render_3layer 第一屏。
+    #   取价/市值/等级取自 target_gap_{date}(单一真相源)·forecast 日自动解析。非关键(渲染器缺它回落旧缺口块)。
+    ("⑥k z4两段缺口(点值口径·供第一屏)", "z4_two_segment_build.py", False, [], {}),
     #   风险层:单一驱动暴露/跨账户合并暴露/减仓测算——★只给暴露事实·不给操作建议(读 forecast 日)。
     ("⑧a driver_exposure(单一驱动暴露·事实)", "driver_exposure.py", False, [], {"fmt": "hyphen", "src": "forecast"}),
     ("⑧b cross_account(跨账户合并暴露·事实)", "cross_account_exposure.py", False, [], {"fmt": "hyphen", "src": "forecast"}),
@@ -106,6 +109,7 @@ NEW_WIRED_SCRIPTS = {
     "cross_account_exposure.py",       # 风险层(跨账户合并暴露)
     "exposure_reduction_calc.py",      # 风险层(减仓测算)
     "pdca_verdict_run.py",             # 复盘层(到期预测记分)
+    "z4_two_segment_build.py",         # ★轮67:目标层(Z4两段缺口·供 render_3layer 第一屏八项整改)
 }
 
 # 丙(GPT V6 裁定 2026-07-29·失败关闭硬闸)：关键步 rc==0 但【输出缺失/过小/JSON不可解析/必填字段不足】
@@ -574,8 +578,19 @@ def main() -> int:
                 continue
             failed = f"{label} 关键步失败：{fail_reason}｜{tail[:100]}"
             break
-    # ── ★轮66 AE4:DRY-RUN 到此为止——不渲染/不出品/不归档/不回写主控，只打印步骤×闸对照表 ──
+    # ── ★轮66 AE4/轮67 AF2:DRY-RUN——不出品/不归档/不回写主控。轮67 增:调用渲染器【dry-run】渲到临时路径+八项自查(证明渲染器已含八项·不写正式产品目录) ──
     if _dry:
+        _tmp_render = LOG_DIR / f"dryrender_{date}.html"
+        rcr, tailr = run_step("⑬d render_3layer(DRY·八项自查·不出品)", "render_3layer.py", date,
+                              extra=["--dry-run", "--out", str(_tmp_render)], timeout=300)
+        done.append({"step": "⑬d render_3layer(DRY·八项自查·不出品)", "rc": rcr, "critical": False,
+                     "script": "render_3layer.py", "is_gate": False, "gate_role": None, "tail": tailr[:200]})
+        print(f"  {'✔' if rcr == 0 else '△'} ⑬d render_3layer DRY rc={rcr} {tailr[:80]}")
+        try:
+            if _tmp_render.exists():
+                _tmp_render.unlink()      # 清临时渲染物(不留)
+        except Exception:
+            pass
         return _dry_run_report(date, fdate, started, done, failed)
     if failed:
         rec = {"date": date, "status": "FAIL", "started_at": started, "finished_at": _now(),

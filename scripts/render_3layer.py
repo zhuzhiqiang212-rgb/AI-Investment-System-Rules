@@ -1345,6 +1345,76 @@ def _target_gap_block():
         '各只『对目标贡献个百分点(收益率相差多少格)』见其卡内四字段。两档并列·董事长自己选一档拍板·系统不替他选。</span></div></div>')
 
 
+def _z4_forecast_note(date):
+    """★轮67 AF1(item7):从最新【工作版】forecast 读带「口径标注」字段的条目(如微软财报前EPS口径)→渲成红框标注。数据驱动·不写死。
+    ★只认工作版 forecast_YYYY-MM-DD.json(取最大日期)·避开 forecast_{紧凑}_{hash}.json 那些 lock 快照(否则会选错)。"""
+    import glob as _g, os as _os, re as _re
+    cands = _g.glob(str(ROOT / "data" / "forecast" / "forecast_*.json"))
+    dated = []
+    for p in cands:
+        m = _re.match(r"forecast_(\d{4}-\d{2}-\d{2})\.json$", _os.path.basename(p))
+        if m:
+            dated.append((m.group(1), _os.path.basename(p)))
+    if not dated:
+        return ""
+    fp = sorted(dated)[-1][1]        # 最大日期的工作版文件名
+    fc = _rj(ROOT / "data" / "forecast" / fp)
+    notes = []
+    for f in (fc.get("forecasts") or []):
+        if f.get("horizon") != "1y":
+            continue
+        note = f.get("口径标注")
+        if note:
+            notes.append('<div style="border:1px solid #c0392b;background:#fff4f4;border-radius:6px;padding:8px 12px;margin:6px 0;font-size:13px">'
+                         f'<b>★ {D.esc(str(f.get("name","")))} 口径提示</b>：{D.esc(str(note))}</div>')
+    return "".join(notes)
+
+
+def _z4_two_segment_block(date):
+    """★轮67 AF1:Z4 两段报法(已算清/未算清分列·点值口径 E[上行]·参数出处四等级·单只超限告警·退出类型)
+    + 微软口径标注(item7) + 机会层(item8·不填买卖价位)。这是轮65 手工渲染器 render_0730_final 八项整改
+    【并入唯一渲染器 render_3layer】。读 data/risk/z4_two_segment_{date}.json(点值口径已在其中·由 z4_two_segment_build 产出)。
+    ★不给单一「距+40%缺口」混合数。数据缺→返回空串(回落旧 _target_gap_block·安全增量)。"""
+    z4p = ROOT / "data" / "risk" / f"z4_two_segment_{date}.json"
+    if not z4p.exists():
+        return ""
+    z4 = _rj(ROOT / "data" / "risk" / f"z4_two_segment_{date}.json")
+    accts = z4.get("账户") or {}
+    if not accts:
+        return ""
+    esc = lambda s: D.esc(str(s))
+
+    def _card(a_cn):
+        d = accts.get(a_cn) or {}
+        c = d.get("①已算清(特+A级)") or {}
+        u = d.get("②未算清(B+C级)") or {}
+        ex = d.get("退出(第一三共)") or {}
+        clear_only = "、".join("%s(%s·%s%%·贡献%spp)" % (x.get("name"), x.get("等级"), x.get("权重pct"), x.get("贡献pp")) for x in (c.get("只") or []))
+        unclear_only = "、".join("%s(%s·%s%%)" % (x.get("name"), x.get("等级"), x.get("权重pct")) for x in (u.get("只") or []))
+        # 单只超20%上限显性告警(只报事实与超限幅度·不给处置建议·item5)
+        over = [x for x in ((c.get("只") or []) + (u.get("只") or [])) if (x.get("权重pct") or 0) > 20]
+        over_line = ""
+        if over:
+            over_line = ('<p style="background:#fff4f4;border-left:4px solid #c0392b;padding:6px 10px;font-size:13px">'
+                         + "；".join("<b>%s %s%%，超单只20%%上限 %.2f个百分点</b>" % (x.get("name"), x.get("权重pct"), (x.get("权重pct") or 0) - 20) for x in over)
+                         + "（上限出处：2026-07-19 四条风险配仓·只报事实不给处置建议）</p>")
+        return ('<div style="flex:1;min-width:320px;border:2px solid #0f2e1c;border-radius:8px;padding:10px 14px;margin:4px">'
+                f'<div style="font-weight:800;font-size:16px">{esc(a_cn)}账户</div>{over_line}'
+                f'<p style="background:#eef7ee;padding:6px 10px;border-left:4px solid #2e7d32">① <b>已算清（特级+A级）覆盖 {c.get("覆盖权重pct")}% 权重 → Σ贡献 <span style="font-size:17px">{c.get("Σ贡献pp")}个百分点</span></b><br><span style="font-size:12px;color:#555">{esc(clear_only)}</span></p>'
+                f'<p style="background:#fff4f4;padding:6px 10px;border-left:4px solid #c0392b">② <b>未算清（B+C级）{u.get("权重合计pct")}% 权重——这部分无法给出预期收益（无可用估值锚）</b><br><span style="font-size:12px;color:#555">{esc(unclear_only)}</span></p>'
+                f'<p style="font-size:12px;color:#888">退出（第一三共·财务质量）{ex.get("权重pct")}% 权重·不进情景计算（item6 退出类型）。★两段不相加·本产品不给单一「距+40%缺口」数。</p></div>')
+
+    cards = "".join(_card(a) for a in ("富途", "SBI") if a in accts)
+    msft_note = _z4_forecast_note(date)   # item7 微软口径标注
+    opp = ('<div style="border:2px dashed #8a6d1a;background:#fffaef;border-radius:8px;padding:10px 14px;margin:8px 0">'
+           '<b>★ 机会层</b>：Opus 5 周末人工过漏斗中·候选估值未算·周末补——周一开盘前出双档建议。'
+           '<b>本产品此处不填任何候选或买卖价位</b>（候选事实见另出的候选研究工单）。</div>')   # item8
+    return ('<div id="target-gap" style="border:3px solid #0f2e1c;background:#f4f8f4;border-radius:10px;padding:12px 16px;margin:6px 0 14px">'
+            '<div style="font-size:19px;font-weight:800;color:#0f2e1c">🎯 第一屏 · 缺口分两段报（不给混合总数）</div>'
+            '<p style="font-size:12px;color:#555;margin:4px 0">只有【有出处的数】才进「已算清」（点值口径 E[上行]=Σ概率×点值·非区间中值）；无估值锚的标的（B/C级）只报事实、不出预期收益——避免伪精确。</p>'
+            f'<div style="display:flex;flex-wrap:wrap">{cards}</div>{msft_note}{opp}</div>')
+
+
 _GLOSSARY = [
     ("pp / 百分点", "收益率的加减单位。『+3.9pp』=全年收益多约3.9个百分点(比如从10.3%变成14.2%)"),
     ("P/E · 市盈率", "股价 ÷ 每股一年赚的钱。数字越大越贵"),
@@ -2286,8 +2356,11 @@ def build(date: str) -> str:
     # (F0/F2·董事长2026-07-25:已撤销板块/油价的人工字符串替换——禁止用replace把两边对齐;
     #  板块方向由 latest_market_snapshot 真数据经 rule_sector 重算·历史previous由管线继承·不事后改写)
     # [P0]目标—缺口 模块 + 风险配仓四规矩模块 放第一层最顶部(①离目标还差多少·董事长第一眼看到)
+    # ★轮67 AF1:第一屏缺口块——z4_two_segment 存在→用 Z4 两段报法(点值口径/四等级/超限/退出/微软标注/机会层·八项整改)；
+    #   否则回落旧 _target_gap_block(单一缺口·安全增量)。唯一渲染器 render_3layer 现含今天全部整改。
+    _gap_top = _z4_two_segment_block(date) or _target_gap_block()
     out = re.sub(r'(<details class="layer" id="L1"[^>]*>\s*<summary>[^<]*</summary>\s*<div class="body">)',
-                 lambda m: m.group(1) + _target_gap_block() + _risk_config_block(conc) + _external_sector_risk_block() + _glossary_block(), out, count=1)
+                 lambda m: m.group(1) + _gap_top + _risk_config_block(conc) + _external_sector_risk_block() + _glossary_block(), out, count=1)
     # [P1]每只四字段(角色/意图/贡献pp/凭什么) + [P2]双档并列(加/减候选)→注入每只 why 卡开头
     for _sym in [hc.get("代码") for hc in each if hc.get("代码")]:
         out = out.replace(f'id="why-{_sym}">',
@@ -2525,10 +2598,38 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", required=True)
+    ap.add_argument("--dry-run", action="store_true",
+                    help="★轮67 AF2:渲染但【不写进 00_请先看这里/正式产品】——写到 --out(或 data/logs/dryrender_)，"
+                         "打印八项整改自查，供空跑验证渲染器已含今天全部整改·不出品给董事长。")
+    ap.add_argument("--out", default=None, help="dry-run 输出路径(缺省 data/logs/dryrender_{date}.html)")
     a = ap.parse_args()
     html = build(a.date)
     dd = f"{a.date[:4]}-{a.date[4:6]}-{a.date[6:]}"
     fname = f"★每日产品_{dd}.html"
+    # ── ★轮67 AF2:dry-run——渲到临时路径 + 八项自查 + 不碰正式产品目录 ──
+    if a.dry_run:
+        outp = Path(a.out) if a.out else (ROOT / "data" / "logs" / f"dryrender_{a.date}.html")
+        outp.parent.mkdir(parents=True, exist_ok=True)
+        outp.write_text(html, encoding="utf-8")
+        b = html.encode("utf-8")
+        checks = {
+            "1 Z4两段(已算清/未算清分列)": ("已算清（特级+A级）" in html and "未算清（B+C级）" in html),
+            "1b 不给单一「距+40%缺口」数": ("不给单一" in html and "缺口分两段报" in html),
+            "2 点值口径E[上行]": "点值口径 E[上行]=Σ概率×点值" in html,
+            "3 参数出处四等级(B/C不出收益)": ("特级" in html and "无可用估值锚" in html),
+            "4 净现金扣减标注(任天堂¥1,940)": ("净现金" in html and "1,940" in html),
+            "5 单只超限告警(超单只20%上限)": "超单只20%上限" in html,
+            "6 退出类型(第一三共·不进情景)": ("第一三共" in html and "不进情景计算" in html),
+            "7 微软口径标注(财报前EPS偏悲观)": ("财报前 EPS" in html and "偏悲观" in html),
+            "8 机会层(不填买卖价位)": "不填任何候选或买卖价位" in html,
+        }
+        print(f"[render_3layer DRY-RUN] 渲到 {outp} · bytes={len(b)} · 乱码EFBFBD={b.count(b'\xef\xbf\xbd')}")
+        print("  ★八项整改自查(渲染器实物输出)：")
+        for k, v in checks.items():
+            print(("    ✔ " if v else "    ✗ 缺 ") + k)
+        print("  八项齐全？ " + ("是" if all(checks.values()) else "否·见上"))
+        print("  ★未写进正式产品目录(不出品给董事长·AF2-1)。")
+        return 0 if all(checks.values()) else 6
     # ★护城河16天重评硬闸(董事长2026-07-25):as_of>16天未重评→FAIL不出品(旧版不被覆盖)
     if getattr(build, "_moat_stale", False):
         print("[三层·出厂核 FAIL·不出品] 护城河超期未重评(as_of>16天)——先跑护城河重评脚本再出厂·旧版未被覆盖")
