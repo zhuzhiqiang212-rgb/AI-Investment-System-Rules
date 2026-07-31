@@ -107,7 +107,8 @@ def check(date_hyphen: str):
             fails.append(f"M3 {tag} 含手给字段 {_hit}——E[上行]/权重/贡献pp 一律机器算·填报只给区间/概率/依据/证伪/日期/置信度")
         # M3 expected_upside_pct 必须=机器复算(分母=当日价)·防手给蒙混
         _acccn = _acc.get(f.get("account"), f.get("account"))
-        _pt = _px.get((_acccn, f.get("ticker")))
+        # ★分母优先用 forecast 自身「当日价(分母)」(重判后基准价·轮60)·无则回落 target_gap
+        _pt = f.get("当日价(分母)") or _px.get((_acccn, f.get("ticker")))
         _stored = f.get("expected_upside_pct")
         if scen and _pt and _stored is not None:
             sys.path.insert(0, str(ROOT / "scripts"))
