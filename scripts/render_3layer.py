@@ -1418,7 +1418,7 @@ def _scenario_block(sym):
         rows += f'<tr><td>{esc(nm)}·{pct}</td><td>{val}</td></tr>'
     eu = (r or {}).get("E上行_pct_新口径"); pp = (r or {}).get("贡献pp_新口径")
     tail = (f'期望上行 <b>{esc(eu)}%</b>·对目标贡献 <b>{esc(pp)}个百分点</b>（点值口径·源缺口表）。'
-            if eu is not None else '期望上行/对目标贡献：<b>未产出</b>·原因：target_gap 无该只新口径值。')
+            if eu is not None else '期望上行/对目标贡献：<b>未产出</b>·原因：缺口表无该只新口径值。')
     return (
         '<div style="font-size:12px;color:#1A1A1A;background:#F2F4F7;border-left:3px solid #12324E;'
         'border-radius:0 6px 6px 0;padding:7px 10px;margin:5px 0">'
