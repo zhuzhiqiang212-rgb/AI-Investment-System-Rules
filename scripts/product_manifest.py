@@ -48,13 +48,43 @@ def write_manifest(date: str, run_id: str, scan_jst: str, filenames: list[str]) 
     return m
 
 
+PDF_ENTRY = "00_今日日报.pdf"           # 唯一入口 PDF
+PDF_RUNID_SIDE = "00_今日日报.pdf.runid"  # ★轮73 AL1-2:PDF 的 run_id 边车(渲PDF时写·标它是哪一轮渲的)
+
+
+def write_pdf_runid(run_id: str) -> None:
+    """★轮73:PDF 渲染器渲完唯一入口PDF后调此·写 run_id 边车(证明与HTML同轮)。"""
+    (ROOT / "00_请先看这里" / PDF_RUNID_SIDE).write_text(str(run_id), encoding="utf-8")
+
+
+def check_pdf_html_same_run(html_run_id: str) -> tuple[bool, str]:
+    """★轮73 AL1-2/AL1-3:唯一入口PDF与HTML必须同 run_id。
+    · PDF不存在(唯一入口空)→ OK(空着比放昨天手工版好·AL1-1)。
+    · PDF存在但【无run_id边车】或【边车run_id≠HTML run_id】→ FAIL(不同轮·手工版/旧版·不许当今天入口)。"""
+    pdf = ROOT / "00_请先看这里" / PDF_ENTRY
+    side = ROOT / "00_请先看这里" / PDF_RUNID_SIDE
+    if not pdf.exists():
+        return True, "唯一入口PDF：空（无PDF·合法·空着比放不同轮的好）"
+    if not side.exists():
+        return False, f"唯一入口PDF存在但【无 run_id 边车】→ 疑似手工版/旧版·不同轮(HTML={html_run_id})→整轮FAIL·移走或与HTML同轮重渲"
+    pdf_rid = side.read_text(encoding="utf-8").strip()
+    if pdf_rid != html_run_id:
+        return False, f"★PDF与HTML【不同轮】：PDF run_id={pdf_rid} ≠ HTML run_id={html_run_id}→整轮FAIL·不出品(AL1-3)"
+    return True, f"唯一入口PDF：与HTML同轮 run_id={html_run_id}（合法）"
+
+
 def check_manifest() -> tuple[int, list[str]]:
-    """丙2 哨兵：比对 manifest 与 G盘实物。返回 (退出码, 报告行)。"""
+    """丙2 哨兵：比对 manifest 与 G盘实物 + ★轮73 PDF/HTML同轮校验。返回 (退出码, 报告行)。"""
     out = []
     if not MANIFEST.exists():
         return 0, ["[哨兵] 还没有 manifest（首次生产后才有）→ 跳过比对"]
     m = json.loads(MANIFEST.read_text(encoding="utf-8"))
     bad = 0
+    # ★轮73 AL1-2/AL1-3:唯一入口PDF与HTML(manifest run_id)同轮校验
+    pdf_ok, pdf_msg = check_pdf_html_same_run(m.get("run_id", ""))
+    out.append(("  ✔ " if pdf_ok else "  ✗ ") + pdf_msg)
+    if not pdf_ok:
+        bad += 1
     for fn, rec in (m.get("volumes") or {}).items():
         p = ROOT / "00_请先看这里" / fn
         if not p.exists():
