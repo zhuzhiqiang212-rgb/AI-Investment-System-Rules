@@ -86,6 +86,9 @@ STEPS = [
     ("⑦b 数据异常检查关", "data_sanity_gate.py", False),
     ("⑦c 数据层文案禁夹带HTML闸", "data_html_leak_gate.py", False),  # 轮20 J4(裁定2026-07-27):数据层不带样式(强调用「」)·防先不翻类HTML漏进esc渲染·非关键只告警
     ("⑦d 激活清单作废告警闸", "regime_activation_gate.py", False),  # 轮23 N1④(裁定2026-07-27):最新sector_activation早于最近regime事件(FOMC)→告警清单可能作废尚未重出·把该不该重出从靠人记变机器提醒
+    # ★轮73 AL2:宏观层数据源(SOXX/国债ETF/USDJPY真值·US10Y真收益率/FOMC/日银/日债如实标未接)+宏观完备性闸(不闭合→不宣激活·AL2-6)
+    ("⑦e 宏观层快照(SOXX/国债/USDJPY·未接标未接)", "market_macro_snapshot.py", False),
+    ("⑦f 宏观完备性闸(未闭合→不宣激活·AL2-6)", "macro_completeness_gate.py", False),
 
     ("⑨ 研报佐证(湖水资讯)", "research_corpus_ingest.py", False),
     ("⑨b 财报官方数(SEC EDGAR)", "edgar_financials.py", False),
