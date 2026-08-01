@@ -87,9 +87,18 @@ def main():
     p.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     b = p.read_bytes(); json.loads(b.decode())
     print("[z4_two_segment] %s (forecast %s) → %s · 乱码%d" % (a.date, fdate, p.name, b.count(b"\xef\xbf\xbd")))
+    # ★轮72 AK4:两段数字不许全0——若【所有账户】的已算清覆盖权重=0 且 未算清权重=0 → FAIL(必然是数据没接上·不可能真两段都0)。
+    all_zero = True
     for a_cn in ("富途", "SBI"):
         d = out["账户"].get(a_cn, {})
-        print("  %s:" % a_cn, d.get("★缺口口径", "(无)"))
+        clr = (d.get("①已算清(特+A级)") or {}).get("覆盖权重pct") or 0
+        unc = (d.get("②未算清(B+C级)") or {}).get("权重合计pct") or 0
+        print("  %s: 已算清覆盖%.1f%%/未算清%.1f%% · %s" % (a_cn, clr, unc, d.get("★缺口口径", "(无)")))
+        if clr > 0 or unc > 0:
+            all_zero = False
+    if all_zero:
+        print("[z4_two_segment FAIL·AK4] 两段全0(已算清=0且未算清=0)——必然是 target_gap 未接四等级/新口径·数据没接上·非真实0。整轮停·不出空产品。")
+        return 7
     return 0
 
 

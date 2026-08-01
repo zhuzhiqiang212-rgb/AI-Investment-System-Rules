@@ -884,8 +884,52 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     #    含【数字(价格/贡献pp/概率/倍数/EPS)或判断词(维持/加/减/买/卖/不算贵/便宜/贵/剔除/止盈…)】→ FAIL。
     #    G2 禁止在渲染器里写死个股推理·且绕过 forecast_gate。允许保留:不含个股判断的模板文字/字段名/样式。
     fails += _l15_hardcoded_stock_judgment()
+    fails += _l16_target_gap_date_consistency(date)
 
     return fails
+
+
+def _l16_target_gap_date_consistency(date) -> list:
+    """★轮72 AK3-5:target_gap 的【取价/口径描述字段】里出现的日期，必须 = 文件 date 或实际取价日；
+    出现更旧日期(数据新·标签旧)→FAIL。只查描述取价的字段(不查 fair_vintage/priced_at/forecast/账户快照时刻——那些合法异日·另有vintage_gate)。"""
+    import pathlib as _pl, re as _r, json as _j
+    dc = str(date).replace("-", "")
+    if len(dc) != 8:
+        return []
+    p = _pl.Path(__file__).resolve().parent.parent / "data" / "target" / f"target_gap_{dc}.json"
+    if not p.exists():
+        return []
+    try:
+        tg = _j.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    date_h = f"{dc[:4]}-{dc[4:6]}-{dc[6:8]}"
+    # 允许集=文件date + 各市场实际取价日(从 price_vintage 提取的日期一并纳入允许·它们本身就是取价日声明)
+    allowed = {date_h}
+    fails16 = []
+    def _scan(field_name, text):
+        for m in _r.finditer(r"\d{4}-\d{2}-\d{2}", str(text or "")):
+            d = m.group(0)
+            if d not in allowed:
+                # 只拦【比 date 更旧】的(数据新标签旧);更新的(账户快照跑于次日等)不拦
+                if d < date_h:
+                    fails16.append(f"L16 target_gap 取价/口径日期陈旧：字段『{field_name}』出现 {d} < 文件date {date_h}"
+                                   f"——数据已更新到 {date_h} 但口径标签仍旧(防新数据旧标签)")
+    # 先把 price_vintage 里的取价日纳入允许(它们=声明的取价交易日)
+    for a_cn in ("富途", "SBI"):
+        pv = (tg.get(a_cn, {}) or {}).get("price_vintage", {}) or {}
+        for mk in ("JP", "US"):
+            for m in _r.finditer(r"\d{4}-\d{2}-\d{2}", str(pv.get(mk) or "")):
+                allowed.add(m.group(0))
+    _scan("_说明", tg.get("_说明"))
+    for a_cn in ("富途", "SBI"):
+        acc = tg.get(a_cn, {}) or {}
+        _scan(f"{a_cn}.股票市值_口径", acc.get("股票市值_口径"))
+        _scan(f"{a_cn}.★取价口径(唯一)", acc.get("★取价口径(唯一)"))
+        pv = acc.get("price_vintage", {}) or {}
+        _scan(f"{a_cn}.price_vintage.JP", pv.get("JP"))
+        _scan(f"{a_cn}.price_vintage.US", pv.get("US"))
+    return fails16
 
 
 def _l15_hardcoded_stock_judgment() -> list:

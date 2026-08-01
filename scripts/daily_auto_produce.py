@@ -76,7 +76,8 @@ STEPS = [
     ("⑥j gap vintage同源闸(>30天告警)", "gap_vintage_gate.py", False, [], {}),
     # ★轮67 AF1:Z4两段缺口(点值口径·已算清/未算清·四等级)→ 产 data/risk/z4_two_segment_{date}.json 供 render_3layer 第一屏。
     #   取价/市值/等级取自 target_gap_{date}(单一真相源)·forecast 日自动解析。非关键(渲染器缺它回落旧缺口块)。
-    ("⑥k z4两段缺口(点值口径·供第一屏)", "z4_two_segment_build.py", False, [], {}),
+    # ★轮72 AK4:改 CRITICAL——两段全0(数据没接上)即整轮停·不出空产品(六闸全PASS却产空产品的根因)。
+    ("⑥k z4两段缺口(点值口径·供第一屏·全0则FAIL)", "z4_two_segment_build.py", True, [], {}),
     #   风险层:单一驱动暴露/跨账户合并暴露/减仓测算——★只给暴露事实·不给操作建议(读 forecast 日)。
     ("⑧a driver_exposure(单一驱动暴露·事实)", "driver_exposure.py", False, [], {"fmt": "hyphen", "src": "forecast"}),
     ("⑧b cross_account(跨账户合并暴露·事实)", "cross_account_exposure.py", False, [], {"fmt": "hyphen", "src": "forecast"}),

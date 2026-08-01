@@ -103,23 +103,24 @@ def _load_ruler_valuations(date):
         except Exception:
             pass
 
-def build_futu_authoritative(date, px_close=None):
-    """D1(46号)+F1(52号)分母核平+日股价时点修正:富途A用OpenD 07:30实测total_assets(别动·轮40已核平)。
-    ★F1:跨市场无单一时点——日股价改用 daily_scan 07-30 东证收盘(07:30快照里的日股价其实是07-29收盘·因07:30早于09:00开盘)·美股价用 07:30 broker(=07-29收盘)。price_vintage 按市场分列。"""
+def build_futu_authoritative(date, px_close=None, vintages=None):
+    """D1(46号)+F1(52号)分母核平。富途A用OpenD实测total_assets(轮40核平·别动)。
+    ★轮72 AK3:日股+美股价【一律用 daily_scan(美股=K_DAY正式收盘·轮71 AJ2)】·price_vintage/股票市值_口径 从实际取价日派生·不写死。"""
     fp = json.loads((ROOT / "data" / "accounts" / f"futu_positions_{date}.json").read_text(encoding="utf-8"))
     fc = fp["futu_cash"]; A = fc["total_assets"]; cash = fc["cash"]; mval = fc["market_val"]
     tstamp = fp.get("generated_at", "")
-    px_close = px_close or {}
+    px_close = px_close or {}      # ★轮72:daily_scan 全量价(JP东证收盘+US K_DAY正式收盘)
+    vintages = vintages or {}
     us = sum(p["broker_market_val"] for p in fp["futu_positions"] if p["symbol"].startswith("US."))
     jp_local = sum(p["broker_market_val"] for p in fp["futu_positions"] if p["symbol"].startswith("JP."))
     fx = round(jp_local / (mval - us), 3) if (mval - us) else None
     rows = []
     for p in fp["futu_positions"]:
         code = p["symbol"]
-        if code.startswith("JP.") and px_close.get(code):
-            px_local = px_close[code]; mv_local = px_local * p["quantity"]     # F1:日股用07-30东证收盘
-        else:
-            px_local = p.get("broker_nominal_price"); mv_local = p.get("broker_market_val")   # 美股07-29收盘
+        if px_close.get(code):                                   # ★轮72:JP+US 一律用 daily_scan 收盘(US=K_DAY)
+            px_local = px_close[code]; mv_local = px_local * p["quantity"]
+        else:                                                    # daily_scan 缺→回落 broker(标待核)
+            px_local = p.get("broker_nominal_price"); mv_local = p.get("broker_market_val")
         mv_usd = mv_local if code.startswith("US.") else (mv_local / fx if fx else None)
         fair, blind = FAIR.get(code, (None, "未登记公允"))
         if fair is None or not px_local:
@@ -141,27 +142,49 @@ def build_futu_authoritative(date, px_close=None):
             if r["code"] == top["code"]: continue
             add = round(r["market_value_usd"] / A * ((top["upside_pct"] - r["upside_pct"]) / 100) * 100, 3)
             swap.append({"卖": r["name"], "换成": top["name"], "能补pp": add, "说明": "卖%s换%s·补%.2fpp" % (r["name"], top["name"], add)})
-    mv_f1 = round(sum(r["market_value_usd"] for r in rows if r.get("market_value_usd")), 2)  # G4:F1逐只市值合计(日股07-30收盘)·非过期07:30的mval
+    mv_f1 = round(sum(r["market_value_usd"] for r in rows if r.get("market_value_usd")), 2)  # F1逐只市值合计(各市场收盘价)
+    jp_vt = vintages.get("JP", "?"); us_vt = vintages.get("US", "?")   # ★轮72:实际取价交易日(从daily_scan update_time派生)
     return {"账户": "富途", "当日总资产A_USD": round(A, 2), "股票市值_USD": mv_f1,
-            "股票市值_07:30快照值": round(mval, 2), "股票市值_口径": "F1逐只合计=日股07-30东证收盘+美股07-29收盘·与07:30快照值$%.2f的差=日股价时点差" % mval, "现金_USD": cash,
-            "_fx_0730": fx, "_price_0730_local": {p["symbol"]: p.get("broker_nominal_price") for p in fp["futu_positions"]},
-            "price_vintage": {"JP": "2026-07-30 15:00 东证收盘(daily_scan)", "US": "2026-07-29 close + after-hours(OpenD 07:30 broker)",
-                              "现金与A": "OpenD accinfo 07:30实测 total_assets(%s·轮40已核平·别动)" % tstamp},
+            "股票市值_07:30快照值": round(mval, 2),
+            "股票市值_口径": "逐只合计=日股%s东证收盘+美股%s K_DAY正式收盘(daily_scan·轮71 AJ2)·与OpenD快照值$%.2f的差=价时点/取价方式差" % (jp_vt, us_vt, mval),
+            "现金_USD": cash,
+            "fx_used": fx, "fx_as_of": tstamp[:10] if tstamp else jp_vt,   # ★AK3-4:去掉写死日期的字段名·独立 as_of
+            "_price_local": {p["symbol"]: px_close.get(p["symbol"]) or p.get("broker_nominal_price") for p in fp["futu_positions"]},
+            "price_vintage": {"JP": "%s 东证收盘(daily_scan)" % jp_vt, "US": "%s K_DAY正式收盘(daily_scan·轮71 AJ2·非盘后快照)" % us_vt,
+                              "现金与A": "OpenD accinfo实测 total_assets(%s·轮40已核平·别动)" % tstamp},
             "fair_vintage": "见 data/valuation/val_inputs.json 各只 priced_at",
-            "★F1口径(唯一·G4删旧互斥)": "跨市场无单一时点:日股07-30东证收盘(daily_scan)·美股07-29收盘(07:30 broker)·现金与A用OpenD 07:30实测total_assets(轮40核平·别动)。逐只市值=各市场收盘价·股票市值_USD据此。轮40『均取07:30·不用daily_scan』旧口径已删(与本条互斥)。",
-            "★单一权威源": "futu_positions_%s.json · OpenD accinfo_query(REAL·USD) · 取数时刻 %s" % (date, tstamp),
-            "★现金与A口径": "现金与总资产A取OpenD 07:30实测(轮40核平·JP隐含FX≈%s)。★注:股票逐只市值改用各市场收盘价(F1)·不再『均取07:30』(轮40那条已删·见★F1口径)·同文件不留互斥口径。" % fx,
-            "现金说明": "OpenD accinfo实测 $%.2f(07:30·非沿用)" % cash,
+            "★取价口径(唯一)": "日股%s东证收盘+美股%s K_DAY正式收盘(均 daily_scan·轮71 AJ2美股改K线)·现金与A用OpenD实测total_assets(轮40核平·别动)。逐只市值=各市场收盘价·股票市值_USD据此。" % (jp_vt, us_vt),
+            "★单一权威源": "futu_positions_%s.json · OpenD accinfo_query(REAL·USD) · 取数时刻 %s · 价=daily_scan_%s" % (date, tstamp, date),
+            "★现金与A口径": "现金与总资产A取OpenD实测(轮40核平·JP隐含FX≈%s)·股票逐只市值用各市场收盘价(日股东证收盘/美股K_DAY)。" % fx,
+            "现金说明": "OpenD accinfo实测 $%.2f(非沿用)" % cash,
             "目标": {"+40%需赚_USD": round(A * 0.40, 2), "+100%需赚_USD": round(A * 1.00, 2)},
             "账户预期贡献合计pp(盲区不计)": total_contrib, "距+40%缺口pp": round(40 - total_contrib, 3), "距+100%缺口pp": round(100 - total_contrib, 3),
             "盲区占比%": round(blind_mv / A * 100, 2), "逐只(按贡献pp降序)": rows, "换仓测算(卖低贡献三只换最高贡献只)": swap}
 
+def _scan_vintages(date):
+    """★轮72 AK3:从 daily_scan update_time 派生各市场实际取价交易日(不写死)。"""
+    try:
+        scan = json.loads((ROOT / "data" / "market" / f"daily_scan_{date}.json").read_text(encoding="utf-8"))
+        jp = us = None
+        for q in scan["items"]["1_当日20只价"]["逐只"]:
+            ut = str(q.get("update_time") or "")[:10]
+            if not ut:
+                continue
+            if str(q["code"]).startswith("US.") and not us:
+                us = ut
+            elif str(q["code"]).startswith("JP.") and not jp:
+                jp = ut
+        return {"JP": jp or "?", "US": us or "?"}
+    except Exception:
+        return {"JP": "?", "US": "?"}
+
+
 def build(date):
     _load_ruler_valuations(date)
     px, usdjpy, hold = load(date)
-    # D1+F1:富途A用OpenD 07:30实测·日股价用daily_scan 07-30东证收盘(px)·美股07-29收盘
-    px_jp_close = {c: v for c, v in px.items() if c.startswith("JP.")}
-    futu = build_futu_authoritative(date, px_close=px_jp_close)
+    vintages = _scan_vintages(date)   # ★轮72:实际取价交易日(日股/美股·从daily_scan派生)
+    # ★轮72:日股+美股价一律用 daily_scan(美股=K_DAY正式收盘·轮71 AJ2)·传全量px
+    futu = build_futu_authoritative(date, px_close=px, vintages=vintages)
     # SBI(38号续①②):盲区已解——股数取07-18权威截图(12天未交易·稳定)·价取当日实测·余力¥17,895,950(07-18沿用)
     #   ★07-18权威股数(SBI持仓(私)/IMG_3519.PNG):第一三共3400/索尼1000/爱德万800/丰田800/伊藤忠900/东京海上1000/软银2800
     SBI_SHARES_0718 = {"JP.4568": 3400, "JP.6758": 1000, "JP.6857": 800, "JP.7203": 800,
@@ -171,7 +194,7 @@ def build(date):
     sbi_cash_jpy = 17895950
     # E3(49号)vintage同源:SBI 价与FX统一到与富途同一时点(07:30 OpenD)·消除同一份里第一三共两价两汇率的L5打架。
     #   ★不反向改富途(富途已核平·是对的)。SBI在futu快照里的只(第一三共/软银)用07:30 broker价;SBI独有只用daily_scan(标时点)。
-    fx_0730 = futu.get("_fx_0730")
+    fx_0730 = futu.get("fx_used")   # ★轮72:字段改名 _fx_0730→fx_used
     # F1(52号):SBI日股价一律用 daily_scan 07-30 东证收盘(px)·与富途同一价·FX统一到富途07:30隐含(163.425)→第一三共双价+双汇率彻底消除
     usd = usdjpy if not fx_0730 else fx_0730
     sbi = compute_account("SBI", sbi_pos, px, usd, cash_usd=sbi_cash_jpy / usd,
@@ -210,7 +233,7 @@ def build(date):
         acc["vintage_gap_days"] = vgap
         acc["vintage_gate"] = ("★>30天不可信告警" if (vgap and vgap > 30) else ("合格(≤30天)·当前%s天" % vgap if vgap is not None else "无fair vintage"))
     return {
-        "_说明": "目标—缺口·2026-07-30·依据正式尺 目标倒推框架_定稿_1年双档_20260719·Code照算法实现未改投资判断",
+        "_说明": "目标—缺口·%s·依据正式尺 目标倒推框架_定稿_1年双档_20260719·Code照算法实现未改投资判断" % (date if "-" in date else "%s-%s-%s" % (date[:4], date[4:6], date[6:8])),   # ★AK3-1:日期从date派生·不写死
         "date": date, "生成": datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S"),
         "口径": "富途/SBI各自独立算不合并·IBKR/bitFlyer不做目标管理(07-19尺:跟随主战场)·期限1年·双档+40%(中性提醒)/+100%(激进执行)",
         "富途": futu, "SBI": sbi,
@@ -237,6 +260,13 @@ def augment_forecast_koujing(date):
     tp = ROOT / "data" / "target" / f"target_gap_{date}.json"
     date_h = date if "-" in date else f"{date[:4]}-{date[4:6]}-{date[6:8]}"   # 尺§六:forecast 用连字符名
     fp = ROOT / "data" / "forecast" / f"forecast_{date_h}.json"
+    if not fp.exists():
+        # ★轮72:跨市场收盘日复用前一交易日 forecast(如07-31生产复用forecast_2026-07-30)·解析最新工作版
+        import glob as _g, re as _re
+        dated = [m.group(1) for p in _g.glob(str(ROOT / "data" / "forecast" / "forecast_*.json"))
+                 if (m := _re.match(r"forecast_(\d{4}-\d{2}-\d{2})\.json$", pathlib.Path(p).name))]
+        if dated:
+            fp = ROOT / "data" / "forecast" / f"forecast_{max(dated)}.json"
     if not tp.exists() or not fp.exists():
         return None
     tg = json.loads(tp.read_text(encoding="utf-8"))
@@ -254,6 +284,14 @@ def augment_forecast_koujing(date):
         new_total = 0.0; n_have = 0
         for r in acc.get("逐只(按贡献pp降序)", []):
             f = fmap.get((a_cn, r.get("code")))
+            # ★轮72 AK2-1:四等级(特/A/B/C)从 forecast 复制(单一源·经forecast_gate);AK2-2③:★退出;AK2-4:净现金标注
+            r["参数出处等级"] = (f.get("参数出处等级") if f else None)
+            r["★退出"] = (f.get("★退出") if f else None)
+            _nc = (f.get("净现金标注") if f else None)
+            if _nc:
+                r["净现金标注"] = _nc
+            else:
+                r.pop("净现金标注", None)
             scen = (f.get("scenarios") if f else None) or []
             # K1(尺v1.1):E[上行] 分母【一律当日价】price_local_0730(富途)/price_local(SBI)·任何分支不许换锚
             px_today = r.get("price_local_0730", r.get("price_local"))
@@ -368,6 +406,13 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     res = build(a.date)
     out.write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
+    # ★轮72:默认生成即接新口径(四等级/point值E[上行]/两段字段源)——管线跑 target_gap.py --date(不带--attach-forecast)也出新口径·供 z4两段/渲染器读
+    aug = augment_forecast_koujing(a.date)
+    if aug is not None:
+        res = aug
+        print("★已接新口径(四等级/point值E[上行]/退出/净现金)")
+    else:
+        print("⚠ 新口径未接:缺 forecast(z4两段将为0·AK4闸会拦)")
     f = res["富途"]
     print("target_gap %s → %s" % (a.date, out.name))
     print("富途 A=$%.0f · 预期贡献合计 %.2fpp · 距+40%%缺口 %.2fpp · 距+100%%缺口 %.2fpp · 盲区占比 %.1f%%"
