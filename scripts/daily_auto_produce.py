@@ -104,7 +104,8 @@ STEPS = [
     ("⑪a pdca_verdict(到期预测记分)", "pdca_verdict_run.py", False, [], {"fmt": "hyphen", "src": "forecast", "argname": "--asof"}),
     # ★轮79 AS:第⑦层复盘记分卡(系统的魂)——判断记分卡(累积)+确定性累积表(七层派生)+多尺度复盘+决策质量·产品能看出哪层最弱。
     ("⑪b 复盘记分卡层(第⑦层·四部件·最弱层)", "pdca_scorecard_layer.py", False),
-    ("⑪c 判断记分卡闸(未命中缺错因/确定性手填→FAIL)", "judgment_scorecard_gate.py", False),
+    ("⑪c 判断记分卡闸(未命中缺错因/确定性手填/C级精确数→FAIL·AS1/AT2-1)", "judgment_scorecard_gate.py", False),
+    ("⑪d 未读源码不得判机器行为闸(告警·拦Opus5·AT2-2)", "unread_source_gate.py", False),
     ("⑫ 三件魂", "systems_soul_build.py", False),
     ("⑫b 预测记分(下预测+结算到期)", "forecast_ledger.py", False),
     # ★轮75 AN1:七步流程固化——生成七步表(谁做/做没做/产出物)+第3步拦截(无当日Opus5正文→退出7→整轮停·不许上一日/模板顶替渲染)。CRITICAL。

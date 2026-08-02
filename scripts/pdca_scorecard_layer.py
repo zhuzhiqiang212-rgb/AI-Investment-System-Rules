@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SC = ROOT / "data" / "pdca" / "judgment_scorecard.json"
 CL = ROOT / "data" / "pdca" / "certainty_ledger.json"
 GRADE_COEF = {"A": 1.0, "B": 0.6, "C": 0.3}   # AS4依据等级系数
-LAYERS = ["①世界观", "②国家战略", "③资金流动", "④板块地图", "⑤个股研究", "⑥持仓层", "⑦复盘层"]
+LAYERS = ["①世界观", "②国家战略", "③资金流动", "④板块轮动", "⑤机会池", "⑥持仓层", "⑦复盘层"]
 
 
 def _load_sc():
@@ -79,6 +79,39 @@ def seed_持仓层(date):
                     e["验证状态"] = "命中" if v.get("类型") in ("命中", "S2", "中性") else ("未命中" if v.get("类型") == "未命中" else "部分")
                     e["验证时实际"] = v.get("实际收盘价")
     return sc, n_new
+
+
+def merge_history(sc):
+    """★轮80 AT1:并入七条历史判断(judgment_history_opus5_20260731_0802.json)。
+    ★保留『事后补登』标记(一次性历史回填·违反登记须同时的规矩·必须留痕不许洗白)。只追加不重复。"""
+    hp = ROOT / "data/pdca" / "judgment_history_opus5_20260731_0802.json"
+    if not hp.exists():
+        return sc, 0
+    hd = json.loads(hp.read_text(encoding="utf-8"))
+    have = {e.get("id") for e in sc["entries"]}
+    n = 0
+    for j in hd.get("judgments", []):
+        if j.get("id") in have:
+            continue
+        e = dict(j)
+        # 归一 ★错在哪→错在哪(scorecard字段)·保留原键
+        if e.get("★错在哪") is not None and not e.get("错在哪"):
+            e["错在哪"] = e.get("★错在哪")
+        e["★登记性质"] = "事后补登·一次性历史回填(轮80·违反登记须与判断同时·留痕不洗白)"
+        e["判断产出日"] = e.get("判断产出日") or "早于登记日(历史·故事后补)"
+        sc["entries"].append(e); have.add(e.get("id")); n += 1
+    return sc, n
+
+
+def error_distributions(sc):
+    """★AT1-3:派生统计——四类错因分布 + 按层分布(进产品)。从已证伪/未命中判断派生。"""
+    from collections import Counter
+    failed = [e for e in sc["entries"] if e.get("验证状态") in ("未命中", "已证伪")]
+    ec = Counter((e.get("错在哪") or "未填错因") for e in failed)
+    lc = Counter(e.get("层") for e in failed)
+    return {"_说明": "四类错因分布(数据错/逻辑错/时机错/口径错)+按层分布·从已证伪/未命中判断派生(AT1-3·进产品)。",
+            "四类错因分布": dict(ec), "按层分布(出错判断)": dict(lc),
+            "样本数(已证伪+未命中)": len(failed)}
 
 
 def certainty_ledger():
@@ -159,17 +192,21 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--date", required=True); a = ap.parse_args()
     dc = a.date.replace("-", "")
     sc, n_new = seed_持仓层(a.date)
+    sc, n_hist = merge_history(sc)   # ★轮80 AT1:并入七条历史判断(留事后补登痕)
     SC.parent.mkdir(parents=True, exist_ok=True)
     SC.write_text(json.dumps(sc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    dist = error_distributions(sc)   # ★AT1-3:四类错因+按层分布
     cl = certainty_ledger(); CL.write_text(json.dumps(cl, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     dq = decision_quality()
     rv = review_daily(a.date)
     (ROOT / "data/pdca" / f"review_daily_{dc}.json").write_text(json.dumps(rv, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     weak = weakest_layer(cl)
-    summary = {"_说明": "第⑦层复盘记分卡层·汇总(供产品第⑦层+AS6最弱层)。", "date": a.date,
-               "判断记分卡条数": len(sc["entries"]), "本次新增": n_new,
+    summary = {"_说明": "第⑦层复盘记分卡层·汇总(供产品第⑦层+AS6最弱层+AT1-3分布)。", "date": a.date,
+               "判断记分卡条数": len(sc["entries"]), "本次新增(forecast种子)": n_new, "本次并入历史": n_hist,
                "七层确定性": {k: v["当前确定性"] for k, v in cl["层"].items()},
-               "★本体系最弱层(AS6)": weak, "决策质量分(按层)": dq}
+               "★本体系最弱层(AS6)": weak, "决策质量分(按层)": dq,
+               "★四类错因分布(AT1-3·进产品)": dist["四类错因分布"], "★按层分布(出错判断·AT1-3)": dist["按层分布(出错判断)"],
+               "已证伪+未命中样本数": dist["样本数(已证伪+未命中)"]}
     (ROOT / "data/pdca" / f"scorecard_summary_{dc}.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print("[pdca_scorecard_layer] %s · 记分卡%d条(新增%d) · 乱码%d" % (a.date, len(sc["entries"]), n_new, SC.read_bytes().count(b"\xef\xbf\xbd")))
     print("  七层确定性:", {k.split("层")[0][:3] if "层" in k else k[:3]: v["当前确定性"] for k, v in cl["层"].items()})

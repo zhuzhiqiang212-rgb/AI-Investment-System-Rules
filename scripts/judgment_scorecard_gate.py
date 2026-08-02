@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SC = ROOT / "data" / "pdca" / "judgment_scorecard.json"
 CL = ROOT / "data" / "pdca" / "certainty_ledger.json"
-LAYERS = ["①世界观", "②国家战略", "③资金流动", "④板块地图", "⑤个股研究", "⑥持仓层", "⑦复盘层"]
+LAYERS = ["①世界观", "②国家战略", "③资金流动", "④板块轮动", "⑤机会池", "⑥持仓层", "⑦复盘层"]
 
 
 def _derive_cert(entries, layer):
@@ -30,10 +30,17 @@ def check():
         return ["judgment_scorecard.json 不存在→复盘层部件①未产出"], []
     sc = json.loads(SC.read_text(encoding="utf-8"))
     entries = sc.get("entries", [])
+    import re as _re
     for e in entries:
-        # AS1-2:未命中而错在哪空→FAIL
-        if e.get("验证状态") == "未命中" and not e.get("错在哪"):
-            fails.append("AS1-2 记分卡 %s 验证=未命中 但『错在哪』为空(必填:数据错/逻辑错/时机错/口径错)→FAIL" % e.get("id"))
+        # AS1-2:未命中/已证伪而错在哪空→FAIL
+        if e.get("验证状态") in ("未命中", "已证伪") and not e.get("错在哪"):
+            fails.append("AS1-2 记分卡 %s 验证=%s 但『错在哪』为空(必填:数据错/逻辑错/时机错/口径错)→FAIL" % (e.get("id"), e.get("验证状态")))
+        # ★AT2-1(轮80):C级来源不得输出精确数——依据等级=C 的判断文本含小数点后≥2位精确值→FAIL
+        if e.get("依据等级") == "C":
+            txt = str(e.get("判断") or "") + " " + " ".join(str(x) for x in (e.get("依据") or []))
+            m = _re.search(r"\d+\.\d{2,}", txt)
+            if m:
+                fails.append("AT2-1 记分卡 %s 依据等级=C(二手/拍的)却输出精确数『%s』→C级不得输出小数点后≥2位·应改『大部分/约』等模糊表述→FAIL" % (e.get("id"), m.group(0)))
         # AS1-3:登记日≠判断产出日→告警(不许事后补)
         rd, pd = str(e.get("登记日") or ""), str(e.get("判断产出日") or "")
         if rd and pd and rd != pd:
