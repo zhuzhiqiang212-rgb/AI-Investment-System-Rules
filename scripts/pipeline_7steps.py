@@ -64,7 +64,8 @@ def build(date, data_date=None):
     _mf = ROOT / "data" / "market" / f"macro_flow_{dc}.json"
     if _mf.exists():
         try:
-            _conn = json.loads(_mf.read_text(encoding="utf-8")).get("★接通统计", {}).get("接通N/10", "?/10")
+            _st = json.loads(_mf.read_text(encoding="utf-8")).get("★接通统计", {})
+            _conn = _st.get("机器自动接通(全部)N/10", _st.get("接通N/10", "?/10"))
         except Exception:
             _conn = "?/10"
         for _r in rows:

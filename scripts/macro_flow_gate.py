@@ -13,22 +13,22 @@ def check(date):
     if not p.exists():
         return ["资金流层 macro_flow_%s.json 不存在→第③层全未产出·须先跑 macro_flow_layer.py" % dc], False, False
     d = json.loads(p.read_text(encoding="utf-8"))
-    comp = d.get("★资金流层完备性(供 macro_flow_gate)", {})
-    n_missing = comp.get("核心5指标(10Y/VIX/DXY/FOMC/CPI-PCE)取不到数")
-    if n_missing is None:
+    # ★轮78 AR4-2:判据改『机器自动接通核心5』——<3 项→产品第③层标『资金流层未自动接通·当前为手工基线』。
+    ar4 = d.get("★AR4完备性(供macro_flow_gate)", {})
+    auto_core5 = ar4.get("机器自动接通核心5数")
+    if auto_core5 is None:
         core = d.get("核心指标", [])
-        n_missing = sum(1 for x in core if x.get("指标") in ("10年期美债收益率", "VIX恐慌指数", "DXY美元指数(贸易加权广义)", "FOMC决议", "CPI") and not x.get("接通"))
-    layer_ok = n_missing < 2
+        core5names = ("10年期美债收益率", "VIX恐慌指数", "DXY美元指数", "FOMC决议", "CPI")
+        auto_core5 = sum(1 for x in core if x.get("指标") in core5names and x.get("★机器自动接通"))
+    layer_auto_ok = auto_core5 >= 3
     warns = []
-    if not layer_ok:
-        warns.append("★资金流层数据不足:核心5指标有 %d 个取不到(≥2)→第③层判断不成立·产品该层须标『资金流层数据不足·本层判断不成立』" % n_missing)
-        # 禁下游宣激活
+    if not layer_auto_ok:
+        warns.append("★资金流层未自动接通:核心5指标机器自动接通仅 %d 项(<3)→产品第③层须标『资金流层未自动接通·当前为手工基线』(AR4-2)" % auto_core5)
         sa = sorted(glob.glob(str(ROOT / "data/market" / "sector_activation_*.json")))
         if sa:
-            warns.append("★证据链不闭合(资金流层不足)却存在激活清单 %s→禁下游④板块/⑤机会池以『激活』为结论(GPT终验第5条)" % Path(sa[-1]).name)
-    # 接通N/10 供八步表
-    conn = d.get("★接通统计", {}).get("接通N/10", "?/10")
-    return warns, layer_ok, conn
+            warns.append("★证据链不闭合(资金流层未自动接通)却存在激活清单 %s→禁下游④板块/⑤机会池以『激活』为结论(GPT终验第5条)" % Path(sa[-1]).name)
+    conn = d.get("★接通统计", {}).get("机器自动接通(全部)N/10", d.get("★接通统计", {}).get("接通N/10", "?/10"))
+    return warns, layer_auto_ok, conn
 
 
 def main():
