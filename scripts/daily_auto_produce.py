@@ -42,6 +42,8 @@ DEFAULT_TIME = "07:30"          # 每交易日 07:30 JST：日股开盘前、美
 STEPS = [
     # ⓪ A1(36号):扫当日数据硬前置·critical。1当日20只价 2涨跌>5%榜 3当日新闻 4Drive新增(按修改时间)5USDJPY;任一缺→整轮停·不进渲染。
     ("⓪ 扫当日数据(硬前置·A1)", "daily_scan.py", True),
+    # ★轮75 AN2:inbox外部资料扫描(此前流程完全没有这一步)——扫inbox+老雷+湖水源·出新增/断流·非关键(断流只告警)。
+    ("①a inbox外部资料扫描(新增/断流)", "inbox_scan.py", False),
     ("① 富途实时持仓(OpenD)", "futu_positions_sync.py", True),
     ("② 持仓真表", "holdings_true_autobuild.py", True),
     # ★轮17 H4修+轮22 M1修:production④需【求证表+机会池链(双通道)】·且③审持仓也需【求证表】·原求证表在⑧才建(晚于④/③)→新日期必失败。
@@ -99,6 +101,8 @@ STEPS = [
     ("⑪a pdca_verdict(到期预测记分)", "pdca_verdict_run.py", False, [], {"fmt": "hyphen", "src": "forecast", "argname": "--asof"}),
     ("⑫ 三件魂", "systems_soul_build.py", False),
     ("⑫b 预测记分(下预测+结算到期)", "forecast_ledger.py", False),
+    # ★轮75 AN1:七步流程固化——生成七步表(谁做/做没做/产出物)+第3步拦截(无当日Opus5正文→退出7→整轮停·不许上一日/模板顶替渲染)。CRITICAL。
+    ("⑫c 七步流程核+第3步正文拦截(AN1)", "pipeline_7steps.py", True),
 ]
 
 # ★轮66 AE2:今天(轮39~65整改)接入主干的模块集(用于 dry-run 对照表统计『被真正调用几个』)。
