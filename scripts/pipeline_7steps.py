@@ -71,6 +71,15 @@ def build(date, data_date=None):
         for _r in rows:
             if _r["步"].startswith("第1步"):
                 _r["资金流层指标接通"] = _conn
+    # ★轮79 AS6:第⑦层复盘——本体系哪层最弱(供产品可核)
+    _wk = "?"
+    _ss = ROOT / "data" / "pdca" / f"scorecard_summary_{dc}.json"
+    if _ss.exists():
+        try:
+            _ssj = json.loads(_ss.read_text(encoding="utf-8"))
+            _wk = (_ssj.get("★本体系最弱层(AS6)", {}) or {}).get("最弱层", "?")
+        except Exception:
+            pass
     # AN1-4 opus5盘点
     chk = ROOT / "data" / "logs" / f"opus5_checklist_{dc}.json"
     opus5_checklist = "已留痕" if chk.exists() else "★本轮未做开工盘点(无 opus5_checklist)"
@@ -78,7 +87,8 @@ def build(date, data_date=None):
                     "第3步缺当日Opus5正文→第4步渲染FAIL(AN1-3)。",
            "date": dh, "as_of": datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S JST"),
            "七步": rows, "★第4步渲染是否应拦(AN1-3)": render_block,
-           "opus5开工盘点(AN1-4)": opus5_checklist}
+           "opus5开工盘点(AN1-4)": opus5_checklist,
+           "★第⑦层复盘·本体系最弱层(AS6)": _wk}
     return out
 
 
