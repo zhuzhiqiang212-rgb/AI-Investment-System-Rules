@@ -14,7 +14,8 @@ LAYERS = ["①世界观", "②国家战略", "③资金流动", "④板块轮动
 
 def _derive_cert(entries, layer):
     es = [e for e in entries if e.get("层") == layer]
-    verified = [e for e in es if e.get("验证状态") in ("命中", "未命中", "部分", "已证伪")]
+    # ★轮81:升档只看『到期验证』类(与 certainty_ledger 一致·自查证伪不计入)
+    verified = [e for e in es if e.get("★验证来源") == "到期验证" and e.get("验证状态") in ("命中", "未命中", "部分", "已证伪")]
     hit = sum(1 for e in verified if e.get("验证状态") == "命中")
     rate = (hit / len(verified) * 100) if verified else 0
     if len(verified) >= 20 and rate >= 70:
