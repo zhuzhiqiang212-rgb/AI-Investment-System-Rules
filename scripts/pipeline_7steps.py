@@ -32,7 +32,8 @@ def build(date, data_date=None):
     STEPS = [
         ("第1步 数据层", "Code", [f"data/market/daily_scan_{dc}.json", f"data/reports/production_{dc}.json",
                                 f"data/accounts/futu_positions_{dc}.json", f"data/evidence_chain/daily_{dc}.json",
-                                f"data/inbox/new_materials_{dc}.json", "data/market/latest_market_snapshot.json"]),
+                                f"data/inbox/new_materials_{dc}.json", "data/market/latest_market_snapshot.json",
+                                f"data/market/macro_flow_{dc}.json"]),   # ★轮77 AQ3-3:第③层资金流
         ("第2步 材料整理", "Claude 4.8", [f"data/reports/data_sanity_{dc}.json"]),   # 缺项/冲突/新鲜度(近似:data_sanity)
         ("第3步 投资判断", "Opus 5", "★正文交付件(.md)"),   # 特判(见下)
         ("第4步 渲染出品", "Code", [f"00_请先看这里/★每日产品_{dh}.html", "data/product_manifest.json"]),
@@ -59,6 +60,16 @@ def build(date, data_date=None):
         done = bool(hits)
         rows.append({"步": name, "谁做": who, "做没做": ("已做" if done else "★未做/产出物缺"),
                      "产出物": [Path(h).name for h in hits][:6] or "（缺：%s）" % "、".join(spec)})
+    # ★轮77 AQ3-3:第1步产出物加「资金流层指标接通 N/10」
+    _mf = ROOT / "data" / "market" / f"macro_flow_{dc}.json"
+    if _mf.exists():
+        try:
+            _conn = json.loads(_mf.read_text(encoding="utf-8")).get("★接通统计", {}).get("接通N/10", "?/10")
+        except Exception:
+            _conn = "?/10"
+        for _r in rows:
+            if _r["步"].startswith("第1步"):
+                _r["资金流层指标接通"] = _conn
     # AN1-4 opus5盘点
     chk = ROOT / "data" / "logs" / f"opus5_checklist_{dc}.json"
     opus5_checklist = "已留痕" if chk.exists() else "★本轮未做开工盘点(无 opus5_checklist)"

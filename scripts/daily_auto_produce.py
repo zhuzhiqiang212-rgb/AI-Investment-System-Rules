@@ -91,6 +91,9 @@ STEPS = [
     # ★轮73 AL2:宏观层数据源(SOXX/国债ETF/USDJPY真值·US10Y真收益率/FOMC/日银/日债如实标未接)+宏观完备性闸(不闭合→不宣激活·AL2-6)
     ("⑦e 宏观层快照(SOXX/国债/USDJPY·未接标未接)", "market_macro_snapshot.py", False),
     ("⑦f 宏观完备性闸(未闭合→不宣激活·AL2-6)", "macro_completeness_gate.py", False),
+    # ★轮77 AQ:第③层资金流动(总闸)最小可用集(10Y/VIX/DXY/FOMC/CPI-PCE·FRED·取不到标未接)+完备性闸(≥2取不到→本层不成立·禁下游宣激活)
+    ("⑦g 资金流层第③层(10Y/VIX/DXY/FOMC/CPI·未接标未接)", "macro_flow_layer.py", False),
+    ("⑦h 资金流层完备性闸(≥2取不到→不成立·禁宣激活·AQ3-2)", "macro_flow_gate.py", False),
 
     ("⑨ 研报佐证(湖水资讯)", "research_corpus_ingest.py", False),
     ("⑨b 财报官方数(SEC EDGAR)", "edgar_financials.py", False),
