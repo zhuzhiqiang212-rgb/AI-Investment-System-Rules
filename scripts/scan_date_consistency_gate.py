@@ -41,6 +41,21 @@ def _us_close_jst(fn_date):
                                      datetime.time(US_CLOSE_JST_HOUR, 0), tzinfo=JST)
 
 
+def _latest_complete_jp_trading_day(fn_date, now=None):
+    """★轮75:日股最新完整交易日。东证收盘≈fn_date 15:00 JST 当日。
+    fn_date 是工作日且 now≥15:00 → fn_date;否则(周末/未收盘)→回退最近工作日(跳周末)。"""
+    if now is None:
+        now = datetime.datetime.now(JST)
+    jp_close = datetime.datetime.combine(fn_date, datetime.time(15, 0), tzinfo=JST)
+    if fn_date.weekday() < 5 and now >= jp_close:
+        d = fn_date
+    else:
+        d = fn_date - datetime.timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= datetime.timedelta(days=1)
+    return d
+
+
 def _latest_complete_us_trading_day(fn_date, now=None):
     """★轮71 AJ1(时间感知·非放宽):文件名日期对应的【最新完整美股交易日】。
     · 若 now(JST) ≥ fn_date 的美股收盘时刻(fn_date+1 的 05:00 JST) 且 fn_date 是交易日 → = fn_date(当日已收盘·当日收盘价合法)。
@@ -66,6 +81,7 @@ def check(date_compact, now=None):
     if now is None:
         now = datetime.datetime.now(JST)
     latest_us = _latest_complete_us_trading_day(fn_date, now)
+    latest_jp = _latest_complete_jp_trading_day(fn_date, now)   # ★轮75:日股周末感知
     before_close = now < _us_close_jst(fn_date)      # ★轮71:是否在 fn_date 美股收盘前
     fails = []; n = 0
     for code, ut, shidian in _iter_rows(d):
@@ -96,10 +112,21 @@ def check(date_compact, now=None):
             elif shidian and "完整" not in str(shidian) and "收盘" not in str(shidian):
                 fails.append(f"{code}(美股) 时点标注「{shidian}」未写明=最新完整美股交易日(V1-1)")
         else:
-            if ud != fn_date:  # V1-3:日股严格同日
-                fails.append(f"{code}(日股) update_time {ud} ≠ 文件名 {fn_date}（日股必须同日·差{(fn_date-ud).days}天）")
-    return fails, {"条目数": n, "文件名日期": str(fn_date), "最新完整美股交易日": str(latest_us),
-                   "★假日历": "未接·仅周末顺延·遇美国假日可能误判(待接)"}
+            # ★轮75:日股周末感知——fn_date 是交易日(周一~五)且已到东证收盘(15:00 JST)→日股须=fn_date(严格同日·工作日铁律不变);
+            #   fn_date 是周末/未到收盘→日股允许=最新完整日股交易日(如08-02周日的产品用07-31周五收盘·休市无新价)。
+            jp_close = datetime.datetime.combine(fn_date, datetime.time(15, 0), tzinfo=JST)  # 东证收盘≈15:00 JST 当日
+            fn_is_jp_trading = fn_date.weekday() < 5 and now >= jp_close
+            if fn_is_jp_trading:
+                if ud != fn_date:
+                    fails.append(f"{code}(日股) update_time {ud} ≠ 文件名 {fn_date}（交易日日股必须同日·差{(fn_date-ud).days}天）")
+            else:
+                if ud != latest_jp:
+                    if ud < latest_jp:
+                        fails.append(f"{code}(日股) update_time {ud} ≠ 最新完整日股交易日 {latest_jp}·陈旧(周末/休市应用 {latest_jp} 收盘)")
+                    else:
+                        fails.append(f"{code}(日股) 取到 {ud}·与最新完整日股交易日 {latest_jp} 不符(周末/未收盘)")
+    return fails, {"条目数": n, "文件名日期": str(fn_date), "最新完整美股交易日": str(latest_us), "最新完整日股交易日": str(latest_jp),
+                   "★假日历": "未接·仅周末顺延·遇美/日假日可能误判(待接)"}
 
 
 def main():
