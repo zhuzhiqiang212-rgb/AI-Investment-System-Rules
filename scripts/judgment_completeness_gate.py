@@ -73,14 +73,16 @@ def check(date):
     for r in (jf.get("复核", []) or []):
         tk = r.get("ticker") or r.get("code")
         if tk:
-            concl = str(r.get("★结论") or r.get("★★结论") or r.get("结论") or "")
-            # ★沿用先判(『未证伪』含『证伪』易误判)·再判错
-            if "沿用" in concl or "未证伪" in concl:
-                responded[tk] = "沿用"
-            elif "判错" in concl or "被证伪" in concl or "证伪" in concl:
-                responded[tk] = "判错"
+            # ★★轮339 甲A1(§5.4·治反向错判):只读【结构化枚举字段】复核结论·【完全等于】才算·★不做自由文本关键词包含。
+            #   旧法 `"证伪" in concl` 会把「尚未被证伪」误记成【判错】(方向反·污染PDCA记分卡)——已删。
+            #   甲A2:自由文本『理由』另存·闸不读它。
+            _concl = str(r.get("复核结论") or r.get("维持原判/修正/撤回") or "").strip()
+            _MAP = {"维持原判": "沿用", "修正": "修正", "撤回": "判错"}
+            if _concl in _MAP:                         # 完全等于枚举值
+                responded[tk] = _MAP[_concl]
             else:
-                responded[tk] = "已响应"
+                # ★复核结论枚举缺失/非法→未响应(★不回退读自由文本★结论·§5.4)
+                responded[tk] = "未响应"
     done, review, undone = [], [], []
     for sym, nm in holds:
         lk = locked.get(sym, [])
@@ -98,12 +100,12 @@ def check(date):
         vds = "、".join("%s见分晓%s" % (e.get("horizon"), e.get("verdict_date")) for e in lk)
         if trig:
             review.append({"code": sym, "名称": nm, "触发原因": trig, "锁定": vds,
-                           "★Opus5响应": responded.get(sym, "★仍挂·未响应")})
+                           "★Opus5响应": responded.get(sym, "未响应")})   # ★甲A3:结构化状态(沿用/修正/判错/未响应)·非自由文本
         else:
             done.append({"code": sym, "名称": nm, "沿用": "锁定预测在有效期·%s" % vds})
     n = len(holds) or 1
     pct_undone = len(undone) / n * 100
-    n_pending = sum(1 for x in review if "仍挂" in str(x.get("★Opus5响应", "")))
+    n_pending = sum(1 for x in review if x.get("★Opus5响应") == "未响应")   # ★甲A3:完全等于结构化状态·不做『仍挂』文本包含
     n_wrong = sum(1 for x in review if x.get("★Opus5响应") == "判错")
     n_keep = sum(1 for x in review if x.get("★Opus5响应") == "沿用")
     return {
@@ -120,10 +122,54 @@ def check(date):
     }
 
 
+def _map_new(r):
+    """★轮339 甲A1:新法映射(结构化枚举·完全等于·不读自由文本)。"""
+    _concl = str(r.get("复核结论") or r.get("维持原判/修正/撤回") or "").strip()
+    return {"维持原判": "沿用", "修正": "修正", "撤回": "判错"}.get(_concl, "未响应")
+
+
+def _map_old(r):
+    """★旧法(有bug·仅供自测对照·已废):自由文本关键词包含。"""
+    concl = str(r.get("★结论") or "")
+    if "沿用" in concl or "未证伪" in concl:
+        return "沿用"
+    if "判错" in concl or "被证伪" in concl or "证伪" in concl:
+        return "判错"
+    return "已响应"
+
+
+def _selftest():
+    """★甲A4:注入反向错例·证明旧法把『尚未被证伪』误记判错·新法不再(读结构化枚举·忽略自由文本措辞)。"""
+    cases = [
+        {"名": "反向错例:自由文本『尚未被证伪』(无结构化枚举)", "r": {"★结论": "尚未被证伪，判断继续有效"},
+         "期望新法": "未响应"},
+        {"名": "结构化『维持原判』", "r": {"复核结论": "维持原判", "理由": "尚未被证伪·继续有效"}, "期望新法": "沿用"},
+        {"名": "结构化『撤回』", "r": {"复核结论": "撤回", "理由": "已被证伪"}, "期望新法": "判错"},
+        {"名": "结构化『修正』", "r": {"复核结论": "修正"}, "期望新法": "修正"},
+    ]
+    print("=== 甲A4 注入自测:反向错判(尚未被证伪→判错) ===")
+    allok = True
+    for c in cases:
+        old = _map_old(c["r"]); new = _map_new(c["r"]); exp = c["期望新法"]
+        ok = (new == exp)
+        allok = allok and ok
+        print(f"  [{'✓' if ok else '✗'}] {c['名']}: 旧法={old} → 新法={new}(期望{exp})")
+    # 重点断言:反向错例·旧法=判错·新法≠判错
+    bug = _map_old(cases[0]["r"]); fixed = _map_new(cases[0]["r"])
+    print(f"  ★关键:『尚未被证伪』旧法记成【{bug}】(反向错·污染PDCA) → 新法记成【{fixed}】(不再误判)")
+    ok_bug = (bug == "判错" and fixed != "判错")
+    print(f"  ★★结论:反向错判 旧法确实存在({bug=='判错'})·新法已消除({fixed!='判错'}) → {'全过' if (allok and ok_bug) else '★未过'}")
+    return 0 if (allok and ok_bug) else 7
+
+
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
-    ap = argparse.ArgumentParser(); ap.add_argument("--date", required=True); a = ap.parse_args()
+    ap = argparse.ArgumentParser(); ap.add_argument("--date", required=False); ap.add_argument("--selftest", action="store_true"); a = ap.parse_args()
+    if a.selftest:
+        return _selftest()
+    if not a.date:
+        ap.error("--date required(非--selftest时)")
     out = check(a.date)
     p = ROOT / "data" / "pdca" / f"judgment_completeness_{a.date.replace('-', '')}.json"
     p.parent.mkdir(parents=True, exist_ok=True)

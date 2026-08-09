@@ -113,14 +113,17 @@ def build(date):
                "prev_close_price": pc, "chg_pct": chg, "update_time": q.get("update_time"),
                "sec_status": q.get("sec_status")}
         # ★★★轮227:日股条标【时点】三态(开盘前/盘中/收盘·按取价当刻)——供 scan_date 三段闸 + 页头横幅读(修盘中生产死区)。
+        # ★轮339 甲B1:同时写【结构化 price_phase 枚举】(close/intraday/pre_open)——闸只读它·不读时点文本(§5.4)。时点降为纯展示。
         if str(c["code"]).startswith("JP."):
             _h = datetime.now(JST).hour + datetime.now(JST).minute / 60
             if _h < 9.0:
-                rec["时点"] = "开盘前(最近完整交易日收盘价·非盘中)"
+                rec["时点"] = "开盘前(最近完整交易日收盘价·非盘中)"; rec["price_phase"] = "pre_open"
             elif _h < 15.0:
-                rec["时点"] = "东证盘中价(<15:00·盘中·非正式收盘)"
+                rec["时点"] = "东证盘中价(<15:00·盘中·非正式收盘)"; rec["price_phase"] = "intraday"
             else:
-                rec["时点"] = "东证正式收盘价(≥15:00·收盘)"
+                rec["时点"] = "东证正式收盘价(≥15:00·收盘)"; rec["price_phase"] = "close"
+        else:
+            rec["price_phase"] = "close"   # ★美股走 K_DAY 正式收盘价(轮71 AJ2)→相位=close
         quotes.append(rec)
         if chg is not None and abs(chg) > 5:
             movers.append({"code": c["code"], "name": c["name"], "chg_pct": chg, "last_price": lp, "prev_close_price": pc})

@@ -22,17 +22,17 @@ def _iter_rows(d):
     """兼容两种结构:新(轮57)『逐只』/旧 items['1_当日20只价']['逐只'] 或 items[]。"""
     if isinstance(d.get("逐只"), list):
         for x in d["逐只"]:
-            yield x.get("code"), x.get("update_time"), x.get("时点")
+            yield x.get("code"), x.get("update_time"), x.get("时点"), x.get("price_phase")
         return
     items = d.get("items")
     if isinstance(items, dict):
         for v in items.values():
             if isinstance(v, dict) and isinstance(v.get("逐只"), list):
                 for x in v["逐只"]:
-                    yield x.get("code"), x.get("update_time"), x.get("时点")   # ★轮227:读真时点(原硬编码None→盘中标注读不到)
+                    yield x.get("code"), x.get("update_time"), x.get("时点"), x.get("price_phase")   # ★轮227:读真时点(原硬编码None→盘中标注读不到)
     elif isinstance(items, list):
         for x in items:
-            yield x.get("code") or x.get("symbol"), x.get("update_time"), x.get("时点")
+            yield x.get("code") or x.get("symbol"), x.get("update_time"), x.get("时点"), x.get("price_phase")
 
 
 def _us_close_jst(fn_date):
@@ -83,8 +83,9 @@ def check(date_compact, now=None):
     latest_us = _latest_complete_us_trading_day(fn_date, now)
     latest_jp = _latest_complete_jp_trading_day(fn_date, now)   # ★轮75:日股周末感知
     before_close = now < _us_close_jst(fn_date)      # ★轮71:是否在 fn_date 美股收盘前
-    fails = []; n = 0
-    for code, ut, shidian in _iter_rows(d):
+    fails = []; pendings = []; n = 0   # ★轮339 甲B3:price_phase缺失→PENDING(不PASS不FAIL·不回退读文本)
+    _PHASE_ENUM = {"close", "intraday", "pre_open"}
+    for code, ut, shidian, price_phase in _iter_rows(d):
         if not code or not ut:
             continue
         n += 1
@@ -108,9 +109,11 @@ def check(date_compact, now=None):
                 else:
                     # 收盘后但日期对不上
                     fails.append(f"{code}(美股) 取到 {ud}·与最新完整美股交易日 {latest_us} 不符")
-            # V1-1:时点标注须写明「最新完整美股交易日」不许只写日期
-            elif shidian and "完整" not in str(shidian) and "收盘" not in str(shidian):
-                fails.append(f"{code}(美股) 时点标注「{shidian}」未写明=最新完整美股交易日(V1-1)")
+            # ★轮339 甲B2(§5.4第2次·退回读文本):日期已对上最新完整交易日·价格相位读【结构化 price_phase】·不读时点标注文本。
+            elif price_phase not in _PHASE_ENUM:
+                pendings.append(f"{code}(美股) 缺 price_phase 结构化字段(close/intraday/pre_open)→PENDING(★该产出方未升级·不回退读时点标注文本·§5.4)")
+            elif price_phase != "close":
+                fails.append(f"{code}(美股) price_phase={price_phase}≠close·但日期=最新完整交易日 {latest_us}(相位与日期不符)")
         else:
             # ★★★轮227 董事长裁定《修盘中生产死区》:日股【三段】判定(§5.4同族第三次·轮75只修了收盘后半边)。
             #   闸管【标签】不拒【盘中真价】:盘中价不是旧数据·是那一刻最新真价·只要标清「盘中」不冒充收盘。
@@ -129,10 +132,12 @@ def check(date_compact, now=None):
             elif now >= jp_open:
                 # ②★盘中(09:00≤now<15:00)——接受今日盘中价(ud==fn_date)·但时点须标「盘中」;陈旧仍 FAIL
                 if ud == fn_date:
-                    if "盘中" not in str(shidian or ""):
-                        fails.append(f"{code}(日股) 取到 {ud} 盘中价，时点标注「{shidian}」未写明『盘中』"
-                                     f"→ 禁止把盘中价当收盘价用(2.6铁律)")
-                    # ud==fn_date 且标了「盘中」→ PASS(接受当刻最新真价)
+                    # ★轮339 甲B2:读【结构化 price_phase】·不读时点标注文本(生产方写ザラ場/交易时段中等同义词也不误FAIL)。
+                    if price_phase not in _PHASE_ENUM:
+                        pendings.append(f"{code}(日股) 缺 price_phase 结构化字段→PENDING(★产出方未升级·不回退读文本·§5.4)")
+                    elif price_phase != "intraday":
+                        fails.append(f"{code}(日股) 盘中时段取今日价 {ud}·但 price_phase={price_phase}≠intraday→禁止把盘中价当收盘用(2.6铁律)")
+                    # price_phase==intraday → PASS(接受当刻最新真价)
                 elif ud == latest_jp:
                     pass   # 盘中取到昨收(最新完整交易日)→也合法(保守·等价开盘前口径)
                 elif ud < latest_jp:
@@ -143,7 +148,7 @@ def check(date_compact, now=None):
                 # ①开盘前(now<09:00)——维持:须=昨收(latest_jp)
                 if ud != latest_jp:
                     fails.append(f"{code}(日股) update_time {ud} ≠ 最新完整日股交易日 {latest_jp}·开盘前应用 {latest_jp} 收盘")
-    return fails, {"条目数": n, "文件名日期": str(fn_date), "最新完整美股交易日": str(latest_us), "最新完整日股交易日": str(latest_jp),
+    return fails, pendings, {"条目数": n, "PENDING(缺price_phase未升级)数": len(pendings), "文件名日期": str(fn_date), "最新完整美股交易日": str(latest_us), "最新完整日股交易日": str(latest_jp),
                    "★假日历": "未接·仅周末顺延·遇美/日假日可能误判(待接)"}
 
 
@@ -151,13 +156,19 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(); ap.add_argument("--date", required=True); a = ap.parse_args()
-    fails, stats = check(a.date)
+    fails, pendings, stats = check(a.date)
     if fails:
         print(f"[scan_date_consistency FAIL] {len(fails)} 条不符 · {stats}")
         for x in fails:
             print("  ✗", x)
         return 7
-    print(f"[scan_date_consistency PASS] 文件名日期与内容时点一致 · {stats}（日股同日·美股允许前一日=收盘时区滞后）")
+    if pendings:
+        # ★轮339 甲B3:price_phase 缺失→PENDING(不PASS不FAIL·不静默放行)·记「产出方未升级」·rc=0但显式标PENDING。
+        print(f"[scan_date_consistency PENDING] {len(pendings)} 条缺 price_phase 结构化字段(产出方未升级·§5.4·不回退读文本) · {stats}")
+        for x in pendings:
+            print("  ⏳", x)
+        return 0
+    print(f"[scan_date_consistency PASS] 价格相位(price_phase结构化)与日期一致 · {stats}（日股同日·美股允许前一日=收盘时区滞后）")
     return 0
 
 
