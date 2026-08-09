@@ -414,18 +414,21 @@ def run_step(label: str, script: str, date: str, extra: list | None = None, time
 
 
 def archive_old(date: str) -> list:
-    """乙：生产成功后，把非当天的 ★每日产品_* 移进 _历史归档（移不是删·删要签字）。"""
+    """乙：生产成功后，把【往日】的 ★每日产品_* 移进 _历史归档（移不是删·删要签字）。
+    ★★★轮345 董事长令(P0):今天的【全套】(索引+各分册+管道版·名含当天日期)一律【留在正式目录】——
+      旧行为「只留 merged 索引·把今天各分册也归档」=董事长2026-08-08取消的『没终验章就搬走·不进正式目录』同族行为，
+      换了个名字(archive_old·文件唯一性A方案)从别处复活。董事长取消的是【行为】不是【名字】→本轮关掉。
+      只归档【往日】产品(名不含今天日期)。legacy 完整产品_{date}(无横杠)仍归档(07-19文件唯一性·非分册)。"""
     d = ROOT / "00_请先看这里"
     arc = d / "_历史归档" / "每日产品"
     arc.mkdir(parents=True, exist_ok=True)
-    dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
-    keep = f"★每日产品_{dd}.html"        # 甲[A方案]：合并后每天只留【这一个】文件
+    dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"   # 今天日期(带横杠)·今天的索引/各册/管道版名里都含它
     moved = []
-    # 归档非当天的分册 + 【新1·董事长2026-07-19】旧渲染器的 legacy 完整产品_{date}.html(文件唯一性·每天只留一份正式版)
+    # 归档往日分册 + 【新1·董事长2026-07-19】旧渲染器的 legacy 完整产品_{date}.html(文件唯一性·每天只留一份正式版)
     globs = list(d.glob("★每日产品_*.html")) + list(d.glob(f"完整产品_{date}.html")) + list(d.glob(f"完整产品_{date}_v*.html"))
     for p in globs:
-        if p.name == keep:
-            continue                      # 旧的分册(★每日产品_日期_1_总览闭环.html 等)照样归档
+        if dd in p.name:
+            continue                      # ★轮345:今天的全套(索引+各分册+管道版)一律留正式目录·不搬走
         try:
             tgt = arc / (p.name if not p.name.startswith("完整产品") else p.stem + "_legacy归档.html")
             if tgt.exists():
@@ -625,9 +628,13 @@ def _preflight_zhengwen(date: str) -> bool:
 
 
 def _demote_to_self_test(dd: str, release_status: str) -> list:
-    """★★轮182 B-2:未过Release Gate的产品→降级到 data/products/self_test/ + 页头红横幅·
-    ★从 00_请先看这里 移出(不冒充正式产品)。★董事长可在自测目录看到(供内部核)·横幅一眼分辨非正式。
-    ★用bytes操作保CRLF(不用read_text·防换行被改·产品HTML铁律)。"""
+    """★★轮182 B-2:未过Release Gate的产品→降级到 data/products/self_test/ + 页头红横幅·从 00_请先看这里 移出。
+    ★★★轮297/345 董事长令:此降级=『没终验章就搬走·不进正式目录』已被董事长2026-08-08明令取消·本函数【已停用】。
+      轮297删了调用点·轮345加此硬闸:即便被误重新接线,也【拒绝移动·直接返回空】·防『取消的制度换名/从别处复活』。
+      标签(页头▲尚未经独立终验)照留·但【不搬任何文件】。要恢复搬动须董事长显式书面签字改此闸。"""
+    print("  ⛔ _demote_to_self_test 被调用但已按董事长令(轮297/345)停用→不搬任何文件·直接返回空。")
+    return []
+    # ▼▼▼ 以下旧搬动逻辑已停用(保留供审计·永不执行)▼▼▼
     zheng = ROOT / "00_请先看这里"
     st_dir = ROOT / "data" / "products" / "self_test"
     st_dir.mkdir(parents=True, exist_ok=True)
