@@ -111,6 +111,15 @@ def process(cand, ctx):
     s0, r0 = gate_S0(cand, ctx["activated_sectors"]); trace["S0"] = s0
     if s0 == "FAIL":
         return None, {"ticker": cand.get("ticker"), "failed_gate": "S0", "reason": r0}, trace
+    # ★轮89 HA2裁定(Opus5):C级/无估值锚候选→【进池待估值】·不参与S1排序(算不出补缺口pp·强行排序就是编)·不丢弃。
+    #   进池标准是补缺口能力+低相关·但补缺口pp必须真能算出才排序;算不出就不排序也不丢·等估值补上再判(HA2-4)。
+    fv0 = cand.get("fair_value", {}) or {}
+    if (fv0.get("value") in (None, 0, 0.0, "")) and not fv0.get("hardcoded"):
+        trace["S1"] = "PENDING"
+        return None, {"code": cand.get("code") or cand.get("ticker"), "sector_cell": cand.get("sector_cell"),
+                      "pending_valuation": True, "板块列表": cand.get("板块列表"),
+                      "market_val": cand.get("market_val"), "financial_quality_score": cand.get("financial_quality_score"),
+                      "reason": "C级/无估值锚→进池待估值·不参与S1排序(HA2-1/2·有估值锚后才能判是否入选)"}, trace
     w_legal = cand.get("max_legal_weight", 0.0)
     s1, r1, contrib = gate_S1(cand, w_legal); trace["S1"] = s1
     if s1 == "FAIL":
@@ -154,11 +163,15 @@ def process(cand, ctx):
 
 def run(date, ctx):
     cands = ctx.get("candidate_pool", [])
-    passed, rejected = [], []
+    passed, rejected, pending = [], [], []
     for c in cands:
         p, rj, _ = process(c, ctx)
-        if p: passed.append(p)
-        if rj: rejected.append(rj)
+        if p:
+            passed.append(p)
+        elif rj and rj.get("pending_valuation"):   # ★HA2:待估值候选(进池·不排序·不丢)
+            pending.append(rj)
+        elif rj:
+            rejected.append(rj)
     passed.sort(key=lambda x: -x["priority"])
     out = {
         "run_id": ctx.get("run_id", date + "_000000"), "data_date": ctx.get("data_date", ""),
@@ -166,12 +179,13 @@ def run(date, ctx):
         "source_gate1": {"activation_file": ctx.get("activation_file", ""), "activated_sectors": ctx["activated_sectors"],
                          "activation_stale": ctx.get("activation_stale")},
         "candidates": passed, "rejected": rejected,
+        "pending_valuation": pending,   # ★HA2-3:待估值候选清单(进池·有估值锚后才判是否入选)
         "self_check": {
             # D2④:零候选时 nine_fields_complete = null(不是空真true)
             "nine_fields_complete": (None if not passed else all("nine_fields" in c for c in passed)),
             "no_hardcoded_fair_value": (None if not passed else all(not c["fair_value"].get("hardcoded") for c in passed)),
             "gate1_upstream_ok": bool(ctx["activated_sectors"]),   # 激活清单作废/空→False→整轮FAIL出声
-            "rerunnable": True, "rejected_non_empty": len(rejected) > 0,
+            "rerunnable": True, "rejected_non_empty": (len(rejected) > 0 or len(pending) > 0),   # ★HA2:pending也算闸生效
             "activation_stale_note": ctx.get("activation_stale")},
     }
     return out
@@ -179,22 +193,48 @@ def run(date, ctx):
 def load_ctx(date):
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
     import glob as _g
-    sa = sorted(_g.glob(str(ROOT / "data" / "market" / "sector_activation_*.json")))
+    # ★轮87 EA2:清单选取——排除TEMPLATE(模板永不当实际清单)·取 data_date 最新且≤当日的一份(非 sorted(glob)[-1])。
+    _all = _g.glob(str(ROOT / "data" / "market" / "sector_activation_*.json"))
+    _cands = []
+    for f in _all:
+        if "TEMPLATE" in pathlib.Path(f).name.upper():
+            continue                                  # EA2-1:TEMPLATE 是模板·永不读作实际清单
+        try:
+            _fj = json.loads(pathlib.Path(f).read_text(encoding="utf-8"))
+        except Exception:
+            _fj = {}
+        if _fj.get("★可用于生产") is not True:   # ★★★收尾:跳过未终验清单
+            continue
+        _ddate = _fj.get("data_date", "")
+        if _ddate and _ddate <= dd:                   # 只取≤当日的(不采未来清单)
+            _cands.append((_ddate, f))
+    _cands.sort()                                     # 按 data_date 升序
     activated, actfile, stale_note = [], "", None
-    # D2②(46号)新鲜度闸:激活清单 data_date 必须=当日;sorted(glob)[-1]不算当日。真结构=顶层「板块」=数组·每项「激活":true。
-    #   ★删除轮39兜底 activated=list(cells.keys())——取不到就置空→self_check.gate1_upstream_ok=False→整轮FAIL出声(不许换个东西凑非空)。
-    if sa:
-        actfile = sa[-1]
+    if _cands:
+        actfile = _cands[-1][1]                       # data_date 最新的一份
+        # EA2-2 断言:选中文件名含 TEMPLATE → 直接抛错·不静默使用
+        if "TEMPLATE" in pathlib.Path(actfile).name.upper():
+            raise RuntimeError("EA2:清单选取选中了 TEMPLATE(%s)·禁止把模板当实际清单" % actfile)
         try:
             aj = json.loads(pathlib.Path(actfile).read_text(encoding="utf-8"))
             act_date = aj.get("data_date", "")
-            if act_date != dd:
-                stale_note = ("激活清单 data_date=%s ≠ 当日 %s → 新鲜度闸 FAIL:清单非当日(sorted(glob)[-1]不算当日)。"
-                              "该清单『下一步』条款自写『2026-07-29 FOMC 之后必须重判·本清单届时作废重出』·FOMC 已开完 → 清单已作废。"
-                              "本轮据实报『激活清单已作废·待重出』·不拿作废清单当第1关尺。") % (act_date, dd)
-                activated = []          # 作废/非当日→置空(不兜底)→gate1_upstream_ok=False→FAIL出声
+            # ★轮87 EA3:作废判定【只看结构化字段】·不看自由文本关键词(EA3-1)。
+            #   非当日 ≠ 作废(周末/off-cycle 接受最近有效清单)·作废须显式字段。
+            explicit_void = (aj.get("作废") is True) or (aj.get("void") is True)
+            valid_until = aj.get("有效期至") or aj.get("valid_until")
+            if explicit_void:
+                stale_note = "激活清单显式结构化字段 作废=true → 不用(非文本关键词判定·EA3-1)"
+                activated = []
+            elif valid_until and str(dd) > str(valid_until):
+                stale_note = "激活清单结构化字段 有效期至=%s < 当日 %s → 过期" % (valid_until, dd)
+                activated = []
             else:
-                activated = [b.get("板块") for b in aj.get("板块", []) if b.get("激活") is True]
+                activated = [(b.get("格名") or b.get("板块")) for b in aj.get("板块", []) if b.get("激活") is True]  # ★P0-3:兼容格名(A稿)/板块(旧清单)
+                if act_date != dd:
+                    stale_note = ("清单 data_date=%s(非当日 %s)·但无作废/过期结构化字段 → 接受最近有效清单"
+                                  "(周末/off-cycle 合法·EA3:非当日≠作废·不据自由文本关键词判作废)") % (act_date, dd)
+        except RuntimeError:
+            raise
         except Exception:
             activated = []
     gap = {}
@@ -206,9 +246,12 @@ def load_ctx(date):
                 gap[k] = {"target_pp": 40.0, "held_pp": acc.get("账户预期贡献合计pp(盲区不计)"),
                           "gap_pp": acc.get("距+40%缺口pp"), "blind_weight": acc.get("盲区占比%")}
     pool = []
-    pp = ROOT / "data" / "opportunity" / f"candidate_pool_{date}.json"
-    if pp.exists():
-        pool = json.loads(pp.read_text(encoding="utf-8")).get("candidates", [])
+    # ★轮87 Bug三:candidate_pool_producer 写连字符日期(candidate_pool_2026-08-02.json)·此处曾用紧凑date→读不到→候选0。兼容两式。
+    for _pp in (ROOT / "data" / "opportunity" / f"candidate_pool_{dd}.json",
+                ROOT / "data" / "opportunity" / f"candidate_pool_{date}.json"):
+        if _pp.exists():
+            pool = json.loads(_pp.read_text(encoding="utf-8")).get("candidates", [])
+            break
     return {"data_date": dd, "run_id": date + "_" + datetime.now(JST).strftime("%H%M%S"),
             "activated_sectors": activated, "activation_file": actfile, "activation_stale": stale_note,
             "gap": gap, "candidate_pool": pool}
@@ -275,12 +318,19 @@ def main():
     outp = ROOT / "data" / "opportunity" / f"discovery_{ctx['data_date']}.json"
     outp.parent.mkdir(parents=True, exist_ok=True)
     outp.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    # ★HA2-3:待估值候选单列清单
+    pend = out.get("pending_valuation", [])
+    pv = {"_说明": "★轮89 HA2-3 待估值候选(C级·进池·不参与S1排序)。有估值锚后才能判是否入选。★进池标准=补缺口能力+低相关·但补缺口pp须真能算才排序·算不出不排序也不丢(HA2-4)。",
+          "date": ctx["data_date"], "待估值候选数": len(pend), "候选": pend}
+    (ROOT / "data" / "opportunity" / f"pending_valuation_{a.date.replace('-','')}.json").write_text(
+        json.dumps(pv, ensure_ascii=False, indent=2), encoding="utf-8")
     print("机会发现 %s → %s" % (a.date, outp.name))
     print("激活板块:", out["source_gate1"]["activated_sectors"][:8] or "★激活清单空/未重出")
-    print("候选池:", len(ctx["candidate_pool"]), "· 入池:", len(out["candidates"]), "· rejected:", len(out["rejected"]))
-    # 硬闸③:rejected不得为空(全过=闸没生效)。候选池为空属"未产出"(另标),非"全过"
-    if ctx["candidate_pool"] and not out["rejected"]:
-        print("★整轮FAIL(硬闸③):候选池非空但rejected为空=闸没生效")
+    print("候选池:", len(ctx["candidate_pool"]), "· 入池:", len(out["candidates"]), "· rejected:", len(out["rejected"]),
+          "· ★待估值:", len(out.get("pending_valuation", [])))
+    # 硬闸③:rejected不得为空(全过=闸没生效)。★HA2:pending_valuation(待估值·进池不排序)也算闸生效(未全过)。候选池为空属"未产出"
+    if ctx["candidate_pool"] and not out["rejected"] and not out.get("pending_valuation"):
+        print("★整轮FAIL(硬闸③):候选池非空但rejected+待估值均为空=闸没生效")
         return 3
     if not ctx["candidate_pool"]:
         print("★未产出·原因:候选池为空(需先由第1关激活板块+漏斗产出 candidate_pool·估值引擎跑fair_value)·非关键步只告警不停链")

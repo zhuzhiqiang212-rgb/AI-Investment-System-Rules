@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone, timedelta
@@ -44,6 +45,14 @@ STEPS = [
     ("⓪ 扫当日数据(硬前置·A1)", "daily_scan.py", True),
     # ★轮75 AN2:inbox外部资料扫描(此前流程完全没有这一步)——扫inbox+老雷+湖水源·出新增/断流·非关键(断流只告警)。
     ("①a inbox外部资料扫描(新增/断流)", "inbox_scan.py", False),
+    # ★轮84 BB2-4:外部研究资料正文提取(湖水/老雷·最近7天)→纯文本+索引·贯穿性『外部资料消化』·gdoc提不出标需导出PDF(非资料缺失)·非关键。
+    # ★丙1(轮336):①a2 PDF解析慢且变动(实测37~>90s)·单独超时180s+非关键——超时→跳过记「本步未完成」·不拖垮整天产品(后面12步照跑)。
+    ("①a2 外部研究资料正文提取(湖水/老雷·近7天)", "external_text_extract.py", False, [], {"timeout": 180}),
+    # ★轮94 MA1:外部资料结构化提取四维度(仓位/资金流向/事件日历/宏观数据·机器接不到)·只提事实非观点(MA5)·非关键。
+    ("①a3 外部资料结构化提取(仓位/资金流/事件/宏观)", "external_indicators_extract.py", False),
+    # ★轮85 CA1/CB2:①世界观层(五类事件抓取)+②国家战略层(四类抓取)·零命中标今日无已扫N源·非关键。
+    ("①b 世界观层第①层(五类事件抓取)", "worldview_layer.py", False),
+    ("①c 国家战略层第②层(四类抓取)", "national_strategy_layer.py", False),
     ("① 富途实时持仓(OpenD)", "futu_positions_sync.py", True),
     ("② 持仓真表", "holdings_true_autobuild.py", True),
     # ★轮17 H4修+轮22 M1修:production④需【求证表+机会池链(双通道)】·且③审持仓也需【求证表】·原求证表在⑧才建(晚于④/③)→新日期必失败。
@@ -67,7 +76,21 @@ STEPS = [
     # 46号D2③候选池生产者(按当日激活板块逐格取龙头·上游未就绪据实报未产出)→ 43号C2机会发现·估值后渲染前·非关键(失败只告警不停链)
     ("⑥e1 估值重估触发巡检(49号E2·估值后·发现摆清单不改fair)", "valuation_review_trigger_gate.py", False),
     ("⑥e2 候选池生产者(激活板块·46号)", "candidate_pool_producer.py", False),
+    # ★轮88 GA3:候选池由【全市场扫描产出】(first_scan2 universe→硬门槛入围→按激活格行业归类)·不从承接节点取。
+    #   依赖 first_scan2 的 fin_score(全市场扫描·较重·非每日)·无则bridge据实报未产出(不凑)。须在机会发现前。
+    ("⑥e3 候选池由全市场扫描产出(universe→激活格归类)", "universe_to_candidate_pool.py", False),
+    # ★★裁定08-07固化:归类回归测试闸(告警·不阻断)——NVDA不入设备/券商不入基础设施国防/美股不入盟友链。格18转true后IBKR误入=直接进候选·必须自动测。
+    ("⑥e3b 归类回归测试闸(告警·不停线)", "classification_regression_gate.py", False),
+    # ★★板块强度/轮动最小可跑版(成分股篮子相对强度+轮动方向)——判激活的输入·非关键(K线失败只告警)。放归类后(需成分股)·板块层前。
+    # ★轮330 A1:GPT V7 2026-08-09 批准启用格19 → 生产开 --enable-cell19(格19不再从每日产品消失·enabled=true/activated=false)。
+    ("⑥e3c 板块强度/轮动(成分股篮子·判激活输入)", "sector_strength_build.py", False, ["--enable-cell19"]),
     ("⑥f 机会发现(从缺口出发·43号)", "opportunity_discovery.py", False),
+    # ★轮86 DB2:⑤机会池第4关护城河五维+第5关个股深度+量能标准(逐维数据待接标待接不编)·非关键。
+    ("⑥f2 机会池第4/5关+量能(护城河五维/深度/量能)", "opportunity_gate45_build.py", False),
+    # ★轮91 JA1:拆开入选0真因(补缺口pp=可建权重×上行%·高AI beta破限压死高上行候选=仓位结构堵死非市场没机会)·非关键。
+    ("⑥f3 拆开入选0真因(上行%/可建权重/补缺口pp)", "ja1_buildable_analysis.py", False),
+    # ★轮92 KA1:对被压死候选跑完整估值验证(简易上行是否artifact·归类错/PE被板块中位拉高)·非关键。
+    ("⑥f4 被压死候选完整估值验证(简易上行vs接地气)", "ka1_full_valuation.py", False),
     # ══ ★轮66 AE2 预测层 → 目标层 → 风险层(今天轮39~65 整改主干接入) ══
     #   预测层:forecast_gate 七闸(预测优先口径§七)+point_value 落区间(AB1-4)。CRITICAL(AE2-1)。
     #   ★日期:预测/风险层读 forecast_{YYYY-MM-DD}(横杠)·src=forecast(取最新 forecast 日·跨市场收盘日复用前一交易日)。
@@ -94,9 +117,21 @@ STEPS = [
     # ★轮77 AQ:第③层资金流动(总闸)最小可用集(10Y/VIX/DXY/FOMC/CPI-PCE·FRED·取不到标未接)+完备性闸(≥2取不到→本层不成立·禁下游宣激活)
     ("⑦g 资金流层第③层(10Y/VIX/DXY/FOMC/CPI·未接标未接)", "macro_flow_layer.py", False),
     ("⑦h 资金流层完备性闸(≥2取不到→不成立·禁宣激活·AQ3-2)", "macro_flow_gate.py", False),
+    # ★轮84 BC3:第④层板块轮动(承接节点涨跌/大盘指数补齐/轮动信号·板块净流入免密钥无真源标未接)·接通N/4·非关键。
+    ("⑦i 板块轮动层第④层(承接节点/大盘指数/轮动信号·净流入未接)", "sector_rotation_builder.py", False),
+    # ★★轮170 P0:④方向v2(板块整体中位5/20/60+③真参与)→layer4主路(替代单日阈值)。★必须在⑬e4(render_pipeline_books内跑layer_pipeline)之前生成·否则layer4回退单日。非关键(Yahoo失败则layer4回退单日)。
+    ("⑦i2 ④方向v2(多窗口5/20/60+③参与·轮170接生产·layer4主路)", "sector_direction_v2.py", False),
+    # ★轮85 CC3:③资金流补5项(CPI/PCE/非农/FIMA/FOMC/避险/稳定币·多源试·取不到记原因)·非关键。
+    ("⑦j 资金流补充第③层(CPI/非农/FIMA/FOMC/避险/稳定币)", "macro_flow_ext.py", False),
 
     ("⑨ 研报佐证(湖水资讯)", "research_corpus_ingest.py", False),
     ("⑨b 财报官方数(SEC EDGAR)", "edgar_financials.py", False),
+    # ★★★轮218 GPT V7:日股決算短信A档扫描(J-Quants)。同属证据采集层·【非关键】失败只告警不停线。第一版只扫日股持仓·不扩全市场。
+    ("⑨b2 日股決算短信A档扫描(J-Quants)", "jp_a_gate_scan.py", False),
+    # ★★★轮219 补漏2:逾期未评预测扫描(纯机器提醒·非关键)。★轮222双源(pdca+forecast)·写缺件文件[逾期][临期]行。
+    ("⑨b3 逾期未评预测扫描(双源)", "forecast_due_scan.py", False),
+    # ★★★轮222:跨两源胜率计数器(机械聚合·非关键)·写两registry顶层架构师胜率累计。
+    ("⑨b4 跨源胜率计数器", "forecast_scorecard.py", False),
     ("⑨c 机会池候选估值+研究", "candidate_valuation.py", False),
     ("⑩ 记分卡", "pdca_scorecard.py", False),
     ("⑪ 复盘", "pdca_review.py", False),
@@ -106,10 +141,40 @@ STEPS = [
     ("⑪b 复盘记分卡层(第⑦层·四部件·最弱层)", "pdca_scorecard_layer.py", False),
     ("⑪c 判断记分卡闸(未命中缺错因/确定性手填/C级精确数→FAIL·AS1/AT2-1)", "judgment_scorecard_gate.py", False),
     ("⑪d 未读源码不得判机器行为闸(告警·拦Opus5·AT2-2)", "unread_source_gate.py", False),
+    # ★轮84 BA1:⑦复盘层日复盘补两项(昨日动作看对没对/新事件对regime支持中性证伪)+决策质量分(每动作带分·<2.0低把握)·非关键。
+    ("⑪e ⑦日复盘三项(昨日动作/事件对regime/决策质量分)", "pdca_review_daily.py", False),
+    # ★轮85 CF6/CG7:⑥持仓完整档案+全账户底数 / 待接三类重分类 / 第6步初验模板·非关键。
+    ("⑪f ⑥持仓完整档案+全账户底数(CF6)", "holding_dossier_build.py", False),
+    ("⑪g 待接三类重分类(CG7-1)", "tbd_reclassify.py", False),
     ("⑫ 三件魂", "systems_soul_build.py", False),
     ("⑫b 预测记分(下预测+结算到期)", "forecast_ledger.py", False),
     # ★轮75 AN1:七步流程固化——生成七步表(谁做/做没做/产出物)+第3步拦截(无当日Opus5正文→退出7→整轮停·不许上一日/模板顶替渲染)。CRITICAL。
     ("⑫c 七步流程核+第3步正文拦截(AN1)", "pipeline_7steps.py", True),
+    # ★轮98 ND2:第4步判断完整性闸(L19)——查每只预测七件齐否(结构化·非文本相似度)·缺件=判断未做·未做>50%第4步FAIL。非关键(内部件如实标·不阻断渲染·但产品显性列未做清单)。
+    ("⑫d L19判断完整性闸(预测七件·判断未做清单)", "judgment_completeness_gate.py", False),
+    # ★★★轮171 P0续:10个一级逻辑接进生产(按依赖序·每个读最新数据产出当日json→进七册)。非关键(单个失败不阻断·如实标)。
+    # ★★轮175 C:外部资料消化状态(已消化=有①层证据ID且被已填判断引用)+未消化告警(→册1显要·防08-03答疑类静默漏)。非关键(只报不阻断)。
+    ("⑫d0 外部资料消化状态+未消化告警(防静默漏)", "external_digest_status.py", False),
+    ("⑫d1 标的身份(全名+主营·下游依赖)", "identity_resolve.py", False),
+    ("⑫d2 路径B异动原因(板块性vs个股特有)", "path_b_reason.py", False),
+    ("⑫d3 公告日历(SEC/EDINET窗口内公告)", "announcement_check.py", False),
+    ("⑫d4 异动财报(营收/净利同比+consensus)", "anomaly_earnings.py", False),
+    ("⑫d5 指引提取(8-K EX-99.1)", "guidance_extract.py", False),
+    ("⑫d6 路径C估值异常(P25低估+PE>0+市值≥20亿)", "path_c_valuation_anomaly.py", False),
+    ("⑫d7 候选优先级排序(多路径命中/结构化)", "candidate_priority_rank.py", False),
+    ("⑫d8 库存周转天数+capex(周期位置·3焦点)", "inventory_capex.py", False),
+    ("⑫d9 危险组合深查(库存增速vs营收增速)", "danger_deepdive.py", False),
+    ("⑫d10 右→左印证闸(判断带尺ID+矛盾·悄悄偏离FAIL)", "right_left_gate.py", False),
+    ("⑫d11 从下到上归因(回溯链⑦→②①)", "backward_attribution.py", False),
+    # ★★轮170 P0-3:部署审计(扫已建模块vs daily可达闭包→报欠账/未投产一级逻辑)。根治「开发完成≠生产生效」——★把「daily跑哪一版」变机器可核·非靠记。非关键(只报欠账不阻断)。
+    ("⑫e 部署审计(已建但未被daily调用=欠账·一级逻辑未投产清单)", "deployment_audit.py", False),
+    # ★★轮181 B-4:治理registry(Version/Status/Dependency)+一级制度active但未程序化告警(Health Check雏形·非阻断·守GPT「本轮不施工」)。
+    ("⑫e2 治理registry+一级未程序化告警(轮181 B)", "governance_registry.py", False),
+    # ★★★轮184 B-4:正式目录纯净度闸(非阻断)——扫00_请先看这里的★每日产品/★正式产品·release_status!=released→加追溯横幅+移到self_test·防「没过终验的东西冒充正式产品」。auto-move模式。
+    ("⑫e3 正式目录纯净度闸(非released产品移出·轮184)", "product_purity_gate.py", False),
+    # ★★★轮186 A:见分晓日历(机器从registry读verdict_date算到期·§5.4不得Opus5口头指定)+今日到期/已过期未记分告警→册1。
+    ("⑫e4 见分晓日历(到期机器算·已过期未记分告警·轮186)", "verdict_calendar.py", False),
+    ("⑫e5 SBI持仓新鲜度告警(>3天未更新·轮190 E)", "sbi_freshness_gate.py", False),
 ]
 
 # ★轮66 AE2:今天(轮39~65整改)接入主干的模块集(用于 dry-run 对照表统计『被真正调用几个』)。
@@ -276,8 +341,13 @@ def build_date_args(pipeline_date: str, forecast_date: str, opts: dict | None) -
     return [argname, val] + fixed
 
 
+_STEPS_RAN = 0   # ★乙(轮336):跑过多少步·退出0却=0=零产出=机器版假报"做到了"→退出口强制非0。
+
+
 def run_step(label: str, script: str, date: str, extra: list | None = None, timeout: int = 900,
              date_args: list | None = None) -> tuple[int, str]:
+    global _STEPS_RAN
+    _STEPS_RAN += 1
     da = date_args if date_args is not None else ["--date", date]
     cmd = [sys.executable, str(ROOT / "scripts" / script)] + da + (extra or [])
     # 甲3：光在父进程 encoding="utf-8" 解不够——【子进程】默认按系统 GBK 编码写 stdout，
@@ -432,14 +502,29 @@ def _sync_master_log(rec: dict) -> None:
     import re
     s = m.read_text(encoding="utf-8")
     ok = rec["status"] == "OK"
-    bg, bd, col = ("#0f2e1c", "#4fbf87", "#1c6b45") if ok else ("#3a1414", "#d24b4b", "#a11")
+    # ★★轮182 B-3:release_status感知——self_test/blocked不许含糊成「已生产」。released=绿·self_test=琥珀·未生产=红。
+    rs = rec.get("release_status")
+    st_mode = ok and rs and rs != "released"   # 出了HTML但未过Release Gate(自测件)
+    if not ok:
+        bg, bd, col = "#3a1414", "#d24b4b", "#a11"
+        title = f'✗ 当天未生产'
+    elif st_mode:
+        bg, bd, col = "#3a2c0a", "#e6a700", "#a67c00"   # 琥珀:自测件
+        title = f'▲ 整改自测件（release_status={rs}·未过GPT终验·非正式产品）'
+    else:
+        bg, bd, col = "#0f2e1c", "#4fbf87", "#1c6b45"
+        title = f'✔ 已出正式产品（released·已过GPT终验）'
+    _st_loc = rec.get("★self_test产品位置")
     body = (f'<!--AUTO_RUN_LOG_START-->\n'
             f'<div style="background:{bg};border:2px solid {bd};border-radius:8px;padding:10px 14px;margin:8px 0">'
             f'<div style="font-size:16px;font-weight:800;color:{col}">'
-            f'每日自动生产（{TASK_NAME}）：{rec["date"]} — {"✔ 已出当天五册" if ok else "✗ 当天未生产"}</div>'
+            f'每日自动生产（{TASK_NAME}）：{rec["date"]} — {title}</div>'
             f'<div style="font-size:13px;margin-top:3px">跑于 {rec["finished_at"]}'
             + (f'　｜　run_id <b>{rec.get("run_id","")}</b>' if ok else f'　｜　<b>原因：{rec.get("reason","")}</b>')
             + '</div>'
+            + (f'<div style="font-size:12px;color:#e6a700;margin-top:3px"><b>★自测件位置：</b>'
+               f'{_st_loc[0] if isinstance(_st_loc, list) and _st_loc else "data/products/self_test/"}'
+               f'（供内部核·★不是正式产品·发布须GPT_V6终验章+董事长确认）</div>' if st_mode else '')
             + (f'<div style="font-size:12px;color:#a11;margin-top:3px">'
                f'<b>产品目录里没有留旧版冒充今天</b>（实时铁律）。修好后重跑即可。</div>' if not ok else '')
             + f'<div style="font-size:11.5px;color:#666;margin-top:3px">'
@@ -498,17 +583,91 @@ def _dry_run_report(date: str, fdate: str, started: str, done: list, failed: str
     return 0 if not failed else 3
 
 
+def _write_preflight_master(dc: str, exists: bool) -> None:
+    """★轮183 C-1:主控写前置正文状态块(董事长早上一眼知卡在谁那里)。用lambda替换串防Windows路径转义崩。"""
+    m = ROOT / "00_请先看这里" / "★开工必读_主控文件.html"
+    if not m.exists():
+        return
+    import re
+    s = m.read_text(encoding="utf-8")
+    dd = f"{dc[:4]}-{dc[4:6]}-{dc[6:]}"
+    if exists:
+        block = ('<!--PREFLIGHT_ZW_START-->\n<div style="background:#0f2e1c;border:2px solid #4fbf87;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:13px;color:#cdeecd">'
+                 f'✔ 当日 Opus5 正文已交（opus5_content_{dc}.json）· {dd} 可出产品（过 Release Gate 后）。</div>\n<!--PREFLIGHT_ZW_END-->')
+    else:
+        block = ('<!--PREFLIGHT_ZW_START-->\n<div style="background:#3a2c0a;border:3px solid #e6a700;border-radius:8px;padding:10px 14px;margin:6px 0">'
+                 f'<div style="font-size:16px;font-weight:900;color:#e6a700">▲▲ 等 Opus5 正文 · {dd} 产品无法出</div>'
+                 f'<div style="font-size:13px;color:#f0d890;margin-top:3px">★数据层已就绪（照跑有用）· ★但缺件 <b>opus5_content_{dc}.json</b> → AN1-3 会拦 · 产品出不来。<br>'
+                 f'★★卡在 <b>Opus5（当日正文未交）</b> · 非机器故障。Opus5 交正文后重跑 daily 即可出。</div></div>\n<!--PREFLIGHT_ZW_END-->')
+    if "<!--PREFLIGHT_ZW_START-->" in s:
+        s = re.sub(r"<!--PREFLIGHT_ZW_START-->.*?<!--PREFLIGHT_ZW_END-->", lambda _m: block, s, flags=re.S)
+    elif "<!--PRODUCT_STATUS_END-->" in s:
+        s = re.sub(r"(<!--PRODUCT_STATUS_END-->)", lambda _m: _m.group(1) + "\n" + block, s, count=1)
+    else:
+        s = re.sub(r"(<body[^>]*>)", lambda _m: _m.group(1) + "\n" + block, s, count=1)
+    m.write_text(s, encoding="utf-8")
+
+
+def _preflight_zhengwen(date: str) -> bool:
+    """★★★轮183 C-1:前置正文检查(第①步之前)。缺当日Opus5正文→主控写醒目『等Opus5正文』(非阻断·数据层照跑)。返回是否存在。"""
+    dc = str(date).replace("-", "")
+    p = ROOT / "data" / "content" / f"opus5_content_{dc}.json"
+    exists = p.exists() and p.stat().st_size > 50
+    try:
+        _write_preflight_master(dc, exists)
+    except Exception as e:
+        print(f"  △ 前置正文检查主控回写失败(非阻断): {e}")
+    return exists
+
+
+def _demote_to_self_test(dd: str, release_status: str) -> list:
+    """★★轮182 B-2:未过Release Gate的产品→降级到 data/products/self_test/ + 页头红横幅·
+    ★从 00_请先看这里 移出(不冒充正式产品)。★董事长可在自测目录看到(供内部核)·横幅一眼分辨非正式。
+    ★用bytes操作保CRLF(不用read_text·防换行被改·产品HTML铁律)。"""
+    zheng = ROOT / "00_请先看这里"
+    st_dir = ROOT / "data" / "products" / "self_test"
+    st_dir.mkdir(parents=True, exist_ok=True)
+    moved = []
+    banner = ('<div style="background:#7a1414;color:#ffdede;padding:14px 18px;font-size:18px;font-weight:900;'
+              'text-align:center;border-bottom:4px solid #d24b4b">★★整改自测件 · 未过 GPT 终验 · 非正式产品'
+              '（release_status=%s）<br><span style="font-size:13px;font-weight:600">供内部核对·不作董事长验收成品·'
+              '须 GPT_V6 独立终验章 + 董事长确认方可发布</span></div>' % release_status).encode("utf-8")
+    # ★★★轮230根因修:清理 self_test 里【残留的 canonical-name 旧索引】(★每日产品_{dd}.html)——
+    #   demote 把新索引写成 _自测件.html·从不覆盖 canonical 名·若历史手动move残留同名旧索引→与新分册自相矛盾(GPT轮230实读发现134145旧索引说日股未通)。
+    _stale_idx = st_dir / f"★每日产品_{dd}.html"
+    if _stale_idx.exists():
+        _stale_idx.unlink()
+    idx = zheng / f"★每日产品_{dd}.html"
+    if idx.exists():
+        raw = idx.read_bytes().replace(b"<body>", b"<body>" + banner, 1)   # ★bytes替换保CRLF
+        # ★自测件名 + canonical名【都写】fresh索引(董事长/GPT按 ★每日产品_{dd}.html 打开索引·须=新版·不留旧)
+        (st_dir / f"★每日产品_{dd}_自测件.html").write_bytes(raw)
+        (st_dir / f"★每日产品_{dd}.html").write_bytes(raw)
+        idx.unlink()   # ★移出正式目录(不留冒充)
+        moved.append("data/products/self_test/★每日产品_%s_自测件.html" % dd)
+        moved.append("data/products/self_test/★每日产品_%s.html" % dd)
+    for p in zheng.glob(f"★每日产品_{dd}_*.html"):   # 分册一并移走(不留正式目录)
+        try:
+            (st_dir / p.name).write_bytes(p.read_bytes()); p.unlink()
+            moved.append("data/products/self_test/" + p.name)
+        except Exception:
+            pass
+    return moved
+
+
 def main() -> int:
     # 丁(GPT V6 2026-07-29·黑窗口根治)：计划任务改用 pythonw.exe 后台隐藏运行(不弹控制台黑窗)。
     #   pythonw 下 sys.stdout 可能为 None → 直接 print 会崩；统一把 stdout/stderr 重定向到日志文件
     #   (既隐藏窗口，又留生产日志作证据)。交互式(python.exe·有控制台)则保留控制台输出。
     if sys.stdout is None or sys.executable.lower().replace("\\", "/").endswith("pythonw.exe"):
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        _stdout_log = open(LOG_DIR / f"daily_stdout_{datetime.now(JST).strftime('%Y%m%d')}.log", "a", encoding="utf-8")
+        # ★轮335 丙1:buffering=1(行缓冲)——否则块缓冲下若某步崩/卡·日志不flush→看起来"退出0却零输出"(静默失败假象)。
+        #   月曜 07:30 pythonw 自动生产走这条·必须行缓冲·让日志实时落每一步·失败绝不静默。
+        _stdout_log = open(LOG_DIR / f"daily_stdout_{datetime.now(JST).strftime('%Y%m%d')}.log", "a", encoding="utf-8", buffering=1)
         sys.stdout = _stdout_log
         sys.stderr = _stdout_log
     elif hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)   # ★轮335 丙1:行缓冲·重定向到文件时也实时flush(不再"零输出")
     ap = argparse.ArgumentParser(description="每日自动生产(无需人点)")
     ap.add_argument("--date", default=None)
     ap.add_argument("--install", action="store_true", help="注册 Windows 任务计划")
@@ -528,6 +687,10 @@ def main() -> int:
         return install_task(a.time)
 
     date = a.date or datetime.now(JST).strftime("%Y%m%d")
+    # ★★★轮229 董事长裁定《run_id跨步唯一化》:入口生成【一个】run_id·经环境变量 AIIS_RUN_ID 沿所有步骤(run_step 传 env)传下去·
+    #   各渲染器/脚本【优先读 AIIS_RUN_ID·读不到才自生成】→治「同一次运行两个run_id·溯源链断」(L18-NH2③)。
+    os.environ["AIIS_RUN_ID"] = "R-%s-%s" % (date.replace("-", ""), datetime.now(JST).strftime("%H%M%S"))
+    print(f"  ★本次运行统一 run_id = {os.environ['AIIS_RUN_ID']}（经 AIIS_RUN_ID 传所有步骤·轮229）")
     fdate = a.forecast_date or _resolve_forecast_date(date)   # 紧凑 YYYYMMDD
     started = _now()
     _dry = a.dry_run
@@ -556,6 +719,12 @@ def main() -> int:
         print(f"\n[当天未生产] {rec['reason']}")
         print(f"  → 已记本地兜底日志 {_LOCAL_FALLBACK}（G盘可用时并记入台账/主控）；产品目录未留旧版冒充今天。")
         return 3
+    # ★★★轮183 C-1:前置正文检查(★第①步之前)——缺当日Opus5正文时【告警并继续跑】(数据层照跑有用)·
+    #   ★但立刻主控写醒目「等Opus5正文·数据就绪·产品无法出·缺件opus5_content_{date}.json」→董事长早上一眼知卡在谁那里·治「跑到⑫c才发现·8分钟白跑」。
+    _zw_ok = _preflight_zhengwen(date)
+    print(f"  {'✔' if _zw_ok else '▲'} ⓪b 前置正文检查(C-1) — " +
+          (f"当日Opus5正文在→可出产品(过Release Gate后)" if _zw_ok else
+           f"★缺当日Opus5正文(opus5_content_{date}.json)→数据层照跑·但产品无法出(AN1-3会拦)·主控已写『等Opus5正文』醒目提示·卡在Opus5非机器故障"))
     done, failed = [], None
     # 轮66:哪些脚本是"闸"(用于 AE4-2 步骤×闸调用对照)。名字含 gate 或功能=校验/记分。
     GATE_SCRIPTS = {"scan_date_consistency_gate.py": "扫描日期一致闸(CRITICAL)",
@@ -576,8 +745,15 @@ def main() -> int:
         # ★AE4:空跑用快超时(90s)——只需证明每步被调用到;数据步若需 OpenD 而连不上,90s 足以快速记「调用·失败」再继续,
         #   不必在 900s 墙上干等(真实跑仍用 900s)。
         step_to = 90 if _dry else 900
+        # ★丙1(轮336):opts["timeout"] 单独超时——如 ①a2 外部正文提取(PDF解析慢·变动·实测37~>90s)·别让它占满900s。
+        if isinstance(opts, dict) and opts.get("timeout") and not _dry:
+            step_to = int(opts["timeout"])
         rc, tail = run_step(label, script, date, extra, timeout=step_to, date_args=date_args)
         mark = "✔" if rc == 0 else ("✗" if critical else "△")
+        # ★丙1:非关键步超时/失败→记「本步未完成·原因」·继续(不让一个慢步/外部步拖垮整天产品·超时rc=124/143)。
+        if rc != 0 and not critical:
+            _why = f"超时(自设{step_to}s·PDF解析慢)" if rc in (124, 143) else f"rc={rc}"
+            tail = f"★本步未完成·原因:{_why}·已跳过继续(非关键·不停整轮) | {tail}"[:220]
         gate_tag = ("  ⟦闸:" + GATE_SCRIPTS[script] + "⟧") if script in GATE_SCRIPTS else ""
         print(f"  {mark} {label} rc={rc}{gate_tag} {tail[:80]}")
         done.append({"step": label, "rc": rc, "tail": tail[:200], "critical": critical,
@@ -640,24 +816,21 @@ def main() -> int:
         rcm, tailm = run_step("⑬a 护城河自动重评(moat_analysis)", "moat_analysis.py", date)
         done.append({"step": "⑬a 护城河自动重评(moat_analysis)", "rc": rcm, "critical": True, "tail": tailm[:200]})
         print(f"  {'✔' if rcm == 0 else '✗'} ⑬a 护城河自动重评 rc={rcm} {tailm[:90]}")
+    # ★轮83 AW4:⑬a2 完工度自检(须在 ⑬b 前·渲染器读 completion_status 出完工度页头+标题守卫)
+    rccs, tailcs = run_step("⑬a2 完工度自检(七层/贯穿五项/总判据)", "completion_status_builder.py", date)
+    done.append({"step": "⑬a2 完工度自检", "rc": rccs, "critical": False,
+                 "script": "completion_status_builder.py", "is_gate": False, "gate_role": None, "tail": tailcs[:200]})
+    print(f"  {'✔' if rccs == 0 else '△'} ⑬a2 完工度自检 rc={rccs} {tailcs[:90]}")
     # ⑬b 三层产品(=董事长每天唯一要看的册)——【CODE-13修:改为【关键】】失败必须让总状态失败·不出品·不归档
-    rc2, tail2 = run_step("⑬b 三层产品(骨架填数据)", "render_3layer.py", date)
-    prod_file = ROOT / "00_请先看这里" / f"★每日产品_{dd}.html"
-    prod_exists = prod_file.exists()
-    done.append({"step": "⑬b 三层产品(骨架填数据)", "rc": rc2, "critical": True, "tail": tail2[:200]})
-    status, archive_allowed, gate_reason = _finalize_render(rc2, prod_exists)
-    if status != "OK":
-        # 【CODE-13修·核心】⑬b 失败→当天无正式产品→【不归档】(旧产品原样留在目录·绝不清场冒充)
-        done[-1]["fail_reason"] = gate_reason
-        rec = {"date": date, "status": status, "started_at": started, "finished_at": _now(),
-               "reason": gate_reason + f"｜{tail2[:120]}", "steps": done,
-               "note": "⑬b(董事长唯一要看的册)失败→当天无正式产品→【未归档·昨天的产品原样保留】·不拿旧版冒充今天"}
-        _log(rec)
-        _sync_master_log(rec)
-        print(f"\n[当天未出品·未归档] status={status}：{gate_reason}")
-        print("  → 昨天的产品原样保留在 00_请先看这里/(未被清场)；台账/主控已记失败原因。")
-        return 5
-    print(f"  ✔ ⑬b 三层产品 rc=0 {tail2[:90]}")
+    #   ★轮83 AW2-2:render_3layer 内含模块完整性闸——缺任一『必需』模块→FAIL不出品(判据是模块清单·不看体积)
+    # ★★轮128 PH1-2:旧 render_3layer 降为【留档·非每日出品主路】——主出品改为 ⑬e4 管道版七册。
+    #   其失败不再阻断整轮(不 return 5)·仅记留档结果·避免旧路挡住管道版出品。
+    rc2, tail2 = run_step("⑬b 三层产品(旧render_3layer·留档非主路·PH1-2)", "render_3layer.py", date)
+    done.append({"step": "⑬b 三层产品(旧render_3layer·留档·PH1-2)", "rc": rc2, "critical": False,
+                 "note": "★轮128 PH1-2:降为留档·非每日出品主路·主路=⑬e4 管道版七册", "tail": tail2[:200]})
+    print(f"  {'✔' if rc2 == 0 else '△(留档失败·不阻断·主路是⑬e4管道版)'} ⑬b render_3layer(留档) rc={rc2} {tail2[:70]}")
+    # ★archive_allowed/status 改由 ⑬e4(管道版主出品)裁定·此处先占位(默认不归档·待⑬e4定)
+    status, archive_allowed, gate_reason = "OK", False, ""
     # ★轮66 AE2 出厂层收尾闸:product_manifest --check(防回滚哨兵·比对G盘实物指纹)。渲染器已登记指纹→此处复核。
     #   非关键(告警):对不上=疑似被旧版覆盖·记台账不阻断本次(本次刚渲的就是新的)。
     rcpm, tailpm = run_step("⑬c product_manifest --check(防回滚哨兵)", "product_manifest.py", date,
@@ -665,6 +838,136 @@ def main() -> int:
     done.append({"step": "⑬c product_manifest --check(防回滚哨兵)", "rc": rcpm, "critical": False,
                  "script": "product_manifest.py", "is_gate": True, "gate_role": "防回滚哨兵(出厂层)", "tail": tailpm[:200]})
     print(f"  {'✔' if rcpm == 0 else '△'} ⑬c product_manifest --check rc={rcpm} {tailpm[:80]}")
+    # ★轮100 NG0:⑬c3 产品交付判据5条闸(满足即可出正式产品)
+    rcdg,taildg=run_step("⑬c3 产品交付判据5条闸","delivery_readiness_gate.py",date)
+    done.append({"step":"⑬c3 产品交付判据5条","rc":rcdg,"critical":False,"script":"delivery_readiness_gate.py","is_gate":True,"gate_role":"交付判据(NG0)","tail":taildg[:200]})
+    print(f"  {chr(10003) if rcdg==0 else chr(10007)} ⑬c3 交付判据 rc={rcdg} {taildg[:70]}")
+
+    # ★轮97 NC3:⑬c2 L18跨文件一致性闸(completion↔macro_flow↔产品·同一事实多处比对·打架→FAIL)
+    rcl18, taill18 = run_step("⑬c2 L18跨文件一致性闸(接通数/完工度/总判据多处比对)", "cross_file_consistency_gate.py", date)
+    done.append({"step": "⑬c2 L18跨文件一致性闸", "rc": rcl18, "critical": False,
+                 "script": "cross_file_consistency_gate.py", "is_gate": True, "gate_role": "跨文件一致性(NC3)", "tail": taill18[:200]})
+    print(f"  {'✔' if rcl18 == 0 else '✗'} ⑬c2 L18跨文件一致性 rc={rcl18} {taill18[:80]}")
+    # ★★轮118 NX1:管道版产品(董事长唯一入口·切自动生产主路)。render_3layer/deep_render 旧路保留但不再作主路(NX1-2·避免新旧混出)。
+    #   链:执行参数(K线真算)→①证据映射器(四类→6尺·恒非空)→判断工单(②~⑦槽位·Code不填)→管道版产品(①-⑦逐层·机器数值/判断槽/provenance)。
+    for _lbl, _scr in (("⑬e1 执行参数(K线真算)", "exec_params_build.py"),
+                       ("⑬e2 ①证据映射器(四类A/B/C/D→6尺·恒非空)", "layer1_evidence_mapper.py"),
+                       ("⑬e3 判断工单(②~⑦槽位·Code不填)", "judgment_slots_build.py"),
+                       # ★轮335 乙:E-ID内容锚比对(防Opus5判断静默挂在当日重生成后变了的证据上·不符→该层须重判红条)。须在①层台账重生成后、渲染前。
+                       ("⑬e3b E-ID内容锚比对器(防判断挂旧证据·须重判)", "evidence_anchor_check.py")):
+        _rc, _tl = run_step(_lbl, _scr, date)
+        done.append({"step": _lbl, "rc": _rc, "critical": False, "script": _scr, "is_gate": False, "gate_role": None, "tail": _tl[:200]})
+        print(f"  {'✔' if _rc == 0 else '△'} {_lbl} rc={_rc} {_tl[:60]}")
+    rcpipe, tailpipe = run_step("⑬e 管道版产品(★董事长唯一入口·NX1)", "render_pipeline_product.py", date)
+    _pipe_file = ROOT / "00_请先看这里" / f"★每日产品_管道版_{date[:4]}-{date[4:6]}-{date[6:]}.html"
+    done.append({"step": "⑬e 管道版产品(唯一入口·NX1)", "rc": rcpipe, "critical": False,
+                 "script": "render_pipeline_product.py", "is_gate": False, "gate_role": "管道版主路(NX1)", "tail": tailpipe[:200]})
+    print(f"  {'✔' if rcpipe == 0 and _pipe_file.exists() else '✗'} ⑬e 管道版产品(单页视图) rc={rcpipe} 文件存在={_pipe_file.exists()} {tailpipe[:60]}")
+    # ★★轮128 PH1:七册管道版＝【每日出品主路】(render_pipeline_books·覆盖 ★每日产品_{date}.html 索引 + 6册·各册显provenance)。旧render_3layer已降留档(⑬b)。
+    # ★★★轮192 P0-4:护城河一致性闸(唯一源moat_current·硬拦非告警·与L1-L18/Release Gate同层)——正文/机器表/统计/动作四处count+source_hash须一致·不一致禁止送审。
+    try:
+        import moat_consistency_gate as _mcg
+        _mc = _mcg.check(str(ROOT / "00_请先看这里" / ("★每日产品_" + dd + ".html")))
+        done.append({"step": "⑬c4 护城河一致性闸(唯一源·硬拦·P0-4)", "rc": 0 if _mc["pass"] else 3, "critical": False, "script": "moat_consistency_gate.py", "is_gate": True, "gate_role": "护城河一致性(唯一源·硬拦)", "tail": _mc["★动作"][:150]})
+        print(f"  {'✔' if _mc['pass'] else '⛔硬拦'} ⬛ ⑬c4 护城河一致性闸: {_mc['★动作'][:70]}")
+    except Exception as _e:
+        print(f"  △ ⑬c4 护城河一致性闸异常(非阻断): {_e}")
+
+    rcbk, tailbk = run_step("⑬e4 七册管道版(★每日出品主路·PH1)", "render_pipeline_books.py", date)
+    _idx = ROOT / "00_请先看这里" / f"★每日产品_{dd}.html"
+    done.append({"step": "⑬e4 七册管道版(主出品·PH1)", "rc": rcbk, "critical": True,
+                 "script": "render_pipeline_books.py", "is_gate": False, "gate_role": "管道版七册主出品(PH1)", "tail": tailbk[:200]})
+    status, archive_allowed, gate_reason = _finalize_render(rcbk, _idx.exists())
+    if status != "OK":
+        # ★主出品失败→当天无正式产品→不归档(旧产品原样保留·不冒充)
+        done[-1]["fail_reason"] = gate_reason
+        rec = {"date": date, "status": status, "started_at": started, "finished_at": _now(),
+               "reason": (gate_reason.replace("⑬b 三层产品(董事长唯一要看的册)", "⑬e4 七册管道版(主出品)")) + f"｜{tailbk[:120]}",
+               "steps": done, "note": "★轮128:主出品=⑬e4管道版七册·失败→未归档·旧产品保留·不冒充"}
+        _log(rec); _sync_master_log(rec)
+        print(f"\n[当天未出品·未归档] status={status}：⑬e4 七册管道版失败·{gate_reason}")
+        return 5
+    print(f"  ✔ ⑬e4 七册管道版(主出品) rc={rcbk} {tailbk[:70]}")
+    # ★★轮128 PH2:PDF(董事长唯一入口·看板G11)——canonical被锁自动降级出新文件名(rc=6)·★不跳过·★不假报。run_id取runid_history最新。
+    _rid = ""
+    try:
+        _rid = json.loads((ROOT / "data/logs" / f"runid_history_{dd.replace('-', '')}.json").read_text(encoding="utf-8")).get("latest", "")
+    except Exception:
+        pass
+    # ★★★轮180 ⑬e4b:Release Gate(INST-RELEASE-GATE·GPT V6总控裁定2026-08-04第六节程序化)——★渲染PDF之前+进正式目录之前。
+    #   唯一能阻止「自己验自己」的闸:须【结构化】GPT_V6 PASS终验章·且target_run_id匹配待发布产品/issued_at晚于产品/blocking空。
+    #   ★R5:被约束者(OPUS_5/CLAUDE_4_8/CODE)不得签发放行自己的章→拦停并台账记「疑似自签越权」。
+    #   拦停时:HTML已生成(供内部核)·★不生成PDF·★不进正式目录作正式产品·台账标release_status(self_test无章/blocked不合规)。
+    _release_status, _rg = "released", None
+    try:
+        import release_gate as _relg
+        _rg = _relg.evaluate(dd, _rid)
+        _release_status = _rg["★release_status"]
+    except Exception as _e:
+        _release_status = "self_test"   # ★异常保守判不放行(不放行=安全默认)
+        print(f"  △ ⑬e4b Release Gate 异常(保守判self_test·不放行): {type(_e).__name__}: {_e}")
+    _released = (_release_status == "released")
+    done.append({"step": "⑬e4b Release Gate(流程合规·独立终验·INST-RELEASE-GATE)", "rc": 0 if _released else 3,
+                 "critical": False, "script": "release_gate.py", "is_gate": True,
+                 "gate_role": "Release Gate(★唯一阻止自己验自己)", "release_status": _release_status,
+                 "疑似自签越权": (_rg or {}).get("★★疑似自签越权", "无"),
+                 "tail": ((_rg or {}).get("★动作", ""))[:180]})
+    print(f"  {'✔ released' if _released else '⛔ 拦停·' + _release_status} ⑬e4b Release Gate: {(_rg or {}).get('★动作', '')[:66]}")
+    # ★★★轮297 董事长裁定(2026-08-08·上位于 GPT V6 2026-08-04 相关条款):取消 Release Gate 拦停降级制度。
+    #   裁定档:00_请先看这里/裁定_取消Release Gate拦停制度_董事长令_20260808.html。
+    #   ★Release Gate【照常评估、照常记 release_status】——评估结论是有用信息，写进页头状态标注(A3)。
+    #   ★★但【不再阻断】:原 _demote_to_self_test()+return 0 已删。无论 released 与否，一律继续:出PDF→finalize→进00_请先看这里→登记→归档。
+    #   （查明:此前每天完整产品都被判 self_test 搬走·董事长三个月一次没看到·闸只拦不喊。故取消拦停·改为页头如实标注状态。）
+    if not _released:
+        print(f"  ▲ Release Gate 未过(release_status={_release_status})·★轮297董事长裁定:仅页头标注、不再拦停降级·继续出品。{(_rg or {}).get('★动作', '')[:60]}")
+    # ★★★轮297 A3(董事长已过目):页头状态标注(标签·非闸·不阻止任何东西·只不让产品冒充「已核过」)。渲染后·PDF前注入各册HTML。
+    try:
+        if _released:
+            _a3 = ('<div style="background:#e8f5e9;border:1px solid #43a047;border-radius:6px;padding:7px 12px;margin:6px 0;'
+                   'font-size:13px;font-weight:700;color:#1b5e20">✔ 已过 GPT V6 独立终验</div>').encode("utf-8")
+        else:
+            _a3 = ('<div style="background:#fff8e1;border:1px solid #d9a400;border-radius:6px;padding:7px 12px;margin:6px 0;'
+                   'font-size:13px;font-weight:700;color:#8a6d00">▲ 尚未经独立终验（不影响交付·仅标状态·轮297）</div>').encode("utf-8")
+        _zh = ROOT / "00_请先看这里"
+        _targets = [_zh / f"★每日产品_{dd}.html", _zh / f"★每日产品_管道版_{dd}.html"] + \
+                   list(_zh.glob(f"★每日产品_{dd}_*.html"))
+        _a3n = 0
+        for _tf in _targets:
+            if not _tf.exists():
+                continue
+            _raw = _tf.read_bytes()
+            if "尚未经独立终验".encode("utf-8") in _raw or "已过 GPT V6 独立终验".encode("utf-8") in _raw:
+                continue  # 幂等·不重复注入
+            _bi = _raw.find(b">", _raw.find(b"<body"))
+            if _bi > 0:
+                _tf.write_bytes(_raw[:_bi + 1] + _a3 + _raw[_bi + 1:])
+                _a3n += 1
+        print(f"  ✔ ⑬e4c A3页头状态标注注入 {_a3n} 册(release_status={_release_status}·标签非闸)")
+    except Exception as _e:
+        print(f"  △ A3状态标注注入失败(非阻断): {type(_e).__name__}: {_e}")
+    rcpdf, tailpdf = run_step("⑬e5 PDF(唯一入口·锁则降级新文件名·PH2)", "render_daily_pdf.py", date,
+                              date_args=["--html", f"★每日产品_{dd}.html", "--run-id", _rid or f"R-{dd.replace('-', '')}-000000", "--force"])
+    _pdf_state = ("canonical已覆盖" if rcpdf == 0 else ("★降级·canonical被锁·真出新文件名(未覆盖·台账已记·PH2)" if rcpdf == 6 else "★PDF未出(失败·如实报)"))
+    done.append({"step": "⑬e5 PDF(唯一入口·PH2)", "rc": rcpdf, "critical": False, "script": "render_daily_pdf.py",
+                 "is_gate": False, "gate_role": "唯一入口PDF(PH2)", "pdf_state": _pdf_state, "tail": tailpdf[:200]})
+    print(f"  {'✔' if rcpdf == 0 else ('▲降级' if rcpdf == 6 else '✗')} ⑬e5 PDF rc={rcpdf} · {_pdf_state} · {tailpdf[:60]}")
+    # ★★轮178 CODE修:主出品路(⑬e4七册管道版+⑬e5 PDF)覆盖 ★每日产品_{dd}.html 且重生PDF后·【重登记manifest】。
+    #   否则manifest停在⑬b(legacy render_3layer·留档路)的旧run_id → product_manifest --check每天误报「被旧版覆盖」(交付判据⑬c3假FAIL)。
+    #   用管线run_id(_rid=runid_history最新·与HTML/PDF边车同轮)重登记实际交付索引册·使登记簿=真实交付态。
+    try:
+        import importlib
+        _pm = importlib.import_module("product_manifest")
+        if _rid:
+            _pm.write_manifest(dd, _rid, _now(), [f"★每日产品_{dd}.html"])
+            print(f"  ✔ ⑬e6 manifest重登记(主路run_id={_rid}·治登记簿滞后·轮178) ")
+    except Exception as _e:
+        print(f"  △ ⑬e6 manifest重登记失败(非阻断): {type(_e).__name__}: {_e}")
+    # ★轮119 NY1:判断沉淀(工单可清·台账不可丢)——把当日 Opus5 已填(各层判断+⑥复核)沉淀进 layer_judgment_ledger(只增不改)。
+    #   ★幂等:07:30 空工单时沉0条·Opus5 填后重跑本步即沉淀;判断工单跨日清空前 judgment_slots_build 已先沉往日(NY1-2)。
+    rcsed, tailsed = run_step("⑬f 判断沉淀台账(工单可清·台账不可丢·NY1)", "judgment_ledger.py", date, extra=["--sediment"])
+    done.append({"step": "⑬f 判断沉淀台账(NY1)", "rc": rcsed, "critical": False, "script": "judgment_ledger.py",
+                 "is_gate": False, "gate_role": "判断历史沉淀(NY1)", "tail": tailsed[:200]})
+    print(f"  {'✔' if rcsed == 0 else '△'} ⑬f 判断沉淀 rc={rcsed} {tailsed[:70]}")
     run_id = ""
     try:
         run_id = json.loads((ROOT / "data" / "product_manifest.json").read_text(encoding="utf-8")).get("run_id", "")
@@ -673,12 +976,50 @@ def main() -> int:
     # 【CODE-13修·归档前置条件】只有 ⑬b 成功且当天产品文件已生成(archive_allowed=True)才允许归档、清场
     moved = archive_old(date) if archive_allowed else []
     rec = {"date": date, "status": "OK", "started_at": started, "finished_at": _now(),
-           "run_id": run_id, "steps": done, "archived": moved}
+           "run_id": run_id, "steps": done, "archived": moved,
+           "release_status": _release_status,   # ★轮297:实际评估值(released/self_test)·不再写死·拦停已取消·状态仅作页头标注
+           "疑似自签越权": (_rg or {}).get("★★疑似自签越权", "无"),
+           "note": "★轮297董事长裁定取消Release Gate拦停:产品照常交付·release_status=%s仅作页头状态标注(过终验→✔·未过→▲尚未经独立终验·不影响交付)。" % _release_status}
     _log(rec)
     _sync_master_log(rec)
-    print(f"\n[当天已出品] run_id={run_id} · 归档 {len(moved)} 份旧册 → 00_请先看这里/_历史归档/每日产品/")
+    print(f"\n[当天已出品·release_status={_release_status}(轮297:仅标注不拦停)] run_id={run_id} · 归档 {len(moved)} 份旧册 → 00_请先看这里/_历史归档/每日产品/")
     return 0
 
 
+def _emergency_ledger(reason: str) -> None:
+    """★乙(轮336):退出0却零产出/异常抛顶→台账记「未生产·原因」(不静默·不冒充成功)。"""
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        p = LOG_DIR / "auto_produce_runs.json"
+        try:
+            arr = json.loads(p.read_text(encoding="utf-8"))
+            if not isinstance(arr, list):
+                arr = [arr]
+        except Exception:
+            arr = []
+        arr.append({"date": datetime.now(JST).strftime("%Y%m%d"), "status": "FAILED_NO_OUTPUT",
+                    "finished_at": _now() if "_now" in globals() else "",
+                    "reason": f"★退出0却零产出/异常:{reason}", "steps_ran": _STEPS_RAN,
+                    "note": "★乙闸(轮336):退出码0是机器版『我做到了』·零产出却退0=假报做到了=信任击穿→强制非0"})
+        p.write_text(json.dumps(arr, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # ★★乙(轮336):堵『退出0＝报成功』洞。①异常抛顶→非0(不吞)。②退0却零步骤(没产出任何一步日志)→强制非0。
+    #   理由(董事长原话):「报『没做到』不扣分·假报『做到了』是信任击穿。」退出码0 就是机器版的『我做到了』。
+    try:
+        _rc = main()
+    except SystemExit:
+        raise
+    except BaseException as _e:
+        import traceback
+        traceback.print_exc()
+        _emergency_ledger(f"异常抛到顶:{type(_e).__name__}:{_e}")
+        raise SystemExit(3)
+    if _rc == 0 and _STEPS_RAN == 0:
+        print("[★乙闸·轮336] 退出码0 但零步骤产出（没产出任何一步日志）→ 强制非0(假报做到了=信任击穿)")
+        _emergency_ledger("退出0却零步骤日志·疑似提前return/吞异常/子进程静默失败")
+        raise SystemExit(3)
+    raise SystemExit(_rc)

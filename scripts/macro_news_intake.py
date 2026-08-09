@@ -39,6 +39,7 @@ SOURCE_WHITELIST = {
     "reuters": "路透", "路透": "路透", "路透社": "路透",
     "bloomberg": "彭博", "彭博": "彭博", "彭博社": "彭博",
     "cnbc": "CNBC",
+    "yahoo finance": "雅虎财经", "yahoo": "雅虎财经",   # ★轮122 PB1-4:接入CNBC/Yahoo宽市场feed(权威媒体·PA4实测当日)
     "wall street journal": "WSJ", "wsj": "WSJ", "华尔街日报": "WSJ",
     "financial times": "FT", "ft中文网": "FT", "金融时报": "FT",
     # 官方
@@ -80,6 +81,34 @@ IMPORTANT_PAT = re.compile(
 # ② 时效：只取最近 N 小时内发布的新闻(旧闻不许挂"今天怎么了")
 MAX_AGE_HOURS = 36
 
+# ★轮105 NK2-2:重大事件【级别】分类器(结构化·守§5.4:过滤认语义不认「距今几天」)。
+#   命中＝本交易周内值得 look-back 的重大事件(宏观数据/央行政策/地缘/科技管制)——即便>36h·只要在本交易周内也保留。
+#   ★不是把天数阈值调大·而是【事件级别(本PAT) + 是否本交易周(结构化日期)】两个结构化字段同时满足才 look-back。
+MAJOR_EVENT_PAT = re.compile(
+    r"(PCE|CPI|PPI|通胀|通膨|核心通胀|物价|非农|就业数据|失业率|GDP|零售销售|PMI|ISM|经济数据|"
+    r"FOMC|议息|利率决议|美联储|联准会|央行|加息|降息|鹰派|鸽派|点阵图|"
+    r"地缘|战争|入侵|冲突|军事|导弹|空袭|袭击|停火|开战|制裁|禁运|政变|核|"
+    r"关税|出口管制|DUV|EUV|光刻|半导体设备|实体清单|禁令|管制|"
+    r"inflation|core pce|payroll|unemployment|jobless|\bgdp\b|retail sales|"
+    r"fomc|rate decision|\bfed\b|hawkish|dovish|dot plot|"
+    r"geopolit|\bwar\b|invasion|missile|airstrike|ceasefire|sanction|embargo|coup|"
+    r"tariff|export control|lithography|entity list)", re.I)
+
+# ★轮105:环名归一(worldview 传『世界观』/national 传『国家战略』·而 RELEVANCE 键是 world/strategy·不归一→relevance闸取[]→全判不相关全滤掉)。
+RING_ALIAS = {"世界观": "world", "world": "world", "国家战略": "strategy", "strategy": "strategy",
+              "means": "means", "资金": "means"}
+
+
+def _trading_week_monday(now):
+    """★结构化『本交易周』起点:含 now 的周一;周末/周一→纳入刚结束的交易周(周一回退一周)。
+    周二~周五=本周一。用于重大事件 look-back 的日期下界(结构化日期比较·非天数阈值)。"""
+    from datetime import timedelta as _tdd
+    wd = now.weekday()  # Mon=0..Sun=6
+    monday = (now - _tdd(days=wd)).date()
+    if wd == 0:  # 周一:刚结束的交易周事件仍相关→回退一周
+        monday = monday - _tdd(days=7)
+    return monday
+
 # ③ 中文源优先：用中文查询+zh-CN feed → 标题原生中文(结构性解决"全英文没翻")
 QUERIES = {
     "strategy": "英伟达 台积电 AI 芯片 财报 需求 指引",
@@ -117,8 +146,11 @@ RELEVANCE = {
     # 乙3：世界观相关性放宽——地缘/秩序/大国政治/央行/战争/制裁/选举/贸易 都算世界观相关。
     # 原名单只有8个地缘词→把"美联储议息/中美贸易/大选/北约"这类真·世界观新闻全挡在门外，
     # 结果天天假报"今日无重大地缘新闻"、董事长看到就不往下验收了。
-    "world": ["关税", "制裁", "地缘", "联盟", "脱钩", "贸易战", "贸易", "出口管制", "禁运",
-              "战争", "军事", "冲突", "停火", "核", "导弹", "政变",
+    "world": [# ★轮105 NK2-2:补宏观数据发布词(PCE/CPI/通胀/非农/GDP)——原名单漏了美国宏观数据发布·PCE07-30这类被判"不相关"滤掉
+              "pce", "cpi", "ppi", "通胀", "通膨", "核心通胀", "物价", "非农", "就业", "失业率", "gdp",
+              "零售销售", "pmi", "经济数据", "fomc", "点阵图", "inflation", "payroll", "unemployment", "jobless", "retail sales", "fomc",
+              "关税", "制裁", "地缘", "联盟", "脱钩", "贸易战", "贸易", "出口管制", "禁运",
+              "战争", "军事", "冲突", "停火", "核", "导弹", "政变", "光刻", "duv", "euv", "实体清单",
               "大选", "选举", "总统", "首相", "议会", "参议院", "众议院", "国会",
               "央行", "美联储", "加息", "降息", "议息", "利率决议", "欧洲央行", "日本央行",
               "秩序", "峰会", "条约", "协定", "北约", "联合国", "g7", "g20", "金砖",
@@ -205,11 +237,87 @@ def _looks_english(s: str) -> bool:
     return zh == 0 and bool(re.search(r"[A-Za-z]{4,}", s or ""))
 
 
+# ══ ★轮122 PB1/PB2:宽市场feed多源冗余(keyless·无需特殊UA·PA4实测返当日)。与Google News并存=多源。══
+# ★这些是【整流feed·不带query】——宽流靠下游相关性映射进对应尺(PB2-2)·不靠查询词筛。
+RSS_FEEDS = [
+    {"name": "CNBC", "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"},
+    {"name": "Yahoo Finance", "url": "https://finance.yahoo.com/news/rssindex"},
+]
+_ATOM = "{http://www.w3.org/2005/Atom}"
+
+
+def fetch_rss(url: str, source_name: str, limit: int = 40) -> list[dict[str, Any]] | None:
+    """通用RSS/atom抓取(keyless)。宽市场流:整条流取回(不带query)·source_raw=固定源名。
+    每条带 pub_dt/pub_date + source_raw；网络失败或解析失败→None(由调用方标『可达=False』)。"""
+    try:
+        req = urllib.request.Request(url, headers=UA)
+        raw = urllib.request.urlopen(req, timeout=TIMEOUT).read()
+        root = ET.fromstring(raw)
+    except Exception:
+        return None
+    nodes = root.findall(".//item")[:limit] or root.findall(f".//{_ATOM}entry")[:limit]
+    items = []
+    for it in nodes:
+        title = html.unescape((it.findtext("title") or it.findtext(f"{_ATOM}title") or "").strip())
+        link = it.findtext("link") or ""
+        if not link:  # atom:link 在属性 href
+            le = it.find(f"{_ATOM}link")
+            link = le.get("href", "") if le is not None else ""
+        link = html.unescape(link.strip())
+        desc = it.findtext("description") or it.findtext(f"{_ATOM}summary") or ""
+        summary = re.sub(r"<[^>]+>", " ", html.unescape(desc))
+        summary = re.sub(r"\s+", " ", summary).strip()[:400]
+        # pubDate(RFC822·Google) 或 ISO-8601(Yahoo rssindex的pubDate=ISO) 或 published/updated(atom)
+        dt = _pub_dt(it)
+        if dt is None:
+            _raw = (it.findtext("pubDate") or it.findtext(f"{_ATOM}published") or it.findtext(f"{_ATOM}updated") or "").strip()
+            if _raw:
+                try:
+                    from datetime import datetime as _dtm
+                    dt = _dtm.fromisoformat(_raw.replace("Z", "+00:00"))   # ISO兜底(Yahoo:2026-08-02T16:03:00Z)
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                except Exception:
+                    dt = None
+        if title:
+            items.append({"title": title, "source_raw": source_name, "url": link, "summary": summary,
+                          "pub_dt": dt,
+                          "pub_date": dt.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC") if dt else "发布日待接",
+                          "lang": "en" if _looks_english(title) else "zh"})
+    return items or None
+
+
+def fetch_broad_feeds(limit_each: int = 40) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """★轮122 PB1/PB2/PB1-3:宽市场feed多源(CNBC+Yahoo)·keyless·整流取回。
+    返回 (items, health)：items=合并条(含source_raw/pub_dt)；health=★逐源健康
+    {源/可达/条数/最新日期/滞后天数}(PB1-3每源独立记录)。任一源取到当日即多源冗余达标。"""
+    now = datetime.now(timezone.utc)
+    items: list[dict[str, Any]] = []
+    health: list[dict[str, Any]] = []
+    for f in RSS_FEEDS:
+        got = fetch_rss(f["url"], f["name"], limit_each)
+        if got is None:
+            health.append({"源": f["name"], "可达": False, "条数": 0, "最新日期": None, "滞后天数": None})
+            continue
+        newest = None
+        for it in got:
+            dt = it.get("pub_dt")
+            if dt and (newest is None or dt.astimezone(timezone.utc) > newest):
+                newest = dt.astimezone(timezone.utc)
+        lag = (now.date() - newest.date()).days if newest else None
+        health.append({"源": f["name"], "可达": True, "条数": len(got),
+                       "最新日期": newest.strftime("%Y-%m-%d") if newest else None, "滞后天数": lag})
+        items.extend(got)
+    return items, health
+
+
 def qualify_news(items: list[dict[str, Any]] | None, ring: str,
                  now: "datetime | None" = None) -> dict[str, Any]:
     """源白名单 + 时效(MAX_AGE_HOURS) + 相关性闸 三重过滤。
     返回 {ok:[合格条], dropped:[(标题,原因)], stats:{...}}。合格0条→上层标"今日无重大新闻·维持基线"。"""
     now = now or datetime.now(timezone.utc)
+    _ring = RING_ALIAS.get(ring, ring)          # ★轮105:环名归一(世界观→world/国家战略→strategy)·否则relevance闸取[]全滤
+    _tw_monday = _trading_week_monday(now)       # ★本交易周起点(重大事件look-back日期下界·结构化)
     ok, dropped, weak = [], [], []
 
     def _drop(n, reason, near=False):
@@ -226,7 +334,7 @@ def qualify_news(items: list[dict[str, Any]] | None, ring: str,
     for n in (items or []):
         tier = _src_tier(n.get("source_raw", ""))
         blob0 = (n.get("title", "") + " " + n.get("summary", ""))
-        rel_hit = any(w.lower() in blob0.lower() for w in RELEVANCE.get(ring, []))
+        rel_hit = any(w.lower() in blob0.lower() for w in RELEVANCE.get(_ring, []))
         if not tier:
             # 重要性按内容判(不光按域名)：明确重大新闻(法案/监管/议息/财报/关税…)且非剔除类源→救回
             src_raw = n.get("source_raw", "")
@@ -241,10 +349,19 @@ def qualify_news(items: list[dict[str, Any]] | None, ring: str,
             _drop(n, "没有发布日期(pubDate缺)→不采信", near=rel_hit)
             continue
         age_h = (now - dt.astimezone(timezone.utc)).total_seconds() / 3600.0
+        _pub_d = dt.astimezone(timezone.utc).date()
+        _is_major = bool(MAJOR_EVENT_PAT.search(blob0))         # ★事件级别(结构化布尔)
+        _in_week = _pub_d >= _tw_monday                         # ★是否本交易周(结构化日期)
+        _lookback = False
         if age_h > MAX_AGE_HOURS:
-            _drop(n, f"旧闻(发布于{dt.astimezone(timezone.utc):%Y-%m-%d}·距今{age_h:.0f}小时>{MAX_AGE_HOURS}小时)",
-                  near=rel_hit)
-            continue
+            # ★轮105 NK2-2:守§5.4——不认「距今几小时」的形式·认「事件级别+是否本交易周」的语义。
+            #   重大事件(MAJOR_EVENT_PAT)且在本交易周内→look-back保留(PCE07-30这类本周最重要宏观数据不当过期);否则才判旧闻。
+            if _is_major and _in_week:
+                _lookback = True
+            else:
+                _drop(n, f"旧闻(发布于{dt.astimezone(timezone.utc):%Y-%m-%d}·距今{age_h:.0f}小时>{MAX_AGE_HOURS}小时·且非本交易周重大事件)",
+                      near=rel_hit)
+                continue
         blob = (n.get("title", "") + " " + n.get("summary", "")).lower()
         if not rel_hit:
             _drop(n, "与本环主题不相关(未过相关性闸)", near=False)
@@ -252,6 +369,9 @@ def qualify_news(items: list[dict[str, Any]] | None, ring: str,
         n2 = dict(n)
         n2["source"] = tier
         n2["age_h"] = round(age_h, 1)
+        n2["lookback"] = _lookback
+        if _lookback:
+            n2["级别"] = "重大·本交易周look-back(>%dh但本周重大事件·NK2-2)" % MAX_AGE_HOURS
         ok.append(n2)
     return {"ok": ok, "dropped": dropped, "weak": weak,
             "stats": {"fetched": len(items or []), "qualified": len(ok), "dropped": len(dropped),
@@ -279,6 +399,24 @@ def _dir_signal(n: dict[str, Any], pos_words: list[str], neg_words: list[str]) -
     if negated: why.append("含否定/辟谣→降权")
     why.append(f"新鲜度{n.get('age_h','?')}h")
     return score, "·".join(why)
+
+
+def fetch_fed_fomc() -> dict[str, Any] | None:
+    """★轮133 B:Fed官方RSS(keyless)→最近一次 FOMC statement/minutes(标题+日期+链接)。失败/无→None。
+    ★只接【事件+日期】·政策含义/点阵图解读＝Opus5(Code不解读)。"""
+    try:
+        req = urllib.request.Request("https://www.federalreserve.gov/feeds/press_all.xml", headers=UA)
+        raw = urllib.request.urlopen(req, timeout=TIMEOUT).read()
+        root = ET.fromstring(raw)
+    except Exception:
+        return None
+    for it in root.findall(".//item"):
+        t = html.unescape((it.findtext("title") or "").strip())
+        if re.search(r"FOMC|federal open market|monetary policy|federal funds", t, re.I):
+            dt = _pub_dt(it)
+            return {"title": t, "date": dt.astimezone(timezone.utc).strftime("%Y-%m-%d") if dt else None,
+                    "link": html.unescape((it.findtext("link") or "").strip())}
+    return None
 
 
 def fetch_fred_latest(series_id: str) -> dict[str, Any] | None:

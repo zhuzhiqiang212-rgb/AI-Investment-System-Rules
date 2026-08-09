@@ -14,11 +14,13 @@ UNREAD = {".gdoc", ".gsheet", ".gslides"}
 
 def _file_date(name):
     """从文件名提取日期(26-07-23 / 20260723 / 07-23等)→YYYY-MM-DD·取不到用None。"""
-    m = re.search(r"(?:20)?(\d{2})[-.](\d{2})[-.](\d{2})", name)
+    m = re.search(r"(?:20)?(\d{2})[-.](\d{1,2})[-.](\d{1,2})", name)   # ★轮315:月/日支持1~2位(治『08-4』单位数日解析失败)
     if m:
         yy, mm, dd = m.groups()
         try:
-            return "20%s-%s-%s" % (yy, mm, dd)
+            mi, di = int(mm), int(dd)
+            if 1 <= mi <= 12 and 1 <= di <= 31:
+                return "20%s-%02d-%02d" % (yy, mi, di)                  # ★补零归一
         except Exception:
             return None
     return None
@@ -28,7 +30,9 @@ def build(date):
     dc = date.replace("-", ""); date_h = "%s-%s-%s" % (dc[:4], dc[4:6], dc[6:8])
     today = _date(int(dc[:4]), int(dc[4:6]), int(dc[6:8]))
     items = []
-    latest_by_kind = {"湖水": None, "老雷": None}
+    unparsed = []                                   # ★B3:命名不规范(文件名解析不出日期)·单列·不静默丢弃
+    latest_by_kind = {"湖水": None, "老雷": None}    # ★B2:按 file_mtime(真实更新时间)取最新·不再用文件名日期
+    latest_name_by_kind = {"湖水": None, "老雷": None}  # 文件名最新日期(仅参考·内容归属日)
     for d in SCAN_DIRS:
         if not d.exists():
             continue
@@ -36,29 +40,51 @@ def build(date):
             if not p.is_file():
                 continue
             ext = p.suffix.lower()
-            fd = _file_date(p.name)
+            nd = _file_date(p.name)                  # 文件名解析日期(内容归属日)
+            try:                                     # ★★★轮315 B1:file_mtime=真实更新时间(权威)
+                mt = p.stat().st_mtime
+                _fm = datetime.fromtimestamp(mt, JST)
+                file_mtime = _fm.strftime("%Y-%m-%d %H:%M"); mtime_date = _fm.strftime("%Y-%m-%d")
+            except Exception:
+                mt = 0; file_mtime = None; mtime_date = None
             kind = "老雷" if "老雷" in str(p) or "老雷" in p.name else ("湖水" if "湖水" in str(p) or "湖水" in p.name else "其它")
             readable = ("可读" if ext in READ else ("需导出PDF(云端指针·本地无正文·非权限不足非资料缺失)" if ext in UNREAD else "格式未知需人工确认"))
-            items.append({"路径": str(p), "文件": p.name, "日期": fd, "类型": ext or "(无)", "类别": kind, "可读性": readable})
-            if kind in latest_by_kind and fd:
-                if latest_by_kind[kind] is None or fd > latest_by_kind[kind]:
-                    latest_by_kind[kind] = fd
-    # 断流(AN2-2):各类最新一份距今天数
+            mismatch = (nd is not None and mtime_date is not None and nd != mtime_date)
+            items.append({"路径": str(p), "文件": p.name,
+                          "文件名日期(内容归属)": nd, "实际更新时间(mtime)": file_mtime, "mtime_date": mtime_date,
+                          "★日期不符(文件名≠实际更新)": mismatch, "类型": ext or "(无)", "类别": kind, "可读性": readable})
+            if nd is None:                            # ★B3:命名不规范·收录并单列·不丢弃
+                unparsed.append({"文件": p.name, "实际更新时间(mtime)": file_mtime, "类别": kind, "扩展": ext or "(无)"})
+            # ★B2/B4:最新一份按 file_mtime(★.gdoc 也计入·★命名不规范也计入·只要有 mtime)
+            if kind in latest_by_kind and mt:
+                if latest_by_kind[kind] is None or mt > latest_by_kind[kind][0]:
+                    latest_by_kind[kind] = (mt, mtime_date, p.name)
+            if kind in latest_name_by_kind and nd:
+                if latest_name_by_kind[kind] is None or nd > latest_name_by_kind[kind]:
+                    latest_name_by_kind[kind] = nd
+    # ★★★轮315 B2:断流判定改用 file_mtime(真实更新时间)·不再用文件名日期
     stale = {}
-    for kind, fd in latest_by_kind.items():
-        if fd:
+    for kind, tup in latest_by_kind.items():
+        if tup:
+            mt, md, fn = tup
             try:
-                gap = (today - _date(int(fd[:4]), int(fd[5:7]), int(fd[8:10]))).days
+                gap = (today - _date(int(md[:4]), int(md[5:7]), int(md[8:10]))).days
             except Exception:
                 gap = None
-            stale[kind] = {"最新一份": fd, "距今天数": gap,
-                           "★断流": (gap is not None and gap > 14), "断流告警": ("外部研究资料已断流 %d 天" % gap) if (gap and gap > 14) else "正常(≤14天)"}
+            stale[kind] = {"实际最后更新(mtime)": md, "最新文件": fn, "距今天数(按mtime)": gap,
+                           "文件名最新日期(仅参考·内容归属)": latest_name_by_kind.get(kind),
+                           "★文件名与实际更新是否不符": (latest_name_by_kind.get(kind) != md),
+                           "★断流": (gap is not None and gap > 14),
+                           "断流告警": ("外部研究资料已断流 %d 天(实际最后更新 %s)" % (gap, md)) if (gap and gap > 14) else ("正常(≤14天·实际最后更新 %s)" % md),
+                           "★口径": "轮315修:断流/最新用 file_mtime(真实更新)·非文件名日期"}
         else:
-            stale[kind] = {"最新一份": None, "★断流": True, "断流告警": "无该类资料·或日期解析不出"}
-    out = {"_说明": "★轮75 AN2 inbox外部资料扫描。与上次记录比对出新增·.gdoc标需导出PDF(非权限/缺失)·>14天断流显性告警。",
+            stale[kind] = {"实际最后更新(mtime)": None, "★断流": True, "断流告警": "无该类资料"}
+    out = {"_说明": "★轮75 AN2 inbox外部资料扫描·★轮315修:双轨日期(file_mtime真实更新为准/文件名日期为内容归属)·断流用mtime·.gdoc与命名不规范均计入最新·不静默丢弃。",
            "date": date_h, "as_of": datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S JST"),
            "扫描路径": [str(x) for x in SCAN_DIRS], "文件总数": len(items),
-           "各类最新与断流": stale, "清单": sorted(items, key=lambda x: (x["日期"] or "", x["文件"]), reverse=True)[:120],
+           "各类最新与断流": stale,
+           "★命名不规范清单(B3·文件名解析不出日期·已收录不丢弃)": sorted(unparsed, key=lambda x: (x.get("实际更新时间(mtime)") or ""), reverse=True),
+           "清单": sorted(items, key=lambda x: (x.get("mtime_date") or "", x["文件"]), reverse=True)[:120],
            "★老雷0723_0724核(交接第7项)": {
                "已找到": True,
                "位置": ["G:/我的云端硬盘/老雷/26-07-23-1录音原文本.pdf(可读)", "G:/我的云端硬盘/老雷/26-07-23-1录音原文本.gdoc",

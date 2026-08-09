@@ -236,11 +236,36 @@ def build(date: str) -> dict[str, Any]:
             "a8_note": "总则A8：3个非富途账户(SBI/IBKR/bitFlyer)无交易则股数不变；每天变的只是价格。有交易请补截图更正股数。",
             "verify_note": "非伪造：股数=confirmed沿用可回溯到基表；价=今日OpenD可回溯到 data_date。",
         },
-        "merge_check": base.get("merge_check", {}),
+        "merge_check": _recompute_merge_check(holdings_out),  # ★P0-6:每次从holdings的accounts重算·不留base手写串(旧base微软550/软银4100错·真值富途500/4300)
         "price_connection_attempts": attempts,
         "holdings": holdings_out,
         "safety": {"read_only": True, "place_order_called": False, "openD_called": True, "published": False},
     }
+
+
+def _recompute_merge_check(holdings):
+    """★P0-6:从 holdings 的 accounts 明细每次重算 merge_check(『账户1+账户2=合计』)·
+    不再沿用 base 里手写的静态串(旧手写微软550/软银4100与accounts真值500/4300不符→整体矛盾)。
+    ★以 accounts(OpenD实时富途+沿用非富途账户)为真源·total_quantity 应=各账户和(不符则显式标 MISMATCH 不掩盖)。"""
+    def _fmt(x):
+        try:
+            xf = float(x)
+            return str(int(xf)) if xf.is_integer() else str(xf)
+        except Exception:
+            return str(x)
+    mc = {}
+    for h in holdings or []:
+        accs = [a for a in (h.get("accounts") or []) if a.get("quantity") is not None]
+        if not accs:
+            continue
+        parts = "+".join(_fmt(a.get("quantity")) for a in accs)
+        s = sum(float(a.get("quantity") or 0) for a in accs)
+        tot = h.get("total_quantity")
+        expr = "%s=%s" % (parts, _fmt(s))
+        if tot is not None and abs(float(tot) - s) > 1e-6:
+            expr += "（★MISMATCH:total_quantity=%s≠accounts和%s·待核）" % (_fmt(tot), _fmt(s))
+        mc[h.get("name") or h.get("symbol")] = expr
+    return mc
 
 
 def main() -> int:
@@ -261,4 +286,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # ★轮337 丙1:接 exit_guard——退出0却没产出 holdings_true_{date}.json → 强制非0。
+    import argparse as _ap
+    _p = _ap.ArgumentParser(); _p.add_argument("--date", default="")
+    _d = (_p.parse_known_args()[0].date or "").replace("-", "")
+    from exit_guard import guarded
+    guarded(main, produced=(lambda: (ROOT / "data" / "accounts" / f"holdings_true_{_d}.json").exists()) if _d else None)

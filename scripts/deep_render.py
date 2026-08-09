@@ -12,7 +12,7 @@
 价位只看估值(便宜位/偏贵位)；均线只作趋势参考(总则)。
 """
 from __future__ import annotations
-import argparse, glob, html, json, re
+import os, argparse, glob, html, json, re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -4300,7 +4300,7 @@ def build(date: str, only: list[str] | None = None) -> tuple[str, dict]:
         _dt = datetime.fromisoformat(scan_raw.replace("Z", "+00:00"))
         scan_jst = _dt.astimezone(JST).strftime("%Y-%m-%d %H:%M:%S JST")
         # S3(董事长2026-07-25·L2同源):日期段=data_date(过L50·跨午夜不错位)·时间段=generated_at的JST时刻(与render_3layer同源)
-        run_id = "R-" + date + "-" + _dt.astimezone(JST).strftime("%H%M%S")
+        run_id = os.environ.get("AIIS_RUN_ID") or ("R-" + date + "-" + _dt.astimezone(JST).strftime("%H%M%S"))  # ★轮229优先统一run_id
     except Exception:
         scan_jst = "待接"; run_id = "R-" + date + "-nots"
     # 第一档4[验货戳每次重取]：行情快照戳=本次 production 的 generated_at(每次生产就是这次扫描的)，

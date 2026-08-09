@@ -712,11 +712,32 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
             for blk in (mani.get("required_blocks") or []):
                 if blk.get("必存在") and str(blk.get("锚", "")) not in h:
                     fails.append(f"L48 版块缺失：{fn} 缺少区块『{blk.get('名称')}』(锚 {blk.get('锚')}·原位置 {blk.get('原位置')})——旧版有、新版必须有")
-            # L9 不缩水:研究模块/来源/反面证据/有效证据项目数 只增不减,少一条 FAIL
+            # ★轮109 NO1 L9收口(第八次同族§5.4):把【研究证据计数】与【日间新闻源计数】分开。
+            #   ①研究证据类(研究模块/反面证据/有效证据)＝保持『只增不减』硬约束·★基线不动·不降标准；
+            #   ②原始来源数(=来源:/发布:/阅读原文·含当日新闻行·日波动)＝★不纳入只增不减——
+            #     改为『与当日 NK2 三分类一致性』结构化校验:低于基线但 NK2=确认无/周末→合法日波动·不FAIL；
+            #     仅当 NK2=★抓取失败/源不可达(真数据缺失)才 FAIL。
             cur = _l9_counts(h)
+            RESEARCH_KEYS = ("研究模块数", "反面证据数", "有效证据项目数")
             for k, base in (mani.get("baseline_counts") or {}).items():
-                if k in cur and isinstance(base, int) and cur[k] < base:
-                    fails.append(f"L9 内容缩水：{fn} 的『{k}』={cur[k]} < 基线 {base}——只增不减,不许删有效研究证据")
+                if k in cur and k in RESEARCH_KEYS and isinstance(base, int) and cur[k] < base:
+                    fails.append(f"L9 内容缩水：{fn} 的『{k}』={cur[k]} < 基线 {base}——研究证据只增不减,不许删")
+            src_base = (mani.get("baseline_counts") or {}).get("原始来源数")
+            if isinstance(src_base, int) and cur.get("原始来源数", src_base) < src_base:
+                _dc9 = str(date).replace("-", "")
+                _scrape_fail = False
+                for _lf in ("worldview", "strategy"):
+                    try:
+                        _j = json.loads((ROOT / "data" / "market" / f"{_lf}_{_dc9}.json").read_text(encoding="utf-8"))
+                        # ★轮121 PA1:改读结构化布尔『★源不可达』(§5.4·不再关键词匹配"★抓取")·兼容旧关键词。
+                        if _j.get("★源不可达(bool·product_lint硬FAIL依据)") is True \
+                           or str(_j.get("★零命中分类(NK2·全局)", "")).startswith("★抓取"):
+                            _scrape_fail = True
+                    except Exception:
+                        pass
+                if _scrape_fail:
+                    fails.append(f"L9-news 抓取失败：{fn} 原始来源数={cur['原始来源数']}<基线{src_base} 且 ①层判『源不可达(原始抓取=0)』——真·关键数据缺失→FAIL(非日波动)")
+                # else:低于基线但『源未取到当日·需处置(抓到但无当日)』→合法日波动·★不FAIL(告警由①层输出·NO1新闻计数不纳入只增不减)
 
     # ── L51 唯一决定表·总数统计一致(董事长2026-07-20 致命1)：页头『程序统计』必须等于动作表(决定摘要)逐只统计 ──
     for fn, h in vols.items():
@@ -885,7 +906,169 @@ def lint_volumes(vols: dict[str, str], date: str) -> list[str]:
     #    G2 禁止在渲染器里写死个股推理·且绕过 forecast_gate。允许保留:不含个股判断的模板文字/字段名/样式。
     fails += _l15_hardcoded_stock_judgment()
     fails += _l16_target_gap_date_consistency(date)
+    fails += _l17_consistency(vols, date)   # ★轮96 NB1/轮97 NC2:同股对立结论/未真算数进判断区
+    fails += _l54_split_metric_conflict(date)   # ★轮331 甲1:拆格同一指标(格19 60日强度)两个不同数值→FAIL
+    fails += _l54b_cross_book_metric(vols)      # ★轮332 甲A1②:跨册同一指标两个值→FAIL
+    fails += _l55_literal_bool(vols)            # ★轮332 甲A2③:产品HTML出现字面量 True/False/None/nan→FAIL
+    _l56_bare_sector_numbers(date)              # ★轮333 甲4:判断层裸板块数字→告警(写日志·不阻断·观察期)
 
+    return fails
+
+
+def _l56_bare_sector_numbers(date: str) -> list:
+    """★轮333 甲4:判断层文件(Opus5拥有)里出现【看起来像板块强度的裸数字】而非 {SS.格号.字段} token→告警。
+    ★先告警不阻断(写 data/logs/l56_warnings_{date}.json·跑一周看误报率再定升不升FAIL)。
+    判据:『60日/20日/5日 [+-]数字』或『强度 [+-]数字』出现在判断文件里·且该处不是 token。"""
+    import glob as _glob
+    root = Path(__file__).resolve().parents[1]
+    dh = date if "-" in date else "%s-%s-%s" % (date[:4], date[4:6], date[6:])
+    warns = []
+    pats = [str(root / "data/forward" / f"forward_{dh}.json"),
+            str(root / "data/forward" / f"forward_{date}.json"),
+            str(root / "data/analysis" / f"*_{dh}.json"),
+            str(root / "data/pipeline" / f"judgment_slots_{date}.json")]
+    num = re.compile(r"(?<!\{SS\.\d\d\.r)(?<!\{SS\.\d\d\.n)([56]0日|20日|强度)\s*([+\-−]\d+\.\d+)")
+    for pat in pats:
+        for fp in _glob.glob(pat):
+            try:
+                txt = Path(fp).read_text(encoding="utf-8")
+            except Exception:
+                continue
+            for m in num.finditer(txt):
+                seg = txt[max(0, m.start() - 12):m.start() + 20]
+                if "{SS." in seg:
+                    continue
+                warns.append({"文件": Path(fp).name, "裸数字": m.group(0), "上下文": seg.strip()[:40],
+                              "应改为": "{SS.<格号>.<字段>} token(判断层不写死机器数·轮333甲6规矩)"})
+    outp = root / "data/logs" / f"l56_warnings_{date}.json"
+    outp.parent.mkdir(parents=True, exist_ok=True)
+    obj = {"date": date, "_说明": "★L56告警(不阻断·观察期):判断层裸板块数字应token化·跑一周看误报率再定升FAIL",
+           "告警数": len(warns), "告警": warns}
+    _txt = json.dumps(obj, ensure_ascii=False, indent=2)
+    json.loads(_txt); outp.write_text(_txt, encoding="utf-8")
+    return warns
+
+
+def _l54b_cross_book_metric(vols: dict) -> list:
+    """★轮332 甲A1②:跨册同一指标两个不同数值→FAIL(册1+33.84 vs 册3+33.43 打架)。
+    抽每册【网络安全 60日强度】读数·跨册比较·出现≥2个不同值→FAIL。结构化:只比网络安全语境的60日数。"""
+    vals = {}
+    for fn, h in vols.items():
+        t = re.sub(r"<[^>]+>", " ", h)
+        for m in re.finditer(r"网络安全[^。；\n]{0,24}?60日\s*(?:强度\s*)?([+\-−]?\d+\.\d+)", t):
+            v = m.group(1).replace("−", "-")
+            vals.setdefault(round(float(v), 2), []).append(fn)
+    if len(vals) > 1:
+        return [f"L54b 跨册数字打架：网络安全『60日强度』全册出现多个取值 {sorted(vals)} "
+                f"（{ {round(k,2): sorted(set(v)) for k, v in vals.items()} }）——同一指标跨册两个值→FAIL"]
+    return []
+
+
+def _l55_literal_bool(vols: dict) -> list:
+    """★轮332 甲A2③:产品HTML里出现 Python 字面量 True/False/None/nan(给董事长看的成品不该有)→FAIL。
+    结构化:匹配【=/：/( 后紧跟 或 )前】的 bool/None/nan·避开正常英文散文。"""
+    fails = []
+    # ★只匹配【值泄漏】形态:`X=True`/`X＝False`/`X：None`(全角冒号=字段展示)。
+    #   ★不匹配 ASCII 冒号(`{'k': None}` 是 dict repr·多为规则说明的示例文本·非真泄漏)——避免误报 Opus5 教示例文。
+    pat = re.compile(r"[=＝：]\s*(True|False|None|nan)\b")
+    for fn, h in vols.items():
+        t = re.sub(r"<[^>]+>", " ", h)
+        # 先剔除【引号/花括号内的示例】(dict repr 或引用示例)·只留真·字段值展示
+        t2 = re.sub(r"\{[^{}]*\}", " ", t)          # 去 dict 字面量(示例)
+        hits = set(m.group(1) for m in pat.finditer(t2))
+        if hits:
+            m = pat.search(t2)
+            ctx = t2[max(0, m.start() - 25):m.start() + 15].strip()
+            fails.append(f"L55 字面量泄漏：{fn} 出现 Python {sorted(hits)}（…{ctx}…）——成品不许印 True/False/None/nan·须转中文")
+    return fails
+
+
+def _l54_split_metric_conflict(date: str) -> list[str]:
+    """★轮331 甲1:同一区块内同一指标出现两个不同数值→FAIL。
+    针对拆格:A4文案里的『60日强度 N』必须=机器实算格19 60日相对强度(消灭+33.84常量vs机器33.43打架)。
+    ★结构化判定(§5.4):读 sector_strength_{date}.json 的结构化字段·非关键词。缺文件→跳过(不误报)。"""
+    import json as _j
+    from pathlib import Path as _P
+    dh = date if "-" in date else "%s-%s-%s" % (date[:4], date[4:6], date[6:])
+    p = _P(__file__).resolve().parents[1] / "data" / "market" / f"sector_strength_{dh}.json"
+    try:
+        d = _j.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    f19 = d.get("★格19两字段(A3)", {}) or {}
+    a4 = str(f19.get("★A4固定文案") or "")
+    m = re.search(r"60日强度\s*([+-]?\d+\.?\d*)", a4)
+    if not m:
+        return []
+    a4_val = float(m.group(1))
+    g19 = next((r for r in d.get("18格强度(按5日相对强度降序)", []) if r.get("格号") == 19), None)
+    mach = (g19 or {}).get("60日相对强度")
+    if not isinstance(mach, (int, float)):
+        return []
+    if abs(a4_val - round(mach, 2)) > 0.01:
+        return [f"L54 数字打架：格19 A4文案『60日强度 {a4_val}』≠ 机器实算60日相对强度 {round(mach,2)}"
+                f"——同一指标两个值(常量写死未随机器重算)→FAIL"]
+    return []
+
+
+def _l17_stock_names(date):
+    """★轮97 NC2-2:标的名单从持仓+候选【动态取】·不写死名单(总则第六条:只锚定义不锚死名单)。"""
+    import json as _json, glob as _glob
+    from pathlib import Path as _P
+    ROOT = _P(__file__).resolve().parents[1]
+    dc = str(date).replace("-", "")
+    names = set()
+    p = ROOT / "data" / "reports" / f"production_{dc}.json"
+    if p.exists():
+        try:
+            for hh in _json.loads(p.read_text(encoding="utf-8")).get("holdings", []):
+                nm = str(hh.get("name") or "").strip()
+                if len(nm) >= 2:
+                    names.add(nm)
+        except Exception:
+            pass
+    for cf in _glob.glob(str(ROOT / "data" / "opportunity" / "candidate_pool_*.json")):
+        try:
+            for c in (_json.loads(_P(cf).read_text(encoding="utf-8")).get("candidates", []) or []):
+                nm = str(c.get("name") or c.get("股名") or "").strip()
+                if len(nm) >= 2:
+                    names.add(nm)
+        except Exception:
+            pass
+    return names
+
+
+def _l17_consistency(vols, date=""):
+    """★轮96 NB1 / 轮97 NC2 L17一致性闸(GPT V6判『最危险的一处』)。三洞已修:
+    NC2-1 reconciled【局部】判(该标的合规勾前后局部窗口须有分母·非文件级·防一句『须看分母』全文关闸);
+    NC2-2 标的名单【动态取】(持仓+候选·非21死名单·总则第六条);
+    NC2-3 NB1-3改查【结构化字段 data-computed=false】(非自由文本关键词·守CLAUDE.md §5.4)。"""
+    import re as _re
+    fails = []
+    names = _l17_stock_names(date)
+    for fn, h in vols.items():
+        txt = _re.sub(r"<[^>]+>", " ", h)
+        txt = _re.sub(r"\s+", " ", txt)
+        # NB1-1:同股对立结论·★reconciled局部化(每个合规✔勾的局部窗口须有分母标注·否则=对立FAIL)
+        for s in names:
+            se = _re.escape(s)
+            over = _re.search(se + r"[^。；]{0,28}?(超[^。；]{0,8}?上限|超\s*\d+(\.\d+)?\s*%|超单只|破限)", txt)
+            if not over:
+                continue
+            for om in _re.finditer(se + r"[^。；]{0,28}?合规\s*[✔√]", txt):   # 误导性all-clear勾
+                a, b = max(0, om.start() - 70), om.end() + 70
+                local = txt[a:b]
+                # ★须有真【分母标签】(全账户口径/单账户口径/富途/SBI)·★不认光『分母』二字(『须看分母』是免责话术非分母标签)
+                if not _re.search(r"全账户|单账户|富途|SBI|口径[：:]", local):
+                    fails.append(f"L17 同股对立结论(★NB1-1·最危险)：{fn}「{s}」既有超限又有『合规✔』勾·"
+                                 f"且该合规勾【局部窗口】无分母标注(★NC2-1局部判·非文件级)→FAIL")
+                    break
+        # NB1-3:未真算数字进判断区——★查结构化字段 data-computed="false"(NC2-3·不靠文本关键词)
+        for m in _re.finditer(r'data-computed\s*=\s*"false"[^>]*>(.*?)</', h, _re.S):
+            seg = _re.sub(r"<[^>]+>", " ", m.group(1))
+            if _re.search(r"超\s*\d+\s*%|超\d+%上限|超限|合规\s*[✔√]|建议[加减买卖]", seg):
+                fails.append(f"L17 未真算数进判断区(★NB1-3·结构化data-computed=false)：{fn} computed=false 块内含结论"
+                             f"「{_re.sub(chr(32),'',seg)[:40]}」→未真算数字不得以带结论形式进判断区·FAIL")
     return fails
 
 

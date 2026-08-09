@@ -21,7 +21,8 @@ def _opus5_zhengwen(date):
     """第3步产出=Opus5当日正文交付件(.md·00_任务中心/)。★AN1-3:找当日的·不许上一日顶替。"""
     dc = date.replace("-", ""); dh = "%s-%s-%s" % (dc[:4], dc[4:6], dc[6:8])
     # 匹配 101_Opus5正文交付_{data日}_*.md 等·文件名含 Opus5正文 且含数据日
-    cands = glob.glob(str(ROOT / "00_任务中心" / "*Opus5正文*.md")) + glob.glob(str(ROOT / "00_任务中心" / "*正文交付*.md"))
+    cands = (glob.glob(str(ROOT / "00_任务中心" / "*Opus5正文*.md")) + glob.glob(str(ROOT / "00_任务中心" / "*正文交付*.md"))
+             + glob.glob(str(ROOT / "data/content" / "opus5_content_*.json")))   # ★轮82:正文可为内容JSON
     today_ones = [c for c in cands if dc in Path(c).name or dh in Path(c).name]
     return today_ones, cands
 
@@ -33,7 +34,8 @@ def build(date, data_date=None):
         ("第1步 数据层", "Code", [f"data/market/daily_scan_{dc}.json", f"data/reports/production_{dc}.json",
                                 f"data/accounts/futu_positions_{dc}.json", f"data/evidence_chain/daily_{dc}.json",
                                 f"data/inbox/new_materials_{dc}.json", "data/market/latest_market_snapshot.json",
-                                f"data/market/macro_flow_{dc}.json"]),   # ★轮77 AQ3-3:第③层资金流
+                                f"data/market/macro_flow_{dc}.json",
+                                f"data/market/sector_rotation_{dc}.json"]),   # ★轮77资金流·★轮84板块轮动层
         ("第2步 材料整理", "Claude 4.8", [f"data/reports/data_sanity_{dc}.json"]),   # 缺项/冲突/新鲜度(近似:data_sanity)
         ("第3步 投资判断", "Opus 5", "★正文交付件(.md)"),   # 特判(见下)
         ("第4步 渲染出品", "Code", [f"00_请先看这里/★每日产品_{dh}.html", "data/product_manifest.json"]),
@@ -71,6 +73,16 @@ def build(date, data_date=None):
         for _r in rows:
             if _r["步"].startswith("第1步"):
                 _r["资金流层指标接通"] = _conn
+    # ★轮84 BC3-5:第1步产出物加「板块轮动层:接通 N/4」
+    _sr = ROOT / "data" / "market" / f"sector_rotation_{dc}.json"
+    if _sr.exists():
+        try:
+            _srconn = json.loads(_sr.read_text(encoding="utf-8")).get("★接通N/4", "?/4")
+        except Exception:
+            _srconn = "?/4"
+        for _r in rows:
+            if _r["步"].startswith("第1步"):
+                _r["板块轮动层接通"] = _srconn
     # ★轮79 AS6:第⑦层复盘——本体系哪层最弱(供产品可核)
     _wk = "?"
     _ss = ROOT / "data" / "pdca" / f"scorecard_summary_{dc}.json"

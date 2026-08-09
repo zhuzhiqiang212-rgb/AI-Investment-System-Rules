@@ -538,4 +538,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # ★轮337 丙1:接 exit_guard——退出0却没产出 production_{date}.json → 强制非0(假报做到了=信任击穿)。
+    import argparse as _ap
+    _p = _ap.ArgumentParser(); _p.add_argument("--date", default="")
+    _d = (_p.parse_known_args()[0].date or "").replace("-", "")
+    from exit_guard import guarded
+    guarded(main, produced=(lambda: (ROOT / "data" / "reports" / f"production_{_d}.json").exists()) if _d else None)

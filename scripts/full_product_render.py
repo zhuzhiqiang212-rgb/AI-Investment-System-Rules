@@ -678,8 +678,8 @@ HOLDING_NODE_MAP = {
     "6758": "消费电子", "7974": "游戏", "7832": "消费", "7203": "汽车",
     "8001": "商社", "IBKR": "金融",
 }
-# 防御类名称/节点信号（只锚定义关键词，不锚死名单）
-DEFENSIVE_SIGNALS = ("保险", "医药", "制药", "公用", "必需消费", "防御", "海上", "三共")
+# ★★★轮224 董事长裁定《防御仓定义统一》:删公司名片段「海上」「三共」(违总则六)·只留纯行业词。防御判定改由 defensive_def 单一判据(行业属性+现金流稳定+低AI关联)。
+DEFENSIVE_SIGNALS = ("保险", "医药", "制药", "公用", "必需消费", "电信")
 
 # 仓位纪律尺：上限类（超标才触发"别加"）+ 下限类（不足另出提示，不叫"别加"）
 # 董事长2026-07-19拍板:【废止 AI供应链45%上限】改四条风险配仓(单只20%/单环节30%/峰值定价类合计5%/回撤预案)。
@@ -742,11 +742,10 @@ def _holding_node(item: dict[str, Any]) -> str | None:
 
 
 def _is_defensive(item: dict[str, Any]) -> bool:
-    text = f"{item.get('name') or ''} {item.get('node_class') or ''}"
-    classes = item.get("matched_node_classes_effective") or item.get("matched_node_classes_raw") or []
-    if isinstance(classes, list):
-        text += " " + " ".join(str(c) for c in classes)
-    return any(sig in text for sig in DEFENSIVE_SIGNALS)
+    # ★★★轮224:委托 defensive_def 单一判据(行业属性+现金流稳定+低AI关联·不锚公司名)。
+    import defensive_def
+    sym = item.get("symbol") or item.get("ticker") or item.get("code") or ""
+    return defensive_def.is_defensive(str(sym), node_class=item.get("node_class") or "", name=item.get("name") or "")
 
 
 def _on_ai_node(item: dict[str, Any]) -> bool:

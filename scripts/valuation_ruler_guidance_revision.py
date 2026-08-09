@@ -55,7 +55,7 @@ def compute(ev):
 def build(date):
     src = ROOT / "data" / "valuation" / f"guidance_events_{date}.json"
     if not src.exists():
-        return [], "无 guidance_events_%s.json(当日无≥15%指引变动事件)" % date
+        return [], f"无 guidance_events_{date}.json(当日无≥15%指引变动事件)"
     events = json.loads(src.read_text(encoding="utf-8")).get("events", [])
     out = []
     for ev in events:

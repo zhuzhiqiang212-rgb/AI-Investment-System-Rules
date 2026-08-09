@@ -13,6 +13,7 @@
 """
 from __future__ import annotations
 import argparse
+import os
 import json
 import re
 import sys
@@ -1343,8 +1344,8 @@ def _z4_two_segment_block(date):
         over_line = ""
         if over:
             over_line = ('<p style="background:#fff4f4;border-left:4px solid #c0392b;padding:6px 10px;font-size:13px">'
-                         + "；".join("<b>%s %s%%，超单只20%%上限 %.2f个百分点</b>" % (x.get("name"), x.get("权重pct"), (x.get("权重pct") or 0) - 20) for x in over)
-                         + "（上限出处：2026-07-19 四条风险配仓·只报事实不给处置建议）</p>")
+                         + "；".join("<b>%s（★口径：单账户）%s%%，超单只20%%上限 %.2f个百分点</b>" % (x.get("name"), x.get("权重pct"), (x.get("权重pct") or 0) - 20) for x in over)
+                         + "（★分母＝单账户·与规矩1『全账户口径』不同·须看分母·NB1-1；上限出处：2026-07-19 四条风险配仓·只报事实不给处置建议）</p>")
         return ('<div style="flex:1;min-width:320px;border:2px solid #0f2e1c;border-radius:8px;padding:10px 14px;margin:4px">'
                 f'<div style="font-weight:800;font-size:16px">{esc(a_cn)}账户</div>{over_line}'
                 f'<p style="background:#eef7ee;padding:6px 10px;border-left:4px solid #2e7d32">① <b>已算清（特级+A级）覆盖 {c.get("覆盖权重pct")}% 权重 → Σ贡献 <span style="font-size:17px">{c.get("Σ贡献pp")}个百分点</span></b><br><span style="font-size:12px;color:#555">{esc(clear_only)}</span></p>'
@@ -1450,19 +1451,20 @@ def _risk_config_block(conc=None):
         '<div id="risk-config" style="background:#FFFFFF;border:2px solid #12324E;border-radius:10px;padding:11px 14px;margin:6px 0 12px">'
         '<div style="font-size:18px;font-weight:900;color:#12324E">🛡 风险配仓（已废止 AI 45% 上限·改四条规矩·董事长2026-07-19拍板）</div>'
         '<div style="font-size:13.5px;color:#1A1A1A;line-height:1.85;margin-top:5px">'
-        '<b>规矩1 单只上限20%</b>：当前最大 微软18.1%（合规✔）<br>'
-        # Z1止血(轮9):33.5%为手写死字符串·非算出(全库无环节集中度计算)→标待接·Z2②真算前不作数
+        # ★轮96 NB1-1(L17):同股权重多口径须标分母·不得对立结论(全账户合规≠富途单账户合规)
+        '<b>规矩1 单只上限20%</b>：<span style="color:#B00020;font-weight:800">⚠ 全账户口径单只占比须<b>全账户闭合（现金/融资/币种）</b>才能算·闭合未接（见本册缺项）→ 本轮<b>不出任何全账户单只占比数字</b></span>'
+        '<span style="color:#8A3E00">（★轮102 A3：已删除原写死的「微软 18.1%（全账户合规✔）」——该数无出处不可核·且与「全账户汇总未接」自相矛盾·按董事长 A3 选项2 删除）</span>。'
+        '<span style="color:#B00020">★<b>富途单账户口径</b>下微软等标的可能超 20%（分母不同·见上方风险块）——单账户占比待口径统一后出·<b>不作单一「合规✔」结论</b>（NB1-1）</span><br>'
+        # ★轮96 NB1-3(L17):删掉33.5%手写死字符串·未真算数字不得以带结论形式进判断区(诚实标注≠可留在产品)
         '<b>规矩2 单一环节上限30%</b>：芯片/设备/代工/存储/软件云/AI应用/电力 分开算。'
-        '<span style="color:#B00020;font-weight:800">⚠ 待接·硬编码·不可依赖</span>'
-        '<span style="color:#8A3E00">（下面这句为手写死字符串·系统并未真算各环节占比·补真算前不作占比/超限判断）：'
-        '<s style="color:#888">软件云(微软18.1%)+Arm/OpenAI敞口(软银15.4%)=33.5%·超30%</s></span><br>'
+        '<span style="color:#B00020;font-weight:800">⚠ 各环节集中度真算未接（系统未算各环节占比）→ <b>本规矩暂不出任何占比/超限数字</b>（NB1-3：未真算的数不进判断区·此前删除线的硬编码占比数已一并移除）</span><br>'
         # Z1止血→轮10 A4:规矩三保持待接·但改成『待爱德万/闪迪核准后可算』(非永久待接·有人管)·记判据+名单
         '<b>规矩3 按最好年份定价类合计≤5%</b>：<span style="color:#B00020;font-weight:800">⚠ 待接 · 待爱德万/闪迪价格核准后可算</span>'
         '<span style="color:#8A3E00">（判据=两条同时满足才算：①强周期属性(利润随周期大幅波动·半导体设备/存储/代工/加密相关)②正常化口径(中周期/穿牛熊)算下来判『极贵』。当前属此类=爱德万/闪迪·但两者价格口径未核准(拆股待核)→核准后即可算合计占比÷全持仓。'
         '台积电/英伟达经判定<b>不属</b>此类:台积电盈利中枢抬升(先进制程近垄断·非周期高点)、英伟达风险是成长能否持续(非周期利润回落)）</span><br>'
         # Z2① 回撤预案真算(轮9):从真实持仓AI占比与市值算·集中度缺则退回待接(绝不硬编码假数字)
         + ((
-            f'<b>规矩4 回撤预案（必显·真算）</b>：AI 仓占 <b>{_aip:.1f}%</b>·AI仓市值 <b>${_aimv:,.0f}</b>（全持仓折美元 ${float(_tot):,.0f}·当日现算）<br>'
+            f'<b>规矩4 回撤预案（必显·真算）</b>：AI 仓占 <b>{_aip:.1f}%</b>（★分母＝已扫持仓市值合计·非全账户闭合口径）·AI仓市值 <b>${_aimv:,.0f}</b>（已扫持仓市值合计·折美元 <b>${float(_tot):,.0f}</b>·当日现算·含富途+SBI实时＋IBKR/bitFlyer静态快照·<b>★非现金融资全账户闭合口径·闭合未接见缺项·轮102 A3 已标准确分母</b>）<br>'
             f'　· AI 仓回调 <b>30%</b> → 全组合承受 <b>−{_p30:.1f}%</b>（约 <b>−${d30:,}</b>）<br>'
             f'　· AI 仓回调 <b>50%</b> → 全组合承受 <b>−{_p50:.1f}%</b>（约 <b>−${d50:,}</b>）</div>'
           ) if _retreat_real else (
@@ -2095,19 +2097,29 @@ def build(date: str) -> str:
     # run_id / 生产时间(第5项:每次重排必须签发【新 run_id + 新生产时间】·页头反映本次真实运行·董事长2026-07-19)
     #   底层数据扫描的参照从 production 直接取(稳定·不受本次改写 manifest 影响)。
     data_ref = str(prod.get("run_id") or prod.get("task_id") or str(prod.get("generated_at", ""))[:19] or "待接")
-    _now_dt = datetime.now()
-    # S3(董事长2026-07-25·L2同源):run_id 的【时间段】锚定 production.generated_at(与 deep_render 同源·同一次扫描→两册 run_id 时间段一致),
-    #   而非渲染时刻(渲染时刻每次不同→两册永不同源·L2拦不住的根因)。前缀 R3-/R- 是册型标记(三层/机器版)·L2 比对时间段+data_date。
     from datetime import timezone as _tz, timedelta as _td
     _JST = _tz(_td(hours=9))
-    _scan_raw = str(prod.get("generated_at") or "")
-    try:
-        # 日期段=data_date(过L50·跨午夜不错位)·时间段=production.generated_at的JST时刻(与deep_render同源)
-        _gt = datetime.fromisoformat(_scan_raw.replace("Z", "+00:00")).astimezone(_JST).strftime("%H%M%S")
-        run_id = f"R3-{date}-{_gt}"
-    except Exception:
-        run_id = f"R3-{date}-{_now_dt.strftime('%H%M%S')}"         # 兜底:production无generated_at时退回渲染时刻
+    _now_dt = datetime.now(_JST)
+    # ★轮101 NH3-1:run_id 时间段＝【本次渲染的真实生成时刻(当前JST)】·★不复用 production.generated_at(那是数据扫描时刻·
+    #   会导致五轮重渲复用同一 run_id·页头横幅骗人·哨兵失效——轮101硬伤根因)。日期段=data_date(过L50·跨午夜不错位)。
+    run_id = os.environ.get('AIIS_RUN_ID') or f"R-{date}-{_now_dt.strftime('%H%M%S')}"  # ★轮229优先统一run_id
     build._run_id = run_id
+    build._run_id_gen_epoch = _now_dt.timestamp()   # 供L18值校验(run_id时刻≈真实生成时刻)
+    # ★轮102:run_id+真实epoch 记入历史(供 L18 NH2③ 按【真实时刻】判递增·跨午夜 01:xx 渲 08-02 数据不误判"未递增"·
+    #   run_id 时间段是 data_date+当前HHMMSS·跨午夜非有效时间戳·必须用真实 epoch 排序·render 权威写·闸只读)。
+    try:
+        import json as _json
+        _hp = ROOT / "data" / "logs" / f"runid_history_{date}.json"
+        _h = _json.loads(_hp.read_text(encoding="utf-8")) if _hp.exists() else {}
+        _ids = _h.get("run_ids", [])
+        _eps = _h.get("epochs", {})
+        if run_id not in _ids:
+            _ids.append(run_id)
+        _eps[run_id] = _now_dt.timestamp()
+        _hp.parent.mkdir(parents=True, exist_ok=True)
+        _hp.write_text(_json.dumps({"run_ids": _ids, "epochs": _eps}, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
     _cross = _now_dt.strftime("%Y%m%d") != date                    # 是否跨午夜(真实时刻不在数据日当天)
     gen = f"{_iso(date)} {_now_dt.strftime('%H:%M:%S')}" + ("（★跨午夜生产·真实时刻 " + _now_dt.strftime("%Y-%m-%d %H:%M") + "·产品归属数据日）" if _cross else "")
     # 待接清单(不能依赖)——按标的【去重】,同一只多个原因合并成一条(治闪迪重复2次·页头待接计数虚高)
@@ -2291,11 +2303,22 @@ def build(date: str) -> str:
     # ★稳定性状态条(董事长2026-07-25·drive/futu变更):护城河重评/非OpenD待确认/老雷待导出·产品实物可见
     _stab_html, _moat_stale = _stability_banners(date)
     build._moat_stale = _moat_stale          # 供 main 出厂闸:超期未重评→FAIL不出品
-    out = re.sub(r'(<details class="layer" id="L1")', lambda m: _stab_html + _chain_html + m.group(1), out, count=1)
+    # ★轮83 AW3:并入 Opus5 当日八节正文 + AV3四表 + 完工度页头(与全部原有模块【并存】·不替换)——注入产品最顶部(领衔)
+    try:
+        import render_content_product as _rcp
+        _bazhi = _rcp.content_fragment(date)
+    except Exception as _e:
+        _bazhi = ""
+        print("[三层 AW3 警告] 八节片段并入失败:", _e)
+    build._bazhi_present = bool(_bazhi)
+    out = re.sub(r'(<details class="layer" id="L1")', lambda m: _bazhi + _stab_html + _chain_html + m.group(1), out, count=1)
     # ★locked_v5:PDCA/差分等读 pdca_review 旧数据·残留旧战略判断"AI(今日无重大新闻·维持基线)"→就地包纠正标注,
     #   与七层链②同口径(活判归0·PDCA原记录保留供打分·非删)·消灭最后的两张皮残余。
     out = out.replace("AI(今日无重大新闻·维持基线)",
-                      "AI【机器原判『今日无重大新闻·维持基线』·已按当日简报按层纠正为②国家战略=保护主义/60国关税·见顶部决策逻辑链】")
+                      "AI【机器原判『该层今日无合格新闻·维持基线』·已按当日简报按层纠正为②国家战略=保护主义/60国关税·见顶部决策逻辑链】")
+    # ★轮95 NA2:严禁「今日无重大新闻」(易被误读成全市场无新闻)。逐层引擎的0合格新闻改成明确的『该层无合格新闻·非全市场无新闻』。
+    out = out.replace("今日无重大新闻·维持基线", "该层今日无合格新闻(已扫源·非全市场无新闻)·维持基线")
+    out = out.replace("今日无重大新闻", "该层今日无合格新闻(已扫源·非全市场无新闻)")
     # (F0/F2·董事长2026-07-25:已撤销板块/油价的人工字符串替换——禁止用replace把两边对齐;
     #  板块方向由 latest_market_snapshot 真数据经 rule_sector 重算·历史previous由管线继承·不事后改写)
     # [P0]目标—缺口 模块 + 风险配仓四规矩模块 放第一层最顶部(①离目标还差多少·董事长第一眼看到)
@@ -2324,7 +2347,12 @@ def build(date: str) -> str:
         out = out.replace("　[今天的]", f"　[生产日·价为最近交易日 {fresh['price_date']}]")
     # 页头标题:模板名→正式产品名(董事长打开正式产品·浏览器标签页也要正)
     dd = f"{date[:4]}-{date[4:6]}-{date[6:]}"
-    out = re.sub(r"<title>.*?</title>", f"<title>★每日投资产品 · {dd} · 三层</title>", out, count=1, flags=re.S)
+    # ★轮100 NG1:判据分离(《机器完工验收清单》v1.2)——机器完工判据(连续3天/GPT PASS)不再拦产品交付·
+    #   去掉「未完工·内部件(不交董事长)」整体否定标题·改【局部标注】(标题=正式产品·缺项逐条写页头·董事长要看正式报表)。
+    _cs = _rj(ROOT / "data" / "logs" / f"completion_status_{date}.json")
+    build._completion_done = bool(_cs.get("★机器装好了"))
+    _title = f"★每日投资产品 · {dd} · 三层"
+    out = re.sub(r"<title>.*?</title>", f"<title>{_title}</title>", out, count=1, flags=re.S)
     out = out.replace("三层骨架模板 · 给Code填数据 · " + dd, f"★每日投资产品 · {dd}")
     out = out.replace("三层骨架模板 · 给Code填数据", "★每日投资产品")
     out = re.sub(r"低置信(?!·仅作框架参考)", "低置信·仅作框架参考", out)
@@ -2604,6 +2632,37 @@ def main() -> int:
     n_bad = b.count(b"\xef\xbf\xbd")
     if n_bad:
         print(f"[三层·出厂核 FAIL] 乱码 EFBFBD × {n_bad}——旧版未被覆盖")
+        return 5
+    # ★轮110 NP2:决策资格硬闸(第一关事实完整性+最终决策对象·结构化NK2三分类·守§5.4)。
+    #   第一关(①层总命中=0·事实未确证)却出确定性交易动作·且产品未降级标注「决策暂停·沿用上一轮(醒目)」→ ★无资格·FAIL不出品。
+    #   两套动作并存(定性opus5沿用 vs 量化production·无决定表收敛)亦 FAIL(修最终决策对象/版本覆盖·非手工改单句)。
+    try:
+        from decision_eligibility_gate import check as _elig_check
+        _ef, _en, _einfo = _elig_check(a.date)
+        _downgraded = ("今日决策暂停更新" in html) or ("无资格出确定性动作" in html)
+        if _ef and not _downgraded:
+            print(f"[三层·出厂核 FAIL·NP2决策资格] {len(_ef)} 条——第一关事实未过/两套动作并存却出确定性动作·产品未降级标注→无资格出品：")
+            for f in _ef:
+                print("  ✗ " + f)
+            return 5
+        if _ef and _downgraded:
+            print("[三层·NP2决策资格] 第一关未过但产品已带『决策暂停·沿用上一轮(醒目)』降级标注→放行(NP2-2)")
+    except Exception as _e:
+        print("[NP2决策资格闸 异常]", _e)
+    # ★轮83 AW2-2:产品模块完整性闸——缺任一『必需』模块→FAIL不出品(★判据是模块清单·不看体积)
+    try:
+        from module_completeness_gate import check_html as _mck
+        _mok, _mfails, _mwarns, _mrows = _mck(html, a.date)
+        _nreq_ok = sum(1 for r in _mrows if r["必需"] and r["状态"].startswith("✔"))
+        _nreq = sum(1 for r in _mrows if r["必需"])
+        print(f"[三层·模块完整性] 必需 {_nreq_ok}/{_nreq} 在 · 选填缺 {len(_mwarns)}")
+        if not _mok:
+            print(f"[三层·出厂核 FAIL·不出品] 缺 {len(_mfails)} 个必需模块(AW2-2·模块清单是唯一依据·不看体积)——旧版未被覆盖：")
+            for _f in _mfails:
+                print("  ✗ " + _f)
+            return 5
+    except Exception as _e:
+        print(f"[三层·模块完整性 异常] {_e}——旧版未被覆盖")
         return 5
     print(f"[三层·出厂核 PASS] {fname}")
     out = ROOT / "00_请先看这里" / fname

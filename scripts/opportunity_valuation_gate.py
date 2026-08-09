@@ -110,22 +110,32 @@ def financial_record_from_item(item: Any) -> dict[str, Any]:
 
 def fetch_financials_for_plate(ctx: Any, market: str, plate_code: str) -> tuple[dict[str, dict[str, Any]], str]:
     from futu import Market, RET_OK
+    import time as _t
 
     market_value = getattr(Market, market)
-    ret, data = ctx.get_stock_filter(
-        market_value,
-        filter_list=build_financial_filters(),
-        plate_code=plate_code,
-        begin=0,
-        num=200,
-    )
-    if ret != RET_OK:
-        return {}, str(data)
-    result: dict[str, dict[str, Any]] = {}
-    for item in records_from_filter_result(data):
-        record = financial_record_from_item(item)
-        result[record["base"]] = record
-    return result, ""
+    last_err = ""
+    # ★P0-1:限流退避重试(富途 get_stock_filter 每30秒最多10次)——退避 7/14/21s·最多4次
+    for _attempt in range(4):
+        ret, data = ctx.get_stock_filter(
+            market_value,
+            filter_list=build_financial_filters(),
+            plate_code=plate_code,
+            begin=0,
+            num=200,
+        )
+        if ret == RET_OK:
+            result: dict[str, dict[str, Any]] = {}
+            for item in records_from_filter_result(data):
+                record = financial_record_from_item(item)
+                result[record["base"]] = record
+            return result, ""
+        last_err = str(data)
+        _rate = any(k in last_err for k in ("30秒", "频率", "请求失败", "限", "10次", "太高"))
+        if _rate and _attempt < 3:
+            _t.sleep(7.0 * (_attempt + 1))   # 7/14/21s 退避
+            continue
+        break
+    return {}, last_err
 
 
 def classify_candidate(candidate: dict[str, Any], financial: dict[str, Any] | None, error: str) -> dict[str, Any]:
@@ -136,10 +146,12 @@ def classify_candidate(candidate: dict[str, Any], financial: dict[str, Any] | No
     net_profit = to_float(financial.get("net_profit") if financial else None)
     positive_profit = None if net_profit is None else net_profit > 0
 
-    category = "C类财务待补"
-    reason = "财务数据待补"
+    # ★P0-1:「取数失败(限流/接口)」与「估值不合格/数据不全」分成不同 category·供分开计数
+    category = "C类估值数据不全"
+    reason = "PE或盈利字段缺失(取到数但不全)·估值数据不全"
     if error:
-        reason = "财务数据待补：" + error
+        category = "★取数失败(限流/接口)"
+        reason = "取数失败：" + error
     elif pe is not None and positive_profit is not None:
         if positive_profit and 0 < pe < pe_limit:
             category = "A类趋势加估值合理"
@@ -194,11 +206,10 @@ def run_gate(date_text: str) -> dict[str, Any]:
     finally:
         ctx.close()
 
-    groups = {
-        "A类趋势加估值合理": [],
-        "B类趋势但贵或无盈利": [],
-        "C类财务待补": [],
-    }
+    # ★P0-1:改 defaultdict·兼容新增 category(★取数失败/C类估值数据不全)——取数失败与估值不合格分开计数
+    from collections import defaultdict as _dd
+    groups = _dd(list)
+    groups["A类趋势加估值合理"]; groups["B类趋势但贵或无盈利"]; groups["★取数失败(限流/接口)"]; groups["C类估值数据不全"]
     for item in classified:
         groups[item["category"]].append(item)
 

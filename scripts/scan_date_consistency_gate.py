@@ -29,10 +29,10 @@ def _iter_rows(d):
         for v in items.values():
             if isinstance(v, dict) and isinstance(v.get("逐只"), list):
                 for x in v["逐只"]:
-                    yield x.get("code"), x.get("update_time"), None
+                    yield x.get("code"), x.get("update_time"), x.get("时点")   # ★轮227:读真时点(原硬编码None→盘中标注读不到)
     elif isinstance(items, list):
         for x in items:
-            yield x.get("code") or x.get("symbol"), x.get("update_time"), None
+            yield x.get("code") or x.get("symbol"), x.get("update_time"), x.get("时点")
 
 
 def _us_close_jst(fn_date):
@@ -112,19 +112,37 @@ def check(date_compact, now=None):
             elif shidian and "完整" not in str(shidian) and "收盘" not in str(shidian):
                 fails.append(f"{code}(美股) 时点标注「{shidian}」未写明=最新完整美股交易日(V1-1)")
         else:
-            # ★轮75:日股周末感知——fn_date 是交易日(周一~五)且已到东证收盘(15:00 JST)→日股须=fn_date(严格同日·工作日铁律不变);
-            #   fn_date 是周末/未到收盘→日股允许=最新完整日股交易日(如08-02周日的产品用07-31周五收盘·休市无新价)。
-            jp_close = datetime.datetime.combine(fn_date, datetime.time(15, 0), tzinfo=JST)  # 东证收盘≈15:00 JST 当日
-            fn_is_jp_trading = fn_date.weekday() < 5 and now >= jp_close
-            if fn_is_jp_trading:
-                if ud != fn_date:
-                    fails.append(f"{code}(日股) update_time {ud} ≠ 文件名 {fn_date}（交易日日股必须同日·差{(fn_date-ud).days}天）")
-            else:
+            # ★★★轮227 董事长裁定《修盘中生产死区》:日股【三段】判定(§5.4同族第三次·轮75只修了收盘后半边)。
+            #   闸管【标签】不拒【盘中真价】:盘中价不是旧数据·是那一刻最新真价·只要标清「盘中」不冒充收盘。
+            #   ①开盘前(now<09:00)→须=昨收(latest_jp)  ②盘中(09:00≤now<15:00·工作日)→接受今日盘中价(须标「盘中」)
+            #   ③收盘后(now≥15:00)→须=今收(fn_date)   周末/休市→须=最新完整交易日。★陈旧(ud<latest_jp)恒 FAIL·不放宽。
+            jp_open = datetime.datetime.combine(fn_date, datetime.time(9, 0), tzinfo=JST)
+            jp_close = datetime.datetime.combine(fn_date, datetime.time(15, 0), tzinfo=JST)
+            if fn_date.weekday() >= 5:
+                # 周末/休市——维持:须=最新完整日股交易日
                 if ud != latest_jp:
-                    if ud < latest_jp:
-                        fails.append(f"{code}(日股) update_time {ud} ≠ 最新完整日股交易日 {latest_jp}·陈旧(周末/休市应用 {latest_jp} 收盘)")
-                    else:
-                        fails.append(f"{code}(日股) 取到 {ud}·与最新完整日股交易日 {latest_jp} 不符(周末/未收盘)")
+                    fails.append(f"{code}(日股) update_time {ud} ≠ 最新完整日股交易日 {latest_jp}·周末/休市应用 {latest_jp} 收盘")
+            elif now >= jp_close:
+                # ③收盘后——维持:须=今收(fn_date)
+                if ud != fn_date:
+                    fails.append(f"{code}(日股) update_time {ud} ≠ 文件名 {fn_date}（交易日收盘后·日股须同日·差{(fn_date-ud).days}天）")
+            elif now >= jp_open:
+                # ②★盘中(09:00≤now<15:00)——接受今日盘中价(ud==fn_date)·但时点须标「盘中」;陈旧仍 FAIL
+                if ud == fn_date:
+                    if "盘中" not in str(shidian or ""):
+                        fails.append(f"{code}(日股) 取到 {ud} 盘中价，时点标注「{shidian}」未写明『盘中』"
+                                     f"→ 禁止把盘中价当收盘价用(2.6铁律)")
+                    # ud==fn_date 且标了「盘中」→ PASS(接受当刻最新真价)
+                elif ud == latest_jp:
+                    pass   # 盘中取到昨收(最新完整交易日)→也合法(保守·等价开盘前口径)
+                elif ud < latest_jp:
+                    fails.append(f"{code}(日股) update_time {ud} 陈旧(<最新完整交易日 {latest_jp})·盘中须用当日盘中价或最新完整交易日·陈旧不放宽")
+                else:
+                    fails.append(f"{code}(日股) 取到 {ud}·盘中既非今日({fn_date})也非最新完整交易日({latest_jp})")
+            else:
+                # ①开盘前(now<09:00)——维持:须=昨收(latest_jp)
+                if ud != latest_jp:
+                    fails.append(f"{code}(日股) update_time {ud} ≠ 最新完整日股交易日 {latest_jp}·开盘前应用 {latest_jp} 收盘")
     return fails, {"条目数": n, "文件名日期": str(fn_date), "最新完整美股交易日": str(latest_us), "最新完整日股交易日": str(latest_jp),
                    "★假日历": "未接·仅周末顺延·遇美/日假日可能误判(待接)"}
 
