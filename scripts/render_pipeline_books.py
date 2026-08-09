@@ -440,6 +440,8 @@ def build(date):
     _opus5_zw = _opus5_zhengwen_html(dc)
     b1 = (_head("册1·总览闭环", date, run_id, scan) + _prov("★Opus5正文 + ①~⑦全层状态 + ①证据映射器动摇置顶 + 今日提醒", em.get("★证据ID区间"))
           + pb.overdue_verdict_html(ROOT, dc)   # ★轮341乙3:到期未记分→红条置顶(记分卡当前不可信)
+          + pb.scoring_disclosure_html(ROOT, dc)   # ★轮342乙2:Opus5补记逾期后诚实披露句(一字不改·不折叠)
+          + pb.first_screen_decisions_html(ROOT, dc)   # ★轮342丙3:第一屏三段(0笔理由/破线裁定/跨账户集中·不折叠·数字现取)
           + pb.anchor_drift_html(ROOT, dc)   # ★轮335 乙2:E-ID内容锚漂移→红条置顶(引用证据已变·须重判·不得沿用)
           + pb.degrade_html(dc)   # ★★★轮312 A4:结论降级七类+合规声明→第一屏置顶(action_banner之前)
           + action_banner +
@@ -515,6 +517,7 @@ def build(date):
              f'<table><tr><th>标的</th><th>现价(as_of)</th><th>⑥决策</th><th>分笔/分档(exec_params)</th><th>跳空规则</th></tr>{_hold_rows(sub)}</table>'
              + (f'<div style="border:2px solid #7B241C;border-radius:8px;padding:10px 14px;margin:12px 0;background:#fdf7f5">{pb.deepdive_judgments(ROOT, dc)}</div>' if tag == "2a_持仓深研上" else "")   # ★轮312 A1:个股深度重估(爱德万v4等)→册2a
              + (pb.drift_holdings_html(ROOT, dc) if tag == "2a_持仓深研上" else "")   # ★轮327 丙C2/C3:漂移三分类+理由三件套状态→册2a
+             + (pb.four_account_tables_html(ROOT, dc) if tag == "2a_持仓深研上" else "")   # ★轮342甲2/丙1:四账户各自独立表(占本账户%·标账户名·各账户源日)→册2a
              + _foot())
         files[tag] = b
 

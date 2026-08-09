@@ -240,6 +240,97 @@ def overdue_verdict_html(root, dc):
             f'<ul style="margin:6px 0 0 18px;font-size:12.5px;color:#233">{rows}</ul></div>')
 
 
+def scoring_disclosure_html(root, dc):
+    """★轮342乙2:Opus5补记逾期预测后·第一屏印一句(一字不改·不折叠)。读 opus5_scoring_{dc}.json 的『★我要求把这句印进产品』。无文件→不出(静默)。"""
+    import json as _json
+    try:
+        d = _json.loads((root / "data" / "pdca" / f"opus5_scoring_{dc}.json").read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    sent = ((d.get("★记完之后的诚实结论", {}) or {}).get("★我要求把这句印进产品")
+            or (d.get("★记完之后的诚实结论", {}) or {}).get("对记分卡的影响"))
+    if not sent:
+        return ""
+    return ('<div style="border:3px solid #8e44ad;background:#f6effa;border-radius:8px;padding:12px 16px;margin:10px 0">'
+            '<div style="font-size:13px;font-weight:900;color:#6c3483;margin-bottom:4px">★记分卡诚实披露（Opus5 补记后·一字不改）</div>'
+            f'<div style="font-size:15px;font-weight:800;color:#4a235a;line-height:1.55">{esc(sent)}</div>'
+            '<div style="font-size:11.5px;color:#7d6a8a;margin-top:5px">★记分卡变难看，正是它开始可信的标志。</div></div>')
+
+
+def first_screen_decisions_html(root, dc):
+    """★轮342丙3:册1第一屏三段(整块·不折叠·不缩小)——数字全从 four_account_current_{dc}.json 现取(不写死)。
+    ①今日0笔的理由 ②破线(防御<15%·日股>30%·请裁定) ③跨账户占股票市值%(四账户独立看会被拆两半)。文件缺→段内如实标『数据缺·未取到』。"""
+    import json as _json
+    fa = {}
+    try:
+        fa = _json.loads((root / "data" / "accounts" / f"four_account_current_{dc}.json").read_text(encoding="utf-8"))
+    except Exception:
+        fa = {}
+    dfn = fa.get("★防御仓(机器可识别=保险·当前源)", {}) or {}
+    jp = fa.get("★日股占比(甲3③)", {}) or {}
+    cx = fa.get("★跨账户占股票总值(71.2%类比·重算)", {}) or {}
+    def _num(v):
+        return v if isinstance(v, (int, float)) else "（数据缺·未取到）"
+    def_pct = _num(dfn.get("占四账户股票%")); jp_pct = _num(jp.get("占四账户股票%"))
+    cx_pct = _num(cx.get("占比%")); cx_n = cx.get("跨账户标的数", "（缺）")
+    def_break = dfn.get("★是否破线(<15%)"); jp_break = jp.get("★是否破线(>30%)")
+    seg1 = ('<li style="margin:6px 0"><b>今日 0 笔的理由</b>：重估未完成，我没有资格动手——'
+            '<b>不是</b>看过了、决定拿着。（0 笔≠已审阅通过，是"还没到能动手的程度"。）</li>')
+    seg2 = ('<li style="margin:6px 0"><b>破线（请董事长裁定：补仓 or 改尺）</b>：'
+            f'防御仓 <b>{esc(def_pct)}%</b> {"＜ 15% 下限 ✗破线" if def_break else "（未破）"}'
+            f'（机器只认保险=东京海上·完整防御分类归 Opus5）；'
+            f'日股 <b>{esc(jp_pct)}%</b> {"＞ 30% 上限 ✗破线" if jp_break else "（未破）"}。'
+            '两条都破——请裁定：补防御/降日股，还是改尺放宽。</li>')
+    seg3 = (f'<li style="margin:6px 0"><b>跨账户集中</b>：<b>{esc(cx_n)}</b> 只标的横跨多个账户持有，'
+            f'占四账户股票市值 <b>{esc(cx_pct)}%</b>——四账户独立看时，这部分会被拆成两半各看一段。'
+            f'{("（07-02 全快照口径曾＝71.2%/7只；本轮当前源＝" + str(cx_pct) + "%/" + str(cx_n) + "只·富途已清仓东京海上退出跨账户集合。）") if isinstance(cx_pct, (int, float)) else ""}</li>')
+    return ('<div style="border:3px solid #b9770e;background:#fff8ec;border-radius:8px;padding:13px 17px;margin:12px 0">'
+            '<div style="font-size:16px;font-weight:900;color:#8a5a00;margin-bottom:6px">★今日必须知情/裁定三件（不折叠）</div>'
+            f'<ul style="margin:4px 0 0 6px;font-size:13.5px;color:#3a2e12;list-style:none;padding-left:0">{seg1}{seg2}{seg3}</ul>'
+            '<div style="font-size:11px;color:#9a7b3a;margin-top:6px">★数字从 four_account_current 现取（源日:富途08-08/SBI08-05/IBKR07-02）·非写死。裁定=董事长/Opus5。</div></div>')
+
+
+def four_account_tables_html(root, dc):
+    """★轮342甲2/丙1:四账户各自独立表(占本账户%·标账户名·各账户源日不同逐处标)。读 four_account_current_{dc}.json。
+    ★董事长08-09拍板:四账户各自独立·不做总资产表。crypto单独列不进股票分母。文件缺→不出(静默)。"""
+    import json as _json
+    try:
+        fa = _json.loads((root / "data" / "accounts" / f"four_account_current_{dc}.json").read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    tabs = fa.get("四账户独立表", {}) or {}
+    order = ["富途", "SBI", "IBKR"]
+    blocks = ""
+    for name in order:
+        t = tabs.get(name) or {}
+        rows = t.get("逐只", []) or []
+        if not rows:
+            continue
+        tr = "".join(
+            f'<tr><td><b>{esc(r.get("标的"))}</b>{("·" + esc(r.get("name"))) if r.get("name") else ""}</td>'
+            f'<td style="text-align:right">{esc(r.get("股数"))}</td>'
+            f'<td style="text-align:right">${esc(int(r.get("市值USD", 0)))}</td>'
+            f'<td style="text-align:right"><b>{esc(r.get("占本账户%"))}%</b></td></tr>' for r in rows)
+        blocks += (
+            f'<div style="margin:10px 0;border:1px solid #bcd;border-radius:7px;overflow:hidden">'
+            f'<div style="background:#eaf2fb;padding:7px 12px;font-size:13.5px;font-weight:800;color:#12324e">'
+            f'账户【{esc(name)}】· 源日 {esc(t.get("源日"))} · {esc(t.get("新鲜度"))} · 账户股票 ${esc(int(t.get("账户股票市值USD", 0)))}</div>'
+            f'<table style="width:100%;border-collapse:collapse;font-size:12.5px">'
+            f'<tr style="background:#f6f9fc"><th style="text-align:left;padding:3px 8px">标的</th><th style="text-align:right;padding:3px 8px">股数</th>'
+            f'<th style="text-align:right;padding:3px 8px">市值USD</th><th style="text-align:right;padding:3px 8px">占本账户%</th></tr>{tr}</table></div>')
+    # bitFlyer crypto(单独·不进股票分母)
+    bf = (tabs.get("bitFlyer(crypto·不进股票分母)") or {}).get("逐只", []) or []
+    bf_html = ""
+    if bf:
+        br = "".join(f'<li>{esc(c.get("币种"))} {esc(c.get("数量"))} · ${esc(int(c.get("市值USD_0702", 0)))}（07-02快照）</li>' for c in bf)
+        bf_html = (f'<div style="margin:8px 0;padding:8px 12px;background:#fef8ee;border:1px dashed #c9a24b;border-radius:6px;font-size:12.5px">'
+                   f'<b>bitFlyer（加密·单独列·不进股票分母）</b><ul style="margin:4px 0 0 16px">{br}</ul></div>')
+    return ('<div style="border:2px solid #2c6e9a;border-radius:8px;padding:11px 14px;margin:12px 0;background:#fbfdff">'
+            '<div style="font-size:15px;font-weight:900;color:#12324e">四账户各自独立表（占本账户%·非总资产·董事长08-09拍板）</div>'
+            '<div style="font-size:11.5px;color:#567;margin:3px 0 6px">★每账户源日不同已逐处标：富途08-08实时 / SBI08-05快照 / IBKR07-02静止。四账户独立看·全局只看两个跨账户数(见第一屏/册1)。</div>'
+            f'{blocks}{bf_html}</div>')
+
+
 def anchor_drift_html(root, dc):
     """★轮335 乙2:E-ID内容锚漂移→产品红条。读 anchor_drift_{dc}.json(evidence_anchor_check 产出)。
     某层引用的证据当日已变→大字红条『本层判断引用的证据已变·须重判·不得沿用』(附原文/今日对照)。无漂移→不出(静默·乙3)。"""

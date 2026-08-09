@@ -70,6 +70,17 @@ def validate_lock(pred):
             ok_td, why = _is_tradingday(cd)
             if not ok_td:
                 errs.append("到期日非交易日:%s(=%r)" % (why, cd))   # ★轮222 COIN那个错
+    # ★轮342乙3:见分晓日↔尺度间隔闸(0-30d≥20天·长期≥80天)——源头挡『0~30天判断却设锁后第2天核对』(COIN那类)。
+    _hz = pred.get("尺度") or pred.get("horizon")
+    _lockday = pred.get("锁定日") or pred.get("locked_at") or date.today().isoformat()
+    if cd is not None and _is_date(cd) and _hz:
+        try:
+            import horizon_verdict_match_gate as _hvm
+            _ok, _why = _hvm.check_lock(_hz, _lockday, cd)
+            if not _ok:
+                errs.append(_why)
+        except Exception as _e:
+            errs.append("间隔闸未能运行(%s)·请人工核见分晓日与尺度是否匹配" % type(_e).__name__)
     return (len(errs) == 0), errs
 
 
@@ -125,16 +136,19 @@ def main():
             if any("非交易日" in x or "非日期" in x for x in r["问题"]):
                 print("  [%s] %s %s · %s" % (r["源"], r["标的"], r["尺度"], "; ".join(r["问题"])))
     else:
-        # 自测:合规PASS·缺锁定价REJECT·核对日文字REJECT·★周六REJECT(COIN那个错)
+        # 自测:合规PASS·缺锁定价REJECT·核对日文字REJECT·★周六REJECT(COIN那个错)·★轮342间隔REJECT
+        # 锁定日显式给定→间隔判定不随运行日漂移(短期0-30d需≥20天;08-19-07-30=20天·合规)
         good = {"标的": "测试X", "尺度": "短期", "方向": "偏上行", "概率": "约60%", "锁定价": 100.0,
-                "PDCA核对日": "2026-08-19", "PDCA判据": "方向对=命中"}
+                "锁定日": "2026-07-30", "PDCA核对日": "2026-08-19", "PDCA判据": "方向对=命中"}
         bad1 = dict(good); bad1["锁定价"] = None
         bad2 = dict(good); bad2["PDCA核对日"] = "1-2周后"
         bad3 = dict(good); bad3["PDCA核对日"] = "2026-08-01"   # ★2026-08-01是周六
-        print("合规(周三)→", validate_lock(good))
+        bad4 = dict(good); bad4["PDCA核对日"] = "2026-08-03"   # ★轮342:短期却锁后第4天核对(第一三共那类)→间隔闸REJECT
+        print("合规(短期20天)→", validate_lock(good))
         print("缺锁定价→", validate_lock(bad1))
         print("核对日文字→", validate_lock(bad2))
         print("核对日周六→", validate_lock(bad3))
+        print("★短期间隔仅4天→", validate_lock(bad4))
     return 0
 
 
