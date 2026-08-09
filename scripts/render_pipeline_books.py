@@ -73,6 +73,32 @@ def _wd_mkt(date):
     except Exception:
         return ""
 
+def _price_date_banner(date, run_id, scan):
+    """★轮343甲1:页头超大横幅三行——扫描时间/价格数据日(周末=周五收盘·当前最新真实价·不含糊)/下一交易日。
+    ★周末取周五收盘=正确行为(不是旧数据顶充)·但必须说清。时间感知·不写死。"""
+    try:
+        _d = datetime.strptime(date.replace("-", ""), "%Y%m%d")
+        _wd = _d.weekday(); _we = _wd >= 5
+        _cn = "周一 周二 周三 周四 周五 周六 周日".split()[_wd]
+        _pdd = (_d - timedelta(days=(_wd - 4))) if _we else _d   # 价格数据日:周末回退周五
+        _pd = _pdd.strftime("%Y-%m-%d"); _pcn = "周一 周二 周三 周四 周五 周六 周日".split()[_pdd.weekday()]
+        # 下一交易日:跳过周末
+        _nd = _d + timedelta(days=1)
+        while _nd.weekday() >= 5:
+            _nd = _nd + timedelta(days=1)
+        _nds = _nd.strftime("%Y-%m-%d"); _ndcn = "周一 周二 周三 周四 周五 周六 周日".split()[_nd.weekday()]
+        if _we:
+            line2 = f"价格数据日：<b>{_pd}（{_pcn}收盘）</b>——周末休市，这是当前最新真实价（非旧数据顶充）"
+        else:
+            line2 = f"价格数据日：<b>{_pd}（{_pcn}）</b>"
+        return (f'<div style="background:#0b3d5c;color:#fff;border-radius:8px;padding:12px 16px;margin:8px 0;line-height:1.7">'
+                f'<div style="font-size:16px;font-weight:900">扫描时间：{date}（{_cn}）｜ run_id：{esc(run_id)}</div>'
+                f'<div style="font-size:16px;font-weight:900;color:#ffe08a">{line2}</div>'
+                f'<div style="font-size:15px;font-weight:800">下一个交易日：{_nds}（{_ndcn}）·日股 09:00 开盘</div></div>')
+    except Exception:
+        return ""
+
+
 def _head(title, date, run_id, scan):
     _wm = _wd_mkt(date)
     return (f'<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>{esc(title)}·{esc(date)}</title>{CSS}</head><body>'
@@ -82,6 +108,7 @@ def _head(title, date, run_id, scan):
             f'<div style="background:#fff3cd;border:2px solid #d9a400;border-radius:6px;padding:8px 12px;margin:6px 0;font-size:13px;font-weight:700;color:#8a6d00">'
             f'★本册为【册1·总览闭环】，五册之一（含前瞻研究区/结论降级清单·个股重估见册2·同业对照见册3）。七层管道版见 '
             f'<b>★每日产品_管道版_{esc(date)}.html</b></div>'
+            + _price_date_banner(date, run_id, scan)   # ★轮343甲1:超大三行(扫描时间/价格数据日周末=周五收盘/下一交易日)
             + _HEAD_INTRADAY)
 
 
