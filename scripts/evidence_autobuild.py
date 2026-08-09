@@ -147,6 +147,17 @@ def rule_fed(snapshot: dict[str, Any] | None) -> dict[str, Any]:
     a = snapshot["by_symbol"]["US10Y"]
     chg = a.get("change_percent")
     val = a.get("close", a.get("price"))
+    # ★轮344:US10Y键在但值缺(close/price=None·免密钥源常见)→走数据缺路·不把 None 印进产品(L55字面量泄漏根因)。
+    if val is None:
+        return {
+            "node": "总闸·美联储是否美国优先",
+            "evidence": "【数据缺】latest_market_snapshot 有 US10Y 键但值缺(close/price=None) → 力度待定、不硬推(总则十三条二)。",
+            "strength": "待定", "direction": "待定",
+            "plain": "今天没拿到美国国债利率的有效读数 → 对你：总闸这层沿用上次判断，不瞎猜、不动仓。",
+            "today_events": ["US10Y 值缺(None) → 待定"],
+            "background": ["宏观事件(Fed/非农)源=待第二块"],
+            "source": "latest_market_snapshot.json(US10Y值缺)",
+        }
     chg_f = float(chg) if isinstance(chg, (int, float)) else None
     if chg_f is None:
         state, strength, direction = "维持(变动缺)", "待定", "待定"
@@ -495,7 +506,8 @@ def fed_gate_state_machine(date: str, macro_cal: dict, us10y_val, us10y_chg) -> 
     ff = (macro_cal or {}).get("FedFunds") or (macro_cal or {}).get("FEDFUNDS") or {}
     v, pv = ff.get("value"), ff.get("prev")
     fed_event = (v is not None and pv is not None and float(v) != float(pv))
-    footnote = f"边际注脚(仅参考·不翻闸)：US10Y={us10y_val}、较昨{fmt_pct(us10y_chg)}"
+    _u10disp = us10y_val if us10y_val is not None else "未接·待定"   # ★轮344:None不印进产品(L55字面量泄漏)
+    footnote = f"边际注脚(仅参考·不翻闸)：US10Y={_u10disp}、较昨{fmt_pct(us10y_chg)}"
     if prev and prev.get("date") == date:                 # 同日重跑→幂等(不改状态、不+天)
         st = dict(prev); st["footnote"] = footnote; st["fed_event_today"] = fed_event
         return st

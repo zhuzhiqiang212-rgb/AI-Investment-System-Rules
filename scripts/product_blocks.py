@@ -269,25 +269,33 @@ def first_screen_decisions_html(root, dc):
     dfn = fa.get("★防御仓(机器可识别=保险·当前源)", {}) or {}
     jp = fa.get("★日股占比(甲3③)", {}) or {}
     cx = fa.get("★跨账户占股票总值(71.2%类比·重算)", {}) or {}
+    ai = fa.get("★AI资本开支集中度(甲3②)", {}) or {}
     def _num(v):
         return v if isinstance(v, (int, float)) else "（数据缺·未取到）"
     def_pct = _num(dfn.get("占四账户股票%")); jp_pct = _num(jp.get("占四账户股票%"))
     cx_pct = _num(cx.get("占比%")); cx_n = cx.get("跨账户标的数", "（缺）")
+    ai_pct = _num(ai.get("占比%")); ai_legs = ai.get("命中腿", []) or []
+    ai_accts = len({str(x).split("@")[-1].split("(")[0] for x in ai_legs}) if ai_legs else "（缺）"
     def_break = dfn.get("★是否破线(<15%)"); jp_break = jp.get("★是否破线(>30%)")
+    ai_break = isinstance(ai_pct, (int, float)) and ai_pct > 30   # AI同源 vs 单一驱动30%上限
     seg1 = ('<li style="margin:6px 0"><b>今日 0 笔的理由</b>：重估未完成，我没有资格动手——'
             '<b>不是</b>看过了、决定拿着。（0 笔≠已审阅通过，是"还没到能动手的程度"。）</li>')
-    seg2 = ('<li style="margin:6px 0"><b>破线（请董事长裁定：补仓 or 改尺）</b>：'
-            f'防御仓 <b>{esc(def_pct)}%</b> {"＜ 15% 下限 ✗破线" if def_break else "（未破）"}'
+    seg2 = ('<li style="margin:6px 0"><b>★三条线同时破，而今天 0 笔——请董事长裁定</b>：'
+            f'①防御仓 <b>{esc(def_pct)}%</b> {"＜ 15% 下限 ✗" if def_break else "（未破）"}'
             f'（机器只认保险=东京海上·完整防御分类归 Opus5）；'
-            f'日股 <b>{esc(jp_pct)}%</b> {"＞ 30% 上限 ✗破线" if jp_break else "（未破）"}。'
-            '两条都破——请裁定：补防御/降日股，还是改尺放宽。</li>')
-    seg3 = (f'<li style="margin:6px 0"><b>跨账户集中</b>：<b>{esc(cx_n)}</b> 只标的横跨多个账户持有，'
-            f'占四账户股票市值 <b>{esc(cx_pct)}%</b>——四账户独立看时，这部分会被拆成两半各看一段。'
-            f'{("（07-02 全快照口径曾＝71.2%/7只；本轮当前源＝" + str(cx_pct) + "%/" + str(cx_n) + "只·富途已清仓东京海上退出跨账户集合。）") if isinstance(cx_pct, (int, float)) else ""}</li>')
+            f'②日股 <b>{esc(jp_pct)}%</b> {"＞ 30% 上限 ✗" if jp_break else "（未破）"}；'
+            f'③AI 同源 <b>{esc(ai_pct)}%</b> {"＞ 30% 单一驱动上限 ✗" if ai_break else "（未破）"}。'
+            '请裁定：补防御/降日股/降 AI 同源，还是改尺放宽。</li>')
+    seg3 = (f'<li style="margin:6px 0"><b>同源风险（今天才第一次被算出来）</b>：AI 资本开支组占股票市值 '
+            f'<b>{esc(ai_pct)}%</b>，横跨 <b>{esc(ai_accts)}</b> 个账户（{esc(len(ai_legs))} 条腿）。'
+            f'★四账户各自独立看时，这个数<b>不出现在任何一张表上</b>——不是被算错，是根本没被算过。</li>')
+    seg4 = (f'<li style="margin:6px 0"><b>跨账户集中</b>：<b>{esc(cx_n)}</b> 只标的横跨多账户，'
+            f'占股票市值 <b>{esc(cx_pct)}%</b>——四账户独立看会被拆成两半各看一段。'
+            f'{("（07-02 全快照曾＝71.2%/7只；本轮当前源＝" + str(cx_pct) + "%/" + str(cx_n) + "只·富途已清仓东京海上退出集合。）") if isinstance(cx_pct, (int, float)) else ""}</li>')
     return ('<div style="border:3px solid #b9770e;background:#fff8ec;border-radius:8px;padding:13px 17px;margin:12px 0">'
-            '<div style="font-size:16px;font-weight:900;color:#8a5a00;margin-bottom:6px">★今日必须知情/裁定三件（不折叠）</div>'
-            f'<ul style="margin:4px 0 0 6px;font-size:13.5px;color:#3a2e12;list-style:none;padding-left:0">{seg1}{seg2}{seg3}</ul>'
-            '<div style="font-size:11px;color:#9a7b3a;margin-top:6px">★数字从 four_account_current 现取（源日:富途08-08/SBI08-05/IBKR07-02）·非写死。裁定=董事长/Opus5。</div></div>')
+            '<div style="font-size:16px;font-weight:900;color:#8a5a00;margin-bottom:6px">★今日必须知情/裁定（不折叠·数字现取）</div>'
+            f'<ul style="margin:4px 0 0 6px;font-size:13.5px;color:#3a2e12;list-style:none;padding-left:0">{seg1}{seg2}{seg3}{seg4}</ul>'
+            '<div style="font-size:11px;color:#9a7b3a;margin-top:6px">★数字从 four_account_current 现取（源日:富途08-08/SBI08-05/IBKR07-02）·非写死。四件推论+记分卡披露见正文第四/五节。裁定=董事长/Opus5。</div></div>')
 
 
 def four_account_tables_html(root, dc):
