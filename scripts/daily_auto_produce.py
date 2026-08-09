@@ -174,6 +174,8 @@ STEPS = [
     ("⑫e3 正式目录纯净度闸(非released产品移出·轮184)", "product_purity_gate.py", False),
     # ★★★轮186 A:见分晓日历(机器从registry读verdict_date算到期·§5.4不得Opus5口头指定)+今日到期/已过期未记分告警→册1。
     ("⑫e4 见分晓日历(到期机器算·已过期未记分告警·轮186)", "verdict_calendar.py", False),
+    # ★★★轮341乙3:到期未记分闸(结构化§5.4:verdict_date日期比较+已记分布尔·不读自由文本)→写overdue_verdict_{date}.json→product_blocks打册1第一屏红条「★有N条到期未记分·记分卡当前不可信」。非关键(只报事实·记分=Opus5)。
+    ("⑫e4b 到期未记分闸(记分卡可信度·轮341)", "overdue_verdict_gate.py", False),
     ("⑫e5 SBI持仓新鲜度告警(>3天未更新·轮190 E)", "sbi_freshness_gate.py", False),
 ]
 

@@ -439,6 +439,7 @@ def build(date):
     # ★★轮178 CODE修:Opus5当日正文置顶(七实情C1-C7的内容源·主路此前不读致一句不进产品)
     _opus5_zw = _opus5_zhengwen_html(dc)
     b1 = (_head("册1·总览闭环", date, run_id, scan) + _prov("★Opus5正文 + ①~⑦全层状态 + ①证据映射器动摇置顶 + 今日提醒", em.get("★证据ID区间"))
+          + pb.overdue_verdict_html(ROOT, dc)   # ★轮341乙3:到期未记分→红条置顶(记分卡当前不可信)
           + pb.anchor_drift_html(ROOT, dc)   # ★轮335 乙2:E-ID内容锚漂移→红条置顶(引用证据已变·须重判·不得沿用)
           + pb.degrade_html(dc)   # ★★★轮312 A4:结论降级七类+合规声明→第一屏置顶(action_banner之前)
           + action_banner +

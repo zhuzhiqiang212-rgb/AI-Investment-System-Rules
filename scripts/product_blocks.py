@@ -221,6 +221,25 @@ def deepdive_peers(root, dc):
     return out
 
 
+def overdue_verdict_html(root, dc):
+    """★轮341乙3:见分晓日已过却未记分→册1第一屏红条『★有N条预测到期未记分·记分卡当前不可信』。
+    读 overdue_verdict_{dc}.json(overdue_verdict_gate产出)·0条→不出(静默)。"""
+    import json as _json
+    try:
+        d = _json.loads((root / "data" / "pdca" / f"overdue_verdict_{dc}.json").read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    ov = d.get("逐条", []) or []
+    if not ov:
+        return ""
+    rows = "".join(f'<li>{esc(o.get("标的"))} {esc(o.get("horizon"))}·见分晓 {esc(o.get("见分晓日"))}·逾期 <b>{esc(o.get("逾期天数"))}</b> 天</li>' for o in ov)
+    return ('<div style="border:3px solid #c0392b;background:#fdecea;border-radius:8px;padding:11px 15px;margin:10px 0">'
+            f'<div style="font-size:17px;font-weight:900;color:#c0392b">★有 {len(ov)} 条预测到期未记分，记分卡当前不可信</div>'
+            '<div style="font-size:12px;color:#7B241C;margin-top:3px">这些预测的见分晓日已过、却还没记分——记分卡的对错统计里缺了它们，'
+            '现在看到的胜率不完整。★记分是 Opus5 的活（料已备在 overdue_scoring_prep）。</div>'
+            f'<ul style="margin:6px 0 0 18px;font-size:12.5px;color:#233">{rows}</ul></div>')
+
+
 def anchor_drift_html(root, dc):
     """★轮335 乙2:E-ID内容锚漂移→产品红条。读 anchor_drift_{dc}.json(evidence_anchor_check 产出)。
     某层引用的证据当日已变→大字红条『本层判断引用的证据已变·须重判·不得沿用』(附原文/今日对照)。无漂移→不出(静默·乙3)。"""
