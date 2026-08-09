@@ -481,10 +481,30 @@ def _layer_judgment_map(root, dc):
         jd = s.get("本层判断")
         ruler = s.get("★依据右栏哪把尺(①~⑥·E8必填)")
         conflict = s.get("★与尺是否矛盾(E8枚举·必填)")
-        if num and jd and str(jd).strip() not in ("", "None"):
-            out[num] = {"判断": str(jd).strip(), "依据尺": str(ruler or "").strip(),
+        jtxt = _fmt_judgment(jd)   # ★轮344:六格dict→拼可读文本·跳过None子格(治str(dict)把 None 字面量印进产品)
+        if num and jtxt and jtxt not in ("", "None"):
+            out[num] = {"判断": jtxt, "依据尺": str(ruler or "").strip(),
                         "与尺是否矛盾": str(conflict or "").strip()}
     return out
+
+
+def _fmt_judgment(jd):
+    """★轮344:本层判断可能是字符串(如②)或六格dict(如③·C-3)。dict→拼非空子格值·跳过None与下划线键·
+    ★绝不 str(dict) 直接印(会把未填子格的 Python None 字面量印给董事长·违红线『不许印None』)。"""
+    if jd is None:
+        return ""
+    if isinstance(jd, str):
+        return jd.strip()
+    if isinstance(jd, dict):
+        parts = []
+        for k, val in jd.items():
+            if str(k).startswith("_"):
+                continue
+            if val is None or str(val).strip() in ("", "None"):
+                continue
+            parts.append(str(val).strip())
+        return " · ".join(parts)
+    return str(jd)
 
 
 def layer_ruler_anchor_html(root, dc, num):
