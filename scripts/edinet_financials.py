@@ -4,7 +4,7 @@
 
 ★安全铁律(逐条守):
   1. 密钥只从文件读:C:\\AI_Investment_System\\secrets\\edinet-api-key.txt(读进内存·用完即弃)·不硬编·不经聊天。
-  2. 密钥绝不打印/写日志/入HTML:任何输出一律脱敏(_mask:前2位+***)。
+  2. 密钥绝不打印/写日志/入HTML:任何输出均不包含密钥或密钥片段。
   3. secrets/ 已入 .gitignore;密钥在C盘·不在G盘GDrive同步范围。
   4. 只用密钥·不换不轮换。
   5. 不改任何已验收产品(locked_v*);本脚本只读EDINET·写 data/valuation/。
@@ -17,11 +17,16 @@ import json
 import ssl
 import sys
 import urllib.request
+from datetime import date as _date
+from datetime import datetime as _datetime
+from datetime import timedelta as _timedelta
+from datetime import timezone as _timezone
 from pathlib import Path
 
 KEY_FILE = Path("C:/AI_Investment_System/secrets/edinet-api-key.txt")
 API_BASE = "https://api.edinet-fsa.go.jp/api/v2"
 ROOT = Path("G:/我的云端硬盘/AI_Investment_System")
+JST = _timezone(_timedelta(hours=9))
 
 
 def _load_key() -> str:
@@ -34,19 +39,21 @@ def _load_key() -> str:
     return k
 
 
-def _mask(k: str) -> str:
-    """脱敏:只显前2位+***·长度不显真值。用于任何要提及密钥的场合。"""
-    return (k[:2] + "***") if len(k) >= 2 else "***"
+def _normalize_date(value: str | None = None) -> str:
+    """Return YYYYMMDD; omitted dates use the current JST calendar date."""
+    raw = (value or _datetime.now(JST).strftime("%Y%m%d")).replace("-", "")
+    if len(raw) != 8 or not raw.isdigit():
+        raise ValueError("date必须为YYYYMMDD或YYYY-MM-DD")
+    _date(int(raw[:4]), int(raw[4:6]), int(raw[6:]))
+    return raw
 
 
-def verify(date: str) -> dict:
+def verify(date: str | None = None) -> dict:
     """最小连通验证:调 documents.json·带订阅key请求头·返 HTTP状态+条数。密钥不出现在返回里。"""
+    date = _normalize_date(date)
     url = f"{API_BASE}/documents.json?date={date[:4]}-{date[4:6]}-{date[6:]}&type=2"
     key = _load_key()                       # 内存持有·下面用完即弃
-    masked = _mask(key)
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    ctx = _ctx()
     req = urllib.request.Request(url, headers={
         "Ocp-Apim-Subscription-Key": key,   # 密钥只进请求头·不落任何输出
         "User-Agent": "AI-Invest-System/1.0",
@@ -73,8 +80,8 @@ def verify(date: str) -> dict:
     finally:
         key = None                          # 用完即弃(内存置空)
         del key
-    return {"url": url, "http_status": status, "count": count, "ok": ok,
-            "key_used_masked": masked, "note": note}
+    return {"url": url, "date": date, "http_status": status, "count": count, "ok": ok,
+            "key_used_in_memory": True, "key_value_logged": False, "note": note}
 
 
 # ── 一·证券码↔EDINET码 映射(keyless·下 Edinetcode.zip) ──
@@ -88,10 +95,7 @@ JP_HOLDINGS = {
 
 
 def _ctx():
-    c = ssl.create_default_context()
-    c.check_hostname = False
-    c.verify_mode = ssl.CERT_NONE
-    return c
+    return ssl.create_default_context()
 
 
 def download_codelist() -> Path:
@@ -137,10 +141,12 @@ def build_secmap() -> dict:
     return m
 
 
-def find_annual_doc(edinet_code: str, key: str, days_back: int = 400) -> dict:
+def find_annual_doc(edinet_code: str, key: str, days_back: int = 400,
+                    as_of_date: str | None = None) -> dict:
     """扫最近 days_back 天 documents.json·找该 edinet码 的『有価証券報告書』(docTypeCode=120)最新一份。返 {docID,date,desc}。"""
     import datetime as _dt
-    base = _dt.date(2026, 7, 24)   # 数据日锚(系统当日·真实API按此返)
+    date8 = _normalize_date(as_of_date)
+    base = _dt.date(int(date8[:4]), int(date8[4:6]), int(date8[6:]))
     for d in range(0, days_back):
         day = base - _dt.timedelta(days=d)
         url = f"{API_BASE}/documents.json?date={day.isoformat()}&type=2"
@@ -173,22 +179,37 @@ def fetch_xbrl_financials(doc_id: str, key: str) -> dict:
         return {"error": "zip内无.xbrl"}
     xml = zf.read(xbrl_name).decode("utf-8", errors="replace")
     # 概要税目(逐年·取 CurrentYear 上下文)
+    # ★轮363 丁4:严格只取【連結(Consolidated)】口径——拒绝 NonConsolidated(単体)上下文,避免与 edinet_moat(連結IFRS)口径不一致。
+    #   IFRS申报人:連結净利在 ProfitLossAttributableToOwnersOfParentIFRS(先试);JP-GAAP申报人:連結在 NetIncomeLoss(連結context)。
+    #   返回 (值, tag, 口径) 三元组,口径显式落库,下游不得混用。
     def grab(tag_kw):
-        # 匹配 <...:TagKw contextRef="...CurrentYear...">value</...>
+        # 严格連結:CurrentYear 且 非 NonConsolidated
         for m in _re.finditer(rf'<[\w]+:({tag_kw})[^>]*contextRef="([^"]*)"[^>]*>([^<]+)</', xml):
             if "CurrentYear" in m.group(2) and "NonConsolidated" not in m.group(2):
-                return m.group(3).strip()
-        for m in _re.finditer(rf'<[\w]+:({tag_kw})[^>]*contextRef="([^"]*)"[^>]*>([^<]+)</', xml):
-            if "CurrentYear" in m.group(2):
-                return m.group(3).strip()
-        return None
-    net_sales = grab("NetSalesSummaryOfBusinessResults") or grab("RevenueIFRSSummaryOfBusinessResults") or grab("NetSales")
-    eps = grab("BasicEarningsLossPerShareSummaryOfBusinessResults") or grab("BasicEarningsPerShareIFRSSummaryOfBusinessResults") or grab("BasicEarningsLossPerShare")
-    profit = grab("NetIncomeLossSummaryOfBusinessResults") or grab("ProfitLossAttributableToOwnersOfParentIFRSSummaryOfBusinessResults") or grab("ProfitLoss")
-    return {"net_sales": net_sales, "profit": profit, "eps": eps, "xbrl_file": xbrl_name.split("/")[-1]}
+                return m.group(3).strip(), tag_kw, "連結(Consolidated)"
+        return None, None, None
+
+    def pick(tags):
+        for t in tags:
+            v, tag, kind = grab(t)
+            if v is not None:
+                return v, tag, kind
+        return None, None, None
+
+    # 营收:連結IFRS(Revenue) 优先,其次連結JP-GAAP(NetSales)
+    net_sales, ns_tag, ns_kind = pick(["RevenueIFRSSummaryOfBusinessResults", "RevenuesIFRSSummaryOfBusinessResults", "SalesRevenuesIFRSSummaryOfBusinessResults", "OperatingRevenuesIFRSSummaryOfBusinessResults", "NetSalesSummaryOfBusinessResults", "NetSales"])
+    # 净利:連結IFRS归母(ProfitLossAttributableToOwnersOfParentIFRS) 优先,其次連結JP-GAAP(NetIncomeLoss)
+    profit, pf_tag, pf_kind = pick(["ProfitLossAttributableToOwnersOfParentIFRSSummaryOfBusinessResults", "ProfitLossIFRSSummaryOfBusinessResults", "NetIncomeLossSummaryOfBusinessResults", "ProfitLoss"])
+    eps, eps_tag, eps_kind = pick(["BasicEarningsPerShareIFRSSummaryOfBusinessResults", "BasicEarningsLossPerShareSummaryOfBusinessResults", "BasicEarningsLossPerShare"])
+    return {"net_sales": net_sales, "profit": profit, "eps": eps,
+            "★口径": "連結(Consolidated)·严格拒NonConsolidated(轮363丁4)",
+            "营收_tag": ns_tag, "营收_口径": ns_kind,
+            "净利_tag": pf_tag, "净利_口径": pf_kind,
+            "eps_tag": eps_tag,
+            "xbrl_file": xbrl_name.split("/")[-1]}
 
 
-def run_one(sym: str) -> dict:
+def run_one(sym: str, as_of_date: str | None = None) -> dict:
     """1只全链:证券码→EDINET码→找有報→下XBRL→解EPS。"""
     key = _load_key()
     try:
@@ -198,7 +219,7 @@ def run_one(sym: str) -> dict:
         ed = info.get("edinet")
         if not ed:
             return {"sym": sym, "ok": False, "note": f"证券码{tk}未在EDINET代码表找到"}
-        doc = find_annual_doc(ed, key)
+        doc = find_annual_doc(ed, key, as_of_date=as_of_date)
         if not doc.get("docID"):
             return {"sym": sym, "ok": False, "edinet": ed, "name": info.get("name"), "note": "近400天未找到有価証券報告書(docTypeCode=120)"}
         fin = fetch_xbrl_financials(doc["docID"], key)
@@ -212,9 +233,10 @@ def run_one(sym: str) -> dict:
         del key
 
 
-def run_all(date: str, days_back: int = 400) -> dict:
+def run_all(date: str | None = None, days_back: int = 400) -> dict:
     """铺开9只日股:单遍扫日期·一次收齐所有EDINET码的有報 docID(比逐只快)→逐个下XBRL解财报→写 edinet_financials_{date}.json(EDGAR同格式)。"""
     import datetime as _dt
+    date = _normalize_date(date)
     key = _load_key()
     out = {"_说明": "EDINET(日本金融厅)日股财报·日本准则XBRL税目·与美股EDGAR同格式进估值。密钥安全:只从secrets文件读·不落盘。",
            "date": date, "generated_at": _dt.datetime.now(_dt.timezone(_dt.timedelta(hours=9))).isoformat(timespec="seconds"),
@@ -253,7 +275,9 @@ def run_all(date: str, days_back: int = 400) -> dict:
             ok = bool(fin.get("eps") or fin.get("net_sales"))
             out["symbols"][sym].update({"status": "OK" if ok else "解析失败", "docID": doc["docID"],
                                         "filed": doc["filed"], "period": doc["period"],
-                                        "net_sales": fin.get("net_sales"), "profit": fin.get("profit"), "eps": fin.get("eps")})
+                                        "net_sales": fin.get("net_sales"), "profit": fin.get("profit"), "eps": fin.get("eps"),
+                                        "★口径": fin.get("★口径"), "营收_tag": fin.get("营收_tag"), "营收_口径": fin.get("营收_口径"),
+                                        "净利_tag": fin.get("净利_tag"), "净利_口径": fin.get("净利_口径")})
     finally:
         key = None
         del key
@@ -272,10 +296,11 @@ def main() -> int:
     ap.add_argument("--codelist", action="store_true")
     ap.add_argument("--one", default="")
     ap.add_argument("--all", action="store_true")
-    ap.add_argument("--date", default="20260724")
+    ap.add_argument("--date", default=None, help="YYYYMMDD或YYYY-MM-DD；省略时使用JST当日")
     a = ap.parse_args()
+    date = _normalize_date(a.date)
     if a.all:
-        r = run_all(a.date)
+        r = run_all(date)
         ok = sum(1 for v in r["symbols"].values() if v.get("status") == "OK")
         print(f"=== 日股9只EDINET铺开 · OK={ok}/{len(r['symbols'])} · 写:{r.get('_path')} ===")
         for sym, v in r["symbols"].items():
@@ -290,21 +315,21 @@ def main() -> int:
             print(f"  {s} {nm} → 证券码{tk} → EDINET码 {m.get(tk, {}).get('edinet', '未找到')}·{m.get(tk, {}).get('name', '')}")
         return 0
     if a.one:
-        r = run_one(a.one)
+        r = run_one(a.one, as_of_date=date)
         print("=== 1只EDINET财报链验证 ===")
         for k, v in r.items():
             print(f"  {k}: {v}")
         return 0 if r.get("ok") else 1
     if a.verify:
-        r = verify(a.date)
-        # ★只打印脱敏摘要·密钥一个字不出现
+        r = verify(date)
+        # 密钥仅在请求内存中使用，输出不包含任何密钥片段。
         print("=== EDINET 最小连通验证 ===")
         print(f"① 接入文件:scripts/edinet_financials.py · 读密钥:{KEY_FILE}")
         print(f"② 接口URL(不含密钥):{r['url']}")
         print(f"③ HTTP状态码:{r['http_status']}")
         print(f"④ 返回数据条数:{r['count']}")
         print(f"⑤ 结果:{'成功' if r['ok'] else '失败'} · {r['note']}")
-        print(f"   (密钥已脱敏使用:{r['key_used_masked']}·真值不显)")
+        print("   (密钥仅在内存请求头使用，未打印、未写日志)")
         return 0 if r["ok"] else 1
     print("用法:--verify --date YYYYMMDD")
     return 0
