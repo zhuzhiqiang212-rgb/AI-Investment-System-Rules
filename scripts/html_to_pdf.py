@@ -14,7 +14,7 @@ def _free_port():
     s = socket.socket(); s.bind(("127.0.0.1", 0)); p = s.getsockname()[1]; s.close(); return p
 
 
-async def _print(ws_url, file_url, opts, settle=3.0):
+async def _print(ws_url, file_url, opts, settle=3.0, expand_details=False):
     async with websockets.connect(ws_url, max_size=None) as ws:
         _id = {"n": 0}
         async def cmd(method, params=None):
@@ -29,11 +29,98 @@ async def _print(ws_url, file_url, opts, settle=3.0):
         await cmd("Page.enable")
         await cmd("Page.navigate", {"url": file_url})
         await asyncio.sleep(settle)   # 静态HTML·等布局+字体+背景渲染完
+        if expand_details:
+            # Edge 的原生 <details open> 在长文档打印时仍可能漏掉折叠体。
+            # 仅在打印用 DOM 中把 disclosure materialize 为普通块，源 HTML 不变。
+            expanded = await cmd("Runtime.evaluate", {"expression": r"""
+(() => {
+
+  let count = 0;
+  document.querySelectorAll('details').forEach((details) => {
+    details.open = true;
+    if (!details.classList.contains('pdca-series')) {
+      count += 1;
+      return;
+    }
+    const expandedBlock = document.createElement('div');
+    expandedBlock.style.cssText =
+      'display:block;border:1px solid #b8c4cf;margin:10px 0;padding:9px 11px;background:#fbfcfd;';
+    for (const attribute of details.attributes) {
+      if (attribute.name !== 'open') {
+        expandedBlock.setAttribute(attribute.name, attribute.value);
+      }
+    }
+    expandedBlock.classList.add('pdf-expanded-details');
+    const summary = details.querySelector(':scope > summary');
+    if (summary) {
+      const heading = document.createElement('div');
+      heading.style.cssText =
+        'display:block;font-weight:800;padding:10px 12px;margin:-9px -11px 9px;background:#e9eef1;';
+      heading.className = summary.className;
+      heading.classList.add('pdf-expanded-summary');
+      while (summary.firstChild) heading.appendChild(summary.firstChild);
+      summary.replaceWith(heading);
+    }
+    while (details.firstChild) expandedBlock.appendChild(details.firstChild);
+    details.replaceWith(expandedBlock);
+    count += 1;
+  });
+  let pdcaRecordCount = 0;
+  document.querySelectorAll('table.pdca-records').forEach((table) => {
+    const headers = Array.from(table.querySelectorAll('thead th')).map(
+      (cell) => cell.innerText.trim()
+    );
+    const records = document.createElement('div');
+    records.className = 'pdf-pdca-records';
+    table.querySelectorAll('tbody tr').forEach((row) => {
+      const record = document.createElement('div');
+      record.className = 'pdf-pdca-record';
+      record.style.cssText =
+        'border:1px solid #c9d1d8;margin:8px 0;padding:7px 9px;font-size:10pt;line-height:1.5;break-inside:avoid;page-break-inside:avoid;';
+      Array.from(row.children).forEach((cell, index) => {
+        const field = document.createElement('div');
+        field.className = 'pdf-pdca-field';
+        field.style.cssText =
+          'display:block;padding:4px 0;border-bottom:1px solid #e3e7ea;';
+        const label = document.createElement('div');
+        label.style.cssText = 'display:block;font-weight:700;margin-bottom:1px;';
+        label.textContent = headers[index] || ('字段' + (index + 1));
+        const value = document.createElement('div');
+        value.style.display = 'block';
+        value.innerHTML = cell.innerHTML;
+        if (index === 0) value.style.whiteSpace = 'nowrap';
+        field.append(label, value);
+        record.appendChild(field);
+      });
+      records.appendChild(record);
+      pdcaRecordCount += 1;
+    });
+    table.replaceWith(records);
+  });
+  const forecastIds = (
+    document.body.innerText.match(/FORECAST-LEDGER-\d{3}/g) || []
+  ).length;
+  return {details: count, pdcaRecords: pdcaRecordCount, forecastIds};
+})()
+""", "returnByValue": True})
+            stats = expanded.get("result", {}).get("value", {})
+            count = stats.get("details", 0)
+            if count < 1:
+                raise RuntimeError("--expand-details 未找到可展开的 <details>")
+            if stats.get("pdcaRecords", 0) and stats.get("forecastIds") != stats.get("pdcaRecords"):
+                raise RuntimeError(
+                    "PDCA打印版编号不完整: records=%s ids=%s"
+                    % (stats.get("pdcaRecords"), stats.get("forecastIds"))
+                )
+            print("[pdf details] details=%s pdca_records=%s forecast_ids=%s" %
+                  (count, stats.get("pdcaRecords", 0), stats.get("forecastIds", 0)))
+            await asyncio.sleep(0.5)
         res = await cmd("Page.printToPDF", opts)
         return base64.b64decode(res["data"])
 
 
-def render(src: pathlib.Path, out: pathlib.Path, landscape=False, scale=1.0, margin=0.4, settle=3.0):
+def render(src: pathlib.Path, out: pathlib.Path, landscape=False, scale=1.0, margin=0.4, settle=3.0,
+           expand_details=False):
     src = src.resolve(); out = out.resolve()   # ★file URI 需绝对路径
     edge = next((e for e in EDGE_CANDS if pathlib.Path(e).exists()), None)
     if not edge:
@@ -66,7 +153,8 @@ def render(src: pathlib.Path, out: pathlib.Path, landscape=False, scale=1.0, mar
             "marginTop": margin, "marginBottom": margin, "marginLeft": margin, "marginRight": margin,
             "preferCSSPageSize": False,
         }
-        data = asyncio.run(_print(ws_url, src.as_uri(), opts, settle=settle))
+        data = asyncio.run(_print(ws_url, src.as_uri(), opts, settle=settle,
+                                  expand_details=expand_details))
     finally:
         try:
             proc.terminate(); proc.wait(timeout=10)
@@ -85,7 +173,8 @@ def render(src: pathlib.Path, out: pathlib.Path, landscape=False, scale=1.0, mar
     except (PermissionError, OSError) as e:
         print("[pdf FAIL] 目标被锁写不出(%s: %s)·关闭预览窗格/PDF阅读器·★不杀webview2/GoogleDrive·重跑" % (type(e).__name__, str(e)[:60]))
         return 6
-    print("[pdf 出品] %s · bytes=%d · landscape=%s scale=%s margin=%s" % (out.name, out.stat().st_size, landscape, scale, margin))
+    print("[pdf 出品] %s · bytes=%d · landscape=%s scale=%s margin=%s expand_details=%s" %
+          (out.name, out.stat().st_size, landscape, scale, margin, expand_details))
     return 0
 
 
@@ -98,8 +187,11 @@ def main():
     ap.add_argument("--scale", type=float, default=1.0)
     ap.add_argument("--margin", type=float, default=0.4)
     ap.add_argument("--settle", type=float, default=3.0)
+    ap.add_argument("--expand-details", action="store_true",
+                    help="打印前在临时 DOM 中把所有 details 转为静态展开块")
     a = ap.parse_args()
-    return render(pathlib.Path(a.html), pathlib.Path(a.out), a.landscape, a.scale, a.margin, a.settle)
+    return render(pathlib.Path(a.html), pathlib.Path(a.out), a.landscape, a.scale, a.margin, a.settle,
+                  a.expand_details)
 
 
 if __name__ == "__main__":
