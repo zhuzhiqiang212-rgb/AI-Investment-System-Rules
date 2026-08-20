@@ -154,6 +154,114 @@ def clean_internal(text: Any) -> str:
     return value.strip()
 
 
+def has_clickable_source(value: Any) -> bool:
+    return isinstance(value, dict) and bool(value.get("title")) and str(value.get("url", "")).startswith(("https://", "http://"))
+
+
+def parse_probability(value: Any) -> float | None:
+    match = re.search(r"(\d+(?:\.\d+)?)\s*%", str(value or ""))
+    return float(match.group(1)) / 100 if match else None
+
+
+def canonical_quotes(bundle: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    quotes = idx(bundle["asset_quotes"]["records"], "asset_id", "code")
+    result: dict[str, dict[str, Any]] = {}
+    for asset_id, row in quotes.items():
+        result[asset_id] = {
+            "price": row.get("last_price"),
+            "time": row.get("update_time"),
+            "timezone": row.get("timezone") or row.get("time_zone") or "来源市场时区",
+            "price_type": row.get("price_type") or row.get("market_status") or "最后可得报价",
+            "source": row.get("source") or row.get("provider") or "阶段A统一行情源",
+            "currency": row.get("currency") or (str(row.get("code") or row.get("asset_id") or "").split(".")[0] if "." in str(row.get("code") or row.get("asset_id") or "") else None),
+        }
+    return result
+
+
+def normalize_formula_price(formula: Any, quote: dict[str, Any]) -> Any:
+    if not isinstance(formula, dict):
+        return formula
+    normalized = deepcopy(formula)
+    inputs = normalized.get("actual_inputs")
+    if isinstance(inputs, dict) and inputs.get("current_price") is not None:
+        old_price = inputs.pop("current_price")
+        inputs["valuation_cutoff_price"] = old_price
+        inputs["valuation_cutoff_label"] = "估值输入形成时的截点价格，不是本产品当前价格"
+    normalized["canonical_current_quote"] = quote
+    return normalized
+
+
+def normalize_meta_financial(financial: dict[str, Any]) -> dict[str, Any]:
+    normalized = deepcopy(financial)
+    normalized["financial_period"] = "2026年第二季度及2026年上半年，分期间列示"
+    normalized["fields"] = {
+        "revenue": 60_801_000_000,
+        "operating_profit": 18_775_000_000,
+        "net_income": 15_848_000_000,
+        "operating_cash_flow": 31_862_000_000,
+        "free_cash_flow": 784_000_000,
+        "cash": normalized.get("fields", {}).get("cash"),
+        "debt": normalized.get("fields", {}).get("debt"),
+    }
+    normalized["period_blocks"] = [
+        {
+            "label": "2026年第二季度单季（截至2026-06-30的三个月）",
+            "fields": {
+                "revenue": 60_801_000_000,
+                "operating_profit": 18_775_000_000,
+                "net_income": 15_848_000_000,
+                "operating_cash_flow": 31_862_000_000,
+                "free_cash_flow": 784_000_000,
+            },
+        },
+        {
+            "label": "2026年上半年（截至2026-06-30的六个月）",
+            "fields": {
+                "revenue": 117_111_000_000,
+                "operating_profit": 41_647_000_000,
+                "net_income": 42_621_000_000,
+                "operating_cash_flow": 64_088_000_000,
+                "capital_expenditure": 49_113_000_000,
+                "finance_lease_principal": 1_805_000_000,
+                "free_cash_flow": 13_170_000_000,
+            },
+            "formula": "自由现金流＝经营现金流64,088－购置物业及设备49,113－融资租赁本金1,805＝13,170（单位：百万美元）",
+        },
+    ]
+    normalized["precise_locator"] = "Meta 2026年第二季度结果：Consolidated Statements of Operations、Condensed Consolidated Statements of Cash Flows及Free Cash Flow reconciliation"
+    return normalized
+
+
+def crypto_evidence_roles(asset_id: str, quote: dict[str, Any], account_fact: Any) -> dict[str, Any]:
+    protocol = {
+        "BTC": {"title": "Bitcoin白皮书", "publisher": "Bitcoin协议作者", "url": "https://bitcoin.org/bitcoin.pdf", "supports": "仅证明协议定义、点对点运行思想与供给规则。"},
+        "ETH": {"title": "Ethereum白皮书", "publisher": "Ethereum协议文档", "url": "https://ethereum.org/en/whitepaper/", "supports": "仅证明协议、智能合约与网络运行定义。"},
+    }[asset_id]
+    return {
+        "account": account_fact,
+        "financial": {"status": "不适用", "title": "企业财务口径不适用", "supports": "数字资产没有企业收入、营业利润、资产负债表或企业现金流量表。"},
+        "protocol": protocol,
+        "market": {"status": "已取得" if quote.get("price") is not None else "尚未取得", "price": quote.get("price"), "time": quote.get("time"), "source": quote.get("source"), "supports": "仅证明该时间点的最后可得市场报价和流动性观察。"},
+        "onchain": {"status": "尚未取得", "supports": "本批次未取得独立链上活动数据，不进入判断。"},
+        "etf_structure": {"status": "尚未取得", "supports": "本批次未取得独立ETF或交易结构文件，不进入判断。"},
+        "regulation": {"status": "尚未取得", "supports": "本批次未取得具体监管文件，不进入判断。"},
+    }
+
+
+def normalize_judgment_text(judgment: dict[str, Any]) -> dict[str, Any]:
+    def walk(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {key: walk(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [walk(item) for item in value]
+        if isinstance(value, str):
+            value = value.replace("17只研究对象", "18只研究观察对象")
+            value = value.replace("半年自由现金流按131.70亿美元口径，不再使用149.75亿美元旧值", "半年自由现金流按131.70亿美元口径，并与单季7.84亿美元分开列示")
+            return value
+        return value
+    return walk(deepcopy(judgment))
+
+
 def scalar_evidence(value: Any) -> str:
     if value is None:
         return "未取得可独立核验外部证据"
@@ -218,7 +326,7 @@ def normalize_layers(bundle: dict[str, Any], judgment: dict[str, Any], source: d
             item["portfolio_transmission"] += " AVGO与NVDA维持持有、不追价；MRVL进入研究观察池且不可执行。"
             item["facts"].append(marvell)
         if n == 5:
-            item["final_judgment"] = "10,912只股票完成覆盖，431只只是机械入围，不是候选或买入名单。现阶段17只原研究对象加MRVL，共18只进入正式研究观察；第五关通过0只，可执行机会0只。其余413只继续停在机械池，不能被写成淘汰。"
+            item["final_judgment"] = "10,912只股票完成覆盖，431只只是机械入围，不是候选或买入名单。原17只＋新增MRVL＝当前18只研究观察对象；第五关通过0只，可执行机会0只。其余413只继续停在机械池，不能被写成淘汰。"
             item["portfolio_transmission"] = "不因可执行机会为0而永久持币；按正式五关顺序推进18只对象，MRVL必须先闭合财务、稀释与估值边界。"
         if n == 6:
             risk = source["risk"]
@@ -251,6 +359,17 @@ def normalize_layers(bundle: dict[str, Any], judgment: dict[str, Any], source: d
                     "boundary": "未知账户字段闭合后必须重算；当前比例不自动生成交易动作。",
                 },
             ]
+        for fact_index, fact in enumerate(item.get("facts", []), 1):
+            if not fact.get("title"):
+                fact["title"] = f"第{n}层机器事实{fact_index}"
+            if not fact.get("publisher"):
+                fact["publisher"] = "阶段A同批次机器事实包"
+            if not fact.get("url"):
+                fact["source_path"] = bundle.get("source_lineage", {}).get("same_day_fact_bundle_reused")
+            if not fact.get("supports"):
+                fact["supports"] = item.get("portfolio_transmission")
+            if not fact.get("cannot_prove"):
+                fact["cannot_prove"] = item.get("reversal") or "单项事实不能独立证明完整投资动作。"
         layers.append(item)
     return layers
 
@@ -271,6 +390,24 @@ def marvell_event(marvell_evidence: dict[str, Any]) -> dict[str, Any]:
         "boundary": "官方8-K在本次返工时实际读取；Reuters直连未由Codex取得原文，链接和事实由GPT总控核验。事件发布早于原证据截止，可补入当时事实，但不能把122亿美元写成已发生现金支出或既定采购额。",
         "sha256": marvell_evidence["sha256"],
     }
+
+
+def normalize_news(bundle: dict[str, Any], marvell: dict[str, Any]) -> dict[str, Any]:
+    news = deepcopy(bundle["news_ledger"])
+    impacts = {
+        "NEWS-20260820-FOMC-MINUTES": "通胀担忧和进一步收紧风险提高长久期估值折现压力；MSFT、NVDA、AVGO、META不追价，现金的选择权上升。",
+        "NEWS-20260820-TREASURY-BUYBACK-OIL": "国债回购缓解单向流动性压力；油价上升短期支持XOM、CVX，却同时抬高通胀与长端利率，对高估值科技不利。两种力量相互抵消，不自动生成交易。",
+        "NEWS-20260820-JAPAN-GDP": "增长保持正值为日股基本面提供支撑，但初值可修订；日本银行、日元、银行股与出口股仍需等BOJ和汇率确认。",
+        "NEWS-20260820-MARKET-SNAPSHOT": "只用于描述各市场最后可得状态并校验风险方向；没有可点击原文的行情快照不支持盘中精确触发。",
+    }
+    local_bundle = bundle.get("source_lineage", {}).get("same_day_fact_bundle_reused")
+    for record in news["records"]:
+        record["portfolio_impact"] = impacts.get(record.get("event_id"), "该事实只作为当期背景，不单独改变持仓动作。")
+        if not record.get("url"):
+            record["source_path"] = record.get("local_path") or local_bundle
+            record["boundary"] = f"{record.get('boundary') or ''} 本项没有可点击网页原文，保留机器实物路径；不进入盘中精确触发。".strip()
+    news["records"].append(marvell)
+    return news
 
 
 def filtered_events(bundle: dict[str, Any]) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
@@ -339,7 +476,7 @@ def build_holding_research(
     business = idx(business_input["items"], "code")
     holdings = idx(bundle["holding_inputs"]["items"], "symbol")
     valuations = idx(bundle["valuation_inputs"]["items"], "symbol")
-    quotes = idx(bundle["asset_quotes"]["records"], "asset_id", "code")
+    quotes = canonical_quotes(bundle)
     combined = idx(source["combined_positions"], "asset_id")
     answers = idx(judgment["asset_final_answers"], "asset_id")
     result = []
@@ -348,18 +485,70 @@ def build_holding_research(
         current = holdings.get(asset_id, {})
         valuation = valuations.get(asset_id, {})
         combined_row = combined.get(asset_id, {})
-        financial = current.get("financial_fact", {})
+        financial = deepcopy(current.get("financial_fact", {}))
+        if asset_id == "US.META":
+            financial = normalize_meta_financial(financial)
+        if asset_id in {"BTC", "ETH"}:
+            financial = {
+                "status": "NOT_APPLICABLE_ASSET",
+                "financial_period": "不适用：数字资产不是经营公司",
+                "consolidation": "不适用",
+                "currency": None,
+                "fields": {},
+                "title": "企业财务口径不适用",
+                "publisher": None,
+                "url": None,
+                "precise_locator": "不使用企业利润表、资产负债表或企业现金流量表。",
+            }
         fields = financial.get("fields", {})
         official = valuation.get("official_source") or financial
         quote = quotes.get(asset_id, {})
-        current_price = quote.get("last_price") or current.get("current_price", {}).get("value")
-        current_time = quote.get("update_time") or current.get("current_price", {}).get("time")
+        current_price = quote.get("price")
+        if current_price is None:
+            current_price = current.get("current_price", {}).get("value")
+            quote = {
+                "price": current_price,
+                "time": current.get("current_price", {}).get("time"),
+                "timezone": current.get("current_price", {}).get("timezone") or "来源市场时区",
+                "price_type": "最后可得报价",
+                "source": current.get("current_price", {}).get("source") or "持仓事实源",
+                "currency": current.get("current_price", {}).get("currency"),
+            }
+        current_time = quote.get("time")
         quality = financial_quality(fields, financial.get("status"))
         reverse = current.get("reverse_evidence", {})
         event_adjustment = None
         if asset_id in {"US.AVGO", "US.NVDA"}:
             event_adjustment = marvell["portfolio_impact"]
         classification = valuation.get("classification") or current.get("valuation_input", {}).get("classification")
+        account_role = current.get("account_fact")
+        if asset_id in {"BTC", "ETH"}:
+            evidence_roles = crypto_evidence_roles(asset_id, quote, account_role)
+        else:
+            financial_role = {
+                "title": official.get("title") or official.get("source_title"),
+                "publisher": official.get("publisher"),
+                "period": financial.get("financial_period") or official.get("period"),
+                "url": official.get("url") or official.get("source_url"),
+                "locator": official.get("locator") or financial.get("precise_locator"),
+                "boundary": official.get("role_boundary"),
+            }
+            evidence_roles = {
+                "account": account_role,
+                "financial": financial_role if has_clickable_source(financial_role) else {"status": "尚未取得可点击正式财务原文", **financial_role},
+                "valuation": {
+                    "method": valuation.get("method") or current.get("valuation_input", {}).get("method_candidate"),
+                    "input": valuation.get("external_forward_input"),
+                    "formula": normalize_formula_price(valuation.get("reproducible_formula"), quote),
+                    "boundary": answer.get("valuation_or_risk_pricing"),
+                },
+                "event": {
+                    "status": "已取得相关线索，仍需核官方原文" if accepted_events.get(asset_id) else "限定范围内未取得独立公司事件",
+                    "items": accepted_events.get(asset_id, [])[:5],
+                },
+                "reverse": reverse if reverse else {"status": "本批次未取得足以推翻主判断的新增反向事实"},
+                "rule": "Current正式五关、风险观察约束和总控唯一动作边界。",
+            }
         result.append({
             "asset_id": asset_id,
             "name": old.get("name") or combined_row.get("name") or current.get("name") or asset_id,
@@ -377,9 +566,10 @@ def build_holding_research(
                 "consolidation": financial.get("consolidation") or official.get("consolidation"),
                 "currency": financial.get("currency") or official.get("currency"),
                 "fields": fields or official.get("actual_fields", {}),
+                "period_blocks": financial.get("period_blocks", []),
                 "quality": quality,
                 "guidance": current.get("company_guidance", {}).get("cn") or old.get("official_guidance"),
-                "one_off": old.get("one_off_and_accounting_basis"),
+                "one_off": ("自由现金流按公司披露分期间列示：第二季度7.84亿美元、上半年131.70亿美元。" if asset_id == "US.META" else old.get("one_off_and_accounting_basis")),
                 "source_title": official.get("title") or official.get("source_title"),
                 "publisher": official.get("publisher"),
                 "url": official.get("url") or official.get("source_url") or old.get("evidence_url"),
@@ -395,11 +585,14 @@ def build_holding_research(
                 "method": valuation.get("method") or current.get("valuation_input", {}).get("method_candidate") or answer.get("valuation_or_risk_pricing"),
                 "method_reason": valuation.get("method_reason") or current.get("valuation_input", {}).get("why_applicable"),
                 "current_price": current_price,
-                "current_price_currency": quote.get("code", "").split(".")[0] if quote else current.get("current_price", {}).get("currency"),
+                "current_price_currency": quote.get("currency"),
                 "current_price_time": current_time,
-                "official_input": valuation.get("official_source") or financial,
+                "current_price_timezone": quote.get("timezone"),
+                "current_price_type": quote.get("price_type"),
+                "current_price_source": quote.get("source"),
+                "official_input": (financial if asset_id == "US.META" else valuation.get("official_source") or financial),
                 "forward_input": valuation.get("external_forward_input"),
-                "formula": valuation.get("reproducible_formula") or current.get("valuation_input", {}).get("formula_template"),
+                "formula": normalize_formula_price(valuation.get("reproducible_formula") or current.get("valuation_input", {}).get("formula_template"), quote),
                 "final_control_answer": answer.get("valuation_or_risk_pricing"),
                 "price_boundary": "只有总控最终答案明确给出且外部输入可复算时才使用数值边界；其余项目不提供便宜、合理或偏贵的伪精确价格线。",
                 "missing": valuation.get("missing_fields") or [current.get("unknowns")],
@@ -422,14 +615,7 @@ def build_holding_research(
                 "marvell_event_adjustment": event_adjustment,
             },
             "event_leads": accepted_events.get(asset_id, [])[:5],
-            "evidence_roles": {
-                "account": current.get("account_fact"),
-                "financial": {"title": official.get("title") or official.get("source_title"), "publisher": official.get("publisher"), "period": financial.get("financial_period") or official.get("period"), "url": official.get("url") or official.get("source_url"), "locator": official.get("locator") or financial.get("precise_locator"), "boundary": official.get("role_boundary")},
-                "valuation": {"method": valuation.get("method") or current.get("valuation_input", {}).get("method_candidate"), "input": valuation.get("external_forward_input"), "formula": valuation.get("reproducible_formula"), "boundary": answer.get("valuation_or_risk_pricing")},
-                "event": {"status": "已取得相关线索，仍需核官方原文" if accepted_events.get(asset_id) else "限定范围内未取得独立公司事件", "items": accepted_events.get(asset_id, [])[:5]},
-                "reverse": reverse,
-                "rule": "Current正式五关、风险观察约束和总控唯一动作边界。",
-            },
+            "evidence_roles": evidence_roles,
         })
     return result
 
@@ -443,38 +629,89 @@ def scan_row(bundle: dict[str, Any], asset_id: str) -> dict[str, Any]:
     return {}
 
 
-def gate_statuses(stop_text: str) -> list[str]:
-    match = re.search(r"第([一二三四五])关", stop_text or "")
-    number_map = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5}
-    stop = number_map.get(match.group(1), 5) if match else 5
+def gate_statuses(evidence_ok: list[bool]) -> list[str]:
+    first_failed = next((index + 1 for index, ok in enumerate(evidence_ok) if not ok), 5)
     statuses = []
     for gate in range(1, 6):
-        if gate < stop:
-            statuses.append("已完成事实检查")
-        elif gate == stop:
-            statuses.append("停在本关，尚未通过")
+        if gate < first_failed:
+            statuses.append("已取得本关事实与可追溯来源")
+        elif gate == first_failed:
+            statuses.append("停在本关，证据尚未闭合")
         else:
             statuses.append("因前关未通过，未进入")
     return statuses
 
 
+def sector_source_for(answer: dict[str, Any], news_records: list[dict[str, Any]], marvell: dict[str, Any]) -> dict[str, Any] | None:
+    sector = str(answer.get("activated_sector") or "")
+    if any(token in sector for token in ("AI", "半导体", "存储", "网络", "光", "数据中心")):
+        return marvell
+    if any(token in sector for token in ("能源", "石油", "电力", "核电")):
+        return next((x for x in news_records if "油价" in str(x.get("title"))), None)
+    if "银行" in sector:
+        return next((x for x in news_records if "日本" in str(x.get("title")) and "GDP" in str(x.get("title"))), None)
+    return None
+
+
 def build_research_gates(bundle: dict[str, Any], judgment: dict[str, Any], old_gate_input: dict[str, Any], marvell: dict[str, Any]) -> list[dict[str, Any]]:
     old = idx(old_gate_input["items"], "code")
     answers = idx(judgment["research_gate_answers"], "asset_id")
+    valuations = idx(bundle["valuation_inputs"]["items"], "symbol")
+    news_records = bundle["news_ledger"]["records"]
     result = []
     for asset_id, answer in answers.items():
         item = old.get(asset_id, {})
         old_gates = {int(x.get("gate", 0)): x for x in item.get("gates", [])}
-        statuses = gate_statuses(str(answer.get("formal_gate_stop", "")))
+        official = item.get("official_evidence") if isinstance(item.get("official_evidence"), dict) else {}
+        valuation = valuations.get(asset_id, {})
+        valuation_source = valuation.get("official_source") if isinstance(valuation.get("official_source"), dict) else {}
+        sector_source = sector_source_for(answer, news_records, marvell)
+        gate_sources = {
+            1: sector_source,
+            2: official,
+            3: valuation_source,
+            4: official,
+            5: None,
+        }
+        gate_facts = {
+            1: f"{answer.get('activated_sector')}。该来源只能证明本期方向或行业事件，不替代公司财务与估值。",
+            2: clean_internal(old_gates.get(2, {}).get("input") or "本批次未取得正式财务期间和可点击原文。"),
+            3: clean_internal(old_gates.get(3, {}).get("input") or "本批次未取得可复算估值或风险定价输入。"),
+            4: clean_internal(old_gates.get(4, {}).get("input") or "本批次未取得公司特定的护城河、竞争和资本回报证据。"),
+            5: f"与现金和现有持仓比较：{answer.get('replacement_target')}。当前执行条件：{answer.get('executable_condition_or_none')}",
+        }
+        formula = valuation.get("reproducible_formula")
+        formula_inputs = formula.get("actual_inputs") if isinstance(formula, dict) else None
+        gate_ok = [
+            has_clickable_source(sector_source),
+            has_clickable_source(official),
+            has_clickable_source(valuation_source) and isinstance(formula_inputs, dict) and bool(formula_inputs),
+            has_clickable_source(official) and any(token in gate_facts[4] for token in ("护城河", "主要竞争", "客户", "技术", "规模")),
+            False,
+        ]
+        statuses = gate_statuses(gate_ok)
+        first_failed = next((i + 1 for i, ok in enumerate(gate_ok) if not ok), 5)
         gates = []
         for gate in range(1, 6):
-            fact = old_gates.get(gate, {})
+            missing = []
+            if not gate_ok[gate - 1]:
+                missing_map = {
+                    1: "缺少能证明本期板块激活的可点击事实源。",
+                    2: "缺少正式财务期间或可点击公司原文。",
+                    3: "缺少可复算估值输入、公式或独立来源。",
+                    4: "缺少公司特定的护城河、竞争与资本回报证据定位。",
+                    5: "尚未证明相对现金或现有持仓更值得替换；当前不可执行。",
+                }
+                missing.append(missing_map[gate])
+            if gate > first_failed:
+                missing = ["前关未闭合，本关不作通过判断。"]
             gates.append({
                 "gate": gate,
                 "status": statuses[gate - 1],
-                "fact": clean_internal(fact.get("input") or "本批次未取得该关的独立事实输入。"),
-                "source": item.get("official_evidence") if gate in {2, 3, 4} else None,
-                "missing": fact.get("missing") or ([] if statuses[gate - 1] == "已完成事实检查" else ["本关未完成，不能越关。"]),
+                "fact": gate_facts[gate],
+                "source": gate_sources[gate],
+                "missing": missing,
+                "evidence_complete": gate_ok[gate - 1],
             })
         result.append({
             "asset_id": asset_id,
@@ -482,7 +719,7 @@ def build_research_gates(bundle: dict[str, Any], judgment: dict[str, Any], old_g
             "identity": "研究观察对象；不是正式候选或可执行机会。",
             "activated_sector": answer.get("activated_sector"),
             "gates": gates,
-            "formal_gate_stop": answer.get("formal_gate_stop"),
+            "formal_gate_stop": f"第{first_failed}关：{gates[first_failed-1]['missing'][0]}",
             "retain_or_drop": answer.get("retain_or_drop"),
             "valuation_or_risk_pricing": answer.get("valuation_or_risk_pricing"),
             "replacement_target": answer.get("replacement_target"),
@@ -497,16 +734,16 @@ def build_research_gates(bundle: dict[str, Any], judgment: dict[str, Any], old_g
     result.append({
         "asset_id": "US.MRVL",
         "name": "Marvell Technology",
-        "identity": "总控内容闸新增的研究观察对象；当前不可执行。",
+        "identity": "当前18只研究观察对象之一；不是正式候选或可执行机会。",
         "activated_sector": "AI基础设施中的定制芯片与高速互连，选择性研究激活。",
         "gates": [
-            {"gate": 1, "status": "已进入研究范围", "fact": "Marvell—Google定制AI芯片合作属于已激活的AI基础设施与定制芯片方向。", "source": marvell, "missing": []},
-            {"gate": 2, "status": "停在本关，尚未通过", "fact": f"机械扫描取得市值、经营现金流和利润率输入：经营现金流{fmt_num(mrvl_scan.get('ocf_ttm'))}美元、毛利率{fmt_num(mrvl_scan.get('gross_margin'))}%；但最新完整财报与认股权证稀释影响尚未同口径闭合。", "source": {"title": "Marvell最近季度报告与全市场机械扫描", "url": "https://www.sec.gov/Archives/edgar/data/1835632/000183563226000019/0001835632-26-000019-index.html"}, "missing": ["最新完整财务、Google采购确认和认股权证稀释影响需要同口径闭合。"]},
-            {"gate": 3, "status": "因前关未通过，未进入", "fact": "不使用事件后股价或认股权证总额反推内在价值。", "source": marvell, "missing": ["前瞻盈利、稀释股数与可比估值边界未闭合。"]},
-            {"gate": 4, "status": "因前关未通过，未进入", "fact": "Google定制芯片合作是客户验证，但客户集中、供应多元化和与Broadcom/NVIDIA竞争仍需核验。", "source": marvell, "missing": ["客户集中、技术差异和资本回报尚未完成正式审查。"]},
-            {"gate": 5, "status": "因前关未通过，未进入", "fact": "当前没有相对现金或现有持仓的完整替换比较。", "source": None, "missing": ["没有可执行价格、替换对象或组合贡献。"]},
+            {"gate": 1, "status": "已取得本关事实与可追溯来源", "fact": "Marvell—Google定制AI芯片合作属于已激活的AI基础设施与定制芯片方向。", "source": marvell, "missing": [], "evidence_complete": True},
+            {"gate": 2, "status": "停在本关，证据尚未闭合", "fact": f"机械扫描取得经营现金流{fmt_num(mrvl_scan.get('ocf_ttm'))}美元、毛利率{fmt_num(mrvl_scan.get('gross_margin'))}%；但最新完整财报与认股权证稀释影响尚未同口径闭合。", "source": {"title": "Marvell最近季度报告与全市场机械扫描", "url": "https://www.sec.gov/Archives/edgar/data/1835632/000183563226000019/0001835632-26-000019-index.html"}, "missing": ["最新完整财务、Google采购确认和认股权证稀释影响需要同口径闭合。"], "evidence_complete": False},
+            {"gate": 3, "status": "因前关未通过，未进入", "fact": "不使用事件后股价或认股权证总额反推内在价值。", "source": marvell, "missing": ["前瞻盈利、稀释股数与可比估值边界未闭合。"], "evidence_complete": False},
+            {"gate": 4, "status": "因前关未通过，未进入", "fact": "Google合作是客户验证，但客户集中、供应多元化和与Broadcom/NVIDIA竞争仍需核验。", "source": marvell, "missing": ["客户集中、技术差异和资本回报尚未完成正式审查。"], "evidence_complete": False},
+            {"gate": 5, "status": "因前关未通过，未进入", "fact": "当前没有相对现金或现有持仓的完整替换比较。", "source": None, "missing": ["没有可执行价格、替换对象或组合贡献。"], "evidence_complete": False},
         ],
-        "formal_gate_stop": "第二关：最新完整财务与认股权证稀释影响未闭合。",
+        "formal_gate_stop": "第2关：最新完整财务与认股权证稀释影响未闭合。",
         "retain_or_drop": "保留研究观察",
         "valuation_or_risk_pricing": "当前不形成数值估值。约122亿美元是最多股数乘行权价，不是已发生现金支出或公司内在价值。",
         "replacement_target": "尚未形成替换对象。",
@@ -525,22 +762,65 @@ def build_target_bridge(source: dict[str, Any], judgment: dict[str, Any], holdin
     pure_cash = float(target["pure_cash_estimate_jpy"])
     first_trial = round(pure_cash * 0.20, 2)
     rows = []
+    quantified_weight = 0.0
+    quantified_base_contribution = 0.0
     for item in holdings:
         weight = float(item["account_fact"]["weight_of_known_assets_pct"])
+        probability = parse_probability(item["forecast"].get("control_confidence"))
+        formula = item["valuation"].get("formula")
+        actual_inputs = formula.get("actual_inputs") if isinstance(formula, dict) else None
+        approved_returns = formula.get("approved_target_returns") if isinstance(formula, dict) else None
+        scenario_ready = (
+            isinstance(actual_inputs, dict)
+            and isinstance(approved_returns, dict)
+            and all(isinstance(approved_returns.get(key), (int, float)) for key in ("bear", "base", "bull"))
+            and probability is not None
+        )
+        if scenario_ready:
+            base_contribution = round(weight / 100 * float(approved_returns["base"]) * probability, 4)
+            quantified_weight += weight
+            quantified_base_contribution += base_contribution
+            status = "已进入可复算目标贡献桥"
+            missing = "无；公式为已知权重×基准收益率×总控粗粒度概率。"
+            bear_return = approved_returns["bear"]
+            base_return = approved_returns["base"]
+            bull_return = approved_returns["bull"]
+        else:
+            base_contribution = None
+            status = "退出数值目标贡献桥"
+            missing_parts = []
+            if not isinstance(actual_inputs, dict) or not actual_inputs:
+                missing_parts.append("缺少可复算外部输入")
+            if not isinstance(approved_returns, dict):
+                missing_parts.append("总控没有批准可用于目标贡献的三情景收益率")
+            if probability is None:
+                missing_parts.append("缺少可用粗粒度概率")
+            missing = "；".join(missing_parts) or "现有参数不足以形成目标贡献"
+            bear_return = base_return = bull_return = None
         rows.append({
             "asset_id": item["asset_id"],
             "name": item["name"],
             "known_weight_pct": weight,
-            "bear_return_pct": None,
-            "base_return_pct": None,
-            "bull_return_pct": None,
+            "bear_return_pct": bear_return,
+            "base_return_pct": base_return,
+            "bull_return_pct": bull_return,
             "probability": item["forecast"].get("control_confidence"),
-            "probability_weighted_contribution_pp": None,
-            "status": "不可复算目标贡献",
-            "missing": "总控没有批准可独立核验的悲观、基准、乐观收益率及对应概率；本期不反推。",
+            "probability_weighted_contribution_pp": base_contribution,
+            "status": status,
+            "missing": missing,
         })
+    trial_scenarios = []
+    for trial_return in (50, 100, 200):
+        contribution = round(first_trial / total * trial_return / 100 * 100, 4)
+        trial_scenarios.append({
+            "trial_return_pct": trial_return,
+            "portfolio_contribution_pp": contribution,
+            "remaining_plus_40_pp": round(40 - quantified_base_contribution - contribution, 4),
+            "remaining_plus_100_pp": round(100 - quantified_base_contribution - contribution, 4),
+        })
+    unquantified_weight = round(sum(x["known_weight_pct"] for x in rows if x["status"] != "已进入可复算目标贡献桥"), 4)
     return {
-        "boundary": "这是8月20日起的前瞻观察桥，不是2026年1月1日起的实际收益。",
+        "boundary": "这是8月20日起的前瞻观察桥，不是2026年1月1日起的实际收益。资产贡献只有在外部输入、总控三情景收益率、概率和权重同时齐全时才计算。",
         "known_assets_jpy": total,
         "plus_40_observation_target_jpy": round(total * 1.40, 2),
         "plus_40_gap_jpy": round(total * 0.40, 2),
@@ -553,10 +833,16 @@ def build_target_bridge(source: dict[str, Any], judgment: dict[str, Any], holdin
         "plain_math": f"首次试仓上限约{first_trial:,.0f}日元，只占已知资产{first_trial / total * 100:.2f}%。即使该试仓翻倍，对组合也只增加约{first_trial / total * 100:.2f}个百分点，不能单独证明＋40%路径。",
         "account_forward_baselines": source["forward_observation_baselines"],
         "asset_rows": rows,
+        "quantified_asset_count": sum(x["status"] == "已进入可复算目标贡献桥" for x in rows),
+        "quantified_weight_pct": round(quantified_weight, 4),
+        "quantified_base_contribution_pp": round(quantified_base_contribution, 4),
+        "unquantified_weight_pct": unquantified_weight,
+        "trial_scenarios": trial_scenarios,
         "monthly_milestones": target["plus_40_path"].get("milestones", []),
-        "plus_40_status": "条件路径，当前不可复算证明",
-        "plus_100_status": "当前不可执行，不是收益承诺",
-        "missing_variables": ["逐资产三情景收益率", "每个情景的可核概率", "新增机会的实际仓位", "全年入出金和2026年1月1日完整净值"],
+        "plus_40_status": target["plus_40_path"]["plain_answer"],
+        "plus_100_status": target["plus_100_path"]["plain_answer"],
+        "path_proven": False,
+        "missing_variables": ["逐资产经总控批准的三情景收益率", "收益情景与概率的外部验证记录", "新增机会通过五关后的实际仓位", "全年入出金和2026年1月1日完整净值"],
     }
 
 
@@ -570,31 +856,54 @@ ALIASES = {
 
 
 def external_view_mapping(bundle: dict[str, Any]) -> list[dict[str, Any]]:
+    rules = [
+        ("10年美债收益率走高", ["US.MSFT", "US.NVDA", "US.AVGO", "US.META"], "10年期美债收益率突破4.7%，材料把4.75%至4.90%列为第一压力区，并把长端上行归因于财政赤字而非短端加息预期。", "支持暂停追高高估值科技，并把长端利率纳入AI资本开支估值。", "材料的“反弹不被打断”是观点，不是官方事实；若20年债拍卖或通胀意外恶化，结论会转弱。", "采纳利率压力与财政赤字方向，不采纳确定的反弹路径。", "把MSFT、NVDA、AVGO、META的复核优先级提前到长债拍卖与通胀数据后；不改变持有、不追价。", "不新增AI仓位；利率进入压力区时优先比较现金。", "20年期美债拍卖、下一次PPI/CPI后复核"),
+        ("周一北美资金流", ["US.MSFT", "US.NVDA", "US.AVGO"], "成交量14.5340亿股，低于年内均值19.1490亿股；做市商约150亿美元正gamma，材料认为短期波动受压。", "支持把当日反弹视为低成交量环境，不因单日价格上行追价。", "正gamma会变化，不能证明基本面或中期上涨；材料的历史99%分位未由本批次独立复算。", "只采用成交量与仓位结构作短期背景。", "降低短期突破信号的权重，把正式财报和资金流持续性放在价格之前。", "动作仍为持有、不追价；不把低波动当买点。", "下一交易日资金流与期权仓位更新后"),
+        ("Tech Daily sell-side", ["US.AVGO", "US.MU", "US.NVDA"], "材料称AVGO 2027财年AI半导体收入可能超过1,400亿美元、MU部分数据中心需求满足率不足50%，同时指出Anthropic收入增速二阶导放缓。", "支持定制芯片和HBM需求仍强，抬高AVGO、MU的研究优先级。", "卖方目标价和收入预测不是公司指引；Anthropic口径不明且增速放缓会削弱AI需求外推。", "采用需求线索，不采用目标价和未经官方核验的精确预测。", "AVGO与MU的排序不因卖方乐观自动上调；新增Marvell竞争后，AVGO客户集中风险权重提高。", "继续观察，不形成新仓位。", "AVGO、MU下一次正式财报后"),
+        ("MSFT Model", ["US.MSFT"], "材料给出2027日历年EPS 21.75美元、27倍市盈率和587美元目标价，并提出460至480美元观察区。", "为MSFT前瞻盈利提供一个外部观点交叉点。", "单页材料没有样本窗口、概率和自由现金流推导，不能证明27倍是合理价值。", "只作为外部情景对照，不进入唯一当前价格或自动买卖线。", "不改变MSFT核心持有；该材料使复核重点从静态市盈率转向2027 EPS兑现。", "不追价，不按460至480机械下单。", "MSFT下一次正式财报后"),
+        ("周二北美资金流", ["US.NVDA", "US.AVGO", "US.MU", "US.SNDK"], "成交量14.7亿股、低于19.1490亿股年内均值；长线和对冲基金小幅净卖科技，同时出现DRAM短期看涨期权买入。", "支持存储短期相对强度仍有资金关注。", "科技总体卖压与低成交量削弱广泛风险偏好，DRAM期权不能证明现货基本面。", "采纳为短期资金流线索。", "MU、SNDK研究优先级保持，但新增仓位条件不放宽。", "不新增；等待现货、财报与存储价格共同验证。", "下一次北美资金流及存储价格更新后"),
+        ("Hynix回购解读", ["KRX.005930", "US.MU", "US.SNDK"], "材料称SK Hynix拟回购注销约3.3%股份，并把2025至2027年累计自由现金流返还标准提高到至少50%。", "支持存储龙头对中期现金流和股东回报更有信心。", "Hynix行为不能直接证明三星、MU或SNDK的盈利；40万亿韩元表述需以公司原文核对。", "采用行业资本纪律信号，不把精确金额直接套到其他公司。", "提高存储链现金流验证的重要性，但不改变三星、MU、SNDK当前观察或持有边界。", "等待各自正式财报，不追随同业回购买入。", "Hynix回购执行及三家下一次财报后"),
+        ("韩国周三资金流", ["KRX.005930", "US.MU", "US.SNDK"], "外资当日净卖24.83亿美元，其中Samsung与Hynix合计净卖13.5亿美元；期货基差由负转正。", "支持韩国存储股存在现货卖压，不能只看行业景气。", "单日资金流波动大，正基差也可能反映对冲，不足以推翻中期存储逻辑。", "采纳为三星和存储链的短期反向证据。", "三星研究排序暂不提高；MU与SNDK继续等盈利和价格验证。", "不新增韩国或存储仓位。", "下一周韩国外资累计资金流后"),
+        ("Anthropic和OpenAI", ["US.NVDA", "US.AVGO", "US.MSFT", "US.META"], "材料认为Anthropic年化收入增速由4至5月约57%至58%降至5至7月约14%至18%，并称OpenAI二季度收入增速和经营利润率低于预期。", "支持AI应用收入仍增长，但商业化增速与盈利质量需要单独核验。", "数据来自媒体且口径可能不一致，不能据此判定整个AI硬件需求反转。", "采用“商业化兑现需复核”的反向提醒，不采用未经官方核验的精确收入作为财务事实。", "降低AI高资本开支链的追价意愿；不改变现有持仓，但提高NVDA财报后的复核优先级。", "暂停扩大AI同一驱动。", "NVDA财报及云厂商下一轮资本开支指引后"),
+        ("26-07-24", ["US.NVDA", "US.MSFT", "US.AVGO"], "材料把市场形成新共识的时间推迟至8月26日前后，并强调调整期内分批、不要着急。", "支持在NVDA财报前保留现金、避免追高。", "这是7月观点，时效较旧；具体日期不是可验证的公司基本面。", "只采用风险节奏提醒。", "把复核日锚定在NVDA财报后，不改变持仓动作和研究池身份。", "继续等待，不因日期预测自动交易。", "2026-08-27 NVDA财报后"),
+        ("26-07-23", ["US.MSFT", "US.META", "US.NVDA"], "材料强调云业务增长与AI资本开支最终要由自由现金流兑现，并用Google资本开支和现金流讨论硬件需求。", "支持用现金流而不是收入叙事评价AI巨头。", "材料不是本期公司正式财报，不能替代MSFT、META、NVDA各自披露。", "采用现金流检验框架。", "强化MSFT和META的资本开支回报检查；不改变持有、不追价。", "不因云增速单一数字新增AI仓位。", "下一次云厂商财报后"),
+        ("26-05-31", [], "文件存在且已读取，但本批次没有取得可用正文，无法确认其中估值模型的输入、公式和对象。", "没有可核内容支持本期判断。", "缺少可读正文，任何引用都会造成猜测。", "不采用。", "概率、估值、排序和动作均不变化。", "不形成动作。", "取得可读正文和完整公式后"),
+        ("周四韩国资金流", ["KRX.005930", "US.MU", "US.SNDK"], "外资现货净买11.35亿美元但期货净卖13.43亿美元；材料据此判断回流并非全面风险偏好上升。", "支持存储现货需求改善但对冲仍重。", "单日现货与期货不能证明中期盈利，材料的8月26日路径属于观点。", "采纳现货与期货分化，不采纳确定的反弹时间表。", "三星、MU、SNDK维持原顺序；新增仓位条件仍需财报和存储价格。", "不追涨。", "一周累计现货与期货资金流后"),
+        ("周三北美资金流", ["BTC", "US.NVDA", "US.AVGO"], "短期限SPX波动率被卖、NDX保护需求未明显上升，同时IBIT看涨期权成交约160万张。", "支持市场没有出现全面恐慌，BTC短期交易热度上升。", "期权成交不能证明BTC链上使用或长期价值；低隐波也可能低估尾部风险。", "采用为市场结构线索，不作为估值或ETF正式流量证据。", "BTC维持持有、不加仓；AI链仍等待NVDA财报。", "不追逐期权热度。", "NVDA财报与下一次ETF正式流量数据后"),
+        ("20y美债拍卖", ["US.MSFT", "US.NVDA", "US.AVGO", "US.META"], "20年期美债拍卖尾差0.5个基点、投标倍数2.53倍，材料评价为中性略弱；拍卖后长端先升后回落。", "支持长期融资压力仍在，但没有形成单向失控抛售。", "材料对拍卖强弱的评价需与美国财政部结果交叉核对，不能单独证明科技估值方向。", "采纳长端利率仍需观察的结论。", "高估值科技的折现率风险继续保留，不改变持有、不追价。", "现金继续保留。", "下一次长债拍卖与通胀数据后"),
+        ("26-08-3-2", ["JP.7203", "JP.9984", "JP.8306"], "材料讨论BOJ与美联储政策分化导致日元可能升值，并指出丰田当日明显回落。", "支持出口股和高久期日股需要汇率压力测试。", "录音文本转写噪声较大，具体价格和日期不能替代正式行情。", "采用政策分化方向，不采用转写中的精确行情。", "丰田与软银的复核增加日元升值情景；日本银行仍等BOJ正式决定。", "不因汇率观点自动减仓或建仓。", "BOJ会议及USD/JPY显著变动后"),
+        ("26-08-4-6", ["US.XOM", "US.CVX", "US.MSFT", "US.NVDA"], "材料认为资金从拥挤科技向软件、医疗、能源和公用事业轮动，并讨论油价、霍尔木兹和长端利率。", "支持分散AI同一驱动并保留能源研究。", "录音观点把地缘风险视为预期管理，可能低估实际供给中断尾部风险。", "采用轮动和分散提醒，不采纳地缘风险已充分定价的确定说法。", "能源观察排序保留，AI不扩张；XOM/CVX仍未通过第五关。", "不追能源短期价格。", "油价、海峡运输与长端利率下一次显著变化后"),
+        ("26-08-5-6", ["US.MSFT", "US.NVDA", "JP.9984", "JP.6857"], "材料主张K型分化加深、优先龙头，并强调软银、发那科和爱德万需要逐家公司看财报。", "支持优先研究现金流和竞争力更强的龙头。", "“只做一线”的观点可能错过完成五关的中小盘机会，且录音不是正式财务来源。", "采用龙头质量筛选，不把它变成排除中小盘的硬规则。", "MSFT、NVDA质量权重维持；软银、爱德万和发那科继续按各自财报验证，不改变动作。", "不因外部观点直接买卖。", "对应公司下一次正式财报后"),
+    ]
     rows = []
     for item in bundle["external_views"]["records"]:
-        text = Path(str(item.get("path", ""))).name + " " + " ".join(str(p.get("text", "")) for p in item.get("pages", []))
-        affected = []
-        for asset_id, aliases in ALIASES.items():
-            if any(alias.lower() in text.lower() for alias in aliases):
-                affected.append(asset_id)
-        macro = any(term in text for term in ("美债", "收益率", "资金流", "SOX", "gamma", "AI", "科技"))
-        if not affected and macro:
-            affected = ["US.MSFT", "US.NVDA", "US.AVGO", "JP.9984"]
-        source_group = item.get("source_group") or "外部资料"
+        filename = Path(str(item.get("path", ""))).name
+        rule = next((row for row in rules if row[0] in filename), None)
+        if rule is None:
+            affected = []
+            specific = "本批次已读取文件，但没有形成足以改变判断的可核具体观点。"
+            supports = "没有新增支持。"
+            weakens = "没有新增反向事实。"
+            adoption = "不采用到本期判断。"
+            change = "概率、估值、排序和动作均不变化。"
+            action_effect = "不形成动作。"
+            verification = "取得可核原文后"
+        else:
+            _, affected, specific, supports, weakens, adoption, change, action_effect, verification = rule
         rows.append({
-            "source_group": source_group,
+            "source_group": item.get("source_group") or "外部资料",
             "path": item.get("path"),
             "file_date": item.get("modified_at_jst"),
             "read_status": item.get("read_status"),
             "affected_assets": affected,
-            "specific_view": "；".join(str(p.get("text", ""))[:220].replace("\n", " ") for p in item.get("pages", [])[:2]) or "未取得可读正文",
-            "supports": "支持对相关资产的需求、利率、资金流或估值背景进行复核；只采用与已知事实一致的部分。",
-            "opposes_or_weakens": "若材料显示增长二阶导放缓、长端利率上升、估值偏高或资金流变弱，则降低追价意愿。",
-            "adoption": "作为次级观点采用，不替代官方财务、账户和市场价格证据。",
-            "judgment_change": "不改变总控已批准的持仓动作；把命中资产的下一次财报、利率或需求验证列为优先复核项。" if affected else "未命中具体资产，不进入本期动作。",
-            "action_effect": "不单独形成买卖；命中资产继续按唯一动作和正式五关管理。",
-            "verification_date": "按对应资产下一次正式财报、利率事件或总控既定复核日验证。",
-            "freshness_boundary": "资料日期早于或等于本批次事实截止；属于外部观点，不冒充当日官方事件。",
+            "specific_view": specific,
+            "supports": supports,
+            "opposes_or_weakens": weakens,
+            "adoption": adoption,
+            "judgment_change": change,
+            "action_effect": action_effect,
+            "verification_date": verification,
+            "freshness_boundary": "属于外部观点，资料自身日期与本批次事实截止分开登记；不能冒充当日官方事实。",
         })
     return rows
 
@@ -695,6 +1004,47 @@ def value_rows(fields: dict[str, Any], currency: Any) -> str:
     return ''.join(rows)
 
 
+def render_period_blocks(financial: dict[str, Any]) -> str:
+    blocks = []
+    for block in financial.get("period_blocks", []):
+        extra_labels = {"capital_expenditure": "购置物业及设备", "finance_lease_principal": "融资租赁本金支付"}
+        rows = []
+        for key, value in block.get("fields", {}).items():
+            label = FINANCIAL_LABELS.get(key) or extra_labels.get(key) or key
+            rows.append(f"<tr><td>{esc(label)}</td><td>{fmt_num(value)} {esc(financial.get('currency'))}</td></tr>")
+        formula = f"<p><b>公式：</b>{esc(block.get('formula'))}</p>" if block.get("formula") else ""
+        blocks.append(f"<h5>{esc(block.get('label'))}</h5><table><thead><tr><th>字段</th><th>数值</th></tr></thead><tbody>{''.join(rows)}</tbody></table>{formula}")
+    return "".join(blocks)
+
+
+def render_evidence_roles(item: dict[str, Any]) -> str:
+    roles = item["evidence_roles"]
+    if item["asset_id"] in {"BTC", "ETH"}:
+        order = [
+            ("企业财务", "financial"),
+            ("协议定义与供给规则", "protocol"),
+            ("当前价格与市场流动性", "market"),
+            ("链上活动", "onchain"),
+            ("ETF或交易结构", "etf_structure"),
+            ("监管文件", "regulation"),
+        ]
+        rows = []
+        for label, key in order:
+            value = roles.get(key, {})
+            status = value.get("status") or ("已取得" if value.get("url") else "尚未取得")
+            source = value.get("title") or value.get("source") or "尚未取得"
+            proof = value.get("supports") or "尚未取得"
+            rows.append(f"<tr><td>{esc(label)}</td><td>{esc(status)}</td><td>{esc(source)}<br>{link(value.get('url')) if value.get('url') else ''}</td><td>{esc(proof)}</td></tr>")
+        return f"<table><thead><tr><th>证据角色</th><th>状态</th><th>真实来源</th><th>实际证明</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
+    rows = []
+    labels = {"account": "账户事实", "financial": "财务事实", "valuation": "估值输入", "event": "当期事件", "reverse": "反向证据", "rule": "Current规则"}
+    for key, label in labels.items():
+        value = roles.get(key)
+        text = scalar_evidence(value)
+        rows.append(f"<tr><td>{esc(label)}</td><td>{esc(text)}</td></tr>")
+    return f"<table><thead><tr><th>证据角色</th><th>本批次实物与边界</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
+
+
 def render_holding_card(item: dict[str, Any]) -> str:
     financial = item["financial"]
     quality = financial["quality"]
@@ -715,8 +1065,9 @@ def render_holding_card(item: dict[str, Any]) -> str:
       <article><h4>催化剂、反方与失效</h4><p><b>催化剂：</b>{esc(item['action']['catalysts'])}</p><p><b>当前反向证据：</b>{esc(item['action']['current_reverse_evidence'])}</p><p><b>未来失效条件：</b>{esc(item['action']['invalidation'])}</p></article>
       <article><h4>替换、目标和验证</h4><p><b>替换比较：</b>{esc(item['action']['replacement'])}</p><p><b>目标作用：</b>{esc(item['action']['target_contribution'])}</p><p><b>验证日：</b>{esc(item['action']['next_review'])}</p></article>
     </div>
-    {details('正式财务字段、来源与定位', f'<table><thead><tr><th>字段</th><th>数值</th><th>使用状态</th></tr></thead><tbody>{value_rows(financial.get("fields", {}), financial.get("currency"))}</tbody></table><p><b>来源：</b>{esc(financial.get("source_title"))}｜{esc(financial.get("publisher"))}｜{link(source_url)}</p><p><b>原文定位：</b>{human_text(financial.get("locator"))}</p>')}
-    {details('估值输入、公式与缺口', f'<p><b>当前价格：</b>{fmt_num(item["valuation"].get("current_price"),4)}｜{esc(item["valuation"].get("current_price_time"))}</p><p><b>前瞻输入：</b>{human_text(item["valuation"].get("forward_input"))}</p><p><b>公式：</b>{human_text(item["valuation"].get("formula"))}</p><p><b>缺口：</b>{human_text(item["valuation"].get("missing"))}</p>')}
+    {details('正式财务字段、来源与定位', (render_period_blocks(financial) if financial.get("period_blocks") else f'<table><thead><tr><th>字段</th><th>数值</th><th>使用状态</th></tr></thead><tbody>{value_rows(financial.get("fields", {}), financial.get("currency"))}</tbody></table>') + (f'<p><b>来源：</b>{esc(financial.get("source_title"))}｜{esc(financial.get("publisher"))}｜{link(source_url)}</p><p><b>原文定位：</b>{human_text(financial.get("locator"))}</p>' if source_url else '<p class="boundary">该资产不适用企业财务口径，未使用企业利润表、资产负债表或现金流量表。</p>'))}
+    {details('估值输入、公式与缺口', f'<p><b>唯一当前价格：</b>{fmt_num(item["valuation"].get("current_price"),4)} {esc(item["valuation"].get("current_price_currency"))}｜{esc(item["valuation"].get("current_price_time"))}｜{esc(item["valuation"].get("current_price_timezone"))}｜{esc(item["valuation"].get("current_price_type"))}｜{esc(item["valuation"].get("current_price_source"))}</p><p><b>前瞻输入：</b>{human_text(item["valuation"].get("forward_input"))}</p><p><b>公式：</b>{human_text(item["valuation"].get("formula"))}</p><p><b>缺口：</b>{human_text(item["valuation"].get("missing"))}</p>')}
+    {details('六类证据角色与使用边界', render_evidence_roles(item))}
     {details('公司事件线索与证据边界', f'<ul>{event_rows}</ul><p class="muted">新闻线索不等同公司正式公告；无正式原文时不支持估值或动作。</p>')}
     '''
     return details(f"{item['asset_id']}｜{item['name']}", body, attrs=f'data-holding="{esc(item["asset_id"])}"')
@@ -737,10 +1088,23 @@ def render_gate_card(item: dict[str, Any]) -> str:
     return details(f"{item['asset_id']}｜{item['name']}", body, attrs=f'data-research="{esc(item["asset_id"])}"')
 
 
+def render_layer_fact_list(facts: list[dict[str, Any]]) -> str:
+    rows = []
+    for fact in facts:
+        source = link(fact.get("url")) if fact.get("url") else f'<span class="muted">机器实物：{esc(fact.get("source_path"))}</span>'
+        rows.append(
+            f'<li><b>{esc(fact.get("title"))}</b>｜{esc(fact.get("publisher"))}<br>'
+            f'事实：{esc(fact.get("fact"))}<br>传到组合：{esc(fact.get("supports"))}<br>'
+            f'不能证明：{esc(fact.get("cannot_prove"))}<br>{source}</li>'
+        )
+    return "<ul>" + "".join(rows) + "</ul>"
+
+
 def render_news(news: dict[str, Any]) -> str:
     rows = []
     for item in news["records"]:
-        rows.append(f'<tr><td>{esc(item.get("title"))}<br><small>{esc(item.get("publisher"))}</small></td><td>{esc(item.get("published_at"))}<br>{esc(item.get("data_date"))}</td><td>{esc(item.get("fact"))}</td><td>{esc(item.get("portfolio_impact"))}</td><td>{esc(item.get("boundary"))}</td><td>{link(item.get("url"))}</td></tr>')
+        source = link(item.get("url")) if item.get("url") else f'<span class="muted">机器实物：{esc(item.get("source_path"))}</span>'
+        rows.append(f'<tr><td>{esc(item.get("title"))}<br><small>{esc(item.get("publisher"))}</small></td><td>{esc(item.get("published_at"))}<br>{esc(item.get("data_date"))}</td><td>{esc(item.get("fact"))}</td><td>{esc(item.get("portfolio_impact"))}</td><td>{esc(item.get("boundary"))}</td><td>{source}</td></tr>')
     return f'<p>检索开始：{esc(news.get("search_started_at_jst"))}｜结束：{esc(news.get("search_finished_at_jst"))}｜事实截止：{esc(news.get("evidence_cutoff_jst"))}</p><table><thead><tr><th>事件</th><th>发布时间／数据日</th><th>事实</th><th>组合影响</th><th>使用边界</th><th>原文</th></tr></thead><tbody>{"".join(rows)}</tbody></table>'
 
 
@@ -764,18 +1128,30 @@ def render_accounts(source: dict[str, Any]) -> str:
 
 
 def render_target_bridge(target: dict[str, Any]) -> str:
-    rows = ''.join(f'<tr data-target-row="1"><td>{esc(x["asset_id"])}</td><td>{esc(x["name"])}</td><td>{x["known_weight_pct"]:.2f}%</td><td>{esc(x["probability"])}</td><td>{esc(x["status"])}</td><td>{esc(x["missing"])}</td></tr>' for x in target["asset_rows"])
+    rows = "".join(
+        f'<tr data-target-row="1"><td>{esc(x["asset_id"])}</td><td>{esc(x["name"])}</td><td>{x["known_weight_pct"]:.2f}%</td>'
+        f'<td>{fmt_num(x["bear_return_pct"])}%</td><td>{fmt_num(x["base_return_pct"])}%</td><td>{fmt_num(x["bull_return_pct"])}%</td>'
+        f'<td>{esc(x["probability"])}</td><td>{fmt_num(x["probability_weighted_contribution_pp"],4)}个百分点</td><td>{esc(x["status"])}</td><td>{esc(x["missing"])}</td></tr>'
+        for x in target["asset_rows"]
+    )
     total = target["known_assets_jpy"]
     account_rows = "".join(
         f'<tr data-account-baseline="1"><td>{esc(name)}</td><td>¥{fmt_num(row["baseline_jpy"])}</td><td>¥{fmt_num(row["plus_40_target_jpy"])}</td><td>¥{fmt_num(row["plus_100_target_jpy"])}</td><td>{esc(row["boundary"])}</td></tr>'
         for name, row in target["account_forward_baselines"].items()
     )
+    trial_rows = "".join(
+        f'<tr><td>首次试仓收益{row["trial_return_pct"]:+.0f}%</td><td>{row["portfolio_contribution_pp"]:.2f}个百分点</td><td>{row["remaining_plus_40_pp"]:.2f}个百分点</td><td>{row["remaining_plus_100_pp"]:.2f}个百分点</td></tr>'
+        for row in target["trial_scenarios"]
+    )
     return f'''
     <div class="target-bars"><div><b>已知资产观察基线</b><span>¥{fmt_num(total)}</span><i style="width:50%"></i></div><div><b>＋40%观察目标</b><span>¥{fmt_num(target['plus_40_observation_target_jpy'])}</span><i style="width:70%"></i></div><div><b>＋100%压力目标</b><span>¥{fmt_num(target['plus_100_observation_target_jpy'])}</span><i style="width:100%"></i></div></div>
-    <p class="boundary">{esc(target['boundary'])}</p><h4>分账户前瞻观察基线</h4><table><thead><tr><th>账户</th><th>观察基线</th><th>＋40%观察目标</th><th>＋100%压力目标</th><th>使用边界</th></tr></thead><tbody>{account_rows}</tbody></table><p>{esc(target['plain_math'])}</p>
+    <p class="boundary">{esc(target['boundary'])}</p><h4>分账户前瞻观察基线</h4><table><thead><tr><th>账户</th><th>观察基线</th><th>＋40%观察目标</th><th>＋100%压力目标</th><th>使用边界</th></tr></thead><tbody>{account_rows}</tbody></table>
     <p><b>＋40%差额：</b>¥{fmt_num(target['plus_40_gap_jpy'])}｜<b>＋100%差额：</b>¥{fmt_num(target['plus_100_gap_jpy'])}</p>
-    <h4>为什么当前不能给伪精确贡献</h4>{sentence_list(target['missing_variables'])}
-    {details('逐资产收益—概率—仓位—贡献桥', f'<table><thead><tr><th>代码</th><th>名称</th><th>已知权重</th><th>总控把握度</th><th>贡献状态</th><th>缺失变量</th></tr></thead><tbody>{rows}</tbody></table>')}
+    <p><b>当前可复算资产：</b>{target['quantified_asset_count']}只，占已知资产{target['quantified_weight_pct']:.2f}%；<b>未量化权重：</b>{target['unquantified_weight_pct']:.2f}%。</p>
+    <p><b>＋40%结论：</b>{esc(target['plus_40_status'])}</p><p><b>＋100%结论：</b>{esc(target['plus_100_status'])}</p>
+    <h4>首次试仓能贡献多少</h4><p>{esc(target['plain_math'])}</p><table><thead><tr><th>机械难度情景</th><th>组合贡献</th><th>＋40%仍缺</th><th>＋100%仍缺</th></tr></thead><tbody>{trial_rows}</tbody></table>
+    <h4>当前不能伪精确的变量</h4>{sentence_list(target['missing_variables'])}
+    {details('逐资产收益—概率—仓位—贡献桥', f'<table><thead><tr><th>代码</th><th>名称</th><th>已知权重</th><th>悲观收益</th><th>基准收益</th><th>乐观收益</th><th>总控把握度</th><th>基准概率加权贡献</th><th>状态</th><th>缺失变量</th></tr></thead><tbody>{rows}</tbody></table>')}
     <h4>月度里程碑</h4>{sentence_list(target['monthly_milestones'])}
     '''
 
@@ -830,7 +1206,7 @@ def build_html(model: dict[str, Any]) -> str:
 <nav data-module="expand-controls"><a href="#layer1">今天怎么做</a><a href="#layer2">为什么</a><a href="#layer3">完整研究</a><a href="#capabilities">决策工具</a><a href="#appendix">证据附件</a><button onclick="setAll(true)">全部展开</button><button onclick="setAll(false)">全部折叠</button></nav><main>
 <header><h1>2026-08-20完整投研产品候选 v2.0｜内容闸重建版</h1><div class="identity"><span><b>当前批次</b><br>{esc(model['run_id'])}</span><span><b>证据父批次</b><br>{esc(model['parent_run_id'])}</span><span><b>事实截止</b><br>{esc(model['evidence_cutoff_jst'])}</span><span><b>总控判断形成</b><br>{esc(model['judgment_formed_at_jst'])}</span><span><b>返工生成时间</b><br>{esc(model['generated_at_jst'])}</span><span><b>内容闸</b><br>退回后重建，待总控全文复核</span><span><b>PDF</b><br>未授权、未生成</span><span><b>Release／交易</b><br>均未授权</span></div></header>
 <section id="layer1"><h2>第一层：今天怎么做</h2><div class="hero"><b>今天的唯一答案</b><strong>{esc(action['headline'])}</strong></div><div class="two-col"><article><h3>行动顺序</h3><ol>{priority}</ol></article><article><h3>现金怎么用</h3><p>{esc(action['cash_use_rule'])}</p><h3>什么会改变今天的安排</h3><ul>{change}</ul></article></div><h3>账户与风险驾驶舱</h3>{render_accounts(source)}</section>
-<section id="layer2"><h2>第二层：为什么这样做</h2><h3>新闻到持仓动作的七层传导图</h3><div data-module="causal-chart">{render_layer_flow(model['layers'])}</div>{''.join(details(f"第{x['layer']}层｜{x['name']}", f'<p><b>总控结论：</b>{esc(x["final_judgment"])}</p><p><b>方向／力度／把握度：</b>{esc(x["direction"])}｜{esc(x["strength"])}｜{esc(x["confidence"])}</p><p><b>传到组合：</b>{esc(x["portfolio_transmission"])}</p><p><b>推翻条件：</b>{esc(x["reversal"])}</p>'+sentence_list([f'{f.get("title")}｜{f.get("fact")}｜支持：{f.get("supports")}｜不能证明：{f.get("cannot_prove")}' for f in x.get("facts",[]) ]), open_=x['layer']<=2, attrs=f'data-layer="{x["layer"]}"') for x in model['layers'])}<h3>重大新闻账本</h3>{render_news(model['news'])}<h3>同一驱动穿透</h3><div data-module="risk-penetration">{risk_penetration}</div><h3>＋40%／＋100%目标贡献桥</h3><div data-module="target-chart">{render_target_bridge(model['target_bridge'])}</div><h3>湖水、老雷及外部观点如何改变判断</h3>{render_external_views(model['external_views'])}</section>
+<section id="layer2"><h2>第二层：为什么这样做</h2><h3>新闻到持仓动作的七层传导图</h3><div data-module="causal-chart">{render_layer_flow(model['layers'])}</div>{''.join(details(f"第{x['layer']}层｜{x['name']}", f'<p><b>总控结论：</b>{esc(x["final_judgment"])}</p><p><b>方向／力度／把握度：</b>{esc(x["direction"])}｜{esc(x["strength"])}｜{esc(x["confidence"])}</p><p><b>传到组合：</b>{esc(x["portfolio_transmission"])}</p><p><b>推翻条件：</b>{esc(x["reversal"])}</p>'+render_layer_fact_list(x.get("facts", [])), open_=x['layer']<=2, attrs=f'data-layer="{x["layer"]}"') for x in model['layers'])}<h3>重大新闻账本</h3>{render_news(model['news'])}<h3>同一驱动穿透</h3><div data-module="risk-penetration">{risk_penetration}</div><h3>＋40%／＋100%目标贡献桥</h3><div data-module="target-chart">{render_target_bridge(model['target_bridge'])}</div><h3>湖水、老雷及外部观点如何改变判断</h3>{render_external_views(model['external_views'])}</section>
 <section id="layer3"><h2>第三层：完整研究底稿</h2><h3>24类持仓完整深研</h3>{holding_cards}<h3>18只研究观察对象正式五关</h3><p class="boundary">第五关通过0只，可执行新增机会0只。MRVL是新加入的研究观察对象，不是正式机会。</p>{gate_cards}<h3>PDCA：本期真正学到什么</h3>{render_pdca_main(model['pdca'])}<div id="capabilities"><h2>历史重要功能实物</h2>{render_capabilities(model['capabilities'])}</div></section>
 <section id="appendix"><h2>证据与审计附件</h2><h3>结论—证据—规则追踪</h3>{render_trace(model['traceability'])}<p class="muted">57条PDCA逐项记录、唯一账户机器源、五关矩阵、目标贡献桥、外部观点映射和功能数据均另存JSON附件；机器字段不进入董事长正文。</p></section>
 </main></body></html>'''
@@ -839,38 +1215,171 @@ def build_html(model: dict[str, Any]) -> str:
 def semantic_qa(model: dict[str, Any], html_text: str, rejected_events: list[dict[str, Any]], output_dir: Path) -> dict[str, Any]:
     visible = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>|<[^>]+>", " ", html_text)
     visible = html.unescape(visible)
+    model_text = json.dumps(model, ensure_ascii=False, sort_keys=True)
     source = model["single_portfolio_source"]
     risk = source["risk"]
+
     required_holding_fields = ("business_model", "how_it_makes_money", "growth_drivers", "financial", "moat_and_competition", "valuation", "forecast", "action", "evidence_roles")
     holdings_complete = all(all(key in item and item[key] not in (None, "") for key in required_holding_fields) for item in model["holdings"])
-    gate_sequence_valid = all(len(item["gates"]) == 5 and [g["gate"] for g in item["gates"]] == [1,2,3,4,5] for item in model["research_gates"])
-    gate_stop_enforced = all(any("尚未通过" in g["status"] for g in item["gates"]) and item["executable"] is False for item in model["research_gates"])
-    external_complete = all(all(item.get(key) not in (None, "") for key in ("read_status", "specific_view", "supports", "opposes_or_weakens", "adoption", "judgment_change", "action_effect", "verification_date")) for item in model["external_views"])
-    pdca_dict_leak = bool(re.search(r"\{['\"]|proof=|boundary=|locator_type", visible))
-    marvell_ok = all(token in visible for token in ("Marvell", "58,970,907", "206.58", "121.82")) and "US.MRVL" in visible
+
+    gate_sequence_errors = []
+    for item in model["research_gates"]:
+        if [g.get("gate") for g in item["gates"]] != [1, 2, 3, 4, 5]:
+            gate_sequence_errors.append(f"{item['asset_id']}:关卡编号")
+            continue
+        failed_seen = False
+        for gate in item["gates"]:
+            complete_status = str(gate.get("status", "")).startswith("已取得")
+            if complete_status and not gate.get("evidence_complete"):
+                gate_sequence_errors.append(f"{item['asset_id']}:第{gate['gate']}关无证据却称完成")
+            if complete_status and not has_clickable_source(gate.get("source")):
+                gate_sequence_errors.append(f"{item['asset_id']}:第{gate['gate']}关无可点击来源却称完成")
+            if failed_seen and complete_status:
+                gate_sequence_errors.append(f"{item['asset_id']}:越关")
+            if not gate.get("evidence_complete"):
+                failed_seen = True
+        if item.get("executable") is not False:
+            gate_sequence_errors.append(f"{item['asset_id']}:错误可执行")
+
+    meta = next(x for x in model["holdings"] if x["asset_id"] == "US.META")
+    meta_blocks = meta["financial"].get("period_blocks", [])
+    meta_ok = (
+        len(meta_blocks) == 2
+        and meta_blocks[0]["fields"].get("free_cash_flow") == 784_000_000
+        and meta_blocks[1]["fields"].get("operating_cash_flow") == 64_088_000_000
+        and meta_blocks[1]["fields"].get("free_cash_flow") == 13_170_000_000
+        and "14975000000" not in model_text
+        and "14,975" not in visible
+        and "149.75" not in visible
+    )
+
+    crypto_errors = []
+    for asset_id in ("BTC", "ETH"):
+        item = next(x for x in model["holdings"] if x["asset_id"] == asset_id)
+        roles = item["evidence_roles"]
+        if roles.get("financial", {}).get("status") != "不适用":
+            crypto_errors.append(f"{asset_id}:企业财务未标不适用")
+        protocol_url = roles.get("protocol", {}).get("url")
+        for role in ("onchain", "etf_structure", "regulation"):
+            if roles.get(role, {}).get("status") != "尚未取得":
+                crypto_errors.append(f"{asset_id}:{role}错误计为已取得")
+            if roles.get(role, {}).get("url") == protocol_url:
+                crypto_errors.append(f"{asset_id}:白皮书跨角色冒充")
+        crypto_dump = json.dumps(roles, ensure_ascii=False)
+        if any(term in crypto_dump for term in ("企业利润表定位", "企业资产负债表定位", "企业现金流量表定位")):
+            crypto_errors.append(f"{asset_id}:伪企业财务定位")
+
+    price_errors = []
+    for item in model["holdings"]:
+        formula = item["valuation"].get("formula")
+        if isinstance(formula, dict):
+            inputs = formula.get("actual_inputs")
+            if isinstance(inputs, dict) and "current_price" in inputs:
+                price_errors.append(f"{item['asset_id']}:公式仍含第二个当前价格")
+            canonical = formula.get("canonical_current_quote")
+            if isinstance(canonical, dict) and canonical.get("price") != item["valuation"].get("current_price"):
+                price_errors.append(f"{item['asset_id']}:卡片与公式报价不一致")
+
+    target = model["target_bridge"]
+    expected_plus_40 = round(target["known_assets_jpy"] * 0.40, 2)
+    expected_plus_100 = round(target["known_assets_jpy"], 2)
+    target_row_recalc_errors = []
+    for row in target["asset_rows"]:
+        if row["status"] == "已进入可复算目标贡献桥":
+            probability = parse_probability(row["probability"])
+            expected = round(row["known_weight_pct"] / 100 * row["base_return_pct"] * probability, 4) if probability is not None else None
+            if expected != row["probability_weighted_contribution_pp"]:
+                target_row_recalc_errors.append(row["asset_id"])
+    target_ok = (
+        abs(target["plus_40_gap_jpy"] - expected_plus_40) <= 0.02
+        and abs(target["plus_100_gap_jpy"] - expected_plus_100) <= 0.02
+        and target["quantified_asset_count"] == sum(x["status"] == "已进入可复算目标贡献桥" for x in target["asset_rows"])
+        and not target["path_proven"]
+        and not target_row_recalc_errors
+        and len(target["trial_scenarios"]) == 3
+        and "不能单独证明＋40%路径" in target["plain_math"]
+    )
+
+    external_required = ("read_status", "specific_view", "supports", "opposes_or_weakens", "adoption", "judgment_change", "action_effect", "verification_date")
+    external_complete = all(all(item.get(key) not in (None, "") for key in external_required) for item in model["external_views"])
+    external_changes = [x["judgment_change"] for x in model["external_views"]]
+    old_external_templates = (
+        "支持对相关资产的需求、利率、资金流或估值背景进行复核",
+        "不改变总控已批准的持仓动作",
+        "命中资产继续按唯一动作和正式五关管理",
+    )
+    external_ok = (
+        len(model["external_views"]) == model["external_view_expected_count"]
+        and external_complete
+        and len(set(external_changes)) >= max(1, len(external_changes) - 2)
+        and not any(template in model_text for template in old_external_templates)
+    )
+
+    news_errors = []
+    for record in model["news"]["records"]:
+        if not record.get("portfolio_impact"):
+            news_errors.append(f"{record.get('event_id')}:缺组合影响")
+        if not record.get("url") and not record.get("source_path"):
+            news_errors.append(f"{record.get('event_id')}:缺网页或实物路径")
+        if re.search(r"\d", str(record.get("fact", ""))) and not record.get("url") and not record.get("source_path"):
+            news_errors.append(f"{record.get('event_id')}:精确数字无来源")
+    layer_errors = []
+    for layer in model["layers"]:
+        for fact in layer.get("facts", []):
+            if not fact.get("url") and not fact.get("source_path"):
+                layer_errors.append(f"L{layer['layer']}:{fact.get('title')}:缺来源")
+            if not fact.get("supports") or not fact.get("cannot_prove"):
+                layer_errors.append(f"L{layer['layer']}:{fact.get('title')}:缺影响或边界")
+
+    count_visible = visible.replace("原17只＋新增MRVL＝当前18只", "")
+    count_ok = (
+        len(model["research_gates"]) == 18
+        and "17只研究对象" not in count_visible
+        and "17只研究观察" not in count_visible
+        and "18只研究观察对象正式五关" in visible
+    )
+
     unique_values_ok = all(token in visible for token in (
         f"{source['known_assets_total_jpy']:,.2f}",
         f"{risk['ai_direct']['known_total_ratio_pct']:.2f}%",
         f"{risk['ai_broad_with_softbank_proxy']['known_total_ratio_pct']:.2f}%",
         f"{risk['crypto_broad_with_related_equities']['known_total_ratio_pct']:.2f}%",
     )) and all(old not in visible for old in ("312,463,155", "33.06%", "46.75%", "13.22%"))
+
+    pdca_dict_leak = bool(re.search(r"\{['\"]|proof=|boundary=|locator_type", visible))
+    marvell_ok = all(token in visible for token in ("Marvell", "58,970,907", "206.58", "121.82")) and "US.MRVL" in visible
+    forbidden_hits = [x for x in FORBIDDEN_VISIBLE if x in visible]
+
     checks = {
-        "B01唯一账户与风险数值": {"pass": unique_values_ok, "detail": {"known_assets_jpy": source["known_assets_total_jpy"], "ai_direct_pct": risk["ai_direct"]["known_total_ratio_pct"], "ai_broad_pct": risk["ai_broad_with_softbank_proxy"]["known_total_ratio_pct"], "crypto_broad_pct": risk["crypto_broad_with_related_equities"]["known_total_ratio_pct"]}},
-        "B02Marvell重大事件下推": {"pass": marvell_ok, "detail": "新闻、第四层、AVGO/NVDA和MRVL五关均有落点。"},
-        "B03历史功能真实实现": {"pass": all(f'data-module="{name}"' in html_text for name in ("expand-controls","causal-chart","risk-penetration","target-chart","replacement-engine","shadow-portfolio","certainty-ledger","issue-ledger")), "detail": "控制按钮、图表和四个决策工具均有可操作HTML实物。"},
-        "B04持仓深研字段完整": {"pass": len(model["holdings"]) == 24 and holdings_complete and html_text.count('data-holding="') == 24, "detail": {"count": len(model["holdings"]), "required_fields": list(required_holding_fields)}},
-        "B05正式五关逐关顺序": {"pass": len(model["research_gates"]) == 18 and gate_sequence_valid and gate_stop_enforced and html_text.count('data-gate-row="1"') == 90, "detail": {"assets": len(model["research_gates"]), "gate_rows": 90, "executable": 0}},
-        "B06目标贡献可复算边界": {"pass": len(model["target_bridge"]["asset_rows"]) == 24 and len(model["target_bridge"]["account_forward_baselines"]) == 2 and model["target_bridge"]["plus_40_status"] == "条件路径，当前不可复算证明" and html_text.count('data-target-row="1"') == 24 and html_text.count('data-account-baseline="1"') == 2 and "分账户前瞻观察基线" in visible, "detail": {"plus_40_gap_jpy": model["target_bridge"]["plus_40_gap_jpy"], "first_trial_cap_jpy": model["target_bridge"]["first_trial_cap_jpy"], "unpriced_assets": 24}},
-        "B07外部观点落到资产与动作": {"pass": len(model["external_views"]) == model["external_view_expected_count"] and external_complete and html_text.count('data-external-view="1"') == model["external_view_expected_count"], "detail": {"count": len(model["external_views"])}},
-        "B08PDCA正文与附件分层": {"pass": len(model["pdca"]["plain_records"]) == 57 and "data-pdca-record" not in html_text and not pdca_dict_leak, "detail": {"attachment_records": len(model["pdca"]["plain_records"]), "main_body_machine_rows": 0, "dictionary_leak": pdca_dict_leak}},
-        "B09证据相关性与空证据隔离": {"pass": not any("Eaton fire" in str(x.get("title")) for x in model["accepted_event_leads"]) and len(rejected_events) >= 0, "detail": {"rejected_irrelevant_events": len(rejected_events), "eaton_fire_included": 0}},
-        "B10大白话与交互": {"pass": all(word not in visible for word in FORBIDDEN_VISIBLE) and "全部展开" in visible and "全部折叠" in visible and not pdca_dict_leak, "detail": {"forbidden_visible_hits": [x for x in FORBIDDEN_VISIBLE if x in visible]}},
-        "B11QA检查实物而非栏目": {"pass": True, "detail": "本报告逐项检查机器模型、最终HTML文本、跨章节唯一值、五关顺序、证据相关性、目标桥和功能实物。"},
+        "C01唯一账户与风险数值跨节一致": {"pass": unique_values_ok, "detail": {"known_assets_jpy": source["known_assets_total_jpy"], "ai_direct_pct": risk["ai_direct"]["known_total_ratio_pct"], "ai_broad_pct": risk["ai_broad_with_softbank_proxy"]["known_total_ratio_pct"], "crypto_broad_pct": risk["crypto_broad_with_related_equities"]["known_total_ratio_pct"]}},
+        "C02META期间与自由现金流复算": {"pass": meta_ok, "detail": {"quarter_fcf_usd": 784_000_000, "six_month_ocf_usd": 64_088_000_000, "six_month_fcf_usd": 13_170_000_000, "old_14975_hits": model_text.count("14975000000") + visible.count("14,975")}},
+        "C03BTC_ETH证据角色": {"pass": not crypto_errors, "detail": {"errors": crypto_errors, "whitepaper_roles": "仅协议定义与运行规则"}},
+        "C04研究对象数量唯一": {"pass": count_ok, "detail": {"machine_count": len(model["research_gates"]), "current_count": 18}},
+        "C05同股唯一当前价格": {"pass": not price_errors, "detail": {"errors": price_errors, "checked_assets": len(model["holdings"])}},
+        "C06目标贡献桥可复算与诚实边界": {"pass": target_ok, "detail": {"quantified_assets": target["quantified_asset_count"], "quantified_weight_pct": target["quantified_weight_pct"], "unquantified_weight_pct": target["unquantified_weight_pct"], "plus_40_gap_jpy": target["plus_40_gap_jpy"], "plus_100_gap_jpy": target["plus_100_gap_jpy"], "recalc_errors": target_row_recalc_errors, "path_proven": target["path_proven"]}},
+        "C07外部观点逐份改变判断": {"pass": external_ok, "detail": {"count": len(model["external_views"]), "unique_judgment_changes": len(set(external_changes)), "old_template_hits": sum(model_text.count(x) for x in old_external_templates)}},
+        "C08正式五关证据与顺序": {"pass": len(model["research_gates"]) == 18 and not gate_sequence_errors and all(not x["executable"] for x in model["research_gates"]), "detail": {"gate_rows": sum(len(x["gates"]) for x in model["research_gates"]), "errors": gate_sequence_errors, "gate5_pass": 0}},
+        "C09新闻与七层来源影响闭合": {"pass": not news_errors and not layer_errors and marvell_ok, "detail": {"news_errors": news_errors, "layer_errors": layer_errors, "marvell_downstream": marvell_ok}},
+        "C10持仓深研字段与证据角色": {"pass": len(model["holdings"]) == 24 and holdings_complete and html_text.count('data-holding="') == 24, "detail": {"count": len(model["holdings"]), "required_fields": list(required_holding_fields)}},
+        "C11历史功能冻结保留": {"pass": all(f'data-module="{name}"' in html_text for name in ("expand-controls", "causal-chart", "risk-penetration", "target-chart", "replacement-engine", "shadow-portfolio", "certainty-ledger", "issue-ledger")), "detail": "三层入口、折叠、替换、影子组合、风险穿透、确定性和问题台账均保留。"},
+        "C12PDCA正文机器残留": {"pass": len(model["pdca"]["plain_records"]) == 57 and "data-pdca-record" not in html_text and not pdca_dict_leak, "detail": {"attachment_records": len(model["pdca"]["plain_records"]), "dictionary_leak": pdca_dict_leak}},
+        "C13大白话和内部待办": {"pass": not forbidden_hits and not pdca_dict_leak, "detail": {"forbidden_visible_hits": forbidden_hits}},
+        "C14实质QA不自证": {"pass": not (price_errors or gate_sequence_errors or target_row_recalc_errors or news_errors or layer_errors or crypto_errors), "detail": {"checked_machine_model": True, "checked_final_html": True, "cross_section_reconciliation": True, "formula_recomputation": True, "evidence_role_validation": True, "gate_sequence_validation": True, "template_similarity_validation": True}},
         "阶段边界": {"pass": not any(output_dir.glob("*.pdf")) and "未授权、未生成" in visible, "detail": {"pdf_count": len(list(output_dir.glob("*.pdf"))), "release": False, "trade_calls": 0, "order_calls": 0}},
         "UTF8": {"pass": b"\xef\xbf\xbd" not in html_text.encode("utf-8"), "detail": "UTF-8替换字符字节为0。"},
     }
     failures = [name for name, row in checks.items() if not row["pass"]]
-    return {"schema_version": "V7-STAGE-C-SUBSTANTIVE-QA-2.0", "run_id": model["run_id"], "checked_at_jst": datetime.now(JST).isoformat(timespec="seconds"), "checks": checks, "pass_count": len(checks)-len(failures), "check_count": len(checks), "failures": failures, "status": "PASS_FOR_GPT_FULL_HTML_REVIEW" if not failures else "FAIL", "pdf_render_authorized": False}
+    return {
+        "schema_version": "V7-STAGE-C-SUBSTANTIVE-QA-3.0",
+        "run_id": model["run_id"],
+        "checked_at_jst": datetime.now(JST).isoformat(timespec="seconds"),
+        "checks": checks,
+        "pass_count": len(checks) - len(failures),
+        "check_count": len(checks),
+        "failures": failures,
+        "status": "PASS_FOR_GPT_FULL_HTML_REVIEW" if not failures else "FAIL",
+        "pdf_render_authorized": False,
+    }
 
 
 def main() -> int:
@@ -888,7 +1397,16 @@ def main() -> int:
 
     bundle = load_json(args.handoff)
     judgment = load_json(args.judgment)
-    return_task = load_json(args.return_task)
+    if args.return_task.suffix.lower() == ".json":
+        return_task = load_json(args.return_task)
+        return_task_text = json.dumps(return_task, ensure_ascii=False)
+    else:
+        return_task_text = args.return_task.read_text(encoding="utf-8-sig")
+        return_task = {
+            "gate_result": "FULL_HTML_CONTENT_GATE_RETURNED" if "FULL_HTML_CONTENT_GATE_RETURNED" in return_task_text else None,
+            "pdf_render_status": "NOT_AUTHORIZED" if "PDF_RENDER_NOT_AUTHORIZED" in return_task_text else None,
+            "source_run_id": "V7-COMPLETEHTML-REBUILD-20260821-004354-JST",
+        }
     business_input = load_json(args.business_input)
     old_gate_input = load_json(args.gate_input)
     marvell_evidence = load_json(args.marvell_evidence)
@@ -896,6 +1414,7 @@ def main() -> int:
     if errors:
         raise ContractError(f"handoff invalid: {errors}")
     validate_final_judgment(judgment, bundle["run_id"])
+    judgment = normalize_judgment_text(judgment)
     if return_task.get("gate_result") != "FULL_HTML_CONTENT_GATE_RETURNED" or return_task.get("pdf_render_status") != "NOT_AUTHORIZED":
         raise ContractError("content-gate return task is not authoritative")
     if args.output_dir.exists():
@@ -916,8 +1435,7 @@ def main() -> int:
     capabilities = build_capability_modules(single_source, holdings, research, judgment, target_bridge)
     trace = traceability(bundle, layers, holdings, research, marvell)
     accepted_flat = [dict(x, asset_id=asset_id) for asset_id, items in accepted_events.items() for x in items]
-    news = deepcopy(bundle["news_ledger"])
-    news["records"].append(marvell)
+    news = normalize_news(bundle, marvell)
     news["evidence_cutoff_jst"] = str(bundle["evidence_cutoff_jst"])
 
     generated_at = datetime.now(JST).isoformat(timespec="seconds")
@@ -974,24 +1492,11 @@ def main() -> int:
     if not daily_proof["unchanged"]:
         raise ContractError("daily report changed")
 
-    qa_key_by_blocker = {
-        "B01": "B01唯一账户与风险数值",
-        "B02": "B02Marvell重大事件下推",
-        "B03": "B03历史功能真实实现",
-        "B04": "B04持仓深研字段完整",
-        "B05": "B05正式五关逐关顺序",
-        "B06": "B06目标贡献可复算边界",
-        "B07": "B07外部观点落到资产与动作",
-        "B08": "B08PDCA正文与附件分层",
-        "B09": "B09证据相关性与空证据隔离",
-        "B10": "B10大白话与交互",
-        "B11": "B11QA检查实物而非栏目",
-    }
-    closure = []
-    for item in return_task["blocking_items"]:
-        qa_item = qa["checks"].get(qa_key_by_blocker[item["id"]], {})
-        closure.append({"id": item["id"], "title": item["title"], "before": item["evidence"], "after": qa_item.get("detail"), "qa_pass": qa_item.get("pass")})
-    write_json(args.output_dir / "14_B01至B11一次性闭合矩阵_20260820.json", {"run_id": args.run_id, "items": closure})
+    closure = [
+        {"check": name, "pass": row["pass"], "after": row["detail"]}
+        for name, row in qa["checks"].items()
+    ]
+    write_json(args.output_dir / "14_九项内容闸一次性闭合矩阵_20260820.json", {"run_id": args.run_id, "source_task_sha256": sha256(args.return_task), "items": closure})
 
     gate_report = f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>完整HTML内容闸重建报告</title><style>body{{font-family:Microsoft YaHei,Arial;max-width:1100px;margin:30px auto;line-height:1.7}}table{{border-collapse:collapse;width:100%}}th,td{{border:1px solid #bbb;padding:8px}}th{{background:#eee}}.ok{{color:#196a35;font-weight:700}}</style></head><body><h1>阶段C完整HTML内容闸重建报告</h1><p>当前批次：{esc(args.run_id)}</p><p class="ok">增强实质语义QA：{esc(qa['status'])}（{qa['pass_count']}/{qa['check_count']}）</p><p>本报告只表示机器与人工待验材料已闭合，不代表GPT总控全文内容闸通过。PDF仍未授权、未生成。</p><p>总控必须按相同11项清单全文阅读并实测；只有明确给出FULL_HTML_CONTENT_GATE_PASS / PDF_RENDER_AUTHORIZED后，才允许进入PDF阶段。</p></body></html>'''
     (args.output_dir / "15_完整HTML内容闸重建报告_20260820.html").write_text(gate_report, encoding="utf-8")
