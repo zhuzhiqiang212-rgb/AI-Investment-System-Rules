@@ -211,6 +211,117 @@ def weighted_scenario(decision: dict[str, Any], current: float) -> dict[str, flo
     return {"weighted_value": weighted, "expected_return_pct": expected}
 
 
+REAL_HOLDING_EVENTS = {
+    "US.AVGO": {
+        "role": "公司或行业事件", "status": "已取得本批次独立公司事件",
+        "title": "Broadcom据报洽谈超过600亿美元AI芯片融资", "publisher": "Reuters报道；可读取转载页交叉核验",
+        "published_at": "2026-08-20", "period": "本批次统一事实截止前",
+        "locator": "报道正文：融资规模、潜在参与方及未置评边界",
+        "url": "https://www.boursorama.com/bourse/actualites-amp/broadcom-cherche-a-lever-plus-de-60000-millions-pour-accord-de-puces-ia-rapporte-bloomberg-news-ece3781d853613b3798258ad1a917d60",
+        "supports": "AI需求融资规模仍大，但债务融资、对手方和客户集中风险同步上升。",
+        "cannot_prove": "报道不能证明融资已经完成，也不能当作Broadcom已确认收入、负债或现金流。",
+    },
+    "US.NVDA": {
+        "role": "公司或行业事件", "status": "已取得本批次独立公司事件",
+        "title": "NVIDIA否认中国专用LPU已在路线图中", "publisher": "Reuters报道；NVIDIA发言人回应",
+        "published_at": "2026-08-20", "period": "本批次统一事实截止前",
+        "locator": "报道正文：NVIDIA发言人对中国专用LPU传闻的否认",
+        "url": "https://www.boursorama.com/bourse/actualites/nvidia-dement-les-informations-selon-lesquelles-elle-s-appreterait-a-lancer-une-puce-d-ia-en-chine-d-ici-la-fin-de-l-annee-71e3f8cec411a06e3c88bc2f4bfa83d2",
+        "supports": "撤回把未确认LPU传闻当作中国业务增量的依据。",
+        "cannot_prove": "公司否认只针对LPU传闻，不能证明全部中国业务或出口限制已经解决。",
+    },
+}
+
+
+def normalize_holding_event_roles(rows: list[dict[str, Any]]) -> None:
+    missing = {
+        "role": "公司或行业事件", "status": "截止时间内未取得独立公司事件",
+        "title": "截止时间内未取得独立公司事件", "publisher": "本批次公司事件检索",
+        "published_at": "截至统一事实截止时间", "period": "本批次统一事实截止前",
+        "locator": "未取得可独立使用的公司事件原文；没有用财报或监管文件占位", "url": None,
+        "supports": "只说明本批次限定检索范围内未取得独立公司事件，不代表市场上没有发生事件。",
+        "cannot_prove": "不能支持当期事件判断、估值变化或交易动作。",
+    }
+    for item in rows:
+        roles = item.get("precise_evidence_roles", [])
+        idx = next((i for i, role in enumerate(roles) if role.get("role") == "公司或行业事件"), None)
+        replacement = copy.deepcopy(REAL_HOLDING_EVENTS.get(item["asset_id"], missing))
+        if idx is None:
+            roles.append(replacement)
+        else:
+            roles[idx] = replacement
+
+
+def sync_research_market_facts(capability: dict[str, Any]) -> None:
+    for item in capability["research_18"]:
+        quote = item["current_quote"]
+        gate = item["gates"][2]
+        fact = gate.get("fact") if isinstance(gate.get("fact"), dict) else {}
+        fact.update({
+            "current_price": quote["last_price"], "price_time": quote["update_time"],
+            "pe_ratio_market_snapshot": quote.get("pe_ratio"), "pb_ratio_market_snapshot": quote.get("pb_ratio"),
+            "boundary": "当前市盈率和市净率只作市场温度计；不能独立证明内在价值。",
+        })
+        gate["fact"] = fact
+        gate["source"] = {"title": "统一事实截止前最后可得行情", "publisher": quote["source"], "published_at": quote["update_time"], "url": None}
+
+
+def pdca_probability_basis(prediction_id: str) -> str:
+    return {
+        "P-20260821-01": "采用较高档70%：正式政策仍未确认单向宽松，但通胀和沟通可能变化，保留明确反向风险。该档位尚无足够历史样本校准。",
+        "P-20260821-03": "采用较高档70%：正式财报支持AI需求，同时出口限制和客户自研芯片构成可核反向证据。该档位尚无足够历史样本校准。",
+        "P-20260821-04": "采用较高档70%：估值安全边际、稀释透明和项目兑现必须同时闭合，当前至少一项仍缺。该档位尚无足够历史样本校准。",
+        "P-20260821-05": "采用较高档70%：长期电力需求和合同可见，但资本开支与自由现金流仍是实质约束。该档位尚无足够历史样本校准。",
+        "P-20260821-06": "采用较高档70%：18只对象当前均不可执行，预测只要求至少15只继续未触发，并保留最多3只可能通过的反向空间。该档位尚无足够历史样本校准。",
+        "P-20260821-02": "这是产品流程检查，采用很高档90%表示必须遵守正式决定边界；不进入投资预测概率校准。",
+    }[prediction_id]
+
+
+def rebuild_pdca_records(records: list[dict[str, Any]]) -> dict[str, Any]:
+    verified = correct = wrong = 0
+    for row in records:
+        actual = str(row.get("actual_result") or "")
+        success = str(row.get("success_definition") or "")
+        match = re.search(r"变动([+-]\d+(?:\.\d+)?)%", actual)
+        result = None
+        if match and "SOXX" in success and "不低于-10%" in success:
+            result, series = float(match.group(1)) >= -10.0, "半导体五日跌幅阈值"
+            lesson = "本条只证明该滚动窗口内SOXX没有跌破-10%，不等于AI长期逻辑已经正确；以后同时记录相对大盘表现和正式盈利证据。"
+        elif match and "SOXX" in success and "低于5%" in success:
+            result, series = float(match.group(1)) < 5.0, "半导体五日强反弹阈值"
+            lesson = "本条正确识别了该窗口没有出现5%以上强反弹；以后同时锁定反弹持续时间，避免把短窗结果外推成周期判断。"
+        elif match and "SPY" in success and "不低于-5%" in success:
+            result, series = float(match.group(1)) >= -5.0, "标普五日避险阈值"
+            lesson = "本条只证明该滚动窗口内SPY没有跌破-5%，不等于市场风险已经消失；以后同时记录长端利率、美元和波动率。"
+        else:
+            series = "市场环境描述" if "翻转级事件" in str(row.get("prediction")) else "政策状态描述"
+            lesson = f"{row.get('prediction_date')}这条记录没有列出可核事件清单、阈值和来源，无法复核。今后必须在形成预测时锁定对象、阈值、截止日和外部证据。"
+        row["tracking_series"] = series
+        if result is not None:
+            verified += 1; correct += int(result); wrong += int(not result)
+            row.update({
+                "verification_class": "已有阈值与外部行情结果", "verdict": "判对" if result else "判错",
+                "external_evidence": "富途只读行情接口复权日K；标的、区间起止和涨跌幅已保存在本条实际结果中。没有网页链接不等于没有外部市场数据。",
+                "error_or_learning_category": "账户或行情数据与阈值复核",
+                "specific_change": "滚动窗口结果与长期投资逻辑分开统计；不再把跟踪点一致率称为胜率。",
+            })
+        else:
+            row.update({
+                "verification_class": "原定义不足，无法验证", "verdict": "无法独立验证",
+                "actual_result": "原记录没有可外部核验的事件清单或数值阈值，本期不倒填结果，退出统计分母。",
+                "external_evidence": "原记录缺少与成功定义一一对应的外部证据。",
+                "error_or_learning_category": "因果推理定义不足" if series == "市场环境描述" else "新闻源与政策定义不足",
+                "specific_change": "新预测必须预先登记成功标准、反事实、验证日和证据角色。",
+            })
+        row["lesson"] = lesson
+    return {
+        "historical_record_count": len(records), "verifiable_tracking_points": verified,
+        "correct_tracking_points": correct, "wrong_tracking_points": wrong,
+        "not_independently_verifiable": len(records) - verified,
+        "independent_prediction_series": len({row["tracking_series"] for row in records}),
+        "statistics_boundary": "可核验跟踪点存在滚动窗口重叠，不等于独立投资预测；一致率不得称为胜率。",
+    }
+
 def apply_holdings(old_holdings: list[dict[str, Any]], capability: dict[str, Any], final: dict[str, Any]) -> list[dict[str, Any]]:
     refresh_capability(capability)
     rows = ORIGINAL_APPLY_HOLDINGS(old_holdings, capability, final)
@@ -229,12 +340,43 @@ def apply_holdings(old_holdings: list[dict[str, Any]], capability: dict[str, Any
             item["scenario_decision"]["current_price_time"] = cap_map[item["asset_id"]]["current_price"]["time"]
             item["scenario_decision"]["weighted_scenario_value"] = round(calc["weighted_value"], 6)
             item["action"]["target_contribution"] = f"按8月21日账户权重机械复算：{contribution:+.4f}个百分点。"
+    normalize_holding_event_roles(rows)
     return rows
 
 
 def apply_research(old_research: list[dict[str, Any]], capability: dict[str, Any], final: dict[str, Any]) -> list[dict[str, Any]]:
     refresh_capability(capability)
-    return ORIGINAL_APPLY_RESEARCH(old_research, capability, final)
+    sync_research_market_facts(capability)
+    rows = ORIGINAL_APPLY_RESEARCH(old_research, capability, final)
+    for item in rows:
+        quote = item["current_quote"]
+        gate3 = item["gates"][2]
+        pe = quote.get("pe_ratio")
+        pb = quote.get("pb_ratio")
+        item["valuation_or_risk_pricing"] = (
+            f"统一当前价{quote['last_price']:,.4f}，时间{quote['update_time']}；"
+            f"市盈率{pe:,.2f}倍，市净率{pb:,.2f}倍。"
+            "这些行情指标只作市场温度计，不能独立证明内在价值。"
+        )
+        reason = str(item["final_opportunity_judgment"].get("reason") or "研究尚未闭合")
+        reason = re.sub(r"当前\d+(?:\.\d+)?倍市盈率", f"当前{pe:.1f}倍市盈率", reason)
+        reason = re.sub(r"\d+(?:\.\d+)?倍市净率", f"{pb:.1f}倍市净率", reason)
+        item["final_opportunity_judgment"]["reason"] = reason
+        item["retain_or_drop"] = reason
+        gate5 = item["gates"][4]
+        decision = item["final_opportunity_judgment"]
+        gate5["fact"] = (
+            f"第五关结论：{decision['gate5']}。原因：{reason}。"
+            f"与现金或持仓比较：{decision.get('replacement_object') or '没有形成替换对象'}。"
+            f"催化剂：{decision.get('catalyst') or '尚未取得'}。"
+            f"重新判断时间：{decision.get('decision_time') or '下一次正式披露'}。"
+        )
+        if isinstance(gate3.get("fact"), dict):
+            gate3["fact"].update({
+                "current_price": quote["last_price"], "price_time": quote["update_time"],
+                "pe_ratio_market_snapshot": pe, "pb_ratio_market_snapshot": pb,
+            })
+    return rows
 
 
 def build_target_bridge(capability: dict[str, Any], final: dict[str, Any]) -> dict[str, Any]:
@@ -304,42 +446,43 @@ def build_target_bridge(capability: dict[str, Any], final: dict[str, Any]) -> di
 
 def apply_pdca(model: dict[str, Any], final: dict[str, Any]) -> dict[str, Any]:
     audit = previous.legacy.rebuild_pdca_quality(model)
+    history_audit = rebuild_pdca_records(model["pdca"]["plain_records"])
+    for row in final["pdca_new_predictions"]:
+        row["probability_basis"] = pdca_probability_basis(row["prediction_id"])
+        row["probability_label"] = "很高" if row["probability_pct"] == 90 else "较高"
     all_new = copy.deepcopy(final["pdca_new_predictions"])
     process_qa = [row for row in all_new if row["prediction_id"] == "P-20260821-02"]
     investment = [row for row in all_new if row["prediction_id"] != "P-20260821-02"]
     summary = model["pdca"]["body_summary"]
-    summary["new_predictions"] = all_new
-    summary["investment_predictions"] = investment
-    summary["process_quality_checks"] = process_qa
-    summary["new_quality_baseline_count"] = len(investment)
-    summary["probability_policy"] = copy.deepcopy(final["probability_policy"])
+    summary.update({
+        "new_predictions": all_new, "investment_predictions": investment,
+        "process_quality_checks": process_qa, "new_quality_baseline_count": len(investment),
+        "probability_policy": copy.deepcopy(final["probability_policy"]),
+        "historical_verification": history_audit,
+        "verdict_counts": {"判对": history_audit["correct_tracking_points"], "判错": history_audit["wrong_tracking_points"], "无法独立验证": history_audit["not_independently_verifiable"]},
+        "externally_verifiable": history_audit["verifiable_tracking_points"],
+        "not_independently_verifiable": history_audit["not_independently_verifiable"],
+        "forbidden_claim": "29条是可核验滚动跟踪点，不是29个独立预测，也不能称为投资胜率。",
+        "system_changes": [
+            "已有明确阈值和富途复权日K结果的29条记录恢复真实判定；没有网页链接不再被误判为没有外部市场数据。",
+            "28条缺少事件清单或数值阈值的记录继续列为无法验证，不倒填结果。",
+            "错误归因分为新闻源、行情数据、规则、估值和因果推理；每条同时登记本期具体修改。",
+            "5条投资预测与1条产品流程QA分开；70%是固定“较高”档评分值，不是由旧跟踪点一致率反推。",
+        ],
+    })
+    audit.update(history_audit)
     audit.update({"investment_prediction_count": len(investment), "process_qa_count": len(process_qa), "all_records": all_new})
     layer7 = next(row for row in model["layers"] if row["layer"] == 7)
     layer7.update({
-        "final_judgment": "本期建立5条投资预测基线，另有1条产品流程QA；两者分开统计。57条历史记录逐条展示其可验证性、结果、归因和改进。",
-        "portfolio_transmission": "只有投资预测进入未来概率校准；流程QA用于检查产品有没有把媒体预期写成正式决定。",
-        "reversal": "到验证日没有独立外部证据时，记录退出统计分母，不追溯补造。",
+        "final_judgment": "57条历史记录中，29条有预先阈值和富途复权日K结果，按原标准均判对；其余28条因原定义不足仍无法验证。29条是重叠滚动跟踪点，不是投资胜率。",
+        "portfolio_transmission": "历史记录用于识别数据、规则和推理缺陷；5条新投资预测另按固定概率档位做未来校准，产品流程QA不进入投资统计。",
+        "reversal": "若复核发现行情区间、复权口径或原成功标准登记错误，立即撤回对应判定并重算分母。",
         "facts": [
-            {
-                "title": "57条历史记录的本期处理",
-                "publisher": "本产品第三层PDCA正文",
-                "fact": "57条历史记录逐条保留；缺少独立外部成功标准的记录明确列为无法验证并退出统计分母。",
-                "supports": "支持把历史错误、归因、相反选择和改进直接交给董事长阅读。",
-                "cannot_prove": "不能据此公布投资预测胜率。",
-                "url": "#pdca",
-            },
-            {
-                "title": "本期新记录分组",
-                "publisher": "本产品第三层PDCA正文",
-                "fact": "本期新建5条投资预测和1条产品流程QA；流程QA不进入投资预测校准。",
-                "supports": "支持以后分别检查投资判断和产品表述质量。",
-                "cannot_prove": "尚未到验证日，不能提前登记判对。",
-                "url": "#pdca",
-            },
+            {"title": "历史PDCA真实复核", "publisher": "本产品第三层PDCA正文", "fact": "57条中29条具有明确阈值与行情结果，29条判对、0条判错；28条原定义不足，继续退出分母。", "supports": "支持区分可核跟踪点和真正无法验证记录。", "cannot_prove": "滚动窗口高度重叠，不能称为29个独立预测或投资胜率。", "url": "#pdca"},
+            {"title": "新预测概率依据", "publisher": "本产品第三层PDCA正文", "fact": "5条投资预测使用固定较高档70%，每条分别登记支持证据、反向风险和选择理由；另1条90%为流程QA。", "supports": "支持未来使用Brier分数校准概率。", "cannot_prove": "样本尚未到期，不能提前证明70%已经校准准确。", "url": "#pdca"},
         ],
     })
     return audit
-
 
 def build_news(model: dict[str, Any]) -> None:
     old_records = [row for row in model["news"].get("records", []) if row.get("event_id") not in {"NEWS-20260820-MARKET-SNAPSHOT"}]
@@ -401,6 +544,29 @@ def inject_content(model: dict[str, Any]) -> dict[str, Any]:
     layer_map[5]["final_judgment"] = "18只研究观察对象继续按唯一五关源管理；本轮新增新闻没有使任何对象形成可执行机会。"
     layer_map[5]["transmission"] = "研究卡、五关表、影子组合和行动栏全部从证券代码唯一源生成；当前可执行机会仍为0。"
     layer_map[6].update({"final_judgment": f"8月21日已知资产观察总额约{total:,.0f}日元；AI直接暴露{risk['ai_direct']['known_total_ratio_pct']:.2f}%，含软银代理后{risk['ai_broad_with_softbank_proxy']['known_total_ratio_pct']:.2f}%；广义加密暴露{risk['crypto_broad_with_related_equities']['known_total_ratio_pct']:.2f}%。", "transmission": "富途使用8月21日OpenD实测；SBI、IBKR、bitFlyer保留各自证据日。比例只用于风险观察，不是机械交易线。", "reversal": "取得手工账户更新现金、融资和应计字段后，重新计算已知分母和风险比例。"})
+    layer6_facts = {fact.get("title"): fact for fact in layer_map[6].get("facts", [])}
+    layer6_facts["唯一账户口径"] = {
+        "title": "唯一账户口径", "publisher": "8月21日唯一账户事实源",
+        "published_at": REFRESHED_ACCOUNT["refresh_audit"]["futu_collected_at_jst"], "url": None,
+        "fact": f"已知资产观察总额为{total:,.2f}日元；富途为8月21日OpenD实测，手工账户保留各自证据日。",
+        "supports": "支持已知口径风险观察，不等于四账户同日完整净值。",
+        "cannot_prove": "不能证明未知现金、融资、应计项目或SBI账户归属。",
+    }
+    layer6_facts["AI同一驱动"] = {
+        "title": "AI同一驱动", "publisher": "8月21日唯一账户事实源",
+        "published_at": REFRESHED_ACCOUNT["refresh_audit"]["futu_collected_at_jst"], "url": None,
+        "fact": f"以{total:,.2f}日元已知资产为分母，AI直接暴露{risk['ai_direct']['known_total_ratio_pct']:.2f}%，含软银代理后为{risk['ai_broad_with_softbank_proxy']['known_total_ratio_pct']:.2f}%。",
+        "supports": "支持暂停扩大AI同一驱动风险。", "cannot_prove": "不是四账户同日完整比例，也不是自动交易硬线。",
+    }
+    layer6_facts["加密同一驱动"] = {
+        "title": "加密同一驱动", "publisher": "8月21日唯一账户事实源",
+        "published_at": REFRESHED_ACCOUNT["refresh_audit"]["futu_collected_at_jst"], "url": None,
+        "fact": f"以{total:,.2f}日元已知资产为分母，广义加密暴露{risk['crypto_broad_with_related_equities']['known_total_ratio_pct']:.2f}%。",
+        "supports": "支持不新增加密相关风险并保留条件性削减顺序。", "cannot_prove": "未知账户字段可能改变比例，不自动触发交易。",
+    }
+    ordered_titles = ["唯一账户口径", "AI同一驱动", "加密同一驱动"]
+    remaining_facts = [fact for fact in layer_map[6].get("facts", []) if fact.get("title") not in ordered_titles]
+    layer_map[6]["facts"] = [layer6_facts[title] for title in ordered_titles] + remaining_facts
     layer_map[7].update({"final_judgment": "本期建立5条投资预测基线，另有1条产品流程QA；两者分开统计。57条历史记录逐条展示其可验证性、结果、归因和改进。", "transmission": "只有投资预测进入未来概率校准；流程QA用于检查产品有没有把媒体预期写成正式决定。", "reversal": "到验证日没有独立外部证据时，记录退出统计分母，不追溯补造。"})
     news_map = {row["event_id"]: row for row in model["news"]["records"]}
     for number, event_ids in {1: ["NEWS-20260821-GLOBAL-MARKETS"], 3: ["NEWS-20260821-GLOBAL-MARKETS"], 4: ["NEWS-20260820-AVGO-AI-DEBT", "NEWS-20260820-NVDA-CHINA-LPU-DENIAL"], 5: ["NEWS-20260820-AVGO-AI-DEBT"], 6: ["NEWS-20260821-GLOBAL-MARKETS"]}.items():
@@ -473,25 +639,41 @@ def render_target_bridge(target: dict[str, Any], base: Any) -> str:
 
 def render_pdca(pdca: dict[str, Any], base: Any) -> str:
     summary = pdca["body_summary"]
+    audit = summary["historical_verification"]
     investment = summary["investment_predictions"]
     process = summary["process_quality_checks"]
-    investment_rows = "".join(f"<tr data-investment-prediction='1'><td>{index}</td><td>{base.esc(row['statement'])}</td><td>{row['probability_pct']}%</td><td>{base.esc(row['success_definition'])}</td><td>{base.esc(row['counterfactual'])}</td><td>{base.esc(row['verification_date'])}</td></tr>" for index, row in enumerate(investment, 1))
-    process_rows = "".join(f"<tr data-process-qa='1'><td>{base.esc(row['statement'])}</td><td>{base.esc(row['success_definition'])}</td><td>{base.esc(row['verification_date'])}</td></tr>" for row in process)
+    investment_rows = "".join(
+        f"<tr data-investment-prediction='1'><td>{index}</td><td>{base.esc(row['statement'])}</td>"
+        f"<td>{base.esc(row['probability_label'])}（{row['probability_pct']}%固定评分值）<br><span class='muted'>{base.esc(row['probability_basis'])}</span></td>"
+        f"<td>{base.esc(row['success_definition'])}</td><td>{base.esc(row['counterfactual'])}</td><td>{base.esc(row['verification_date'])}</td></tr>"
+        for index, row in enumerate(investment, 1)
+    )
+    process_rows = "".join(
+        f"<tr data-process-qa='1'><td>{base.esc(row['statement'])}</td><td>{base.esc(row['probability_basis'])}</td>"
+        f"<td>{base.esc(row['success_definition'])}</td><td>{base.esc(row['verification_date'])}</td></tr>" for row in process
+    )
     history_rows = []
     for row in pdca["plain_records"]:
-        evidence = str(row.get("external_evidence") or "未取得").replace("source=", "证据来源：")
         history_rows.append(
-            f"<tr data-pdca-history='1'><td>{row['record_number']}</td><td>{base.esc(row.get('prediction_date'))}<br>{base.esc(row.get('prediction'))}</td><td>{base.esc(row.get('success_definition'))}</td><td>{base.esc(row.get('actual_result'))}<br>{base.esc(evidence)}</td><td>{base.esc(row.get('verdict'))}</td><td>{base.esc(row.get('lesson'))}<br><b>相反选择：</b>{base.esc(row.get('counterfactual'))}</td></tr>"
+            f"<tr data-pdca-history='1'><td>{row['record_number']}</td><td>{base.esc(row.get('prediction_date'))}<br>{base.esc(row.get('prediction'))}</td>"
+            f"<td>{base.esc(row.get('success_definition'))}</td><td>{base.esc(row.get('actual_result'))}<br>{base.esc(row.get('external_evidence'))}</td>"
+            f"<td>{base.esc(row.get('verdict'))}<br><span class='muted'>{base.esc(row.get('verification_class'))}</span></td>"
+            f"<td><b>归因：</b>{base.esc(row.get('error_or_learning_category'))}<br><b>教训：</b>{base.esc(row.get('lesson'))}"
+            f"<br><b>本期修改：</b>{base.esc(row.get('specific_change'))}<br><b>相反选择：</b>{base.esc(row.get('counterfactual'))}</td></tr>"
         )
     changes = "".join(f"<li>{base.esc(value)}</li>" for value in summary.get("system_changes", []))
     return f"""
-    <p><b>投资预测：</b>本期5条，只有这些记录进入未来概率校准。<b>产品流程QA：</b>1条，用来检查产品有没有把媒体预期写成正式决定，不计入投资预测。</p>
-    <table><thead><tr><th>序号</th><th>投资预测</th><th>概率</th><th>成功标准</th><th>相反结果</th><th>验证时间</th></tr></thead><tbody>{investment_rows}</tbody></table>
-    <h4>产品流程QA</h4><table><thead><tr><th>检查内容</th><th>通过标准</th><th>检查时间</th></tr></thead><tbody>{process_rows}</tbody></table>
-    <h4>本期从历史错误中改变了什么</h4><ul>{changes}</ul>
-    {base.details('57条历史记录：预测、实际、判定、归因和改进', '<p class="boundary">历史记录逐条保留；没有独立外部成功标准的记录退出统计分母，不追溯补造。</p><table><thead><tr><th>编号</th><th>当时预测</th><th>成功标准</th><th>实际与证据</th><th>判定</th><th>教训与相反选择</th></tr></thead><tbody>'+''.join(history_rows)+'</tbody></table>', attrs="data-pdca-ledger='57'")}
+    <div class="metric-grid"><article class="metric"><b>历史记录</b><strong>57条</strong><small>原始记录全部保留</small></article>
+    <article class="metric"><b>可核验跟踪点</b><strong>{audit['verifiable_tracking_points']}条</strong><small>{audit['correct_tracking_points']}条判对，{audit['wrong_tracking_points']}条判错</small></article>
+    <article class="metric"><b>无法独立验证</b><strong>{audit['not_independently_verifiable']}条</strong><small>原定义不足，不倒填</small></article>
+    <article class="metric"><b>独立序列</b><strong>{audit['independent_prediction_series']}组</strong><small>滚动跟踪点不等于独立预测</small></article></div>
+    <p class="boundary">{base.esc(audit['statistics_boundary'])}</p>
+    <p><b>投资预测：</b>本期5条，只有这些记录进入未来概率校准。70%是总控批准的“较高”固定评分档，不是由旧跟踪点一致率反推。<b>产品流程QA：</b>1条，不计入投资预测。</p>
+    <table><thead><tr><th>序号</th><th>投资预测</th><th>概率档及依据</th><th>成功标准</th><th>相反结果</th><th>验证时间</th></tr></thead><tbody>{investment_rows}</tbody></table>
+    <h4>产品流程QA</h4><table><thead><tr><th>检查内容</th><th>采用概率档的原因</th><th>通过标准</th><th>检查时间</th></tr></thead><tbody>{process_rows}</tbody></table>
+    <h4>本期从历史记录中改变了什么</h4><ul>{changes}</ul>
+    {base.details('57条历史记录：预测、实际、判定、归因和改进', '<table><thead><tr><th>编号</th><th>当时预测</th><th>成功标准</th><th>实际与证据</th><th>判定</th><th>归因、教训与修改</th></tr></thead><tbody>'+''.join(history_rows)+'</tbody></table>', attrs="data-pdca-ledger='57'")}
     """
-
 
 def semantic_qa(model: dict[str, Any], html_text: str, capability: dict[str, Any], final: dict[str, Any], output_dir: Path, attachment_rows: list[dict[str, Any]], decision_hash: str) -> dict[str, Any]:
     visible = previous.visible_text(html_text)
@@ -523,6 +705,51 @@ def semantic_qa(model: dict[str, Any], html_text: str, capability: dict[str, Any
         "process_qa": len(re.findall(r"data-process-qa=['\"]1['\"]", html_text)),
         "pdca_history": len(re.findall(r"data-pdca-history=['\"]1['\"]", html_text)),
     }
+    expected_risk = model["single_portfolio_source"]["risk"]
+    layer6 = next(row for row in model["layers"] if row["layer"] == 6)
+    layer6_by_title = {row.get("title"): row for row in layer6.get("facts", [])}
+    stale_account_terms = ["312,884,485.80", "33.42%", "47.02%", "13.36%"]
+    stale_account_hits = {term: visible.count(term) for term in stale_account_terms if visible.count(term)}
+    account_fact_values_ok = (
+        f"{model['single_portfolio_source']['known_assets_total_jpy']:,.2f}" in str(layer6_by_title.get("唯一账户口径"))
+        and f"{expected_risk['ai_direct']['known_total_ratio_pct']:.2f}%" in str(layer6_by_title.get("AI同一驱动"))
+        and f"{expected_risk['ai_broad_with_softbank_proxy']['known_total_ratio_pct']:.2f}%" in str(layer6_by_title.get("AI同一驱动"))
+        and f"{expected_risk['crypto_broad_with_related_equities']['known_total_ratio_pct']:.2f}%" in str(layer6_by_title.get("加密同一驱动"))
+    )
+    price_conflicts = []
+    for symbol, item in research.items():
+        quote = item["current_quote"]
+        gate_fact = item["gates"][2].get("fact") if isinstance(item["gates"][2].get("fact"), dict) else {}
+        if isinstance(item["gates"][2].get("fact"), dict) and (
+            gate_fact.get("current_price") != quote.get("last_price")
+            or gate_fact.get("price_time") != quote.get("update_time")
+            or gate_fact.get("pe_ratio_market_snapshot") != quote.get("pe_ratio")
+            or gate_fact.get("pb_ratio_market_snapshot") != quote.get("pb_ratio")
+        ):
+            price_conflicts.append({"asset_id": symbol, "quote": quote, "gate3": gate_fact})
+    price_checked = sum(isinstance(item["gates"][2].get("fact"), dict) for item in research.values())
+    required_price_symbols = {"US.CEG", "US.CVX", "US.MU", "US.VRT", "US.WDC", "US.XOM", "US.MRVL"}
+    required_price_symbols_checked = all(symbol in research and isinstance(research[symbol]["gates"][2].get("fact"), dict) for symbol in required_price_symbols)
+    event_rows = []
+    event_contradictions = []
+    for item in model["holdings"]:
+        role = next((row for row in item.get("precise_evidence_roles", []) if row.get("role") == "公司或行业事件"), None)
+        event_rows.append({"asset_id": item["asset_id"], "role": role})
+        if not role:
+            event_contradictions.append({"asset_id": item["asset_id"], "reason": "缺少公司事件角色"})
+        elif role.get("status") == "已取得本批次独立公司事件":
+            if not all(role.get(key) for key in ("title", "publisher", "published_at", "locator", "url", "supports")):
+                event_contradictions.append({"asset_id": item["asset_id"], "reason": "已取得但定位不完整"})
+        elif role.get("status") == "截止时间内未取得独立公司事件":
+            if role.get("url") is not None or "未取得" not in str(role.get("title")):
+                event_contradictions.append({"asset_id": item["asset_id"], "reason": "未取得状态仍有占位链接或错误标题"})
+        else:
+            event_contradictions.append({"asset_id": item["asset_id"], "reason": "未知事件状态"})
+    event_obtained = [row["asset_id"] for row in event_rows if row["role"] and row["role"].get("status") == "已取得本批次独立公司事件"]
+    event_missing = [row["asset_id"] for row in event_rows if row["role"] and row["role"].get("status") == "截止时间内未取得独立公司事件"]
+    history = model["pdca"]["plain_records"]
+    historical = model["pdca"]["body_summary"]["historical_verification"]
+    investment_basis = [row.get("probability_basis") for row in model["pdca"]["body_summary"]["investment_predictions"]]
     checks = {
         "Q01新闻窗口与增量事件": {"pass": news_window_ok and new_news_ids.issubset(news_ids) and new_layer_facts_complete, "detail": {"window_ok": news_window_ok, "new_event_count": len(news_ids & new_news_ids), "layer_transmission_complete": new_layer_facts_complete}},
         "Q02富途8月21日账户实测": {"pass": len(futu_rows) == 12 and all(row["quantity_evidence_date"] == "2026-08-21" for row in futu_rows) and model["single_portfolio_source"]["refresh_audit"]["futu_snapshot_run_id"].startswith("FUTU-RO-20260821"), "detail": {"positions": len(futu_rows), "snapshot": model["single_portfolio_source"]["refresh_audit"]}},
@@ -534,23 +761,52 @@ def semantic_qa(model: dict[str, Any], html_text: str, capability: dict[str, Any
         "Q08内部施工语言": {"pass": not forbidden, "detail": forbidden},
         "Q09结构与冻结边界": {"pass": html_counts["holdings"] == 24 and html_counts["research"] == 18 and html_counts["gates"] == 90 and not list(output_dir.glob("*.pdf")) and model["status"] == previous.STATUS, "detail": html_counts},
         "Q10UTF8与本地路径": {"pass": b"\xef\xbf\xbd" not in html_text.encode("utf-8") and not re.search(r"(?i)(?:[A-Z]:\\|file://)", visible), "detail": {"replacement": html_text.encode("utf-8").count(b"\xef\xbf\xbd")}},
+        "Q11全账户唯一风险口径": {"pass": account_fact_values_ok and not stale_account_hits, "detail": {"known_assets_jpy": model["single_portfolio_source"]["known_assets_total_jpy"], "risk": expected_risk, "layer6_facts_match": account_fact_values_ok, "stale_hits": stale_account_hits}},
+        "Q12研究行情单一来源": {"pass": len(research) == 18 and price_checked >= 7 and required_price_symbols_checked and not price_conflicts, "detail": {"research_count": len(research), "third_gate_price_checked": price_checked, "required_symbols_checked": required_price_symbols_checked, "conflicts": price_conflicts}},
+        "Q13公司事件证据状态": {"pass": len(event_rows) == 24 and len(event_obtained) == 2 and len(event_missing) == 22 and not event_contradictions and set(event_obtained) == {"US.AVGO", "US.NVDA"}, "detail": {"checked": len(event_rows), "obtained": event_obtained, "missing_count": len(event_missing), "contradictions": event_contradictions}},
+        "Q14PDCA真实闭环": {"pass": len(history) == 57 and historical["verifiable_tracking_points"] == 29 and historical["correct_tracking_points"] == 29 and historical["wrong_tracking_points"] == 0 and historical["not_independently_verifiable"] == 28 and all(row.get("error_or_learning_category") and row.get("specific_change") for row in history) and len(investment_basis) == 5 and all(investment_basis) and len(set(investment_basis)) == 5, "detail": {"historical": historical, "attribution_missing": [row["record_number"] for row in history if not row.get("error_or_learning_category") or not row.get("specific_change")], "investment_probability_basis_count": len(investment_basis), "unique_probability_basis_count": len(set(investment_basis))}},
     }
     failures = [key for key, result in checks.items() if not result["pass"]]
-    return {"schema_version": "V7-STAGEC-RETURN-SEMANTIC-QA-2.0", "run_id": model["run_id"], "checked_at_jst": datetime.now(JST).isoformat(timespec="seconds"), "checks": checks, "pass_count": len(checks) - len(failures), "check_count": len(checks), "failures": failures, "status": "INTERNAL_QA_PASS_WAITING_GPT_FULL_HTML_CONTENT_GATE" if not failures else "FAIL", "self_declared_content_gate_pass": False, "pdf_render_authorized": False}
+    return {"schema_version": "V7-STAGEC-RETURN-SEMANTIC-QA-3.0", "run_id": model["run_id"], "checked_at_jst": datetime.now(JST).isoformat(timespec="seconds"), "checks": checks, "pass_count": len(checks) - len(failures), "check_count": len(checks), "failures": failures, "status": "INTERNAL_QA_PASS_WAITING_GPT_FULL_HTML_CONTENT_GATE" if not failures else "FAIL", "self_declared_content_gate_pass": False, "pdf_render_authorized": False}
 
+
+def rebuild_traceability(model: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = ORIGINAL_REBUILD_TRACEABILITY(model)
+    by_conclusion = {row.get("conclusion"): row for row in rows}
+    for item in model["holdings"]:
+        key = f"{item['asset_id']}｜{item['name']}唯一动作"
+        target = by_conclusion.get(key)
+        event = next((row for row in item.get("precise_evidence_roles", []) if row.get("role") == "公司或行业事件"), None)
+        if target is not None and event is not None:
+            target.setdefault("evidence_details", []).append({
+                "title": event.get("title"), "publisher": event.get("publisher"),
+                "published_at": event.get("published_at"), "url": event.get("url"),
+                "supports": event.get("supports"), "cannot_prove": event.get("cannot_prove"),
+                "status": event.get("status"), "locator": event.get("locator"),
+            })
+    return rows
 
 ORIGINAL_APPLY_HOLDINGS = previous.apply_holdings
 ORIGINAL_APPLY_RESEARCH = previous.apply_research
 ORIGINAL_APPLY_FIRST_LAYER = previous.apply_first_layer
 ORIGINAL_INJECT = previous.legacy.inject_market_reversal
 ORIGINAL_WRITE_ATTACHMENT = previous.write_attachment
+ORIGINAL_REBUILD_TRACEABILITY = previous.rebuild_traceability
 
 
 def write_attachment(path: Path, value: Any, purpose: str) -> dict[str, Any]:
     if path.name == "01_PDCA历史57条及新预测.json":
-        purpose = "57条历史记录、5条投资预测与1条产品流程QA"
+        purpose = "57条历史记录的真实复核、5条投资预测与1条产品流程QA"
     elif path.name == "12_PDCA概率校准规则.json":
-        purpose = "固定概率档位、5条投资预测与1条产品流程QA"
+        purpose = "固定概率档位、逐条概率依据、5条投资预测与1条产品流程QA"
+    elif path.name == "13_能力闭合修改前后清单.json":
+        value["content_gate_return_fixes"] = [
+            {"item": "全账户风险口径", "before": "七层仍保留旧总额和旧暴露比例", "after": "驾驶舱、七层和证据附件统一使用8月21日唯一账户源"},
+            {"item": "七只研究股行情", "before": "当前行情与第三关来自两个快照", "after": "当前价、时间、市盈率、市净率及第五关理由从证券代码唯一行情源生成"},
+            {"item": "持仓公司事件", "before": "22张卡以财报链接占位并误称已取得事件", "after": "22张诚实登记未取得独立公司事件；AVGO和NVDA保留实际事件原文"},
+            {"item": "PDCA", "before": "57条全部因无网页链接被判无法验证", "after": "29条按原阈值和富途复权日K恢复判定，28条定义不足继续退出；新预测补齐逐条概率依据"},
+        ]
+        purpose = "本轮四项内容闸返修前后及冻结章节说明"
     return ORIGINAL_WRITE_ATTACHMENT(path, value, purpose)
 
 
@@ -580,6 +836,7 @@ def main() -> int:
     previous.render_pdca = render_pdca
     previous.semantic_qa = semantic_qa
     previous.write_attachment = write_attachment
+    previous.rebuild_traceability = rebuild_traceability
     previous.legacy.inject_market_reversal = inject_content
     previous.legacy.VISIBLE_TERM_MAP.update({
         "Codex取证，本期判断判断": "数据证据由系统更新，投资判断由投研主脑统一裁定",
