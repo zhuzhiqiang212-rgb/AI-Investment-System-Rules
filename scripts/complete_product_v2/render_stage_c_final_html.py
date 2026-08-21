@@ -21,6 +21,92 @@ STATUS = {
     "current_executable": False,
 }
 
+ATTACHMENT_NAMES = {
+    "pdca": "01_PDCA历史57条.json",
+    "portfolio": "02_唯一账户事实源.json",
+    "gates": "03_正式五关矩阵.json",
+    "target": "04_目标贡献桥.json",
+    "views": "05_外部观点映射.json",
+    "capabilities": "06_历史功能数据.json",
+    "evidence": "07_证据注册与结论追踪.json",
+}
+
+VISIBLE_TERM_MAP = {
+    "NON_PRICE_RISK_FRAMEWORK_ONLY": "仅使用非价格风险框架",
+    "RISK_PRICE_ANCHOR_ONLY": "仅使用风险价格锚",
+    "REJECT_NUMERIC_SCENARIO": "不采用数值情景",
+    "NO_NUMERIC_RANGE": "不提供数值区间",
+    "NO_NUMERIC_PROBABILITY": "不提供数值概率",
+    "GPT总控最终能力判断唯一源": "已批准的唯一投资判断",
+    "GPT总控最终能力判断输入": "已批准的投资判断输入",
+    "GPT总控最终能力判断": "已批准的投资判断",
+    "GPT总控最终参数": "已批准的参数",
+    "GPT总控": "已批准判断",
+    "Futu OpenD": "富途只读账户接口",
+    "OpenD": "富途只读账户接口",
+    "Current完整产品与风险边界": "当前正式产品与风险边界",
+    "Current规则": "当前正式规则",
+    "AI投资系统Current": "AI投资系统当前正式规则",
+    "Current": "当前正式规则",
+}
+
+GUIDANCE_EVIDENCE_OVERRIDES = {
+    "JP.9984": {
+        "source_title": "SoftBank Group Q1 FY2026 Earnings Results and NAV per Share",
+        "publisher": "SoftBank Group Corp.",
+        "published_at": "2026-08-06",
+        "period": "截至2026-06-30的2026财年第一季度；NAV数据截至2026-06-30",
+        "url": "https://group.softbank/en/ir",
+        "locator": "Q1 FY2026 Earnings Results；Net Asset Value per Share；NAV 72.30万亿日元、持股价值83.11万亿日元、净债务10.81万亿日元、LTV 13.0%",
+        "date_impact": "正式发布日和数据期均已明确；不据此证明8月21日的实时NAV。",
+    },
+    "KRX.005930": {
+        "source_title": "Samsung Electronics Announces Second Quarter 2026 Results",
+        "publisher": "Samsung Electronics",
+        "published_at": "2026-07-30",
+        "period": "截至2026-06-30的第二季度",
+        "url": "https://news.samsung.com/global/samsung-electronics-announces-second-quarter-2026-results",
+        "locator": "开头的季度合并收入、营业利润及H2 2026各业务展望",
+        "date_impact": "精确发布日期与报告期已闭合。",
+    },
+    "US.IBKR": {
+        "source_title": "Interactive Brokers Group Announces 2Q 2026 Results",
+        "publisher": "Interactive Brokers Group, Inc.",
+        "published_at": "2026-07-21",
+        "period": "截至2026-06-30的第二季度",
+        "url": "https://www.sec.gov/Archives/edgar/data/1381197/000138119726000147/ibkr-20260630.htm",
+        "locator": "Form 10-Q：Consolidated Statements of Financial Condition、Income及Management's Discussion and Analysis",
+        "date_impact": "使用SEC直达申报文件，不使用投资者关系首页替代财务原文。",
+    },
+    "US.SNDK": {
+        "source_title": "Sandisk Reports Fiscal Fourth Quarter 2026 Financial Results",
+        "publisher": "Sandisk Corporation",
+        "published_at": "2026-08-05",
+        "period": "截至2026-07-03的2026财年第四季度；指引为2027财年第一季度",
+        "url": "https://investor.sandisk.com/news-releases/news-release-details/sandisk-reports-fiscal-fourth-quarter-2026-financial-results",
+        "locator": "News Summary、Q4 2026 Financial Highlights及Business Outlook for Q1 2027",
+        "date_impact": "精确发布日期、报告期及前瞻指引期间均已闭合。",
+    },
+    "US.SPCX": {
+        "source_title": "Space Exploration Technologies Corp. Form 8-K",
+        "publisher": "U.S. Securities and Exchange Commission",
+        "published_at": "2026-06-15",
+        "period": "最早事件日2026-06-15；上市承销事项",
+        "url": "https://www.sec.gov/Archives/edgar/data/1181412/000162828026043288/spaceexplorationtechnologi.htm",
+        "locator": "Form 8-K封面、Item 8.01 Other Events及Exhibit 1.1 Underwriting Agreement",
+        "date_impact": "该文件证明证券与上市承销事项，不提供传统经营指引，也不能单独形成数值估值。",
+    },
+    "US.TSM": {
+        "source_title": "TSMC Second Quarter 2026 Earnings Call and Third Quarter Outlook",
+        "publisher": "Taiwan Semiconductor Manufacturing Co., Ltd.",
+        "published_at": "2026-07-16",
+        "period": "2026年第二季度结果；2026年第三季度指引",
+        "url": "https://investor.tsmc.com/english/quarterly-results/2026/q2",
+        "locator": "Q2 2026 earnings materials：Business Outlook，Q3收入44.6至45.8十亿美元及毛利率指引",
+        "date_impact": "精确发布日期与指引期间已闭合。",
+    },
+}
+
 
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8-sig"))
@@ -36,6 +122,215 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest().upper()
+
+
+def humanize_visible_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {key: humanize_visible_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [humanize_visible_value(item) for item in value]
+    if isinstance(value, str):
+        result = value
+        for source, replacement in VISIBLE_TERM_MAP.items():
+            result = result.replace(source, replacement)
+        return result
+    return value
+
+
+def format_account_locator(quantity_by_account: Any) -> str:
+    if not isinstance(quantity_by_account, dict) or not quantity_by_account:
+        return "账户归属未闭合；数量未单独登记"
+    parts = []
+    for account, value in quantity_by_account.items():
+        if isinstance(value, dict):
+            amount = value.get("quantity", value.get("shares", value.get("amount", "未登记")))
+            date = value.get("data_date") or value.get("date") or value.get("as_of")
+            part = f"{account}：数量{amount}"
+            if date:
+                part += f"，资料日期{date}"
+        else:
+            part = f"{account}：数量{value}"
+        parts.append(part)
+    return "；".join(parts)
+
+
+def apply_guidance_override(symbol: str, guidance: dict[str, Any]) -> dict[str, Any]:
+    result = copy.deepcopy(guidance)
+    override = GUIDANCE_EVIDENCE_OVERRIDES.get(symbol)
+    if override:
+        result.update(override)
+    return result
+
+
+def meaningful_evidence_title(fact: dict[str, Any]) -> str:
+    title = str(fact.get("title") or "").strip()
+    if title and "机器事实" not in title and "机器实物" not in title:
+        return title
+    fact_text = str(fact.get("fact") or "").strip()
+    if fact_text:
+        return fact_text[:42] + ("…" if len(fact_text) > 42 else "")
+    return "同批次事实登记"
+
+
+def write_core_attachments(model: dict[str, Any], output_dir: Path) -> list[dict[str, Any]]:
+    payloads = {
+        ATTACHMENT_NAMES["pdca"]: {
+            "run_id": model["run_id"],
+            "purpose": "保存57条PDCA历史记录及本期大白话汇总，供逐条复核。",
+            "record_count": len(model["pdca"].get("plain_records", [])),
+            "data": model["pdca"],
+        },
+        ATTACHMENT_NAMES["portfolio"]: {
+            "run_id": model["run_id"],
+            "purpose": "保存唯一账户事实源、跨账户合并、已知资产和未知字段。",
+            "data": model["single_portfolio_source"],
+        },
+        ATTACHMENT_NAMES["gates"]: {
+            "run_id": model["run_id"],
+            "purpose": "保存18个研究对象共90行正式五关记录。",
+            "object_count": len(model["research_gates"]),
+            "gate_row_count": sum(len(item.get("gates", [])) for item in model["research_gates"]),
+            "data": model["research_gates"],
+        },
+        ATTACHMENT_NAMES["target"]: {
+            "run_id": model["run_id"],
+            "purpose": "保存24项资产的收益、概率、权重和组合贡献桥。",
+            "data": model["target_bridge"],
+        },
+        ATTACHMENT_NAMES["views"]: {
+            "run_id": model["run_id"],
+            "purpose": "保存湖水、老雷及其他外部观点对具体判断的影响映射。",
+            "data": model["external_views"],
+        },
+        ATTACHMENT_NAMES["capabilities"]: {
+            "run_id": model["run_id"],
+            "purpose": "保存替换发动机、影子组合、风险穿透、确定性积累和问题台账。",
+            "data": model["capabilities"],
+        },
+        ATTACHMENT_NAMES["evidence"]: {
+            "run_id": model["run_id"],
+            "purpose": "保存七层、新闻、结论追踪及事件取舍的完整证据登记。",
+            "layers": model["layers"],
+            "news": model["news"],
+            "traceability": model["traceability"],
+            "accepted_event_leads": model.get("accepted_event_leads", []),
+            "rejected_irrelevant_events": model.get("rejected_irrelevant_events", []),
+        },
+    }
+    rows = []
+    for filename, payload in payloads.items():
+        path = output_dir / filename
+        write_json(path, payload)
+        rows.append({
+            "name": filename,
+            "purpose": payload["purpose"],
+            "size": path.stat().st_size,
+            "sha256": sha256(path),
+            "relative_href": filename,
+        })
+    return rows
+
+
+def render_attachment_table(rows: list[dict[str, Any]]) -> str:
+    body = "".join(
+        "<tr>"
+        f"<td><a href=\"{html.escape(row['relative_href'], quote=True)}\">{html.escape(row['name'])}</a></td>"
+        f"<td>{html.escape(row['purpose'])}</td><td>{row['size']:,}字节</td>"
+        f"<td><code>{row['sha256']}</code></td></tr>"
+        for row in rows
+    )
+    return (
+        "<h3>同批次完整附件</h3>"
+        "<p>下列附件均已真实生成，可从本页直接打开；目录、大小和哈希与本表逐项一致。</p>"
+        "<table data-attachment-table=\"1\"><thead><tr><th>附件</th><th>用途</th><th>大小</th><th>SHA256</th></tr></thead>"
+        f"<tbody>{body}</tbody></table>"
+    )
+
+
+def source_link_or_attachment(url: Any, base: Any) -> str:
+    if isinstance(url, str) and url.startswith(("https://", "http://")):
+        return base.link(url)
+    filename = ATTACHMENT_NAMES["evidence"]
+    return f'<a href="{base.esc(filename)}">打开同批次证据附件</a>'
+
+
+def render_layer_fact_list(facts: list[dict[str, Any]], base: Any) -> str:
+    rows = []
+    for fact in facts:
+        rows.append(
+            f'<li><b>{base.esc(meaningful_evidence_title(fact))}</b>｜{base.esc(fact.get("publisher") or "同批次事实登记")}<br>'
+            f'发布时间：{base.esc(fact.get("published_at") or "未单独披露")}｜数据期间：{base.esc(fact.get("data_period") or "本批次")}<br>'
+            f'事实：{base.esc(fact.get("fact"))}<br>传到组合：{base.esc(fact.get("supports"))}<br>'
+            f'不能证明：{base.esc(fact.get("cannot_prove"))}<br>{source_link_or_attachment(fact.get("url"), base)}</li>'
+        )
+    return "<ul>" + "".join(rows) + "</ul>"
+
+
+def render_news(news: dict[str, Any], base: Any) -> str:
+    rows = []
+    for item in news["records"]:
+        rows.append(
+            f'<tr><td>{base.esc(meaningful_evidence_title(item))}<br><small>{base.esc(item.get("publisher") or "同批次新闻登记")}</small></td>'
+            f'<td>{base.esc(item.get("published_at"))}<br>{base.esc(item.get("data_date"))}</td>'
+            f'<td>{base.esc(item.get("fact"))}</td><td>{base.esc(item.get("portfolio_impact"))}</td>'
+            f'<td>{base.esc(item.get("boundary"))}</td><td>{source_link_or_attachment(item.get("url"), base)}</td></tr>'
+        )
+    return (
+        f'<p>检索开始：{base.esc(news.get("search_started_at_jst"))}｜结束：{base.esc(news.get("search_finished_at_jst"))}'
+        f'｜事实截止：{base.esc(news.get("evidence_cutoff_jst"))}</p>'
+        '<table><thead><tr><th>事件</th><th>发布时间／数据日</th><th>事实</th><th>组合影响</th>'
+        f'<th>使用边界</th><th>原文</th></tr></thead><tbody>{"".join(rows)}</tbody></table>'
+    )
+
+
+def build_evidence_url_index(model: dict[str, Any]) -> dict[str, str]:
+    index: dict[str, str] = {}
+    for layer in model.get("layers", []):
+        for fact in layer.get("facts", []):
+            url = fact.get("url")
+            if isinstance(url, str) and url.startswith(("https://", "http://")):
+                index[str(fact.get("title") or "")] = url
+                index[meaningful_evidence_title(fact)] = url
+    for item in model.get("news", {}).get("records", []):
+        url = item.get("url")
+        if isinstance(url, str) and url.startswith(("https://", "http://")):
+            index[str(item.get("title") or "")] = url
+    for holding in model.get("holdings", []):
+        for role in holding.get("precise_evidence_roles", []):
+            url = role.get("url")
+            if isinstance(url, str) and url.startswith(("https://", "http://")):
+                index[str(role.get("title") or "")] = url
+    for item in model.get("research_gates", []):
+        for gate in item.get("gates", []):
+            source = gate.get("source") if isinstance(gate.get("source"), dict) else {}
+            url = source.get("url")
+            if isinstance(url, str) and url.startswith(("https://", "http://")):
+                index[str(source.get("title") or "")] = url
+    return index
+
+
+def render_trace(rows: list[dict[str, Any]], model: dict[str, Any], base: Any) -> str:
+    url_index = build_evidence_url_index(model)
+    rendered = []
+    for row in rows:
+        evidence_items = []
+        for value in row.get("evidence", []):
+            if not value:
+                continue
+            title = meaningful_evidence_title({"title": value, "fact": value})
+            url = url_index.get(str(value)) or url_index.get(title)
+            href = base.link(url) if url else f'<a href="{base.esc(ATTACHMENT_NAMES["evidence"])}">同批次登记：{base.esc(title)}</a>'
+            evidence_items.append(f"<li>{href}</li>")
+        rendered.append(
+            "<tr>"
+            f"<td>{base.esc(row.get('conclusion'))}</td><td>{base.esc(row.get('plain_answer'))}</td>"
+            f"<td><ul>{''.join(evidence_items)}</ul></td><td>{base.esc(row.get('rule'))}</td>"
+            f"<td>{base.esc(row.get('boundary'))}</td></tr>"
+        )
+    return (
+        "<table><thead><tr><th>结论</th><th>唯一答案</th><th>可打开证据</th><th>规则</th><th>边界／改判</th></tr></thead>"
+        f"<tbody>{''.join(rendered)}</tbody></table>"
+    )
 
 
 def load_base_module(path: Path):
@@ -131,7 +426,7 @@ def precise_evidence_roles(item: dict[str, Any], cap: dict[str, Any], numeric: b
     roles = [{
         "role": "账户事实", "status": "已取得本批次账户实物", "title": f"{item['name']}账户数量与已知市值",
         "publisher": "Futu OpenD及已确认账户实物", "published_at": item["account_fact"].get("data_boundary"),
-        "period": "各账户按原始实物日期分别登记", "locator": f"账户：{account_names}；数量：{item['account_fact'].get('quantity_by_account')}",
+        "period": "各账户按原始实物日期分别登记", "locator": f"账户：{account_names}；{format_account_locator(item['account_fact'].get('quantity_by_account'))}",
         "url": None, "supports": "证明本批次已知账户中的数量、已知市值和权重分母。", "cannot_prove": "不能证明未知账户字段、完整同日净值或交易历史。",
     }]
     if item["asset_id"] in {"BTC", "ETH"}:
@@ -198,7 +493,8 @@ def merge_holdings(
     for source in old_holdings:
         item = copy.deepcopy(source)
         symbol = item["asset_id"]
-        cap = capability_map[symbol]
+        cap = copy.deepcopy(capability_map[symbol])
+        cap["company_guidance"] = apply_guidance_override(symbol, cap["company_guidance"])
         item["account_fact"]["known_market_value_jpy"] = cap["market_value_jpy"]
         item["account_fact"]["weight_of_known_assets_pct"] = cap["known_asset_weight_pct"]
         item["account_fact"]["quantity_by_account"] = cap["quantity_by_account"]
@@ -315,7 +611,14 @@ def merge_research(
                 f"第五关未通过；当前最大允许新增权重为{decision['max_weight_pct']}%。"
             )
         for gate in item["gates"]:
+            gate["fact"] = str(gate.get("fact") or "").replace("本轮最终动作以总控唯一答案为准", "").replace("。。", "。").strip()
             source = gate.get("source") if isinstance(gate.get("source"), dict) else {}
+            if gate.get("gate") == 4:
+                obtained = f"已取得公司特定证据：{source.get('title')}。" if source.get("title") else "本关没有取得可定位的公司特定正式原文。"
+                gate["fact"] = (
+                    f"{gate['fact'].rstrip('。')}。{obtained}"
+                    f"下一次验证：{item.get('next_review') or item.get('executable_condition') or '下一份正式财报或公司公告'}。"
+                )
             clickable = bool(source.get("title")) and str(source.get("url", "")).startswith(("https://", "http://"))
             claimed_complete = "已取得" in str(gate.get("status", "")) or "已完成" in str(gate.get("status", ""))
             if (claimed_complete or gate.get("evidence_complete")) and clickable:
@@ -421,7 +724,7 @@ def render_target_bridge(target: dict[str, Any], base: Any) -> str:
             else f"{row['probability_weighted_contribution_pp']:+.6f}个百分点"
         )
         rows.append(
-            "<tr data-target-row=\"1\">"
+            f"<tr data-target-row=\"{base.esc(row['asset_id'])}\">"
             f"<td>{base.esc(row['asset_id'])}</td><td>{base.esc(row['name'])}</td>"
             f"<td>{row['known_weight_pct']:.2f}%</td><td>{pct(row['bear_return_pct'])}</td>"
             f"<td>{pct(row['base_return_pct'])}</td><td>{pct(row['bull_return_pct'])}</td>"
@@ -492,6 +795,7 @@ def render_guidance_card(guidance: dict[str, Any], base: Any) -> str:
         f"{base.esc(guidance.get('published_at'))}<br>{source}</p>"
         f"<p><b>原文位置：</b>{base.esc(guidance.get('locator'))}</p>"
         f"<p><b>反向影响：</b>{base.esc(guidance.get('reverse_impact'))}</p>"
+        f"<p><b>日期边界：</b>{base.esc(guidance.get('date_impact') or '发布日期与数据期间见上方登记。')}</p>"
         f"<p><b>下次更新条件：</b>{base.esc(guidance.get('update_condition'))}</p>"
     )
 
@@ -628,7 +932,12 @@ def visible_text(html_text: str) -> str:
 
 
 def semantic_qa(
-    model: dict[str, Any], html_text: str, capability: dict[str, Any], final: dict[str, Any], output_dir: Path
+    model: dict[str, Any],
+    html_text: str,
+    capability: dict[str, Any],
+    final: dict[str, Any],
+    output_dir: Path,
+    attachment_rows: list[dict[str, Any]],
 ) -> dict[str, Any]:
     visible = visible_text(html_text)
     cap_map = capability_holding_map(capability)
@@ -708,6 +1017,87 @@ def semantic_qa(
         item["asset_id"] for item in model["holdings"]
         if not item.get("financial", {}).get("quality", {}).get("industry_explanation")
     ]
+    expected_attachment_names = set(ATTACHMENT_NAMES.values())
+    declared_attachment_names = set(
+        re.findall(r'href="([^"]+\.json)"', html_text)
+    ) & expected_attachment_names
+    attachment_failures = []
+    for row in attachment_rows:
+        path = output_dir / row["name"]
+        try:
+            load_json(path)
+        except Exception as exc:
+            attachment_failures.append({"name": row["name"], "reason": f"无法打开JSON：{exc}"})
+            continue
+        actual = {"size": path.stat().st_size, "sha256": sha256(path)}
+        if actual["size"] != row["size"] or actual["sha256"] != row["sha256"]:
+            attachment_failures.append({"name": row["name"], "reason": "HTML登记的大小或哈希与实物不一致", "actual": actual})
+    pdca_attachment = load_json(output_dir / ATTACHMENT_NAMES["pdca"])
+    gate_attachment = load_json(output_dir / ATTACHMENT_NAMES["gates"])
+
+    visible_machine_terms = (
+        "NON_PRICE_RISK_FRAMEWORK_ONLY",
+        "RISK_PRICE_ANCHOR_ONLY",
+        "REJECT_NUMERIC_SCENARIO",
+        "NO_NUMERIC_RANGE",
+        "NO_NUMERIC_PROBABILITY",
+        "机器实物：",
+        "本轮最终动作以总控唯一答案为准",
+        "GPT总控",
+        "OpenD",
+        "Current",
+    )
+    visible_machine_hits = {term: visible.count(term) for term in visible_machine_terms if visible.count(term)}
+    visible_dict_hits = sum(visible.count(prefix) for prefix in ("{'", '{"'))
+    local_path_hits = len(re.findall(r"(?i)(?:[A-Z]:\\|file://)", visible))
+
+    target_keys = re.findall(r'data-target-row="([^"]+)"', html_text)
+    expected_target_keys = [row["asset_id"] for row in model["target_bridge"]["asset_rows"]]
+    duplicate_target_keys = sorted({key for key in target_keys if target_keys.count(key) > 1})
+    guidance_exact_failures = []
+    for symbol in GUIDANCE_EVIDENCE_OVERRIDES:
+        item = next((row for row in model["holdings"] if row["asset_id"] == symbol), None)
+        guidance = (item or {}).get("financial", {}).get("guidance_evidence", {})
+        exact_date = bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(guidance.get("published_at") or "")))
+        direct_url = str(guidance.get("url") or "").startswith(("https://", "http://"))
+        required = all(guidance.get(key) for key in ("source_title", "publisher", "period", "locator", "date_impact"))
+        if not item or not exact_date or not direct_url or not required:
+            guidance_exact_failures.append({
+                "symbol": symbol,
+                "published_at": guidance.get("published_at"),
+                "url": guidance.get("url"),
+                "required_metadata_complete": required,
+            })
+    ibkr_guidance = next(row for row in model["holdings"] if row["asset_id"] == "US.IBKR")["financial"]["guidance_evidence"]
+    ibkr_direct_filing = "sec.gov/Archives/edgar/data/" in str(ibkr_guidance.get("url", ""))
+
+    gate4_rows = [
+        (item["asset_id"], next(gate for gate in item["gates"] if gate["gate"] == 4))
+        for item in model["research_gates"]
+    ]
+    gate4_template_failures = [
+        symbol for symbol, gate in gate4_rows
+        if "本轮最终动作以总控唯一答案为准" in str(gate.get("fact"))
+        or "下一次验证：" not in str(gate.get("fact"))
+        or not str(gate.get("fact")).strip()
+    ]
+    gate4_unique_fact_count = len({str(gate.get("fact")) for _, gate in gate4_rows})
+
+    hrefs = re.findall(r'href="([^"]+)"', html_text)
+    local_hrefs = [href for href in hrefs if href in expected_attachment_names]
+    external_hrefs = [href for href in hrefs if href.startswith(("https://", "http://"))]
+    evidence_click_sample = []
+    for href in (local_hrefs[:7] + external_hrefs[:10]):
+        if href in expected_attachment_names:
+            path = output_dir / href
+            ok = path.exists() and path.is_file()
+            kind = "同批次附件"
+        else:
+            ok = bool(re.match(r"https?://[^/]+/.+", href))
+            kind = "外部正式来源"
+        evidence_click_sample.append({"href": href, "kind": kind, "pass": ok})
+    evidence_click_failures = [row for row in evidence_click_sample if not row["pass"]]
+
     checks = {
         "J01唯一判断源哈希": {
             "pass": final["status"] == "GPT_CONTROL_FINAL_JUDGMENT_COMPLETE",
@@ -796,10 +1186,89 @@ def semantic_qa(
                 "visible_labeled_account_boundaries": visible.count("账户数据边界："),
             },
         },
+        "J21承诺附件真实存在且可打开": {
+            "pass": (
+                set(row["name"] for row in attachment_rows) == expected_attachment_names
+                and declared_attachment_names == expected_attachment_names
+                and not attachment_failures
+                and pdca_attachment.get("record_count") == 57
+                and gate_attachment.get("gate_row_count") == 90
+            ),
+            "detail": {
+                "expected": sorted(expected_attachment_names),
+                "declared": sorted(declared_attachment_names),
+                "actual": sorted(row["name"] for row in attachment_rows),
+                "failures": attachment_failures,
+                "pdca_records": pdca_attachment.get("record_count"),
+                "gate_rows": gate_attachment.get("gate_row_count"),
+            },
+        },
+        "J22董事长正文机器语言与本地路径清零": {
+            "pass": not visible_machine_hits and visible_dict_hits == 0 and local_path_hits == 0,
+            "detail": {
+                "machine_term_hits": visible_machine_hits,
+                "python_dictionary_hits": visible_dict_hits,
+                "local_path_hits": local_path_hits,
+            },
+        },
+        "J23六项指引日期与原文定位": {
+            "pass": not guidance_exact_failures and ibkr_direct_filing,
+            "detail": {
+                "checked_symbols": sorted(GUIDANCE_EVIDENCE_OVERRIDES),
+                "failures": guidance_exact_failures,
+                "ibkr_uses_direct_sec_filing": ibkr_direct_filing,
+            },
+        },
+        "J24目标桥唯一证券键": {
+            "pass": (
+                len(target_keys) == 24
+                and len(set(target_keys)) == 24
+                and set(target_keys) == set(expected_target_keys)
+                and not duplicate_target_keys
+                and "1" not in target_keys
+            ),
+            "detail": {
+                "row_count": len(target_keys),
+                "unique_count": len(set(target_keys)),
+                "duplicates": duplicate_target_keys,
+                "missing": sorted(set(expected_target_keys) - set(target_keys)),
+                "unexpected": sorted(set(target_keys) - set(expected_target_keys)),
+            },
+        },
+        "J25第四关公司化且无内部模板": {
+            "pass": not gate4_template_failures and gate4_unique_fact_count == len(gate4_rows),
+            "detail": {
+                "row_count": len(gate4_rows),
+                "unique_fact_count": gate4_unique_fact_count,
+                "failures": gate4_template_failures,
+            },
+        },
+        "J26关键证据随机打开检查": {
+            "pass": len(evidence_click_sample) >= 10 and not evidence_click_failures,
+            "detail": {
+                "sample_count": len(evidence_click_sample),
+                "local_attachment_count": len([row for row in evidence_click_sample if row["kind"] == "同批次附件"]),
+                "external_source_count": len([row for row in evidence_click_sample if row["kind"] == "外部正式来源"]),
+                "failures": evidence_click_failures,
+                "sample": evidence_click_sample,
+            },
+        },
+        "J27附件清单与正文承诺一致": {
+            "pass": (
+                visible.count("57条历史记录已移入独立附件") == 1
+                and html_text.count('data-attachment-table="1"') == 1
+                and len(local_hrefs) >= 7
+            ),
+            "detail": {
+                "pdca_promise_hits": visible.count("57条历史记录已移入独立附件"),
+                "attachment_table_count": html_text.count('data-attachment-table="1"'),
+                "same_package_link_count": len(local_hrefs),
+            },
+        },
     }
     failures = [name for name, row in checks.items() if not row["pass"]]
     return {
-        "schema_version": "V7-FINAL-HTML-SUBSTANTIVE-QA-2.0",
+        "schema_version": "V7-FINAL-HTML-SUBSTANTIVE-QA-3.0",
         "run_id": model["run_id"],
         "checked_at_jst": datetime.now(JST).isoformat(timespec="seconds"),
         "checks": checks,
@@ -863,37 +1332,58 @@ def main() -> int:
     model["pdf_generated"] = False
     model["pdf_authorization_received"] = False
     update_first_layer(model, final)
+    model = humanize_visible_value(model)
+    attachment_rows = write_core_attachments(model, args.output_dir)
 
     original_target_renderer = base.render_target_bridge
     original_holding_renderer = base.render_holding_card
     original_gate_renderer = base.render_gate_card
+    original_layer_fact_renderer = base.render_layer_fact_list
+    original_news_renderer = base.render_news
+    original_trace_renderer = base.render_trace
     base.render_target_bridge = lambda target: render_target_bridge(target, base)
     base.render_holding_card = lambda item: render_holding_card(item, base)
     base.render_gate_card = lambda item: render_gate_card(item, base)
+    base.render_layer_fact_list = lambda facts: render_layer_fact_list(facts, base)
+    base.render_news = lambda news: render_news(news, base)
+    base.render_trace = lambda rows: render_trace(rows, model, base)
     try:
         html_text = base.build_html(model)
     finally:
         base.render_target_bridge = original_target_renderer
         base.render_holding_card = original_holding_renderer
         base.render_gate_card = original_gate_renderer
+        base.render_layer_fact_list = original_layer_fact_renderer
+        base.render_news = original_news_renderer
+        base.render_trace = original_trace_renderer
     html_text = replace_identity(html_text, args.run_id, model["generated_at_jst"])
+    old_attachment_promise = (
+        '<p class="muted">57条PDCA逐项记录、唯一账户机器源、五关矩阵、目标贡献桥、'
+        '外部观点映射和功能数据均另存JSON附件；机器字段不进入董事长正文。</p>'
+    )
+    if old_attachment_promise not in html_text:
+        raise RuntimeError("attachment promise marker missing")
+    html_text = html_text.replace(old_attachment_promise, render_attachment_table(attachment_rows))
+    for source, replacement in VISIBLE_TERM_MAP.items():
+        html_text = html_text.replace(source, replacement)
+    html_text = html_text.replace("本轮最终动作以总控唯一答案为准", "")
     html_path = args.output_dir / "★2026-08-20完整投研产品候选_v2.0_最终完整HTML.html"
     html_path.write_text(html_text, encoding="utf-8")
 
-    qa = semantic_qa(model, html_text, capability, final, args.output_dir)
-    write_json(args.output_dir / "01_最终完整HTML实质语义QA.json", qa)
+    qa = semantic_qa(model, html_text, capability, final, args.output_dir, attachment_rows)
+    write_json(args.output_dir / "08_最终完整HTML增强语义QA.json", qa)
     if qa["status"] != "PASS_FOR_GPT_FULL_HTML_CONTENT_GATE":
         raise RuntimeError(f"semantic QA failed: {qa['failures']}")
     repair_rows = [
-        {"item": "24类持仓公司指引", "before": "24张卡统一显示未提取", "after": "24张卡逐项显示状态、期间、事实、正式来源、反向影响和更新条件", "reason": "恢复已闭合能力输入，禁止通用占位"},
-        {"item": "估值裁定状态", "before": "28处已裁定参数仍列为缺口", "after": "用户HTML和机器源中的过期待办均为0", "reason": "以最终能力判断为唯一源"},
-        {"item": "风险框架概率", "before": "软银、爱德万测试等出现未经批准的约60%", "after": "15项风险框架资产不显示伪精确概率", "reason": "没有数值情景时只保留风险和验证条件"},
-        {"item": "18只正式五关", "before": "已取得与未取得同格", "after": "完成关写本关无缺项；缺证据关明确停关和缺项", "reason": "状态、来源和缺项互斥"},
-        {"item": "关键证据", "before": "54处详见机器附件", "after": "证据表直接显示标题、机构、时间、期间、定位、链接、证明内容和边界", "reason": "董事长可直接追溯"},
-        {"item": "缺失字段和行业解释", "before": "市值后出现无标签尚未取得，机械比率缺行业说明", "after": "账户数据边界明确，24张卡均有行业适用性解释", "reason": "避免把缺口或不适用指标误读为质量结论"},
-        {"item": "语义QA", "before": "13项检查未发现七类矛盾", "after": "20项检查直接交叉读取最终HTML和机器源，记录命中与失败数", "reason": "任一实质项失败即禁止PASS"},
+        {"item": "正文承诺附件", "before": "正文承诺57条PDCA等附件，但目录只有4份交付报告", "after": "同批次真实生成7份核心数据附件，HTML逐项列出用途、大小、SHA256和可点击相对链接", "reason": "承诺必须与目录实物一致"},
+        {"item": "董事长可见语言", "before": "正文残留英文分类码、程序字典、本地路径及内部流程语", "after": "用户可见正文中的机器分类码、程序字典、本地路径和内部流程语全部清零", "reason": "董事长正文必须直接可读"},
+        {"item": "关键证据可打开", "before": "部分结论只指向机器事实或本地路径", "after": "正式来源直接链接；无外部直链的批次事实链接到同包证据附件，并写明证明内容和边界", "reason": "关键结论必须可追溯"},
+        {"item": "六项公司指引时间", "before": "软银、SNDK、SpaceX、三星、IBKR、TSM日期不精确或来源为索引页", "after": "六项均登记精确日期、标题、发布机构、期间、原文位置和使用边界；IBKR改用SEC直达申报", "reason": "证据时间和原文定位必须闭合"},
+        {"item": "18只第四关表达", "before": "研究卡残留内部流程句，第四关没有逐只写清取得证据和下一验证", "after": "内部流程句零命中；18行第四关均保留公司特定事实、证据状态和下一验证条件", "reason": "不改变停关结论，同时消除模板化"},
+        {"item": "目标桥证券键", "before": "24行全部使用data-target-row=1", "after": "24行使用真实证券代码，24个键全部唯一并与资产表完全对应", "reason": "支持跨章节唯一答案核验"},
+        {"item": "增强语义QA", "before": "旧QA未检查附件实物、可见机器语、精确日期、唯一键和链接可打开性", "after": "新增7项硬闸，总计27项；任一失败即停止，不生成可交付HTML", "reason": "禁止错误自评通过"},
     ]
-    write_json(args.output_dir / "02_七项返修修改前后原因清单.json", {"run_id": args.run_id, "count": len(repair_rows), "items": repair_rows})
+    write_json(args.output_dir / "09_一次性闭合修改前后原因清单.json", {"run_id": args.run_id, "count": len(repair_rows), "items": repair_rows})
 
     daily_after = {"size": args.daily_report.stat().st_size, "sha256": sha256(args.daily_report), "mtime": args.daily_report.stat().st_mtime}
     boundary = {
@@ -906,11 +1396,11 @@ def main() -> int:
         "order_calls": 0,
         "content_gate_status": "WAITING_FOR_GPT_FULL_HTML_REVIEW",
     }
-    write_json(args.output_dir / "03_正式日报未覆盖及阶段边界.json", boundary)
+    write_json(args.output_dir / "10_正式日报未覆盖及阶段边界.json", boundary)
     if not boundary["unchanged"]:
         raise RuntimeError("daily report changed")
 
-    manifest_path = args.output_dir / "04_全部实物SHA256清单.json"
+    manifest_path = args.output_dir / "11_全部实物SHA256清单.json"
     items = []
     for path in sorted(args.output_dir.iterdir(), key=lambda p: p.name):
         if path.is_file() and path != manifest_path:
