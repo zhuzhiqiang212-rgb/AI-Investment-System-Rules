@@ -23,6 +23,15 @@ FUTU_SNAPSHOT: dict[str, Any] = {}
 MARKET_FACTS: dict[str, Any] = {}
 REFRESHED_ACCOUNT: dict[str, Any] = {}
 
+CURRENT_MARKET_NAMES = (
+    "S&P 500", "Nasdaq Composite", "Nikkei 225", "USD/JPY",
+    "US 10Y yield", "US 30Y yield", "WTI crude", "Brent crude",
+)
+STALE_CURRENT_MARKET_TERMS = (
+    "4.65%", "5.19%", "84.58", "91.93",
+    "65,952.94", "-3.45%", "-0.52%", "-0.97%",
+)
+
 
 def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -42,6 +51,65 @@ def quote_value(asset_id: str) -> tuple[float, str, str]:
         zone = "JST" if asset_id.startswith("JP.") else "ET（富途市场时间）"
         return price, f"{raw_time} {zone}", str(row["source"])
     return float(row["price"]), str(row["market_time_jst"]), str(row["source"])
+
+
+def current_market_snapshot() -> dict[str, Any]:
+    by_name = {row["name"]: row for row in MARKET_FACTS["macro_records"]}
+    missing = [name for name in CURRENT_MARKET_NAMES if name not in by_name]
+    if missing:
+        raise RuntimeError(f"missing current market indicators: {missing}")
+    rows = []
+    for name in CURRENT_MARKET_NAMES:
+        source = by_name[name]
+        rows.append({
+            "indicator": name,
+            "value": float(source["price"]),
+            "previous_close": float(source["previous_close"]),
+            "change_pct": float(source["change_pct"]),
+            "market_time_jst": str(source["market_time_jst"]),
+            "source": str(source["source"]),
+            "source_url": str(source["source_url"]),
+            "raw_sha256": str(source["raw_sha256"]),
+            "market_status": "日本市场收盘" if name == "Nikkei 225" else "证据截止前最后可得行情",
+            "role": "本批次当前行情",
+        })
+    row_map = {row["indicator"]: row for row in rows}
+    fact = (
+        f"标普500为{row_map['S&P 500']['value']:,.2f}、较前收盘{row_map['S&P 500']['change_pct']:.2f}%"
+        f"（{row_map['S&P 500']['market_time_jst']}）；"
+        f"纳指为{row_map['Nasdaq Composite']['value']:,.2f}、较前收盘{row_map['Nasdaq Composite']['change_pct']:.2f}%"
+        f"（{row_map['Nasdaq Composite']['market_time_jst']}）；"
+        f"日经225为{row_map['Nikkei 225']['value']:,.2f}、较前收盘{row_map['Nikkei 225']['change_pct']:.2f}%"
+        f"（{row_map['Nikkei 225']['market_time_jst']}）；"
+        f"美国10年期国债收益率为{row_map['US 10Y yield']['value']:.2f}%"
+        f"（{row_map['US 10Y yield']['market_time_jst']}），30年期为{row_map['US 30Y yield']['value']:.2f}%"
+        f"（{row_map['US 30Y yield']['market_time_jst']}）；"
+        f"WTI为{row_map['WTI crude']['value']:.2f}美元"
+        f"（{row_map['WTI crude']['market_time_jst']}），布伦特为{row_map['Brent crude']['value']:.2f}美元"
+        f"（{row_map['Brent crude']['market_time_jst']}）；"
+        f"USD/JPY为{row_map['USD/JPY']['value']:.2f}"
+        f"（{row_map['USD/JPY']['market_time_jst']}）。"
+    )
+    return {
+        "evidence_cutoff_jst": str(MARKET_FACTS["evidence_cutoff_jst"]),
+        "role": "本批次当前行情",
+        "records": rows,
+        "fact": fact,
+    }
+
+
+def remove_legacy_current_market_facts(model: dict[str, Any]) -> list[dict[str, Any]]:
+    removed: list[dict[str, Any]] = []
+    for layer in model["layers"]:
+        retained = []
+        for fact in layer.get("facts", []):
+            serialized = json.dumps(fact, ensure_ascii=False)
+            if any(term in serialized for term in STALE_CURRENT_MARKET_TERMS):
+                removed.append({"layer": layer["layer"], "title": fact.get("title"), "status": "已从本批次当前事实中删除"})
+            else:
+                retained.append(fact)
+        layer["facts"] = retained
+    return removed
 
 
 def rebuild_account_source() -> dict[str, Any]:
@@ -488,15 +556,19 @@ def build_news(model: dict[str, Any]) -> None:
     old_records = [row for row in model["news"].get("records", []) if row.get("event_id") not in {"NEWS-20260820-MARKET-SNAPSHOT"}]
     macro = {row["name"]: row for row in MARKET_FACTS["macro_records"]}
     cutoff = MARKET_FACTS["evidence_cutoff_jst"]
+    snapshot = current_market_snapshot()
     retrieval_finished = datetime.now(JST).isoformat(timespec="seconds")
     records = old_records + [
         {
             "event_id": "NEWS-20260821-GLOBAL-MARKETS", "title": "8月21日全球股市、长债、油价和美元出现相互拉扯",
             "publisher": "Reuters报道的可读取转载页；AP交叉核验；行情由公开图表接口复核",
-            "published_at": "2026-08-21", "data_date": "2026-08-21盘中", "retrieved_at_jst": retrieval_finished,
+            "published_at": "2026-08-21", "data_date": "2026-08-21；每项实际时间见行情明细", "retrieved_at_jst": retrieval_finished,
             "url": "https://ae.marketscreener.com/news/global-stocks-set-for-biggest-weekly-fall-since-mid-july-dollar-on-the-defensive-ce7858dadb89ff26",
             "independent_url": "https://apnews.com/article/96ef9586e1288e50843b4d2b1ccebc32",
-            "fact": f"截至{macro['S&P 500']['market_time_jst']}的盘中快照：标普500较前收盘约{macro['S&P 500']['change_pct']:.2f}%，纳指约{macro['Nasdaq Composite']['change_pct']:.2f}%；美国10年期收益率约{macro['US 10Y yield']['price']:.2f}%，30年期约{macro['US 30Y yield']['price']:.2f}%；WTI约{macro['WTI crude']['price']:.2f}美元，布伦特约{macro['Brent crude']['price']:.2f}美元；USD/JPY约{macro['USD/JPY']['price']:.2f}。",
+            "fact": snapshot["fact"],
+            "market_snapshot": copy.deepcopy(snapshot["records"]),
+            "market_role": snapshot["role"],
+            "evidence_cutoff_jst": snapshot["evidence_cutoff_jst"],
             "portfolio_impact": "增长资产下跌而长端收益率与油价走高，说明增长担忧和融资压力可同时存在。能源股短期受油价支持，高估值科技受折现率压制，现金选择权上升。",
             "boundary": "美股仍在盘中，不冒充收盘；Reuters原站无法由当前执行环境直接打开，事实由可读取转载页、AP和独立行情交叉核验。",
         },
@@ -525,6 +597,7 @@ def build_news(model: dict[str, Any]) -> None:
         "search_scope": ["全球市场", "全球债券与美元", "油价与霍尔木兹", "AI融资", "NVDA中国业务", "24类持仓与18只观察股"],
         "queries": ["2026-08-21 global markets bonds oil dollar", "Broadcom more than 60 billion AI debt", "NVIDIA China LPU denial", "8月21日持仓与观察股公司公告增量"],
         "records": records,
+        "current_market_snapshot": snapshot,
         "failed_sources": ["Reuters原站三个指定页面均无法由当前执行环境直接打开；使用可读取Reuters转载页、AP与独立行情交叉核验。", "TOPIX自动行情源返回空结果；未写成没有TOPIX行情。"],
         "excluded": ["截止时间之后发布的事实", "只有标题且无可核内容的线索", "不能影响七层、账户、持仓或动作的低影响消息"],
     }
@@ -535,12 +608,21 @@ def inject_content(model: dict[str, Any]) -> dict[str, Any]:
     model["evidence_cutoff_jst"] = MARKET_FACTS["evidence_cutoff_jst"]
     model["judgment_formed_at_jst"] = datetime.now(JST).isoformat(timespec="seconds")
     build_news(model)
+    snapshot = model["news"]["current_market_snapshot"]
+    removed_market_facts = remove_legacy_current_market_facts(model)
+    model["market_snapshot_uniqueness"] = {
+        "evidence_cutoff_jst": snapshot["evidence_cutoff_jst"],
+        "role": snapshot["role"],
+        "records": copy.deepcopy(snapshot["records"]),
+        "removed_legacy_current_facts": removed_market_facts,
+    }
+    market_by_name = {row["indicator"]: row for row in snapshot["records"]}
     risk = REFRESHED_ACCOUNT["risk"]
     total = REFRESHED_ACCOUNT["known_assets_total_jpy"]
     layer_map = {row["layer"]: row for row in model["layers"]}
-    layer_map[1].update({"final_judgment": "AI基础设施长期需求仍在，但8月21日出现股弱、长债收益率和油价偏高的组合；这不是无条件宽松环境。", "direction": "长期支持AI基础设施，短期压制高估值和高融资依赖资产", "strength": "中等偏强", "confidence": "中高", "transmission": "提高自由现金流、融资结构和估值安全边际要求；能源只作事件性研究。", "reversal": "油价、通胀和长端收益率持续回落，或AI资本开支被正式下调。"})
-    layer_map[3].update({"final_judgment": "8月21日美股盘中走弱、美元走软，但美国长债收益率维持高位、油价上涨，资金并未转为单向宽松。", "direction": "中性偏紧", "strength": "中等偏强", "confidence": "中高", "transmission": "高估值科技不追价；现金保留选择权；能源价格受益不能直接等于能源股通过第五关。", "reversal": "股债同时企稳、油价回落且通胀预期连续下降。"})
-    layer_map[4].update({"final_judgment": "Broadcom大额AI融资报道验证需求规模，也放大债务融资和对手方风险；NVIDIA否认中国专用LPU，不能再把该传闻当作增量。", "direction": "AI基础设施仍活跃，但融资与竞争风险上升；能源短期偏强", "strength": "中等", "confidence": "中高", "transmission": "AVGO、NVDA维持原持有边界但不新增；18只观察对象没有因此自动通过第五关。", "reversal": "融资安排被正式否认或需求取消，或NVDA发布正式中国专用产品并取得监管许可。"})
+    layer_map[1].update({"final_judgment": f"截至统一截止，标普500为{market_by_name['S&P 500']['value']:,.2f}、纳指为{market_by_name['Nasdaq Composite']['value']:,.2f}，美国长债收益率与油价同时偏高；AI基础设施长期需求仍在，但不是无条件宽松环境。", "direction": "长期支持AI基础设施，短期压制高估值和高融资依赖资产", "strength": "中等偏强", "confidence": "中高", "transmission": "提高自由现金流、融资结构和估值安全边际要求；能源只作事件性研究。", "reversal": "油价、通胀和长端收益率持续回落，或AI资本开支被正式下调。"})
+    layer_map[3].update({"final_judgment": f"截至统一截止，美国10年期国债收益率{market_by_name['US 10Y yield']['value']:.2f}%、30年期{market_by_name['US 30Y yield']['value']:.2f}%，WTI {market_by_name['WTI crude']['value']:.2f}美元、布伦特{market_by_name['Brent crude']['value']:.2f}美元；美股走弱、美元偏软，但资金并未转为单向宽松。", "direction": "中性偏紧", "strength": "中等偏强", "confidence": "中高", "transmission": "高估值科技不追价；现金保留选择权；能源价格受益不能直接等于能源股通过第五关。", "reversal": "股债同时企稳、油价回落且通胀预期连续下降。"})
+    layer_map[4].update({"final_judgment": f"日经225较前收盘{market_by_name['Nikkei 225']['change_pct']:.2f}%，标普500为{market_by_name['S&P 500']['change_pct']:.2f}%，纳指为{market_by_name['Nasdaq Composite']['change_pct']:.2f}%；油价上涨短期支持能源价格因素，长端利率偏高压制高估值科技。Broadcom融资与NVIDIA中国业务消息没有让观察股通过第五关。", "direction": "AI基础设施仍活跃但受融资与折现率约束；能源短期偏强", "strength": "中等", "confidence": "中高", "transmission": "AVGO、NVDA维持原持有边界但不新增；XOM、CVX只保留事件性观察；18只观察对象没有因此自动通过第五关。", "reversal": "油价和长端利率持续回落，或融资安排、需求及NVIDIA产品路线出现新的正式事实。"})
     layer_map[5]["final_judgment"] = "18只研究观察对象继续按唯一五关源管理；本轮新增新闻没有使任何对象形成可执行机会。"
     layer_map[5]["transmission"] = "研究卡、五关表、影子组合和行动栏全部从证券代码唯一源生成；当前可执行机会仍为0。"
     layer_map[6].update({"final_judgment": f"8月21日已知资产观察总额约{total:,.0f}日元；AI直接暴露{risk['ai_direct']['known_total_ratio_pct']:.2f}%，含软银代理后{risk['ai_broad_with_softbank_proxy']['known_total_ratio_pct']:.2f}%；广义加密暴露{risk['crypto_broad_with_related_equities']['known_total_ratio_pct']:.2f}%。", "transmission": "富途使用8月21日OpenD实测；SBI、IBKR、bitFlyer保留各自证据日。比例只用于风险观察，不是机械交易线。", "reversal": "取得手工账户更新现金、融资和应计字段后，重新计算已知分母和风险比例。"})
@@ -569,7 +651,10 @@ def inject_content(model: dict[str, Any]) -> dict[str, Any]:
     layer_map[6]["facts"] = [layer6_facts[title] for title in ordered_titles] + remaining_facts
     layer_map[7].update({"final_judgment": "本期建立5条投资预测基线，另有1条产品流程QA；两者分开统计。57条历史记录逐条展示其可验证性、结果、归因和改进。", "transmission": "只有投资预测进入未来概率校准；流程QA用于检查产品有没有把媒体预期写成正式决定。", "reversal": "到验证日没有独立外部证据时，记录退出统计分母，不追溯补造。"})
     news_map = {row["event_id"]: row for row in model["news"]["records"]}
-    for number, event_ids in {1: ["NEWS-20260821-GLOBAL-MARKETS"], 3: ["NEWS-20260821-GLOBAL-MARKETS"], 4: ["NEWS-20260820-AVGO-AI-DEBT", "NEWS-20260820-NVDA-CHINA-LPU-DENIAL"], 5: ["NEWS-20260820-AVGO-AI-DEBT"], 6: ["NEWS-20260821-GLOBAL-MARKETS"]}.items():
+    current_event_ids = {"NEWS-20260821-GLOBAL-MARKETS", "NEWS-20260820-AVGO-AI-DEBT", "NEWS-20260820-NVDA-CHINA-LPU-DENIAL"}
+    for layer in layer_map.values():
+        layer["facts"] = [fact for fact in layer.get("facts", []) if fact.get("event_id") not in current_event_ids]
+    for number, event_ids in {1: ["NEWS-20260821-GLOBAL-MARKETS"], 3: ["NEWS-20260821-GLOBAL-MARKETS"], 4: ["NEWS-20260821-GLOBAL-MARKETS", "NEWS-20260820-AVGO-AI-DEBT", "NEWS-20260820-NVDA-CHINA-LPU-DENIAL"], 5: ["NEWS-20260820-AVGO-AI-DEBT"], 6: ["NEWS-20260821-GLOBAL-MARKETS"]}.items():
         layer_map[number].setdefault("facts", []).extend({
             **copy.deepcopy(news_map[event_id]),
             "supports": news_map[event_id]["portfolio_impact"],
@@ -750,6 +835,62 @@ def semantic_qa(model: dict[str, Any], html_text: str, capability: dict[str, Any
     history = model["pdca"]["plain_records"]
     historical = model["pdca"]["body_summary"]["historical_verification"]
     investment_basis = [row.get("probability_basis") for row in model["pdca"]["body_summary"]["investment_predictions"]]
+    current_snapshot = model["news"]["current_market_snapshot"]
+    snapshot_records = current_snapshot["records"]
+    snapshot_by_name = {row["indicator"]: row for row in snapshot_records}
+    cutoff_time = datetime.fromisoformat(current_snapshot["evidence_cutoff_jst"])
+    snapshot_fields_complete = (
+        len(snapshot_records) == len(CURRENT_MARKET_NAMES)
+        and set(snapshot_by_name) == set(CURRENT_MARKET_NAMES)
+        and all(
+            row.get("role") == "本批次当前行情"
+            and row.get("source") and row.get("source_url") and row.get("raw_sha256")
+            and datetime.fromisoformat(row["market_time_jst"]) <= cutoff_time
+            for row in snapshot_records
+        )
+    )
+    global_market_event = next(row for row in model["news"]["records"] if row.get("event_id") == "NEWS-20260821-GLOBAL-MARKETS")
+    required_market_layers = (1, 3, 4, 6)
+    layer_market_matches = {
+        number: [fact for fact in next(row for row in model["layers"] if row["layer"] == number).get("facts", []) if fact.get("event_id") == "NEWS-20260821-GLOBAL-MARKETS"]
+        for number in required_market_layers
+    }
+    layer_market_unique = all(
+        len(matches) == 1
+        and matches[0].get("fact") == global_market_event["fact"]
+        and matches[0].get("market_snapshot") == snapshot_records
+        and matches[0].get("market_role") == "本批次当前行情"
+        for matches in layer_market_matches.values()
+    )
+    market_trace_details = [
+        evidence
+        for trace in model["traceability"]
+        for evidence in trace.get("evidence_details", [])
+        if evidence.get("title") == global_market_event["title"]
+    ]
+    trace_market_unique = bool(market_trace_details) and all(
+        evidence.get("fact") == global_market_event["fact"]
+        and evidence.get("market_snapshot") == snapshot_records
+        and evidence.get("market_role") == "本批次当前行情"
+        and evidence.get("evidence_cutoff_jst") == current_snapshot["evidence_cutoff_jst"]
+        for evidence in market_trace_details
+    )
+    stale_market_phrases = (
+        "美国10年期收益率快照约4.65%，30年期约5.19%",
+        "日经225盘中约65,952.94，较上一可比值-3.45%",
+        "WTI约84.58美元、布伦特约91.93美元",
+    )
+    stale_market_hits = {term: visible.count(term) for term in stale_market_phrases if visible.count(term)}
+    holdings_by_id = {row["asset_id"]: row for row in model["holdings"]}
+    market_action_consistent = (
+        "持有" in holdings_by_id["US.AVGO"]["action"]["unique_action"]
+        and "不追价" in holdings_by_id["US.AVGO"]["action"]["unique_action"]
+        and "持有" in holdings_by_id["US.NVDA"]["action"]["unique_action"]
+        and "不追价" in holdings_by_id["US.NVDA"]["action"]["unique_action"]
+        and research["US.XOM"]["final_opportunity_judgment"]["gate5"] != "第五关通过"
+        and research["US.CVX"]["final_opportunity_judgment"]["gate5"] != "第五关通过"
+        and all(term in next(row for row in model["layers"] if row["layer"] == 4)["transmission"] for term in ("AVGO", "NVDA", "XOM", "CVX"))
+    )
     checks = {
         "Q01新闻窗口与增量事件": {"pass": news_window_ok and new_news_ids.issubset(news_ids) and new_layer_facts_complete, "detail": {"window_ok": news_window_ok, "new_event_count": len(news_ids & new_news_ids), "layer_transmission_complete": new_layer_facts_complete}},
         "Q02富途8月21日账户实测": {"pass": len(futu_rows) == 12 and all(row["quantity_evidence_date"] == "2026-08-21" for row in futu_rows) and model["single_portfolio_source"]["refresh_audit"]["futu_snapshot_run_id"].startswith("FUTU-RO-20260821"), "detail": {"positions": len(futu_rows), "snapshot": model["single_portfolio_source"]["refresh_audit"]}},
@@ -765,9 +906,22 @@ def semantic_qa(model: dict[str, Any], html_text: str, capability: dict[str, Any
         "Q12研究行情单一来源": {"pass": len(research) == 18 and price_checked >= 7 and required_price_symbols_checked and not price_conflicts, "detail": {"research_count": len(research), "third_gate_price_checked": price_checked, "required_symbols_checked": required_price_symbols_checked, "conflicts": price_conflicts}},
         "Q13公司事件证据状态": {"pass": len(event_rows) == 24 and len(event_obtained) == 2 and len(event_missing) == 22 and not event_contradictions and set(event_obtained) == {"US.AVGO", "US.NVDA"}, "detail": {"checked": len(event_rows), "obtained": event_obtained, "missing_count": len(event_missing), "contradictions": event_contradictions}},
         "Q14PDCA真实闭环": {"pass": len(history) == 57 and historical["verifiable_tracking_points"] == 29 and historical["correct_tracking_points"] == 29 and historical["wrong_tracking_points"] == 0 and historical["not_independently_verifiable"] == 28 and all(row.get("error_or_learning_category") and row.get("specific_change") for row in history) and len(investment_basis) == 5 and all(investment_basis) and len(set(investment_basis)) == 5, "detail": {"historical": historical, "attribution_missing": [row["record_number"] for row in history if not row.get("error_or_learning_category") or not row.get("specific_change")], "investment_probability_basis_count": len(investment_basis), "unique_probability_basis_count": len(set(investment_basis))}},
+        "Q15跨章节市场指标唯一": {
+            "pass": snapshot_fields_complete and global_market_event.get("market_snapshot") == snapshot_records and global_market_event.get("fact") == current_snapshot["fact"] and layer_market_unique and trace_market_unique and market_action_consistent and not stale_market_hits,
+            "detail": {
+                "evidence_cutoff_jst": current_snapshot["evidence_cutoff_jst"],
+                "indicator_count": len(snapshot_records),
+                "indicator_times": {row["indicator"]: row["market_time_jst"] for row in snapshot_records},
+                "layer_current_event_counts": {str(number): len(matches) for number, matches in layer_market_matches.items()},
+                "trace_current_event_count": len(market_trace_details),
+                "removed_legacy_current_facts": model["market_snapshot_uniqueness"]["removed_legacy_current_facts"],
+                "stale_current_phrase_hits": stale_market_hits,
+                "market_action_consistent": market_action_consistent,
+            },
+        },
     }
     failures = [key for key, result in checks.items() if not result["pass"]]
-    return {"schema_version": "V7-STAGEC-RETURN-SEMANTIC-QA-3.0", "run_id": model["run_id"], "checked_at_jst": datetime.now(JST).isoformat(timespec="seconds"), "checks": checks, "pass_count": len(checks) - len(failures), "check_count": len(checks), "failures": failures, "status": "INTERNAL_QA_PASS_WAITING_GPT_FULL_HTML_CONTENT_GATE" if not failures else "FAIL", "self_declared_content_gate_pass": False, "pdf_render_authorized": False}
+    return {"schema_version": "V7-STAGEC-RETURN-SEMANTIC-QA-4.0", "run_id": model["run_id"], "checked_at_jst": datetime.now(JST).isoformat(timespec="seconds"), "checks": checks, "pass_count": len(checks) - len(failures), "check_count": len(checks), "failures": failures, "status": "INTERNAL_QA_PASS_WAITING_GPT_FULL_HTML_CONTENT_GATE" if not failures else "FAIL", "self_declared_content_gate_pass": False, "pdf_render_authorized": False}
 
 
 def rebuild_traceability(model: dict[str, Any]) -> list[dict[str, Any]]:
@@ -784,6 +938,18 @@ def rebuild_traceability(model: dict[str, Any]) -> list[dict[str, Any]]:
                 "supports": event.get("supports"), "cannot_prove": event.get("cannot_prove"),
                 "status": event.get("status"), "locator": event.get("locator"),
             })
+    market_event = next(row for row in model["news"]["records"] if row.get("event_id") == "NEWS-20260821-GLOBAL-MARKETS")
+    for trace in rows:
+        for evidence in trace.get("evidence_details", []):
+            if evidence.get("title") == market_event["title"]:
+                evidence.update({
+                    "fact": market_event["fact"],
+                    "data_date": market_event["data_date"],
+                    "retrieved_at_jst": market_event["retrieved_at_jst"],
+                    "evidence_cutoff_jst": market_event["evidence_cutoff_jst"],
+                    "market_role": market_event["market_role"],
+                    "market_snapshot": copy.deepcopy(market_event["market_snapshot"]),
+                })
     return rows
 
 ORIGINAL_APPLY_HOLDINGS = previous.apply_holdings
@@ -805,8 +971,9 @@ def write_attachment(path: Path, value: Any, purpose: str) -> dict[str, Any]:
             {"item": "七只研究股行情", "before": "当前行情与第三关来自两个快照", "after": "当前价、时间、市盈率、市净率及第五关理由从证券代码唯一行情源生成"},
             {"item": "持仓公司事件", "before": "22张卡以财报链接占位并误称已取得事件", "after": "22张诚实登记未取得独立公司事件；AVGO和NVDA保留实际事件原文"},
             {"item": "PDCA", "before": "57条全部因无网页链接被判无法验证", "after": "29条按原阈值和富途复权日K恢复判定，28条定义不足继续退出；新预测补齐逐条概率依据"},
+            {"item": "市场指标唯一性", "before": "七层残留阶段A旧利率、油价和股指并与8月21日快照并列", "after": "七层、新闻、证据追踪、板块与动作统一使用截至2026-08-21 22:49:18 JST的逐项带时间快照"},
         ]
-        purpose = "本轮四项内容闸返修前后及冻结章节说明"
+        purpose = "本轮已闭合四项与市场指标唯一性返修前后及冻结章节说明"
     return ORIGINAL_WRITE_ATTACHMENT(path, value, purpose)
 
 
