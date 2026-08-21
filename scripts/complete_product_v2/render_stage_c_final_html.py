@@ -82,6 +82,112 @@ def scenario_summary(capability_row: dict[str, Any]) -> str:
     )
 
 
+def guidance_summary(guidance: dict[str, Any]) -> str:
+    facts = "；".join(str(value) for value in guidance.get("facts", []) if value)
+    status = guidance.get("plain_status") or "公司指引状态未登记"
+    period = guidance.get("period") or "期间未登记"
+    return f"{status}。期间：{period}。{facts}".strip("。") + "。"
+
+
+def quality_explanation(symbol: str) -> str:
+    if symbol in {"BTC", "ETH"}:
+        return "该资产不是经营公司，企业收入、利润率和企业现金流指标不适用；本期改看协议、使用、流动性、交易结构和监管风险。"
+    if symbol in {"JP.8766", "US.IBKR"}:
+        return "金融机构不宜用普通制造业自由现金流机械比较；本期重点看净资产、资本回报、承保或净息差、资本充足与股东回报。"
+    if symbol == "JP.9984":
+        return "控股公司优先看持股资产价值、净债务、每股净资产价值和负债价值比；普通经营利润率只作补充。"
+    if symbol in {"US.MSTR", "US.SPCX"}:
+        return "资产与资本结构决定风险，普通利润率不能单独解释价值；本期重点看资产价值、债务、稀释、融资能力和流动性。"
+    if symbol in {"KRX.005930", "US.SNDK", "JP.4063", "JP.6857", "JP.6954", "US.NVDA", "US.AVGO", "US.TSM"}:
+        return "周期与资本开支会放大单期数字；机械比率只用于勾稽，还要结合订单、售价、毛利率、产能和中周期现金流。"
+    return "机械比率只用于勾稽正式财务，不能单独替代公司指引、估值依据、竞争判断和反向证据。"
+
+
+def first_url(value: Any) -> str | None:
+    if isinstance(value, dict):
+        for key in ("source_url", "url", "source"):
+            candidate = value.get(key)
+            if isinstance(candidate, str) and candidate.startswith(("https://", "http://")):
+                return candidate
+        for child in value.values():
+            candidate = first_url(child)
+            if candidate:
+                return candidate
+    elif isinstance(value, list):
+        for child in value:
+            candidate = first_url(child)
+            if candidate:
+                return candidate
+    return None
+
+
+def precise_evidence_roles(item: dict[str, Any], cap: dict[str, Any], numeric: bool) -> list[dict[str, Any]]:
+    financial = cap["latest_formal_financial"]
+    guidance = cap["company_guidance"]
+    reverse = cap["reverse_evidence"]
+    event = cap.get("company_or_industry_event")
+    forward = item["valuation"].get("forward_input")
+    account_names = "、".join(cap.get("quantity_by_account", {}).keys()) or "账户归属未闭合"
+    roles = [{
+        "role": "账户事实", "status": "已取得本批次账户实物", "title": f"{item['name']}账户数量与已知市值",
+        "publisher": "Futu OpenD及已确认账户实物", "published_at": item["account_fact"].get("data_boundary"),
+        "period": "各账户按原始实物日期分别登记", "locator": f"账户：{account_names}；数量：{item['account_fact'].get('quantity_by_account')}",
+        "url": None, "supports": "证明本批次已知账户中的数量、已知市值和权重分母。", "cannot_prove": "不能证明未知账户字段、完整同日净值或交易历史。",
+    }]
+    if item["asset_id"] in {"BTC", "ETH"}:
+        roles.append({
+            "role": "财务事实", "status": "不适用企业财务口径", "title": "非企业资产，不套用企业三张报表", "publisher": "不适用",
+            "published_at": "不适用", "period": "不适用", "locator": "无企业利润表、资产负债表或现金流量表", "url": None,
+            "supports": "说明企业财务指标不适用。", "cannot_prove": "不能据此证明价格、流动性或收益前景。",
+        })
+    else:
+        roles.append({
+            "role": "财务事实", "status": "已取得正式财务原文", "title": financial.get("source_title"), "publisher": financial.get("publisher"),
+            "published_at": financial.get("precise_locator", {}).get("published_at") or "发布日期见原文", "period": financial.get("financial_period"),
+            "locator": financial.get("precise_locator"), "url": financial.get("source_url"), "supports": "证明所列财务期间、合并口径和正式财务字段。",
+            "cannot_prove": "不能单独证明当前市场价格、合理倍数或当期公司事件。",
+        })
+    roles.append({
+        "role": "公司指引或替代指引", "status": guidance.get("plain_status"), "title": guidance.get("source_title"), "publisher": guidance.get("publisher"),
+        "published_at": guidance.get("published_at"), "period": guidance.get("period"), "locator": guidance.get("locator"), "url": guidance.get("url"),
+        "supports": "；".join(guidance.get("facts", [])), "cannot_prove": "公司或协议资料不能单独证明当前市场价格，也不构成自动交易线。",
+    })
+    roles.append({
+        "role": "估值输入", "status": "已取得可复算外部输入" if numeric else "本期不采用数值估值",
+        "title": (forward or {}).get("source_title") if isinstance(forward, dict) else "非价格风险框架",
+        "publisher": (forward or {}).get("publisher") if isinstance(forward, dict) else "GPT总控最终能力判断",
+        "published_at": (forward or {}).get("retrieved_at_jst") if isinstance(forward, dict) else "本批次判断形成时间",
+        "period": str((forward or {}).get("selected_nearest_forward_eps", {}).get("period") or "不适用") if isinstance(forward, dict) else "不适用",
+        "locator": "前瞻输入、情景参数和公式" if numeric else "只保留风险、触发条件和动作边界", "url": first_url(forward),
+        "supports": "支持已批准条件情景的机械复算。" if numeric else "说明为什么本期不能给出可靠数值估值。",
+        "cannot_prove": "条件情景不是历史合理价值，也不单独支持加减仓。" if numeric else "不证明内在价值、目标价或收益概率。",
+    })
+    if isinstance(event, dict) and first_url(event):
+        roles.append({
+            "role": "公司或行业事件", "status": "已取得本批次事件原文", "title": event.get("title"), "publisher": event.get("publisher") or event.get("source_name"),
+            "published_at": event.get("published_at") or event.get("source_date"), "period": event.get("data_period") or "本批次事实截止前",
+            "locator": event.get("locator") or event.get("section"), "url": first_url(event), "supports": event.get("supports") or event.get("impact"),
+            "cannot_prove": event.get("cannot_prove") or "单一事件不能独立证明估值或交易动作。",
+        })
+    else:
+        roles.append({
+            "role": "公司或行业事件", "status": "限定范围内未取得独立公司级新事件", "title": "本批次事件检索结果",
+            "publisher": "生产批次新闻与事件账本", "published_at": "截至统一事实截止时间", "period": "本批次", "locator": "没有用财报或宏观新闻占位",
+            "url": None, "supports": "只证明限定检索范围内没有取得可独立使用的新公司事件。", "cannot_prove": "不能写成市场上没有发生事件，也不能支持估值或动作。",
+        })
+    roles.append({
+        "role": "反向证据", "status": "已取得反向证据", "title": reverse.get("section"), "publisher": reverse.get("publisher"),
+        "published_at": reverse.get("source_date"), "period": reverse.get("source_date"), "locator": reverse.get("section"), "url": first_url(reverse),
+        "supports": reverse.get("opposes"), "cannot_prove": reverse.get("role_boundary"),
+    })
+    roles.append({
+        "role": "Current规则", "status": "已取得正式规则", "title": "Current完整产品与风险边界", "publisher": "AI投资系统Current",
+        "published_at": "当前有效版本", "period": "本批次", "locator": "Current启动包、总则、蓝图与正式五关", "url": None,
+        "supports": "证明不机械使用15%、20%或未经确认的30%硬线，并保持候选、非Release和无订单边界。",
+        "cannot_prove": "规则定义动作边界，不证明公司财务、市场价格或投资收益。",
+    })
+    return roles
+
 def merge_holdings(
     old_holdings: list[dict[str, Any]], capability: dict[str, Any], final: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -96,11 +202,33 @@ def merge_holdings(
         item["account_fact"]["known_market_value_jpy"] = cap["market_value_jpy"]
         item["account_fact"]["weight_of_known_assets_pct"] = cap["known_asset_weight_pct"]
         item["account_fact"]["quantity_by_account"] = cap["quantity_by_account"]
+        account_names = "、".join(cap["quantity_by_account"].keys()) or "账户归属未闭合"
+        item["account_fact"]["data_boundary"] = (
+            f"账户数据边界：本卡数量来自{account_names}的最后有效实物；各账户原始日期见全账户表。"
+            "只用于已知资产风险，不代表四账户同日完整净值。"
+        )
         item["valuation"]["current_price"] = cap["current_price"].get("value")
         item["valuation"]["current_price_time"] = cap["current_price"].get("time")
         item["valuation"]["current_price_source"] = cap["current_price"].get("source")
+        item["financial"]["guidance"] = guidance_summary(cap["company_guidance"])
+        item["financial"]["guidance_evidence"] = copy.deepcopy(cap["company_guidance"])
+        item["financial"]["guidance_evidence"]["reverse_impact"] = cap["reverse_evidence"].get("opposes")
+        item["financial"]["guidance_evidence"]["update_condition"] = cap.get("update_condition")
+        item["financial"]["quality"]["industry_explanation"] = quality_explanation(symbol)
+        item["financial"]["quality"]["summary"] = (
+            f"{item['financial']['quality'].get('summary', '')} {quality_explanation(symbol)}"
+        ).strip()
         item["company_guidance_capability"] = cap["company_guidance"]
         item["current_reverse_evidence_capability"] = cap["reverse_evidence"]
+        item["forecast"]["medium_term"] = re.sub(
+            r"[，,]?(?:主逻辑成立)?概率约\d+(?:\.\d+)?%[。.]?", "。", item["forecast"].get("medium_term", "")
+        ).replace("。。", "。").strip()
+        if isinstance(item["valuation"].get("formula"), dict):
+            item["valuation"]["formula"].pop("missing_for_final", None)
+        item["valuation"]["missing"] = [
+            value for value in item["valuation"].get("missing", [])
+            if value != "GPT总控最终参数及情景权重"
+        ]
 
         if symbol in numeric_map:
             judgment = numeric_map[symbol]
@@ -109,6 +237,10 @@ def merge_holdings(
             item["valuation"]["price_boundary"] = (
                 "条件情景只用于检验盈利和估值变化；不单独支持加仓、减仓或目标承诺。"
             )
+            item["valuation"]["missing"] = []
+            item["valuation"]["missing_plain"] = "本期总控参数、情景权重与动作边界已裁定；没有仍待总控填写的参数。"
+            if isinstance(item["valuation"].get("formula"), dict):
+                item["valuation"]["formula"].pop("missing_for_final", None)
             item["forecast"]["control_confidence"] = probability_text(probs)
             item["forecast"]["confidence_boundary"] = final["probability_method"]["meaning"]
             item["action"]["unique_action"] = judgment["final_action_boundary"]
@@ -130,6 +262,7 @@ def merge_holdings(
             item["valuation"]["price_boundary"] = (
                 "不提供伪精确收益区间、成功概率或目标贡献；不以估值支持新增动作。"
             )
+            item["valuation"]["missing_plain"] = "本期不采用数值估值；未闭合输入按风险框架隔离，不进入目标贡献。"
             item["forecast"]["control_confidence"] = "不填伪精确概率"
             item["forecast"]["confidence_boundary"] = final["probability_method"]["risk_only_rule"]
             item["action"]["unique_action"] = judgment["final_action_boundary"]
@@ -142,6 +275,8 @@ def merge_holdings(
                 "退出可复算目标桥；这里的退出不等于预期收益为0。"
             )
             item["final_capability_judgment"] = judgment
+        item["precise_evidence_roles"] = precise_evidence_roles(item, cap, symbol in numeric_map)
+        item.pop("evidence_roles", None)
         merged.append(item)
     return merged
 
@@ -179,6 +314,20 @@ def merge_research(
             item["formal_gate_stop"] = (
                 f"第五关未通过；当前最大允许新增权重为{decision['max_weight_pct']}%。"
             )
+        for gate in item["gates"]:
+            source = gate.get("source") if isinstance(gate.get("source"), dict) else {}
+            clickable = bool(source.get("title")) and str(source.get("url", "")).startswith(("https://", "http://"))
+            claimed_complete = "已取得" in str(gate.get("status", "")) or "已完成" in str(gate.get("status", ""))
+            if (claimed_complete or gate.get("evidence_complete")) and clickable:
+                gate["missing"] = []
+                gate["evidence_complete"] = True
+            elif claimed_complete and not clickable:
+                gate["status"] = "本关证据未闭合，停止在本关"
+                gate["evidence_complete"] = False
+                gate["missing"] = ["缺少可点击的正式原文，不能把本关标为已完成。"]
+            elif gate.get("evidence_complete") and not clickable:
+                gate["evidence_complete"] = False
+                gate["missing"] = gate.get("missing") or ["缺少可点击的正式原文。"]
         item["executable"] = False
         merged.append(item)
     return merged
@@ -304,6 +453,131 @@ def render_target_bridge(target: dict[str, Any], base: Any) -> str:
     """
 
 
+def locator_text(value: Any) -> str:
+    if not value:
+        return "原文位置未单独登记"
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        return "；".join(locator_text(item) for item in value)
+    if isinstance(value, dict):
+        labels = {
+            "doc_id": "文件编号", "published_at": "发布时间", "accounting_standard": "会计准则",
+            "locator_type": "定位方式", "statement_locations": "报表或章节", "period_rule": "期间规则",
+            "boundary": "定位边界", "section": "章节", "page": "页码", "field": "字段",
+        }
+        parts = []
+        for key, item in value.items():
+            if key == "selected_metrics" and isinstance(item, dict):
+                metrics = []
+                for metric, detail in item.items():
+                    if isinstance(detail, dict):
+                        metrics.append(
+                            f"{metric}：字段{detail.get('qname', '未登记')}，期间{detail.get('contextRef', '未登记')}，单位{detail.get('unitRef', '未登记')}"
+                        )
+                parts.append("财务字段：" + "；".join(metrics))
+            elif key in labels:
+                parts.append(f"{labels[key]}：{locator_text(item)}")
+        return "；".join(parts) or "原文位置见正式来源中的对应财务表或风险章节"
+    return str(value)
+
+
+def render_guidance_card(guidance: dict[str, Any], base: Any) -> str:
+    facts = "".join(f"<li>{base.esc(value)}</li>" for value in guidance.get("facts", [])) or "<li>该资产不适用企业业绩指引。</li>"
+    source = base.link(guidance.get("url")) if guidance.get("url") else '<span class="muted">没有独立外部链接；已明确隔离用途。</span>'
+    return (
+        f"<p><b>状态：</b>{base.esc(guidance.get('plain_status'))}</p>"
+        f"<p><b>期间：</b>{base.esc(guidance.get('period'))}</p><ul>{facts}</ul>"
+        f"<p><b>正式来源：</b>{base.esc(guidance.get('source_title'))}｜{base.esc(guidance.get('publisher'))}｜"
+        f"{base.esc(guidance.get('published_at'))}<br>{source}</p>"
+        f"<p><b>原文位置：</b>{base.esc(guidance.get('locator'))}</p>"
+        f"<p><b>反向影响：</b>{base.esc(guidance.get('reverse_impact'))}</p>"
+        f"<p><b>下次更新条件：</b>{base.esc(guidance.get('update_condition'))}</p>"
+    )
+
+
+def render_precise_evidence_roles(item: dict[str, Any], base: Any) -> str:
+    rows = []
+    for role in item["precise_evidence_roles"]:
+        source = base.link(role.get("url")) if role.get("url") else '<span class="muted">无外部链接；状态和使用边界已明确</span>'
+        rows.append(
+            "<tr>"
+            f"<td>{base.esc(role.get('role'))}<br><small>{base.esc(role.get('status'))}</small></td>"
+            f"<td><b>{base.esc(role.get('title'))}</b><br>{base.esc(role.get('publisher'))}<br>{source}</td>"
+            f"<td>{base.esc(role.get('published_at'))}<br>{base.esc(role.get('period'))}</td>"
+            f"<td>{base.esc(locator_text(role.get('locator')))}</td>"
+            f"<td>{base.esc(role.get('supports'))}</td><td>{base.esc(role.get('cannot_prove'))}</td></tr>"
+        )
+    return (
+        "<table><thead><tr><th>证据角色与状态</th><th>标题、机构与原文</th><th>时间与期间</th>"
+        "<th>原文位置</th><th>实际证明</th><th>不能证明</th></tr></thead><tbody>"
+        + "".join(rows) + "</tbody></table>"
+    )
+
+
+def render_holding_card(item: dict[str, Any], base: Any) -> str:
+    financial = item["financial"]
+    quality = financial["quality"]
+    metrics = "".join(
+        f'<li>{base.esc(key)}：{base.fmt_num(value)}{("%" if "率" in key else "")}</li>'
+        for key, value in quality.get("metrics", {}).items()
+    ) or '<li>没有取得足够字段，不能计算同口径机械比率。</li>'
+    source_url = financial.get("url")
+    event_rows = "".join(
+        f'<li>{base.esc(value.get("published_at"))}｜{base.esc(value.get("title"))}｜{base.link(value.get("url"))}</li>'
+        for value in item["event_leads"]
+    ) or '<li>限定范围内未取得可独立使用的新公司事件；这不等于市场上没有发生事件。</li>'
+    adjustment = (
+        f'<p class="alert"><b>Marvell事件下推：</b>{base.esc(item["action"]["marvell_event_adjustment"])}</p>'
+        if item["action"].get("marvell_event_adjustment") else ""
+    )
+    valuation_missing = item["valuation"].get("missing_plain") or "已按本期边界登记"
+    guidance = item["financial"]["guidance_evidence"]
+    body = f'''
+    <div class="asset-summary"><div><b>唯一动作</b><strong>{base.esc(item['action']['unique_action'])}</strong></div><div><b>已知账户权重</b><strong>{item['account_fact']['weight_of_known_assets_pct']:.2f}%</strong></div><div><b>下次复核</b><strong>{base.esc(item['action']['next_review'])}</strong></div></div>
+    <p><b>为什么：</b>{base.esc(item['action']['reason'])}</p>{adjustment}
+    <div class="research-grid">
+      <article><h4>公司或资产做什么</h4><p>{base.esc(item['business_model'])}</p><h4>如何赚钱</h4><p>{base.esc(item['how_it_makes_money'])}</p><h4>增长驱动</h4><p>{base.esc(item['growth_drivers'])}</p></article>
+      <article><h4>账户事实</h4><p>{base.esc(base.account_quantity_text(item['account_fact']['quantity_by_account']))}</p><p>已知市值：¥{base.fmt_num(item['account_fact']['known_market_value_jpy'])}</p><p><b>{base.esc(item['account_fact']['data_boundary'])}</b></p></article>
+      <article><h4>财务质量</h4><p>期间：{base.esc(financial.get('period'))}｜口径：{base.esc(financial.get('consolidation'))}</p><p>{base.esc(quality.get('summary'))}</p><ul>{metrics}</ul></article>
+      <article><h4>公司正式指引</h4>{render_guidance_card(guidance, base)}</article>
+      <article><h4>护城河与竞争</h4><p><b>护城河：</b>{base.esc(item['moat_and_competition']['moat'])}</p><p><b>主要竞争者：</b>{base.esc(item['moat_and_competition']['competitors'])}</p><p><b>反向竞争证据：</b>{base.esc(item['moat_and_competition']['reverse_competition'])}</p></article>
+      <article><h4>估值或风险定价</h4><p>{base.esc(item['valuation']['classification'])}</p><p><b>方法：</b>{base.esc(item['valuation']['method'])}</p><p><b>适用原因：</b>{base.esc(item['valuation']['method_reason'])}</p><p><b>总控答案：</b>{base.esc(item['valuation']['final_control_answer'])}</p><p><b>数值边界：</b>{base.esc(item['valuation']['price_boundary'])}</p></article>
+      <article><h4>双时间尺度</h4><p><b>短期：</b>{base.esc(item['forecast']['short_term'])}</p><p><b>中期：</b>{base.esc(item['forecast']['medium_term'])}</p><p><b>把握度：</b>{base.esc(item['forecast']['control_confidence'])}</p><p class="muted">{base.esc(item['forecast']['confidence_boundary'])}</p></article>
+      <article><h4>催化剂、反方与失效</h4><p><b>催化剂：</b>{base.esc(item['action']['catalysts'])}</p><p><b>当前反向证据：</b>{base.esc(item['action']['current_reverse_evidence'])}</p><p><b>未来失效条件：</b>{base.esc(item['action']['invalidation'])}</p></article>
+      <article><h4>替换、目标和验证</h4><p><b>替换比较：</b>{base.esc(item['action']['replacement'])}</p><p><b>目标作用：</b>{base.esc(item['action']['target_contribution'])}</p><p><b>验证日：</b>{base.esc(item['action']['next_review'])}</p></article>
+    </div>
+    {base.details('正式财务字段、来源与定位', (base.render_period_blocks(financial) if financial.get("period_blocks") else f'<table><thead><tr><th>字段</th><th>数值</th><th>使用状态</th></tr></thead><tbody>{base.value_rows(financial.get("fields", dict()), financial.get("currency"))}</tbody></table>') + (f'<p><b>来源：</b>{base.esc(financial.get("source_title"))}｜{base.esc(financial.get("publisher"))}｜{base.link(source_url)}</p><p><b>原文位置：</b>{base.esc(locator_text(financial.get("locator")))}</p>' if source_url else '<p class="boundary">该资产不适用企业财务口径，未使用企业利润表、资产负债表或现金流量表。</p>'))}
+    {base.details('估值输入、公式与缺口', f'<p><b>唯一当前价格：</b>{base.fmt_num(item["valuation"].get("current_price"),4)} {base.esc(item["valuation"].get("current_price_currency"))}｜{base.esc(item["valuation"].get("current_price_time"))}｜{base.esc(item["valuation"].get("current_price_timezone"))}｜{base.esc(item["valuation"].get("current_price_type"))}｜{base.esc(item["valuation"].get("current_price_source"))}</p><p><b>前瞻输入：</b>{base.human_text(item["valuation"].get("forward_input"))}</p><p><b>公式：</b>{base.human_text(item["valuation"].get("formula"))}</p><p><b>未闭合项及影响：</b>{base.esc(valuation_missing)}</p>')}
+    {base.details('七类证据角色、原文与使用边界', render_precise_evidence_roles(item, base))}
+    {base.details('公司事件线索与证据边界', f'<ul>{event_rows}</ul><p class="muted">新闻线索不等同公司正式公告；无正式原文时不支持估值或动作。</p>')}
+    '''
+    return base.details(f"{item['asset_id']}｜{item['name']}", body, attrs=f'data-holding="{base.esc(item["asset_id"])}"')
+
+
+def render_gate_card(item: dict[str, Any], base: Any) -> str:
+    rows = []
+    for gate in item["gates"]:
+        source = gate.get("source") if isinstance(gate.get("source"), dict) else {}
+        source_html = f'<b>{base.esc(source.get("title"))}</b><br>{base.link(source.get("url"))}' if source.get("url") else '<span class="missing">未取得可点击正式原文</span>'
+        if gate.get("evidence_complete"):
+            missing_html = '<span class="ok">本关所列事实和可点击原文已取得；本关无缺项。</span>'
+        else:
+            missing = gate.get("missing") or ["本关证据尚未闭合，因此不形成可执行动作。"]
+            missing_html = '<ul>' + ''.join(f'<li>{base.esc(value)}</li>' for value in missing) + '</ul>'
+        rows.append(
+            f'<tr data-gate-row="1"><td>第{gate["gate"]}关</td><td>{base.esc(gate["status"])}</td>'
+            f'<td>{base.esc(gate["fact"])}</td><td>{source_html}</td><td>{missing_html}</td></tr>'
+        )
+    body = f'''
+    <div class="asset-summary"><div><b>身份</b><strong>{base.esc(item['identity'])}</strong></div><div><b>停关</b><strong>{base.esc(item['formal_gate_stop'])}</strong></div><div><b>可执行</b><strong>否</strong></div></div>
+    <p><b>激活方向：</b>{base.esc(item['activated_sector'])}</p>
+    <table><thead><tr><th>正式关卡</th><th>状态</th><th>事实与理由</th><th>可点击原文</th><th>未闭合项</th></tr></thead><tbody>{''.join(rows)}</tbody></table>
+    <p><b>估值或风险定价：</b>{base.esc(item['valuation_or_risk_pricing'])}</p><p><b>与现金/持仓比较：</b>{base.esc(item['replacement_target'])}</p>
+    <p><b>执行条件：</b>{base.esc(item['executable_condition'])}</p><p><b>短期：</b>{base.esc(item['short_term'])}</p><p><b>中期：</b>{base.esc(item['medium_term'])}</p><p><b>下一次验证：</b>{base.esc(item['next_review'])}</p>
+    '''
+    return base.details(f"{item['asset_id']}｜{item['name']}", body, attrs=f'data-research="{base.esc(item["asset_id"])}"')
+
 def update_first_layer(model: dict[str, Any], final: dict[str, Any]) -> None:
     action = model["judgment"].setdefault("today_action", {})
     portfolio = final["portfolio_judgment"]
@@ -390,6 +664,50 @@ def semantic_qa(
         "当前组合可以证明＋40%路径成立",
     ]
     forbidden_hits = {term: visible.count(term) for term in forbidden if term in visible}
+    model_text = json.dumps(model, ensure_ascii=False)
+    generic_guidance_phrase = "现有已核材料中没有为本包逐项独立提取公司指引"
+    guidance_failures = []
+    for item in model["holdings"]:
+        guidance = item.get("financial", {}).get("guidance_evidence", {})
+        required = ("plain_status", "period", "facts", "source_title", "publisher", "published_at", "url", "locator", "reverse_impact", "update_condition")
+        if any(guidance.get(key) in (None, "", []) for key in required):
+            guidance_failures.append(item["asset_id"])
+    stale_term = "GPT总控最终参数及情景权重"
+    risk_probability_errors = []
+    for item in model["holdings"]:
+        if item["asset_id"] in risk:
+            risk_text = json.dumps({"forecast": item.get("forecast"), "valuation": item.get("valuation")}, ensure_ascii=False)
+            if re.search(r"(?:概率|把握度)[^。；]{0,12}(?:约)?\d+(?:\.\d+)?%", risk_text):
+                risk_probability_errors.append(item["asset_id"])
+    gate_complete_count = 0
+    gate_contradictions = []
+    gate_source_failures = []
+    for item in model["research_gates"]:
+        for gate in item["gates"]:
+            source = gate.get("source") if isinstance(gate.get("source"), dict) else {}
+            clickable = bool(source.get("title")) and str(source.get("url", "")).startswith(("https://", "http://"))
+            if gate.get("evidence_complete"):
+                gate_complete_count += 1
+                if gate.get("missing"):
+                    gate_contradictions.append(f"{item['asset_id']}-G{gate['gate']}")
+                if not clickable:
+                    gate_source_failures.append(f"{item['asset_id']}-G{gate['gate']}")
+    required_role_url_failures = []
+    for item in model["holdings"]:
+        for role in item.get("precise_evidence_roles", []):
+            required_url = (
+                role["role"] in {"公司指引或替代指引", "反向证据"}
+                or (role["role"] == "财务事实" and item["asset_id"] not in {"BTC", "ETH"})
+                or (role["role"] == "估值输入" and item["asset_id"] in numeric)
+                or (role["role"] == "公司或行业事件" and role["status"].startswith("已取得"))
+            )
+            if required_url and not str(role.get("url", "")).startswith(("https://", "http://")):
+                required_role_url_failures.append(f"{item['asset_id']}:{role['role']}")
+    unlabeled_missing_hits = len(re.findall(r"已知市值[^<]{0,160}(?:<[^>]+>\s*)*尚未取得", html_text))
+    quality_explanation_failures = [
+        item["asset_id"] for item in model["holdings"]
+        if not item.get("financial", {}).get("quality", {}).get("industry_explanation")
+    ]
     checks = {
         "J01唯一判断源哈希": {
             "pass": final["status"] == "GPT_CONTROL_FINAL_JUDGMENT_COMPLETE",
@@ -440,10 +758,48 @@ def semantic_qa(
             "pass": b"\xef\xbf\xbd" not in html_text.encode("utf-8") and len(list(output_dir.glob("*.html"))) == 1,
             "detail": {"replacement_character_bytes": html_text.encode("utf-8").count(b"\xef\xbf\xbd"), "html_count": len(list(output_dir.glob("*.html")))},
         },
+        "J14公司指引逐项恢复": {
+            "pass": not guidance_failures and visible.count(generic_guidance_phrase) == 0,
+            "detail": {"holding_count": 24, "complete_guidance_count": 24 - len(guidance_failures), "failures": guidance_failures, "old_generic_phrase_hits": visible.count(generic_guidance_phrase)},
+        },
+        "J15总控估值裁定状态一致": {
+            "pass": visible.count(stale_term) == 0 and model_text.count(stale_term) == 0,
+            "detail": {"visible_stale_hits": visible.count(stale_term), "machine_stale_hits": model_text.count(stale_term), "numeric_scenarios": len(numeric)},
+        },
+        "J16风险框架禁用伪精确概率": {
+            "pass": not risk_probability_errors,
+            "detail": {"risk_asset_count": len(risk), "probability_conflicts": risk_probability_errors},
+        },
+        "J17五关状态来源缺项互斥": {
+            "pass": not gate_contradictions and not gate_source_failures and visible.count("本批次未取得；不据此形成动作") == 0,
+            "detail": {"complete_gate_rows": gate_complete_count, "complete_with_missing": gate_contradictions, "complete_without_clickable_source": gate_source_failures, "old_empty_list_render_hits": visible.count("本批次未取得；不据此形成动作")},
+        },
+        "J18关键证据直接可追溯": {
+            "pass": visible.count("详见机器附件") == 0 and not required_role_url_failures,
+            "detail": {"machine_attachment_placeholder_hits": visible.count("详见机器附件"), "required_role_url_failures": required_role_url_failures, "evidence_role_rows": sum(len(item.get("precise_evidence_roles", [])) for item in model["holdings"])},
+        },
+        "J19缺失字段有标签及行业解释": {
+            "pass": unlabeled_missing_hits == 0 and not quality_explanation_failures,
+            "detail": {"unlabeled_missing_after_market_value": unlabeled_missing_hits, "industry_explanation_failures": quality_explanation_failures},
+        },
+        "J20可见HTML与机器源交叉检查": {
+            "pass": (
+                html_text.count('data-holding=') == 24
+                and html_text.count('data-research=') == 18
+                and visible.count("公司正式指引") >= 24
+                and visible.count("账户数据边界：") >= 24
+            ),
+            "detail": {
+                "visible_holding_cards": html_text.count('data-holding='),
+                "visible_research_cards": html_text.count('data-research='),
+                "visible_guidance_sections": visible.count("公司正式指引"),
+                "visible_labeled_account_boundaries": visible.count("账户数据边界："),
+            },
+        },
     }
     failures = [name for name, row in checks.items() if not row["pass"]]
     return {
-        "schema_version": "V7-FINAL-HTML-SUBSTANTIVE-QA-1.0",
+        "schema_version": "V7-FINAL-HTML-SUBSTANTIVE-QA-2.0",
         "run_id": model["run_id"],
         "checked_at_jst": datetime.now(JST).isoformat(timespec="seconds"),
         "checks": checks,
@@ -494,6 +850,12 @@ def main() -> int:
     model["judgment_formed_at_jst"] = final["judged_at_jst"]
     model["generated_at_jst"] = datetime.now(JST).isoformat(timespec="seconds")
     model["status"] = STATUS
+    prior_today_action = copy.deepcopy(model.get("judgment", {}).get("today_action", {}))
+    model["judgment"] = {
+        "today_action": prior_today_action,
+        "source": "GPT总控最终能力判断唯一源",
+        "legacy_asset_answers_removed": True,
+    }
     model["holdings"] = merge_holdings(model["holdings"], capability, final)
     model["research_gates"] = merge_research(model["research_gates"], capability, final)
     model["target_bridge"] = build_target_bridge(capability, final)
@@ -503,24 +865,35 @@ def main() -> int:
     update_first_layer(model, final)
 
     original_target_renderer = base.render_target_bridge
+    original_holding_renderer = base.render_holding_card
+    original_gate_renderer = base.render_gate_card
     base.render_target_bridge = lambda target: render_target_bridge(target, base)
+    base.render_holding_card = lambda item: render_holding_card(item, base)
+    base.render_gate_card = lambda item: render_gate_card(item, base)
     try:
         html_text = base.build_html(model)
     finally:
         base.render_target_bridge = original_target_renderer
+        base.render_holding_card = original_holding_renderer
+        base.render_gate_card = original_gate_renderer
     html_text = replace_identity(html_text, args.run_id, model["generated_at_jst"])
     html_path = args.output_dir / "★2026-08-20完整投研产品候选_v2.0_最终完整HTML.html"
     html_path.write_text(html_text, encoding="utf-8")
 
-    write_json(args.output_dir / "01_最终完整产品机器模型.json", model)
-    write_json(args.output_dir / "02_24类持仓总控唯一答案落地.json", {"count": len(model["holdings"]), "items": model["holdings"]})
-    write_json(args.output_dir / "03_18只研究对象及八项优先机会落地.json", {"count": len(model["research_gates"]), "priority_count": 8, "gate5_pass": 0, "items": model["research_gates"]})
-    write_json(args.output_dir / "04_收益概率仓位组合贡献桥.json", model["target_bridge"])
-
     qa = semantic_qa(model, html_text, capability, final, args.output_dir)
-    write_json(args.output_dir / "05_最终完整HTML实质语义QA.json", qa)
+    write_json(args.output_dir / "01_最终完整HTML实质语义QA.json", qa)
     if qa["status"] != "PASS_FOR_GPT_FULL_HTML_CONTENT_GATE":
         raise RuntimeError(f"semantic QA failed: {qa['failures']}")
+    repair_rows = [
+        {"item": "24类持仓公司指引", "before": "24张卡统一显示未提取", "after": "24张卡逐项显示状态、期间、事实、正式来源、反向影响和更新条件", "reason": "恢复已闭合能力输入，禁止通用占位"},
+        {"item": "估值裁定状态", "before": "28处已裁定参数仍列为缺口", "after": "用户HTML和机器源中的过期待办均为0", "reason": "以最终能力判断为唯一源"},
+        {"item": "风险框架概率", "before": "软银、爱德万测试等出现未经批准的约60%", "after": "15项风险框架资产不显示伪精确概率", "reason": "没有数值情景时只保留风险和验证条件"},
+        {"item": "18只正式五关", "before": "已取得与未取得同格", "after": "完成关写本关无缺项；缺证据关明确停关和缺项", "reason": "状态、来源和缺项互斥"},
+        {"item": "关键证据", "before": "54处详见机器附件", "after": "证据表直接显示标题、机构、时间、期间、定位、链接、证明内容和边界", "reason": "董事长可直接追溯"},
+        {"item": "缺失字段和行业解释", "before": "市值后出现无标签尚未取得，机械比率缺行业说明", "after": "账户数据边界明确，24张卡均有行业适用性解释", "reason": "避免把缺口或不适用指标误读为质量结论"},
+        {"item": "语义QA", "before": "13项检查未发现七类矛盾", "after": "20项检查直接交叉读取最终HTML和机器源，记录命中与失败数", "reason": "任一实质项失败即禁止PASS"},
+    ]
+    write_json(args.output_dir / "02_七项返修修改前后原因清单.json", {"run_id": args.run_id, "count": len(repair_rows), "items": repair_rows})
 
     daily_after = {"size": args.daily_report.stat().st_size, "sha256": sha256(args.daily_report), "mtime": args.daily_report.stat().st_mtime}
     boundary = {
@@ -533,11 +906,11 @@ def main() -> int:
         "order_calls": 0,
         "content_gate_status": "WAITING_FOR_GPT_FULL_HTML_REVIEW",
     }
-    write_json(args.output_dir / "06_正式日报未覆盖及阶段边界.json", boundary)
+    write_json(args.output_dir / "03_正式日报未覆盖及阶段边界.json", boundary)
     if not boundary["unchanged"]:
         raise RuntimeError("daily report changed")
 
-    manifest_path = args.output_dir / "07_全部实物SHA256清单.json"
+    manifest_path = args.output_dir / "04_全部实物SHA256清单.json"
     items = []
     for path in sorted(args.output_dir.iterdir(), key=lambda p: p.name):
         if path.is_file() and path != manifest_path:
