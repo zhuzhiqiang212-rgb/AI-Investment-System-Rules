@@ -345,11 +345,12 @@ def build_news(model: dict[str, Any]) -> None:
     old_records = [row for row in model["news"].get("records", []) if row.get("event_id") not in {"NEWS-20260820-MARKET-SNAPSHOT"}]
     macro = {row["name"]: row for row in MARKET_FACTS["macro_records"]}
     cutoff = MARKET_FACTS["evidence_cutoff_jst"]
+    retrieval_finished = datetime.now(JST).isoformat(timespec="seconds")
     records = old_records + [
         {
             "event_id": "NEWS-20260821-GLOBAL-MARKETS", "title": "8月21日全球股市、长债、油价和美元出现相互拉扯",
             "publisher": "Reuters报道的可读取转载页；AP交叉核验；行情由公开图表接口复核",
-            "published_at": "2026-08-21", "data_date": "2026-08-21盘中", "retrieved_at_jst": cutoff,
+            "published_at": "2026-08-21", "data_date": "2026-08-21盘中", "retrieved_at_jst": retrieval_finished,
             "url": "https://ae.marketscreener.com/news/global-stocks-set-for-biggest-weekly-fall-since-mid-july-dollar-on-the-defensive-ce7858dadb89ff26",
             "independent_url": "https://apnews.com/article/96ef9586e1288e50843b4d2b1ccebc32",
             "fact": f"截至{macro['S&P 500']['market_time_jst']}的盘中快照：标普500较前收盘约{macro['S&P 500']['change_pct']:.2f}%，纳指约{macro['Nasdaq Composite']['change_pct']:.2f}%；美国10年期收益率约{macro['US 10Y yield']['price']:.2f}%，30年期约{macro['US 30Y yield']['price']:.2f}%；WTI约{macro['WTI crude']['price']:.2f}美元，布伦特约{macro['Brent crude']['price']:.2f}美元；USD/JPY约{macro['USD/JPY']['price']:.2f}。",
@@ -358,7 +359,7 @@ def build_news(model: dict[str, Any]) -> None:
         },
         {
             "event_id": "NEWS-20260820-AVGO-AI-DEBT", "title": "Broadcom据报洽谈超过600亿美元AI芯片融资",
-            "publisher": "Reuters报道，原始信息援引Bloomberg；可读取Reuters转载页", "published_at": "2026-08-20", "data_date": "2026-08-20", "retrieved_at_jst": cutoff,
+            "publisher": "Reuters报道，原始信息援引Bloomberg；可读取Reuters转载页", "published_at": "2026-08-20", "data_date": "2026-08-20", "retrieved_at_jst": retrieval_finished,
             "url": "https://jackfmfargo.com/2026/08/20/broadcom-seeks-more-than-60-billion-in-latest-ai-debt-deal-bloomberg-news-reports/",
             "independent_url": "https://www.boursorama.com/bourse/actualites-amp/broadcom-cherche-a-lever-plus-de-60000-millions-pour-accord-de-puces-ia-rapporte-bloomberg-news-ece3781d853613b3798258ad1a917d60",
             "fact": "报道指Broadcom正与贷款方讨论为AI芯片安排筹集超过600亿美元债务，受益方包括Anthropic等；这是洽谈和报道，不是Broadcom已经完成融资或已经发生现金支出。",
@@ -367,7 +368,7 @@ def build_news(model: dict[str, Any]) -> None:
         },
         {
             "event_id": "NEWS-20260820-NVDA-CHINA-LPU-DENIAL", "title": "NVIDIA否认中国专用LPU已在路线图中",
-            "publisher": "Reuters报道的可读取转载页；NVIDIA发言人回应", "published_at": "2026-08-20", "data_date": "2026-08-20", "retrieved_at_jst": cutoff,
+            "publisher": "Reuters报道的可读取转载页；NVIDIA发言人回应", "published_at": "2026-08-20", "data_date": "2026-08-20", "retrieved_at_jst": retrieval_finished,
             "url": "https://www.boursorama.com/bourse/actualites/nvidia-dement-les-informations-selon-lesquelles-elle-s-appreterait-a-lancer-une-puce-d-ia-en-chine-d-ici-la-fin-de-l-annee-71e3f8cec411a06e3c88bc2f4bfa83d2",
             "independent_url": "https://jackfmfargo.com/2026/08/20/nvidia-to-ship-ai-chip-for-china-by-year-end-the-information-reports/",
             "fact": "NVIDIA发言人否认将于年内推出面向中国客户的专用LPU，并称当前没有在中国销售LPU，路线图中也没有中国专用LPU。",
@@ -377,7 +378,7 @@ def build_news(model: dict[str, Any]) -> None:
     ]
     model["news"] = {
         "run_id": model["run_id"], "search_started_at_jst": MARKET_FACTS["started_at_jst"],
-        "search_finished_at_jst": cutoff, "evidence_cutoff_jst": cutoff,
+        "search_finished_at_jst": retrieval_finished, "evidence_cutoff_jst": cutoff,
         "search_scope": ["全球市场", "全球债券与美元", "油价与霍尔木兹", "AI融资", "NVDA中国业务", "24类持仓与18只观察股"],
         "queries": ["2026-08-21 global markets bonds oil dollar", "Broadcom more than 60 billion AI debt", "NVIDIA China LPU denial", "8月21日持仓与观察股公司公告增量"],
         "records": records,
@@ -512,7 +513,7 @@ def semantic_qa(model: dict[str, Any], html_text: str, capability: dict[str, Any
     new_news_ids = {"NEWS-20260821-GLOBAL-MARKETS", "NEWS-20260820-AVGO-AI-DEBT", "NEWS-20260820-NVDA-CHINA-LPU-DENIAL"}
     new_layer_facts = [fact for layer in model["layers"] for fact in layer.get("facts", []) if fact.get("event_id") in new_news_ids]
     new_layer_facts_complete = bool(new_layer_facts) and all(fact.get("supports") and fact.get("cannot_prove") for fact in new_layer_facts)
-    news_window_ok = model["news"]["search_started_at_jst"] < model["news"]["search_finished_at_jst"] == model["news"]["evidence_cutoff_jst"] == model["evidence_cutoff_jst"]
+    news_window_ok = model["news"]["search_started_at_jst"] < model["news"]["evidence_cutoff_jst"] <= model["news"]["search_finished_at_jst"] and model["news"]["evidence_cutoff_jst"] == model["evidence_cutoff_jst"]
     html_counts = {
         "holdings": len(re.findall(r"data-holding=['\"]", html_text)),
         "research": len(re.findall(r"data-research=['\"]", html_text)),
