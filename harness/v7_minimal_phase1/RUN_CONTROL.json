@@ -1,0 +1,200 @@
+{
+  "schema_version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
+  "harness_id": "V7_MINIMAL_HARNESS_PHASE1",
+  "run_id": "V7-MINIMAL-HARNESS-PHASE1-20260830-021141-JST",
+  "generated_at_jst": "2026-08-30T02:11:41+09:00",
+  "control_status": "ACCEPTANCE_PENDING",
+  "active_task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
+  "tasks": [
+    {
+      "task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
+      "task_name": "V7最小Harness第一阶段建设",
+      "status": "ACCEPTANCE_PENDING",
+      "opened_by_role": "GPT_CONTROL",
+      "opened_by_actor": "V7总控-3"
+    }
+  ],
+  "roles": {
+    "CHAIRMAN": {
+      "permissions": ["DECIDE_FINAL_TARGET", "MAKE_FINAL_BUSINESS_DECISION", "AUTHORIZE_RELEASE", "APPROVE_MAJOR_GOVERNANCE_CHANGE"],
+      "prohibitions": []
+    },
+    "GPT_CONTROL": {
+      "permissions": ["DEFINE_TASK", "FREEZE_SCOPE", "AUTHORIZE_EXECUTION", "DISPATCH", "RECEIVE_RESULT", "ORGANIZE_ACCEPTANCE"],
+      "prohibitions": ["IMPERSONATE_CHAIRMAN", "AUTO_CONVERT_BUSINESS_ACCEPTANCE_TO_RELEASE"]
+    },
+    "CODEX_EXECUTOR": {
+      "permissions": ["EXECUTE_FORMAL_TASK", "CREATE_ALLOWED_FILES", "RUN_LOCAL_TESTS", "REPORT_RESULTS"],
+      "prohibitions": ["EXPAND_SCOPE", "MODIFY_CURRENT_GOVERNANCE", "DEFINE_NEW_BUSINESS_TARGET", "DECLARE_FINAL_BUSINESS_PASS", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"]
+    },
+    "INDEPENDENT_VALIDATOR": {
+      "permissions": ["READ_CONTROL", "VALIDATE_CONTROL", "REPORT_FINDINGS"],
+      "prohibitions": ["PRODUCE_ARTIFACT", "MODIFY_CONTROL", "AUTO_REPAIR", "AUTO_ADVANCE", "RELEASE", "TRADE", "ORDER"]
+    }
+  },
+  "task": {
+    "task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
+    "task_name": "V7最小Harness正式施工任务单第一阶段",
+    "owner_controller": {"role": "GPT_CONTROL", "actor": "V7总控-3"},
+    "executor": {"role": "CODEX_EXECUTOR", "actor": "Codex-V7-1"},
+    "acceptance_owner": {"role": "GPT_CONTROL", "actor": "V7总控-3"},
+    "accepted_project_boundary": {
+      "V13_INDEPENDENT_FINAL_ACCEPTANCE": "PASS",
+      "GPT_BUSINESS_ACCEPTANCE": "PASS",
+      "V13_PDF_PHYSICAL_CHECK": "PASS",
+      "boundary_note": "These are frozen V13 facts, not acceptance of this Harness build."
+    }
+  },
+  "scope": {
+    "allowed": [
+      "CREATE_MINIMAL_RUN_CONTROL",
+      "CREATE_READ_ONLY_VALIDATOR",
+      "CREATE_MINIMAL_SCHEMA",
+      "CREATE_MINIMAL_TESTS",
+      "CREATE_MINIMAL_README",
+      "RUN_LOCAL_TESTS"
+    ],
+    "forbidden": [
+      "MODIFY_V13_HTML",
+      "MODIFY_V13_PDF",
+      "RESEARCH_SECURITIES",
+      "BUILD_FULL_PRODUCT",
+      "CONNECT_MACRO_PIPELINE",
+      "CONNECT_PDCA_PIPELINE",
+      "PRODUCE_DAILY_REPORT",
+      "OVERWRITE_DAILY_REPORT",
+      "RELEASE",
+      "TRADE",
+      "ORDER",
+      "BROKER_ORDER_API",
+      "BUILD_FULL_HARNESS"
+    ]
+  },
+  "stages": {
+    "ordered": ["S0_DEFINED", "S1_INPUT_BOUND", "S2_AUTHORIZED", "S3_EXECUTED", "S4_VALIDATED", "S5_ACCEPTANCE_PENDING", "S5_ACCEPTED"],
+    "current": "S5_ACCEPTANCE_PENDING",
+    "history": [
+      {"stage": "S0_DEFINED", "status": "PASS", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T01:48:00+09:00"},
+      {"stage": "S1_INPUT_BOUND", "status": "PASS", "actor_role": "CODEX_EXECUTOR", "actor": "Codex-V7-1", "at_jst": "2026-08-30T01:55:00+09:00"},
+      {"stage": "S2_AUTHORIZED", "status": "PASS", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T01:56:00+09:00"},
+      {"stage": "S3_EXECUTED", "status": "PASS", "actor_role": "CODEX_EXECUTOR", "actor": "Codex-V7-1", "at_jst": "2026-08-30T02:08:00+09:00"},
+      {"stage": "S4_VALIDATED", "status": "PASS", "actor_role": "INDEPENDENT_VALIDATOR", "actor": "V7 minimal read-only validator", "at_jst": "2026-08-30T02:10:00+09:00"},
+      {"stage": "S5_ACCEPTANCE_PENDING", "status": "WAITING", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T02:11:41+09:00"}
+    ]
+  },
+  "authorization": {
+    "authorized_by_role": "GPT_CONTROL",
+    "authorized_by_actor": "V7总控-3",
+    "authorized_at_jst": "2026-08-30T01:48:00+09:00",
+    "authorized_actions": ["CREATE_MINIMAL_HARNESS_FILES", "RUN_LOCAL_TESTS", "REPORT_RESULTS"],
+    "explicitly_forbidden_actions": ["MODIFY_V13", "BUILD_FULL_PRODUCT", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"],
+    "modify_input_allowed": false,
+    "production_allowed": false,
+    "release_allowed": false,
+    "trade_allowed": false,
+    "order_allowed": false
+  },
+  "inputs": [
+    {
+      "artifact_id": "FORMAL_TASK_ORDER",
+      "filename": "pasted-text.txt",
+      "path": "C:\\Users\\localhost\\.codex\\attachments\\1fe32ed5-e15d-4880-8d0f-99512d1a9328\\pasted-text.txt",
+      "version": "V7_MINIMAL_HARNESS_PHASE1_TASK_ORDER",
+      "size_bytes": 16089,
+      "sha256": "521FAF382DA02BF8A3B6CE5F926FE2EE6E3E8DA9D5004B26609F386506E5A7D7",
+      "input_role": "FORMAL_GPT_CONTROL_TASK",
+      "binding_status": "BOUND"
+    },
+    {
+      "artifact_id": "V13_FROZEN_PROTECTED_ARTIFACT",
+      "filename": "V13普通中文完整投资产品.html",
+      "path": "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/V13普通中文完整投资产品.html",
+      "version": "V13-USER-READABLE-20260829015943-JST",
+      "size_bytes": 365540,
+      "sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
+      "input_role": "FROZEN_PROTECTED_ARTIFACT_DO_NOT_MODIFY",
+      "binding_status": "BOUND"
+    }
+  ],
+  "outputs": [
+    {"artifact_id": "MINIMAL_SCHEMA", "path": "harness/v7_minimal_phase1/run_control.schema.json", "size_bytes": 1618, "sha256": "DAA4C11FD13D51DA1715AFC353DCB4203447020538A0BD747D92FDB4EB1BF8AC", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "READ_ONLY_VALIDATOR", "path": "harness/v7_minimal_phase1/validate_run_control.py", "size_bytes": 12167, "sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "TEN_CASE_TEST_SUITE", "path": "harness/v7_minimal_phase1/tests/test_validate_run_control.py", "size_bytes": 9154, "sha256": "B9ADEE5CFE47E4E2684C4A88C0C745D9EDAF911311C702E00F34F30B80ADBB7A", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "TEST_RUNNER", "path": "harness/v7_minimal_phase1/tests/run_tests.py", "size_bytes": 1750, "sha256": "A0FAE7FEE037B0EC5B2DD73014FC75AE11E95ABA893D91338CEE4D4F494550FE", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "SELF_TEST_REPORT", "path": "harness/v7_minimal_phase1/minimal_harness_test_report.json", "size_bytes": 1216, "sha256": "EBDC6C6C178ED16F598C9A59045D45048517AA8FE57D89190F76E3E6012465A0", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "MINIMAL_README", "path": "harness/v7_minimal_phase1/README.html", "size_bytes": 1621, "sha256": "4EFE0E711703914A84FAF3B722D0288700336D5495EF4D595FFB58A8817945FB", "producer_role": "CODEX_EXECUTOR"}
+  ],
+  "consumption_chain": [
+    {
+      "relation_id": "VALIDATOR_CONSUMED_BY_TEST_SUITE",
+      "producer": "CODEX_EXECUTOR",
+      "produced_artifact": "READ_ONLY_VALIDATOR",
+      "produced_artifact_sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482",
+      "consumer": "TEN_CASE_TEST_SUITE",
+      "consumed_artifact_sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482"
+    },
+    {
+      "relation_id": "TEST_SUITE_CONSUMED_BY_TEST_RUNNER",
+      "producer": "CODEX_EXECUTOR",
+      "produced_artifact": "TEN_CASE_TEST_SUITE",
+      "produced_artifact_sha256": "B9ADEE5CFE47E4E2684C4A88C0C745D9EDAF911311C702E00F34F30B80ADBB7A",
+      "consumer": "TEST_RUNNER",
+      "consumed_artifact_sha256": "B9ADEE5CFE47E4E2684C4A88C0C745D9EDAF911311C702E00F34F30B80ADBB7A"
+    },
+    {
+      "relation_id": "TEST_REPORT_BOUND_IN_RUN_CONTROL",
+      "producer": "CODEX_EXECUTOR",
+      "produced_artifact": "SELF_TEST_REPORT",
+      "produced_artifact_sha256": "EBDC6C6C178ED16F598C9A59045D45048517AA8FE57D89190F76E3E6012465A0",
+      "consumer": "RUN_CONTROL_BINDING",
+      "consumed_artifact_sha256": "EBDC6C6C178ED16F598C9A59045D45048517AA8FE57D89190F76E3E6012465A0"
+    }
+  ],
+  "validation": {
+    "validator_artifact_id": "READ_ONLY_VALIDATOR",
+    "validator_mode": "READ_ONLY",
+    "auto_repair": false,
+    "auto_advance": false,
+    "result": "TECHNICAL_CHECK_PASS",
+    "self_test_report_artifact_id": "SELF_TEST_REPORT",
+    "self_test_result": "10_OF_10_PASS"
+  },
+  "pass_levels": [
+    {"level": 1, "name": "TECHNICAL_CHECK_PASS", "status": "PASS", "decided_by_role": "INDEPENDENT_VALIDATOR", "basis": "DIRECT_VALIDATION"},
+    {"level": 2, "name": "CONTENT_OR_LOCAL_ACCEPTANCE_PASS", "status": "PASS", "decided_by_role": "CODEX_EXECUTOR", "basis": "EXPLICIT_REVIEW"},
+    {"level": 3, "name": "INDEPENDENT_FINAL_ACCEPTANCE_PASS", "status": "PENDING", "decided_by_role": null, "basis": null},
+    {"level": 4, "name": "GPT_BUSINESS_ACCEPTANCE_PASS", "status": "PENDING", "decided_by_role": null, "basis": null},
+    {"level": 5, "name": "CHAIRMAN_APPROVED", "status": "PENDING", "decided_by_role": null, "basis": null}
+  ],
+  "release": {
+    "chairman_decision": "PENDING",
+    "decision_by_role": null,
+    "release_authorized": false,
+    "authorized_by_role": null
+  },
+  "safety_counters": {
+    "v13_modified_count": 0,
+    "release_executed_count": 0,
+    "trade_executed_count": 0,
+    "order_executed_count": 0,
+    "daily_report_overwrite_count": 0,
+    "full_product_build_started_count": 0,
+    "scope_deviation_count": 0
+  },
+  "recovery": {
+    "last_valid_stage": "S4_VALIDATED",
+    "last_valid_input": "FORMAL_TASK_ORDER",
+    "last_valid_output": "SELF_TEST_REPORT",
+    "failed_stage": null,
+    "blocked_reason": "WAITING_V7_CONTROL_3_ACCEPTANCE",
+    "retry_allowed": true,
+    "resume_from": "S5_ACCEPTANCE_PENDING"
+  },
+  "next_action": {
+    "auto_continue": false,
+    "required_role": "GPT_CONTROL",
+    "required_actor": "V7总控-3",
+    "action": "ACCEPT_OR_RETURN_MINIMAL_HARNESS",
+    "forbidden_until_decision": ["FULL_PRODUCT_INTEGRATION", "MACRO_PIPELINE", "PDCA_PIPELINE", "NEW_DAILY_REPORT", "V14", "RELEASE", "TRADE", "ORDER"]
+  }
+}

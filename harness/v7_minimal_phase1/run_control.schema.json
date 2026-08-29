@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "V7_MINIMAL_HARNESS_PHASE1_1.0",
+  "title": "V7 Minimal Harness Run Control",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "harness_id", "run_id", "generated_at_jst", "control_status", "active_task_id", "tasks", "roles", "task", "scope", "stages", "authorization", "inputs", "outputs", "consumption_chain", "validation", "pass_levels", "release", "safety_counters", "recovery", "next_action"],
+  "properties": {
+    "schema_version": {"const": "V7_MINIMAL_HARNESS_PHASE1_1.0"},
+    "harness_id": {"const": "V7_MINIMAL_HARNESS_PHASE1"},
+    "run_id": {"type": "string", "minLength": 1},
+    "generated_at_jst": {"type": "string", "minLength": 1},
+    "control_status": {"enum": ["DEFINED", "INPUT_BOUND", "AUTHORIZED", "EXECUTED", "VALIDATED", "ACCEPTANCE_PENDING", "ACCEPTED", "BLOCKED", "FAILED", "CANCELLED"]},
+    "active_task_id": {"type": ["string", "null"]},
+    "tasks": {"type": "array", "minItems": 1},
+    "roles": {"type": "object"},
+    "task": {"type": "object"},
+    "scope": {"type": "object"},
+    "stages": {"type": "object"},
+    "authorization": {"type": "object"},
+    "inputs": {"type": "array", "minItems": 1},
+    "outputs": {"type": "array", "minItems": 1},
+    "consumption_chain": {"type": "array", "minItems": 1},
+    "validation": {"type": "object"},
+    "pass_levels": {"type": "array", "minItems": 5, "maxItems": 5},
+    "release": {"type": "object"},
+    "safety_counters": {"type": "object"},
+    "recovery": {"type": "object"},
+    "next_action": {"type": "object"}
+  }
+}

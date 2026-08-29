@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V7最小Harness第一阶段说明</title>
+<style>body{font-family:"Microsoft YaHei",sans-serif;max-width:860px;margin:32px auto;padding:0 20px;line-height:1.7;color:#1f2937}h1,h2{color:#123b5d}code{background:#eef2f6;padding:2px 5px;border-radius:4px}.note{border-left:4px solid #1f6f8b;padding:10px 14px;background:#f3f8fa}</style></head><body>
+<h1>V7最小 Harness · 第一阶段</h1><p class="note">这是一套防跑偏控制壳，不是完整生产系统。它只管理一项正式任务的身份、范围、阶段、权限、文件指纹、验收层级和恢复位置。</p>
+<h2>组成</h2><ul><li><code>RUN_CONTROL.json</code>：本最小 Harness 当前任务的唯一机器状态。</li><li><code>run_control.schema.json</code>：最小字段结构。</li><li><code>validate_run_control.py</code>：只读检查，不修改、不修复、不推进状态。</li><li><code>tests/</code>：十项边界测试和测试报告生成器。</li></ul>
+<h2>只读校验</h2><pre>python harness/v7_minimal_phase1/validate_run_control.py --control harness/v7_minimal_phase1/RUN_CONTROL.json --project-root .</pre>
+<p>校验通过只表示控制关系一致，不代表独立终验、GPT业务验收、董事长批准或Release授权。</p>
+<h2>本阶段不管理</h2><p>不管理产品生产、宏观抓取、财报研究、新闻抓取、PDCA回灌、账户同步、券商交易、订单、日报、Release流水线、数据库、网页界面或多执行器调度。</p>
+</body></html>

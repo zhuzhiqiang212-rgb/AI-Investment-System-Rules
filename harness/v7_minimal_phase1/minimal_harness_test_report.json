@@ -1,0 +1,49 @@
+{
+  "report_type": "V7_MINIMAL_HARNESS_PHASE1_SELF_TEST",
+  "generated_at_jst": "2026-08-30T02:11:03+09:00",
+  "test_count": 10,
+  "pass_count": 10,
+  "fail_count": 0,
+  "tests": [
+    {
+      "test_id": "test_01_normal_s0_to_s4_passes",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_02_s1_to_s3_skip_authorization_fails",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_03_changed_input_sha_invalidates_binding",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_04_codex_cannot_approve_for_chairman",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_05_local_pass_cannot_auto_promote_final_pass",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_06_release_true_without_chairman_authorization_fails",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_07_consumed_sha_mismatch_fails",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_08_second_active_task_is_blocked",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_09_failure_reports_recovery_fields",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_10_validator_does_not_modify_v13",
+      "result": "PASS"
+    }
+  ]
+}
