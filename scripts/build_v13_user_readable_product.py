@@ -252,27 +252,40 @@ def scenario_starting_point(value) -> str:
     return text
 
 
+def shared_scenario_prefix(contract: dict) -> str:
+    values = [str(contract.get(f"{key}_business_assumption") or "") for key in ("bear", "base", "bull")]
+    if not all(values):
+        return ""
+    prefix = values[0]
+    for value in values[1:]:
+        while prefix and not value.startswith(prefix):
+            prefix = prefix[:-1]
+    return prefix if len(prefix.strip(" ，；。")) >= 20 else ""
+
+
+def scenario_increment(contract: dict, key: str) -> str:
+    raw = str(contract.get(f"{key}_business_assumption") or "")
+    prefix = shared_scenario_prefix(contract)
+    if prefix and key != "base":
+        raw = raw[len(prefix):].lstrip(" ，；。")
+    text = plain(raw).strip(" ，；。")
+    return text + "。" if text else scenario_starting_point(contract.get(f"{key}_business_assumption"))
+
+
 def scenario_business_explanation(item: dict, contract: dict, key: str) -> str:
-    assumption = scenario_starting_point(contract.get(f"{key}_business_assumption"))
-    if key == "bear":
-        risk = concise_sentence(item.get("downside"), 95)
-        return f"{assumption} {risk}"
     if key == "base":
-        driver = concise_sentence(item.get("catalyst"), 95)
-        return f"{assumption} {driver}"
-    driver = concise_sentence(item.get("catalyst"), 95)
-    return f"{assumption} {driver}必须显著超出目前判断。"
+        return scenario_starting_point(contract.get("base_business_assumption"))
+    return scenario_increment(contract, key)
 
 
-def asset_confidence_reason(item: dict, confidence: str) -> str:
+def asset_confidence_reason(item: dict, contract: dict, confidence: str) -> str:
     name = item.get("asset_name") or item.get("asset_id")
-    driver = concise_sentence(item.get("catalyst"), 105)
-    risk = concise_sentence(item.get("downside"), 105)
+    risk = concise_sentence(contract.get("current_counterevidence") or item.get("downside"), 125)
     if confidence == "A":
-        return f"{name}已有可直接核对的正式经营数据：“{driver}”；主要误差来自“{risk}”。"
+        return f"{name}已有可直接核对的正式经营数据，但“{risk}”仍是主要误差来源。"
     if confidence == "B":
-        return f"{name}的公司与行业证据主要支持“{driver}”；仍未解决的不确定性是“{risk}”。"
-    return f"{name}：关键观察是“{driver}”；最大不确定性是“{risk}”。"
+        return f"{name}的经营证据可以支持方向判断，但“{risk}”尚未解决。"
+    return f"{name}的一年价格对“{risk}”很敏感，因此合理范围仍然较宽。"
 
 
 def scenario_reference(item: dict) -> str:
@@ -281,7 +294,7 @@ def scenario_reference(item: dict) -> str:
     confidence = item.get("valuation_confidence", item.get("overall_price_confidence"))
     if not contract:
         return (
-            f'<details class="scenario-reference" data-full-year-scenario="1" data-asset-specific-scenario="1"><summary>查看一年情景</summary>'
+            f'<details class="scenario-reference" data-full-year-scenario="1" data-asset-specific-scenario="1" data-year-asset="{esc(item.get("asset_id", ""))}"><summary>查看一年情景</summary>'
             f'<p><strong>合并参考：</strong>{esc(pct(value))}</p>'
             f'<p><strong>价格判断把握度：</strong>{esc(confidence_label(confidence))}。冻结合同未能在当前展示层定位，因此没有补写情景数字。</p></details>'
         )
@@ -305,9 +318,9 @@ def scenario_reference(item: dict) -> str:
             f'<p class="extreme-reason" data-extreme-reason="1"><strong>为什么这个结果会这么{direction}：</strong>'
             f'{esc(driver)} 当前价格与一年情景差距较大；主要反向风险是“{esc(risk)}”。</p>'
         )
-    confidence_reason = asset_confidence_reason(item, confidence)
+    confidence_reason = asset_confidence_reason(item, contract, confidence)
     return (
-        '<details class="scenario-reference" data-full-year-scenario="1" data-asset-specific-scenario="1"><summary>查看一年情景</summary><div>'
+        f'<details class="scenario-reference" data-full-year-scenario="1" data-asset-specific-scenario="1" data-year-asset="{esc(item.get("asset_id", ""))}"><summary>查看一年情景</summary><div>'
         f'<p><strong>当前参考价格：</strong>{esc(price_number(lock.get("value"), currency))}</p>'
         f'<div class="table-wrap"><table><thead><tr><th>情景</th><th>可能性</th><th>一年后价格范围</th><th>这只资产自己的原因</th></tr></thead>'
         f'<tbody>{"".join(rows)}</tbody></table></div>'
@@ -1057,12 +1070,39 @@ def repeated_year_explanation_sentences(text: str) -> dict:
     }
 
 
+def per_asset_visible_year_repetition(text: str) -> dict:
+    failures = []
+    blocks = re.findall(
+        r'<details class="scenario-reference"[^>]*data-year-asset="([^"]+)"[^>]*>(.*?)</details>',
+        text,
+        flags=re.S,
+    )
+    for asset_id, block in blocks:
+        readable = html.unescape(re.sub(r"<[^>]+>", " ", block))
+        normalized = re.sub(r"[^0-9A-Za-z一-鿿]+", "", readable)
+        windows: dict[str, int] = {}
+        for index in range(max(0, len(normalized) - 19)):
+            fragment = normalized[index:index + 20]
+            windows[fragment] = windows.get(fragment, 0) + 1
+        repeated = [(fragment, count) for fragment, count in windows.items() if count > 2]
+        if repeated:
+            fragment, count = max(repeated, key=lambda item: item[1])
+            failures.append({"asset_id": asset_id, "max_repeat_count": count, "sample": fragment})
+    return {
+        "asset_block_count": len(blocks),
+        "failed_asset_count": len(failures),
+        "passed_asset_count": len(blocks) - len(failures),
+        "failures": failures,
+    }
+
+
 def semantic_checks(text: str, supplement: dict) -> dict:
     sections = ["today", "market", "themes", "portfolio", "opportunities", "events", "goals", "learning", "lookup", "sources"]
     forbidden = ["forecast_id", "Harness", "Gate", "SHA256", "machine_field", "LOW_CONFIDENCE_MODEL_CANDIDATE", "NOT_ACTIVATED", "NOT_PASS", "key=value"]
     readable_html = re.sub(r"<(?:style|script)\b[^>]*>.*?</(?:style|script)>", "", text, flags=re.I | re.S)
     visible = html.unescape(re.sub(r"<[^>]+>", " ", readable_html))
     year_repetition = repeated_year_explanation_sentences(text)
+    per_asset_year_repetition = per_asset_visible_year_repetition(text)
     report = {
         "status": "PASS",
         "v11_sha_unchanged": sha(V11) == V11_SHA,
@@ -1188,6 +1228,7 @@ def semantic_checks(text: str, supplement: dict) -> dict:
             ),
         },
         "year_explanation_repetition_audit": year_repetition,
+        "per_asset_visible_year_repetition_audit": per_asset_year_repetition,
         "plus100_research_base_table_link_count": sum(file_id in text for _, _, file_id in PLUS100_DRIVE_FILES),
         "plus100_independent_index_openable": bool(PLUS100_INDEX_URL and PLUS100_INDEX_URL in text),
     }
@@ -1226,6 +1267,9 @@ def semantic_checks(text: str, supplement: dict) -> dict:
         sum(report["year_scenario_template_phrase_hits"].values()) == 0,
         report["year_explanation_repetition_audit"]["max_repeat_count"] <= 3,
         report["year_explanation_repetition_audit"]["repeated_over_3_count"] == 0,
+        report["per_asset_visible_year_repetition_audit"]["asset_block_count"] == 42,
+        report["per_asset_visible_year_repetition_audit"]["failed_asset_count"] == 0,
+        report["per_asset_visible_year_repetition_audit"]["passed_asset_count"] == 42,
         report["plus100_research_base_table_link_count"] == 9,
         report["plus100_independent_index_openable"],
     ]
@@ -1354,6 +1398,7 @@ def refresh_existing(out: Path) -> None:
             "specified_bad_sentence_hits": report["specified_bad_sentence_hits"],
             "professional_term_explanation_count": report["required_professional_term_explanation_count"],
             "asset_specific_year_scenario_count": report["asset_specific_year_scenario_count"],
+            "per_asset_visible_year_repetition": report["per_asset_visible_year_repetition_audit"],
         },
         "three_business_repairs": {
             "complete_theme_story_count": report["complete_theme_story_count"],
@@ -1417,10 +1462,10 @@ def finalize_browser(out: Path) -> None:
         raise SystemExit("浏览器检查未通过，拒绝冻结")
     source_path = out / "V13普通中文产品源.json"
     source_info = json.loads(source_path.read_text(encoding="utf-8"))
-    source_info["status"] = "WAITING_GPT_TRUE_DETEMPLATE_CHECK"
+    source_info["status"] = "WAITING_GPT_TRUE_DETEMPLATE_CHECK_2"
     source_info["browser_review"] = {"status": "PASS", "path": str(browser_path), "sha256": sha(browser_path)}
     write_json(source_path, source_info)
-    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_TRUE_DETEMPLATE_CHECK", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_TRUE_DETEMPLATE_CHECK_2", "artifacts": []}
     for path in sorted(out.rglob("*")):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": str(path.relative_to(out)), "bytes": path.stat().st_size, "sha256": sha(path)})
