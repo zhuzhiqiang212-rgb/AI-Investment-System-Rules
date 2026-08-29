@@ -95,7 +95,7 @@ def plain(value) -> str:
     if template in text:
         driver = text.split(template, 1)[0].rstrip("，。； ")
         remainder = text.split(template, 1)[1].strip()
-        text = f"{driver}是这只资产当前最需要核对的具体指标；这些指标能否持续改善，决定当前判断能否成立。{remainder}"
+        text = f"{driver}。{remainder}"
     for old, new in REPLACEMENTS.items():
         text = text.replace(old, new)
     # The source contracts use ``bn`` for billions. Render the amount and
@@ -119,6 +119,7 @@ def plain(value) -> str:
     text = text.replace("当前价格从当前价格出发", "按当前股价看")
     text = text.replace("什么把数字推到这么很高", "为什么这个结果会这么高")
     text = text.replace("什么把数字推到这么很低", "为什么这个结果会这么低")
+    text = text.replace("当前研究底稿支持方向判断，但不足以给出可靠数值阈值。", "")
     text = re.sub(r"\bV11\b", "冻结研究底稿", text)
     text = re.sub(r"\bV12\b", "冻结决策研究层", text)
     text = re.sub(r"\bGPT\b", "研究系统", text)
@@ -244,16 +245,23 @@ def concise_sentence(value, limit=110) -> str:
     return first if len(first) <= limit else first[:limit].rstrip("，； ") + "。"
 
 
+def scenario_starting_point(value) -> str:
+    text = concise_sentence(value, 145)
+    if "；核心经营变量" in text:
+        return text.split("；核心经营变量", 1)[0].rstrip("，；。 ") + "。"
+    return text
+
+
 def scenario_business_explanation(item: dict, contract: dict, key: str) -> str:
-    assumption = concise_sentence(contract.get(f"{key}_business_assumption"), 145)
+    assumption = scenario_starting_point(contract.get(f"{key}_business_assumption"))
     if key == "bear":
         risk = concise_sentence(item.get("downside"), 95)
-        return f"{assumption} 需要防范的是：{risk}"
+        return f"{assumption} {risk}"
     if key == "base":
         driver = concise_sentence(item.get("catalyst"), 95)
-        return f"{assumption} 接下来核对：{driver}"
+        return f"{assumption} {driver}"
     driver = concise_sentence(item.get("catalyst"), 95)
-    return f"{assumption} 这要求“{driver}”明显超出目前判断。"
+    return f"{assumption} {driver}必须显著超出目前判断。"
 
 
 def asset_confidence_reason(item: dict, confidence: str) -> str:
@@ -261,10 +269,10 @@ def asset_confidence_reason(item: dict, confidence: str) -> str:
     driver = concise_sentence(item.get("catalyst"), 105)
     risk = concise_sentence(item.get("downside"), 105)
     if confidence == "A":
-        return f"{name}已有较完整的正式经营数据，当前把握主要来自“{driver}”；但“{risk}”仍可能使实际价格偏离经营判断。"
+        return f"{name}已有可直接核对的正式经营数据：“{driver}”；主要误差来自“{risk}”。"
     if confidence == "B":
-        return f"{name}的方向有公司与行业证据支持，关键验证是“{driver}”；由于“{risk}”，一年后的盈利和估值仍有明显误差。"
-    return f"{name}的关键变量是“{driver}”，但“{risk}”；两者一年后的幅度都难以精确判断，因此价格把握度较低。"
+        return f"{name}的公司与行业证据主要支持“{driver}”；仍未解决的不确定性是“{risk}”。"
+    return f"{name}：关键观察是“{driver}”；最大不确定性是“{risk}”。"
 
 
 def scenario_reference(item: dict) -> str:
@@ -404,7 +412,7 @@ def holding_story(item: dict, detailed=False) -> str:
       <p><strong>哪里可能错：</strong>{paragraph(item.get('risk'))}</p>
       <p><strong>什么事实会改变判断：</strong>{paragraph(item.get('change_condition'))}</p>
       <p><strong>与谁比较：</strong>当前最直接的比较对象是{esc(comparison_asset)}。{esc(comparison_text)}这只资产的比较重点是{paragraph(item.get('opportunity_cost_dimension'))}。</p>
-      <p class="confidence"><strong>证据可靠程度：</strong>对公司业务的判断为{esc(CONFIDENCE.get(item.get('business_confidence'), item.get('business_confidence') or '未知'))}，对未来股价范围的判断为{esc(CONFIDENCE.get(item.get('overall_price_confidence'), item.get('overall_price_confidence') or '未知'))}。股价证据较弱时，区间只适合比较，不适合当成精确目标。</p>
+      <p class="confidence"><strong>证据可靠程度：</strong>对公司业务的判断为{esc(CONFIDENCE.get(item.get('business_confidence'), item.get('business_confidence') or '未知'))}，对未来股价范围的判断为{esc(CONFIDENCE.get(item.get('overall_price_confidence'), item.get('overall_price_confidence') or '未知'))}。主要不确定性是：{paragraph(item.get('risk'))}</p>
       {scenario_link(item)}"""
     if detailed:
         body += f'<div class="watch"><strong>什么情况会证明当前判断错了：</strong>{paragraph(item.get("invalidation"))}</div>'
@@ -1023,11 +1031,38 @@ def render(source: dict, supplement: dict, event_calendar: dict, run_id: str, ge
     </main><footer>V13普通中文完整投资产品｜仅用于研究理解，不构成收益承诺。</footer></body></html>"""
 
 
+def repeated_year_explanation_sentences(text: str) -> dict:
+    counts: dict[str, int] = {}
+    blocks = re.findall(
+        r'<details class="scenario-reference"[^>]*data-asset-specific-scenario="1"[^>]*>(.*?)</details>',
+        text,
+        flags=re.S,
+    )
+    for block in blocks:
+        readable = html.unescape(re.sub(r"<[^>]+>", " ", block))
+        for sentence in re.split(r"[。！？；]\s*", readable):
+            normalized = re.sub(r"\s+", " ", sentence).strip(" ，；：")
+            if len(normalized) < 20:
+                continue
+            counts[normalized] = counts.get(normalized, 0) + 1
+    repeated = [
+        {"text": sentence, "count": count}
+        for sentence, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+        if count > 3
+    ]
+    return {
+        "max_repeat_count": max(counts.values(), default=0),
+        "repeated_over_3_count": len(repeated),
+        "repeated_over_3": repeated,
+    }
+
+
 def semantic_checks(text: str, supplement: dict) -> dict:
     sections = ["today", "market", "themes", "portfolio", "opportunities", "events", "goals", "learning", "lookup", "sources"]
     forbidden = ["forecast_id", "Harness", "Gate", "SHA256", "machine_field", "LOW_CONFIDENCE_MODEL_CANDIDATE", "NOT_ACTIVATED", "NOT_PASS", "key=value"]
     readable_html = re.sub(r"<(?:style|script)\b[^>]*>.*?</(?:style|script)>", "", text, flags=re.I | re.S)
     visible = html.unescape(re.sub(r"<[^>]+>", " ", readable_html))
+    year_repetition = repeated_year_explanation_sentences(text)
     report = {
         "status": "PASS",
         "v11_sha_unchanged": sha(V11) == V11_SHA,
@@ -1130,6 +1165,15 @@ def semantic_checks(text: str, supplement: dict) -> dict:
             re.findall(r"(?<![A-Za-z])\d[\d,]*(?:\.\d+)?\s*bn(?![A-Za-z])", visible, flags=re.I)
         ),
         "year_scenario_template_phrase_hits": {
+            "两者一年后的幅度都难以精确判断，因此价格把握度较低": visible.count(
+                "两者一年后的幅度都难以精确判断，因此价格把握度较低"
+            ),
+            "股价证据较弱时，区间只适合比较，不适合当成精确目标": visible.count(
+                "股价证据较弱时，区间只适合比较，不适合当成精确目标"
+            ),
+            "当前研究底稿支持方向判断，但不足以给出可靠数值阈值": visible.count(
+                "当前研究底稿支持方向判断，但不足以给出可靠数值阈值"
+            ),
             "这会通过": visible.count("这会通过"),
             "压低利润或资产价值，也可能让市场降低愿意支付的价格": visible.count(
                 "压低利润或资产价值，也可能让市场降低愿意支付的价格"
@@ -1143,6 +1187,7 @@ def semantic_checks(text: str, supplement: dict) -> dict:
                 "缺少稳定估值锚，所以只能给较低把握的宽范围"
             ),
         },
+        "year_explanation_repetition_audit": year_repetition,
         "plus100_research_base_table_link_count": sum(file_id in text for _, _, file_id in PLUS100_DRIVE_FILES),
         "plus100_independent_index_openable": bool(PLUS100_INDEX_URL and PLUS100_INDEX_URL in text),
     }
@@ -1179,6 +1224,8 @@ def semantic_checks(text: str, supplement: dict) -> dict:
         report["required_professional_term_explanation_count"] == 9,
         report["unexplained_bn_count"] == 0,
         sum(report["year_scenario_template_phrase_hits"].values()) == 0,
+        report["year_explanation_repetition_audit"]["max_repeat_count"] <= 3,
+        report["year_explanation_repetition_audit"]["repeated_over_3_count"] == 0,
         report["plus100_research_base_table_link_count"] == 9,
         report["plus100_independent_index_openable"],
     ]
@@ -1370,10 +1417,10 @@ def finalize_browser(out: Path) -> None:
         raise SystemExit("浏览器检查未通过，拒绝冻结")
     source_path = out / "V13普通中文产品源.json"
     source_info = json.loads(source_path.read_text(encoding="utf-8"))
-    source_info["status"] = "WAITING_GPT_FINAL_LANGUAGE_CLOSURE"
+    source_info["status"] = "WAITING_GPT_TRUE_DETEMPLATE_CHECK"
     source_info["browser_review"] = {"status": "PASS", "path": str(browser_path), "sha256": sha(browser_path)}
     write_json(source_path, source_info)
-    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_FINAL_LANGUAGE_CLOSURE", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_TRUE_DETEMPLATE_CHECK", "artifacts": []}
     for path in sorted(out.rglob("*")):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": str(path.relative_to(out)), "bytes": path.stat().st_size, "sha256": sha(path)})
