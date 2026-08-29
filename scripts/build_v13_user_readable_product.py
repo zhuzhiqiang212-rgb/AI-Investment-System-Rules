@@ -14,6 +14,8 @@ V11 = ROOT / "output/candidates/2026-08-28/V7-V20-PREDICTIVE-FULL-HTML-V11-20260
 V12_DIR = ROOT / "output/candidates/2026-08-28/V12-CHAIRMAN-DECISION-20260828181431-JST"
 V12 = V12_DIR / "V12董事长投资决策产品.html"
 V12_SOURCE = V12_DIR / "V12结构化产品源.json"
+LOCKED_FORECASTS = ROOT / "output/decision_inputs/2026-08-26/V7-V20-FORECAST-LOCK-20260826175555-JST/84份正式预测_LOCKED.json"
+PLUS100_SUPPLEMENT = ROOT / "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/PLUS100_EVENT_WINDOW_RESEARCH_SUPPLEMENT.json"
 V11_SHA = "3FCCD3E4F3978C87DDC18C6E80D570EE61427BA1A8052BBDD651C4477EB83E78"
 V12_SHA = "C3D56CA6D3FE2624E396428515A916F66DE81336920A9815CD720C4DE4537494"
 V11_URL = "https://drive.google.com/file/d/1hhCZB9E-QRM0lDrDKKnU359BWaJwwOe8/view"
@@ -175,12 +177,75 @@ def confidence_label(value) -> str:
     return {"A": "较高", "B": "中等", "C": "较低"}.get(value, "尚未可靠确定")
 
 
-def scenario_reference(value, confidence, extra="") -> str:
+def asset_anchor(asset_id: str) -> str:
+    return "year-" + re.sub(r"[^A-Za-z0-9]+", "-", asset_id).strip("-")
+
+
+def scenario_link(item: dict) -> str:
+    return f'<p><a class="scenario-link" href="#{asset_anchor(item.get("asset_id", ""))}">查看这只资产的一年情景</a></p>'
+
+
+def display_currency(currency: str) -> str:
+    return {"USD": "美元", "JPY": "日元", "KRW": "韩元"}.get(currency, currency or "")
+
+
+def price_number(value, currency: str) -> str:
+    if not isinstance(value, (int, float)):
+        return "暂时无法可靠取得"
+    if currency in {"JPY", "KRW"}:
+        return f"{value:,.0f}{display_currency(currency)}"
+    return f"{value:,.2f}{display_currency(currency)}"
+
+
+def price_range(values, currency: str) -> str:
+    if not isinstance(values, list) or len(values) != 2:
+        return "暂时无法可靠取得"
+    return f"{price_number(values[0], currency)}至{price_number(values[1], currency)}"
+
+
+def scenario_reference(item: dict) -> str:
+    contract = item.get("_year_contract") or {}
+    value = item.get("year_expected_return", item.get("expected_return"))
+    confidence = item.get("valuation_confidence", item.get("overall_price_confidence"))
+    if not contract:
+        return (
+            f'<details class="scenario-reference" data-full-year-scenario="1"><summary>查看一年情景</summary>'
+            f'<p><strong>合并参考：</strong>{esc(pct(value))}</p>'
+            f'<p><strong>价格判断把握度：</strong>{esc(confidence_label(confidence))}。冻结合同未能在当前展示层定位，因此没有补写情景数字。</p></details>'
+        )
+    lock = contract.get("lock_reference_price") or {}
+    currency = lock.get("currency") or ""
+    probabilities = contract.get("probability_candidate") or {}
+    rows = []
+    for key, label in (("bear", "较差"), ("base", "正常"), ("bull", "较好")):
+        probability = probabilities.get(f"{key}_pct")
+        rows.append(
+            f"<tr><td>{label}</td><td>{esc(str(probability) + '%' if probability is not None else '暂未可靠取得')}</td>"
+            f"<td>{esc(price_range(contract.get(f'{key}_price_range'), currency))}</td>"
+            f"<td>{paragraph(contract.get(f'{key}_business_assumption'))}</td></tr>"
+        )
+    extreme = ""
+    if isinstance(value, (int, float)) and (value > 0.50 or value < -0.30):
+        direction = "很高" if value > 0 else "很低"
+        extreme = (
+            f'<p class="extreme-reason" data-extreme-reason="1"><strong>什么把数字推到这么{direction}：</strong>'
+            f'{paragraph(contract.get("base_business_assumption"))} 同时，较差与较好情景的范围很宽，'
+            f'说明业务变化和市场愿意支付的价格会共同放大结果；价格判断把握度为{esc(confidence_label(confidence))}。</p>'
+        )
+    confidence_reason = (
+        "正式财务起点较完整，但估值区间仍需要用后续价格与业绩校准。"
+        if confidence in {"A", "B"} else
+        "估值资料较弱，使用的是研究系统批准的低把握宽区间，所以只能作为粗粒度比较。"
+    )
     return (
-        '<details class="scenario-reference"><summary>查看一年情景参考</summary><div>'
-        f'<p><strong>合并参考：</strong>{esc(pct(value))}</p>'
-        f'<p><strong>怎样理解：</strong>{esc(comprehensive_reference_explanation())}</p>'
-        f'<p><strong>价格判断把握度：</strong>{esc(confidence_label(confidence))}。</p>{extra}</div></details>'
+        '<details class="scenario-reference" data-full-year-scenario="1"><summary>查看一年情景</summary><div>'
+        f'<p><strong>当前参考价格：</strong>{esc(price_number(lock.get("value"), currency))}</p>'
+        f'<div class="table-wrap"><table><thead><tr><th>情景</th><th>可能性</th><th>一年后价格范围</th><th>这只资产自己的原因</th></tr></thead>'
+        f'<tbody>{"".join(rows)}</tbody></table></div>'
+        f'<p><strong>合并参考值：</strong>{esc(price_number(contract.get("expected_price_candidate"), currency))}，'
+        f'相对当前参考价格约为{esc(pct(value))}。</p>'
+        f'<p><strong>为什么把握度是{esc(confidence_label(confidence))}：</strong>{esc(confidence_reason)}</p>'
+        f'{extreme}</div></details>'
     )
 
 
@@ -248,29 +313,13 @@ def priority_holding_story(item: dict) -> str:
     paragraphs = PRIORITY_HOLDING_NARRATIVES[item["asset_id"]]
     confidence = item.get("overall_price_confidence")
     direction = direction_label(item.get("year_expected_return"), item.get("year_price_direction"))
-    samsung = ""
-    if item["asset_id"] == "KRX.005930":
-        samsung = """
-        <div class="samsung-explainer">
-          <h4>为什么会出现约-52.7%的合并参考</h4>
-          <p><strong>锁定参考价格：</strong>261,500韩元。冻结预测分别计算了三种一年后可能结果，而不是只给一个目标价。</p>
-          <div class="table-wrap"><table><thead><tr><th>情景</th><th>价格范围</th><th>采用可能性</th><th>背后的业务含义</th></tr></thead><tbody>
-            <tr><td>较差</td><td>44,434至75,047韩元</td><td>20%</td><td>高利润HBM产品进展继续落后，利润率和市场份额承压。</td></tr>
-            <tr><td>正常</td><td>83,486至131,270韩元</td><td>50%</td><td>存储行业改善，但三星的高端产品追赶只部分兑现。</td></tr>
-            <tr><td>较好</td><td>144,592至241,803韩元</td><td>30%</td><td>认证、出货、产品组合和利润率共同改善。</td></tr>
-          </tbody></table></div>
-          <p>用每个区间的中间值，按20%、50%、30%的可能性合并，得到约123,596韩元的研究参考价；它比261,500韩元的锁定参考价格低约52.7%。</p>
-          <p><strong>这不是目标价。</strong>三星的估值证据等级为C，也就是价格判断把握度较低。这个结果只说明冻结模型认为当前价格与可验证盈利之间存在很大落差，不能单独作为减仓依据；减仓建议还同时考虑了HBM竞争证据、组合已有AI与存储风险，以及美光等替代对象的相对吸引力。</p>
-          <p><strong>重新评估条件：</strong>HBM认证、实际出货、半导体利润率和股东回报同步改善。</p>
-        </div>"""
     return (
         f'<article class="priority-asset" data-priority-holding="1">'
         f'<h3>{esc(item["asset_name"])} <small>{esc(item["asset_id"])}</small></h3>'
         f'<div class="decision-row"><span class="decision">{esc(RECOMMENDATION.get(item.get("recommendation"), plain(item.get("recommendation"))))}</span>'
         f'<span>一年方向：{esc(direction)}｜价格判断把握度：{esc(confidence_label(confidence))}</span></div>'
         + "".join(f"<p>{esc(text)}</p>" for text in paragraphs)
-        + samsung
-        + scenario_reference(item.get("year_expected_return"), confidence)
+        + scenario_link(item)
         + '</article>'
     )
 
@@ -295,7 +344,7 @@ def holding_story(item: dict, detailed=False) -> str:
       <p><strong>什么事实会改变判断：</strong>{paragraph(item.get('change_condition'))}</p>
       <p><strong>与谁比较：</strong>当前最直接的比较对象是{esc(comparison_asset)}。{esc(comparison_text)}这只资产的比较重点是{paragraph(item.get('opportunity_cost_dimension'))}。</p>
       <p class="confidence"><strong>证据可靠程度：</strong>对公司业务的判断为{esc(CONFIDENCE.get(item.get('business_confidence'), item.get('business_confidence') or '未知'))}，对未来股价范围的判断为{esc(CONFIDENCE.get(item.get('overall_price_confidence'), item.get('overall_price_confidence') or '未知'))}。股价证据较弱时，区间只适合比较，不适合当成精确目标。</p>
-      {scenario_reference(item.get('year_expected_return'), item.get('overall_price_confidence'))}"""
+      {scenario_link(item)}"""
     if detailed:
         body += f'<div class="watch"><strong>什么情况会证明当前判断错了：</strong>{paragraph(item.get("invalidation"))}</div>'
     return f'<article class="holding" data-holding="1"><h3>{esc(item["asset_name"])} <small>{esc(item["asset_id"])}</small></h3>{body}</article>'
@@ -313,7 +362,7 @@ def opportunity_story(item: dict, detailed=False) -> str:
             + f'<div class="decision-row"><span class="decision">继续重点研究</span>'
               f'<span>一年方向：{esc(direction)}｜价格判断把握度：{esc(confidence_label(confidence))}</span></div>'
             + f'<div class="risk"><strong>什么情况会证明当前判断错了：</strong>{paragraph(item.get("risk"))}</div>'
-            + scenario_reference(item.get("expected_return"), confidence)
+            + scenario_link(item)
             + "</article>"
         )
     body = f"""
@@ -326,7 +375,7 @@ def opportunity_story(item: dict, detailed=False) -> str:
       <p><strong>最大的风险：</strong>{paragraph(item.get('risk'))}</p>
       <p><strong>相对现有持仓的意义：</strong>{paragraph(item.get('replacement'))}。这只是替换研究，不是已经发生的操作。</p>
       <p><strong>下一次核对：</strong>{esc(item.get('verification_date') or '按下一份正式财报核对')}。</p>
-      {scenario_reference(item.get('expected_return'), confidence)}"""
+      {scenario_link(item)}"""
     if detailed:
         body += f'<div class="watch"><strong>哪里最可能判断错：</strong>{paragraph(item.get("catalyst"))}没有转成收入、利润或现金，或者价格先一步消化了改善。</div>'
     return f'<article class="opportunity" data-opportunity="1"><h3>{esc(item["asset_name"])} <small>{esc(item["asset_id"])}</small></h3>{body}</article>'
@@ -422,12 +471,12 @@ def lookup_rows(assets: list[dict]) -> str:
     rows = []
     for item in assets:
         rows.append(f"""
-        <tr data-asset="1">
+        <tr data-asset="1" id="{asset_anchor(item.get('asset_id', ''))}">
           <td><strong>{esc(item.get('asset_name'))}</strong><br><small>{esc(item.get('asset_id'))}</small></td>
           <td>{esc(plain(item.get('short_signal')))}</td>
           <td>{esc(pct(item.get('short_expected_return')))}</td>
           <td>{esc(plain(item.get('business_direction')))}</td>
-          <td><strong>{esc(direction_label(item.get('year_expected_return')))}</strong><br><small>价格判断把握度：{esc(confidence_label(item.get('valuation_confidence')))}</small>{scenario_reference(item.get('year_expected_return'), item.get('valuation_confidence'))}</td>
+          <td><strong>{esc(direction_label(item.get('year_expected_return')))}</strong><br><small>价格判断把握度：{esc(confidence_label(item.get('valuation_confidence')))}</small>{scenario_reference(item)}</td>
           <td>{esc(plain(item.get('catalyst')))}</td>
           <td>{esc(plain(item.get('downside')))}</td>
         </tr>""")
@@ -445,7 +494,7 @@ def high_absolute_reference_cards(assets: list[dict]) -> str:
             f'<p><strong>价格判断把握度：</strong>{esc(confidence_label(item.get("valuation_confidence")))}。高幅度结果首先是需要复核的模型信号，不是更精确的承诺。</p>'
             f'<p><strong>主要依据：</strong>{paragraph(item.get("catalyst"))}</p>'
             f'<p><strong>主要反向事实：</strong>{paragraph(item.get("downside"))}</p>'
-            + scenario_reference(item.get("year_expected_return"), item.get("valuation_confidence"))
+            + scenario_link(item)
             + '</article>'
         )
     return ''.join(cards)
@@ -566,33 +615,80 @@ def build_plus40_roadmaps(source: dict) -> str:
     </div>"""
 
 
-def build_wave_roadmap(source: dict) -> str:
-    wave = source["annual_paths"]["multi_wave"]
-    cards = []
-    for item in wave["waves"]:
-        cards.append(f"""
-        <article class="roadmap-task" data-wave-window="1"><h4>{esc(item['asset_name'])}｜{esc(item['event_window'])}</h4>
-          <p><strong>为什么可能出现大波动：</strong>{esc(item['direction'])}。事件会同时改变未来盈利或资产价值，以及市场愿意支付的价格。</p>
-          <p><strong>机会正在形成：</strong>{esc(item['entry_trigger'])}</p>
-          <p><strong>何时退出或兑现：</strong>{esc(item['exit_trigger'])}</p>
-          <p><strong>大致时间：</strong>{esc(item['holding_period'])}</p>
-          <p><strong>机会失效：</strong>{esc(item['failure_condition'])}</p>
-          <p><strong>现在缺什么：</strong>可靠的事件收益与失败损失区间，以及窗口结束后资金确实释放的证据。</p>
-          <p><strong>何时才有资格计算：</strong>正式事件日期、进入与退出条件、独立短期价格证据和资金来源全部可核对以后。</p>
-          <p><strong>为什么不能借用一年目标：</strong>{esc(item['why_not_one_year'])}</p>
+def build_wave_roadmap(source: dict, supplement: dict) -> str:
+    pools = supplement["grade_pools"]
+    a_rows, b_rows, c_rows = pools["A"], pools["B"], pools["C"]
+    a_cards = []
+    for item in a_rows:
+        stats = item["historical_price_statistics"]
+        five, twenty, sixty = stats["return_5d"], stats["return_20d"], stats["return_60d"]
+        drawdown = stats["max_drawdown_60d"]
+        event = item["future_12m_event_window"]
+        a_cards.append(f"""
+        <article class="roadmap-task" data-wave-window="1" data-wave-grade="A">
+          <h4>{esc(item['asset_name'])}｜{esc(item['asset_id'])}</h4>
+          <p><strong>本轮事件：</strong>{paragraph(event['event'])}</p>
+          <p><strong>开始具备研究价值：</strong>{paragraph(event['entry_observation_condition'])}</p>
+          <p><strong>结束或兑现：</strong>{paragraph(event['exit_or_realization_condition'])}</p>
+          <p><strong>预计窗口：</strong>{esc(event['estimated_holding_window'])}</p>
+          <div class="table-wrap"><table><thead><tr><th>历史窗口</th><th>中位数</th><th>中间一半范围</th><th>最差</th></tr></thead><tbody>
+            <tr><td>5个交易日</td><td>{esc(pct(five['median']))}</td><td>{esc(pct(five['p25']))}至{esc(pct(five['p75']))}</td><td>{esc(pct(five['worst']))}</td></tr>
+            <tr><td>20个交易日</td><td>{esc(pct(twenty['median']))}</td><td>{esc(pct(twenty['p25']))}至{esc(pct(twenty['p75']))}</td><td>{esc(pct(twenty['worst']))}</td></tr>
+            <tr><td>60个交易日</td><td>{esc(pct(sixty['median']))}</td><td>{esc(pct(sixty['p25']))}至{esc(pct(sixty['p75']))}</td><td>{esc(pct(sixty['worst']))}</td></tr>
+          </tbody></table></div>
+          <p><strong>历史样本：</strong>{stats['sample_count']}次正式财务申报窗口；60个交易日内最差最大回撤为{esc(pct(drawdown['worst']))}。</p>
+          <p><strong>为什么可参考：</strong>{paragraph(item['current_vs_history']['why_comparable'])}</p>
+          <p><strong>本次可能不同：</strong>{paragraph(item['current_vs_history']['important_difference'])}</p>
+          <p><strong>共同风险：</strong>{esc(item['risk_factor'])}。这类资产不能被机械视为彼此独立的多次成功机会。</p>
         </article>""")
+    b_rows_html = "".join(
+        f"<tr data-wave-grade=\"B\"><td>{esc(item['asset_name'])}<br><small>{esc(item['asset_id'])}</small></td>"
+        f"<td>{paragraph(item['future_12m_event_window']['event'])}</td><td>{esc(item['grade_reason'])}</td>"
+        f"<td>{paragraph(item['future_12m_event_window']['entry_observation_condition'])}</td></tr>"
+        for item in b_rows
+    )
+    c_rows_html = "".join(
+        f"<li data-wave-grade=\"C\"><strong>{esc(item['asset_name'])}：</strong>{esc(item['grade_reason'])}</li>" for item in c_rows
+    ) or "<li>本轮没有仅凭故事保留的C级对象；B级对象仍有明确事件，但缺足够同口径历史样本。</li>"
+    path_cards = "".join(
+        f'<article class="roadmap-task"><h4>{esc(path["path"])}</h4><p>{esc(path["meaning"])}</p>'
+        f'<p><strong>基础组合：</strong>FUTU约33.61%，SBI约17.84%。</p>'
+        f'<p><strong>波段贡献、失败损失和最大回撤：</strong>当前不能可靠计算。</p>'
+        f'<p><strong>原因：</strong>{esc(path["reason"])}</p></article>'
+        for path in supplement["annual_paths"]["paths"]
+    )
+    a_names = "、".join(item["asset_name"] for item in a_rows) or "没有"
+    next_items = supplement["annual_paths"]["chairman_questions"]["next_validation_events"][:5]
+    next_html = "".join(
+        f"<li><strong>{esc(item['asset_id'])}：</strong>{paragraph(item['event'])}</li>" for item in next_items
+    )
     return f"""
-    <div class="goal wave-roadmap"><h3>+100%挑战路线图｜系统接下来要寻找什么</h3>
-      <p>+100%不是要求现在所有股票各涨100%。更现实的挑战方式，是基础组合先保持正收益，再在一年内识别若干高弹性事件，并且只有在证据确认后才提高资金使用效率。</p>
+    <div class="goal wave-roadmap"><h3>+100%挑战路线图｜42项资产全量事件研究</h3>
+      <p>本轮把42项资产全部作为母池，逐项检查未来事件、历史可比样本和事件后真实价格。历史统计只看事件前后5、20和60个交易日，没有借用任何一年期较差、正常或较好情景。</p>
       <div class="metrics">
-        {metric('基础组合', f"FUTU约{wave['static_baseline_return_pct']:.2f}%", '仍需保护现有盈利来源')}
-        {metric('已识别窗口', f"{len(wave['waves'])}个", '软银、英伟达、美光、伊顿')}
-        {metric('达到量化条件', f"{wave['quantified_wave_count']}个", '没有借用一年期目标价')}
-        {metric('距+100%', f"{wave['gap_to_plus_100_pp']:.2f}个百分点", '不能靠倒推参数填补')}
+        {metric('A级可量化', f"{len(a_rows)}个", '有至少5次可比正式事件与完整价格统计')}
+        {metric('B级等待', f"{len(b_rows)}个", '方向可核，但仍缺一项关键证据')}
+        {metric('C级排除', f"{len(c_rows)}个", '只有故事，不能进入计算')}
+        {metric('+100%结论', '当前仍未证明', '时间、相关性和资金复用尚未闭合')}
       </div>
-      <div class="roadmap-grid">{''.join(cards)}</div>
-      <div class="risk"><strong>当前判断：</strong>{esc(wave['assessment'])} 目标值得持续挑战，但目前没有形成可验证的+100%实现路径。</div>
-      <h4>接下来体系要做什么</h4><ol><li>为四个窗口取得正式开始日、结束日和可验证退出条件。</li><li>用正式短期价格区间或同类事件反应建立收益与失败损失范围。</li><li>检查窗口是否重叠，不能把同时发生的机会假装成顺序复用。</li><li>明确每个窗口的资金来源，以及这部分资金原本的基础收益。</li><li>条件齐全后才把机会放入年度大波段池，并重新计算而不是倒推+100%。</li></ol>
+      <h4>A级｜已经可以量化事件波动</h4>
+      <p><strong>资产：</strong>{esc(a_names)}。A级只说明历史事件波动可以统计，不代表已经批准投入资金，也不代表这些机会彼此独立。</p>
+      <details><summary>查看{len(a_rows)}项A级历史样本与风险</summary><div class="roadmap-grid">{''.join(a_cards)}</div></details>
+      <h4>B级｜方向明确，但缺关键证据</h4>
+      <div class="table-wrap"><table><thead><tr><th>资产</th><th>当前事件</th><th>为什么还不能量化</th><th>升级到A级要补什么</th></tr></thead><tbody>{b_rows_html}</tbody></table></div>
+      <h4>C级｜只有故事，退出波段计算</h4><ul>{c_rows_html}</ul>
+      <h4>时间重叠与共同风险</h4>
+      <p>21项A级窗口集中在同一财报季，并大量依赖AI资本开支、存储价格、云建设或加密流动性。时间重叠时不能假装先后复用同一笔资金；同一风险组也不能机械算成多次独立成功。</p>
+      <h4>三种年度研究路径</h4><div class="roadmap-grid">{path_cards}</div>
+      <div class="risk"><strong>当前结论：</strong>{esc(supplement['annual_paths']['conclusion'])}</div>
+      <h4>董事长最需要的5个答案</h4>
+      <ol>
+        <li>当前有<strong>{len(a_rows)}个</strong>A级可量化事件窗口。</li>
+        <li>A级资产为：{esc(a_names)}；各自事件和进入、退出条件见上方展开表。</li>
+        <li>每项历史正常波动、最差结果和最大回撤均按5、20、60个交易日显示，没有只挑最好的一次。</li>
+        <li>挑战+100%仍缺不重叠的事件顺序、获批资金比例、同口径成功与失败概率，以及共同风险下的最大回撤约束。</li>
+        <li>下一步优先验证：<ul>{next_html}</ul></li>
+      </ol>
     </div>"""
 
 
@@ -647,7 +743,19 @@ footer{max-width:var(--max);margin:auto;padding:30px 24px 60px;color:var(--muted
 """
 
 
-def render(source: dict, run_id: str, generated_at: str) -> str:
+def attach_year_contracts(source: dict) -> None:
+    locked = json.loads(LOCKED_FORECASTS.read_text(encoding="utf-8-sig"))
+    contracts = {
+        item["asset_id"]: item
+        for item in locked.get("contracts", [])
+        if item.get("horizon") == "1Y"
+    }
+    for collection in ("holdings", "final18", "all_assets_ranked"):
+        for item in source.get(collection, []):
+            item["_year_contract"] = contracts.get(item.get("asset_id"))
+
+
+def render(source: dict, supplement: dict, run_id: str, generated_at: str) -> str:
     holdings = source["holdings"]
     themes = source["themes"]
     opportunities = source["final18"]
@@ -677,7 +785,7 @@ def render(source: dict, run_id: str, generated_at: str) -> str:
     top_opps = "".join(card(
         item["asset_name"],
         f'<p>{paragraph(item.get("rationale"))}</p><p><strong>一年方向：</strong>{esc(direction_label(item.get("expected_return")))}｜<strong>价格判断把握度：</strong>{esc(confidence_label(item.get("valuation_confidence")))}</p>'
-        + scenario_reference(item.get("expected_return"), item.get("valuation_confidence")),
+        + scenario_link(item),
         "mini",
     ) for item in opportunities[:3])
     top_risks = "".join(card(
@@ -688,7 +796,7 @@ def render(source: dict, run_id: str, generated_at: str) -> str:
     themes_html = "".join(theme_story(theme, index) for index, theme in enumerate(themes, 1))
     high_absolute_html = high_absolute_reference_cards(assets)
     plus40_roadmaps = build_plus40_roadmaps(source)
-    wave_roadmap = build_wave_roadmap(source)
+    wave_roadmap = build_wave_roadmap(source, supplement)
     priority_holdings_html = "".join(
         priority_holding_story(item) for item in holdings if item.get("asset_id") in PRIORITY_HOLDING_NARRATIVES
     )
@@ -810,18 +918,23 @@ def semantic_checks(text: str) -> dict:
             "估值": "当前股价相对于公司未来赚钱能力" in text,
         },
         "goal_40_plain_conclusion": "已经识别主要改善来源，但仍缺关键条件" in text,
-        "goal_100_plain_conclusion": "目前没有形成可验证的+100%实现路径" in text,
+        "goal_100_plain_conclusion": "当前仍未证明" in visible and "42项资产已全量研究" in visible,
         "plus40_account_roadmap_count": text.count('data-plus40-roadmap='),
         "wave_window_count": text.count('data-wave-window="1"'),
+        "wave_grade_a_count": text.count('data-wave-grade="A"'),
+        "wave_grade_b_count": text.count('data-wave-grade="B"'),
+        "wave_grade_c_count": text.count('data-wave-grade="C"'),
+        "full_year_scenario_count": text.count('data-full-year-scenario="1"'),
+        "extreme_reason_count": text.count('data-extreme-reason="1"'),
+        "common_scenario_explanation_count": visible.count("“一年综合参考”不是目标价"),
         "high_absolute_reference_check_count": text.count('data-high-absolute="1"'),
         "samsung_scenario_explanation_complete": all(
             phrase in visible for phrase in [
-                "锁定参考价格： 261,500韩元",
-                "44,434至75,047韩元",
-                "83,486至131,270韩元",
-                "144,592至241,803韩元",
-                "约123,596韩元",
-                "这不是目标价",
+                "当前参考价格： 261,500韩元",
+                "44,434韩元至75,047韩元",
+                "83,486韩元至131,270韩元",
+                "144,592韩元至241,803韩元",
+                "合并参考值： 123,596韩元",
             ]
         ),
         "one_year_primary_direction_layer_present": "一年方向：" in visible and "价格判断把握度：" in visible,
@@ -855,7 +968,13 @@ def semantic_checks(text: str) -> dict:
         report["priority_opportunity_narrative_count"] == len(PRIORITY_OPPORTUNITY_NARRATIVES),
         report["complete_theme_story_count"] == 4,
         report["plus40_account_roadmap_count"] == 2,
-        report["wave_window_count"] == 4,
+        report["wave_window_count"] == 21,
+        report["wave_grade_a_count"] == 21,
+        report["wave_grade_b_count"] == 21,
+        report["wave_grade_c_count"] == 0,
+        report["full_year_scenario_count"] == 42,
+        report["extreme_reason_count"] == 15,
+        report["common_scenario_explanation_count"] == 1,
         report["high_absolute_reference_check_count"] == 15,
         report["samsung_scenario_explanation_complete"],
         report["one_year_primary_direction_layer_present"],
@@ -883,6 +1002,8 @@ def main() -> None:
     if sha(V11) != V11_SHA or sha(V12) != V12_SHA:
         raise SystemExit("冻结源指纹不一致，停止生成")
     source = json.loads(V12_SOURCE.read_text(encoding="utf-8"))
+    supplement = json.loads(PLUS100_SUPPLEMENT.read_text(encoding="utf-8"))
+    attach_year_contracts(source)
     counts = (len(source["holdings"]), len(source["final18"]), len(source["all_assets_ranked"]), len(source["themes"]))
     if counts != (24, 18, 42, 4):
         raise SystemExit(f"冻结源数量不完整，停止生成：{counts}")
@@ -894,7 +1015,7 @@ def main() -> None:
     if out.exists():
         raise SystemExit("候选目录已存在，拒绝重复生成")
     generated_at = now.isoformat(timespec="seconds")
-    text = render(source, run_id, generated_at)
+    text = render(source, supplement, run_id, generated_at)
     report = semantic_checks(text)
     failures = []
     expected = {"section_count": 10, "holding_count": 24, "opportunity_count": 18, "asset_lookup_count": 42, "theme_count": 4}
@@ -951,8 +1072,11 @@ def main() -> None:
 def refresh_existing(out: Path) -> None:
     source_info = json.loads((out / "V13普通中文产品源.json").read_text(encoding="utf-8"))
     source = json.loads(V12_SOURCE.read_text(encoding="utf-8"))
+    supplement = json.loads(PLUS100_SUPPLEMENT.read_text(encoding="utf-8"))
+    attach_year_contracts(source)
     html_path = out / "V13普通中文完整投资产品.html"
-    text = render(source, source_info["run_id"], source_info["generated_at_jst"])
+    updated_at = datetime.now(JST).isoformat(timespec="seconds")
+    text = render(source, supplement, source_info["run_id"], updated_at)
     report = semantic_checks(text)
     expected = {"section_count": 10, "holding_count": 24, "opportunity_count": 18, "asset_lookup_count": 42, "theme_count": 4}
     if (
@@ -962,22 +1086,38 @@ def refresh_existing(out: Path) -> None:
     ):
         raise SystemExit("阅读层定向更新后的内存预检失败")
     html_path.write_text(text, encoding="utf-8", newline="\n")
+    source_info["generated_at_jst"] = updated_at
+    source_info["status"] = "V13_PLUS100_RESEARCH_UPDATED_PENDING_BROWSER_REVIEW"
+    source_info["plus100_research"] = {
+        "path": str(PLUS100_SUPPLEMENT),
+        "sha256": sha(PLUS100_SUPPLEMENT),
+        "asset_count": supplement["asset_count"],
+        "grade_counts": supplement["grade_counts"],
+        "plus100_reliably_supported": supplement["annual_paths"]["plus100_reliably_supported"],
+    }
+    write_json(out / "V13普通中文产品源.json", source_info)
     write_json(out / "V13术语翻译检查报告.json", report)
     write_json(out / "V13限定返修检查报告.json", {
         "status": "PASS",
-        "scope": "仅扩写四条冻结主线、重做一年参考显示、接入双账户目标任务图；冻结研究判断和全部预测数字未改写",
+        "scope": "仅去除一年情景公共说明重复，并接入42项事件窗口增量研究；冻结V11、V12和84份预测均未改写",
         "three_business_repairs": {
             "complete_theme_story_count": report["complete_theme_story_count"],
             "year_reference_display": {
                 "primary_direction_and_confidence": report["one_year_primary_direction_layer_present"],
                 "samsung_full_scenario_explanation": report["samsung_scenario_explanation_complete"],
                 "high_absolute_reference_check_count": report["high_absolute_reference_check_count"],
+                "full_year_scenario_count": report["full_year_scenario_count"],
+                "common_scenario_explanation_count": report["common_scenario_explanation_count"],
+                "extreme_reason_count": report["extreme_reason_count"],
             },
             "target_roadmaps": {
                 "plus40_account_roadmap_count": report["plus40_account_roadmap_count"],
                 "wave_window_count": report["wave_window_count"],
-                "quantified_wave_count": 0,
+                "quantified_wave_count": report["wave_grade_a_count"],
+                "b_grade_wait_count": report["wave_grade_b_count"],
+                "c_grade_excluded_count": report["wave_grade_c_count"],
                 "one_year_scenario_used_as_wave_return_count": report["one_year_scenario_used_as_wave_return_count"],
+                "plus100_reliably_supported": supplement["annual_paths"]["plus100_reliably_supported"],
             },
         },
         "translation_examples": [
@@ -1005,7 +1145,7 @@ def refresh_existing(out: Path) -> None:
         "locked_forecast_changed_count": 0,
         "v11_v12_changed_count": 0,
     })
-    manifest = {"run_id": source_info["run_id"], "status": "V13_GENERATED_PENDING_BROWSER_REVIEW", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "V13_PLUS100_RESEARCH_UPDATED_PENDING_BROWSER_REVIEW", "artifacts": []}
     for path in sorted(out.iterdir()):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": path.name, "bytes": path.stat().st_size, "sha256": sha(path)})
@@ -1020,10 +1160,10 @@ def finalize_browser(out: Path) -> None:
         raise SystemExit("浏览器检查未通过，拒绝冻结")
     source_path = out / "V13普通中文产品源.json"
     source_info = json.loads(source_path.read_text(encoding="utf-8"))
-    source_info["status"] = "WAITING_GPT_V13_READABILITY_REVIEW"
+    source_info["status"] = "WAITING_GPT_PLUS100_RESEARCH_REVIEW"
     source_info["browser_review"] = {"status": "PASS", "path": str(browser_path), "sha256": sha(browser_path)}
     write_json(source_path, source_info)
-    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_V13_READABILITY_REVIEW", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_PLUS100_RESEARCH_REVIEW", "artifacts": []}
     for path in sorted(out.rglob("*")):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": str(path.relative_to(out)), "bytes": path.stat().st_size, "sha256": sha(path)})
