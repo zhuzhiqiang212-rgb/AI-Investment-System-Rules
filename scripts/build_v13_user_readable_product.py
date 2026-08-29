@@ -178,6 +178,7 @@ def comprehensive_reference_explanation() -> str:
         "“一年综合参考”不是目标价，也不是承诺未来一定涨跌多少。系统分别考虑较差、正常和较好几种一年后可能结果，"
         "再按照目前认为的发生可能性合并成一个参考值。它主要用于比较不同资产，不适合单独拿来决定买卖。"
         "如果价格判断本身把握度低，这个百分比只能理解成很宽的研究参考，不能当成精确预测。"
+        "现有冻结研究若缺少独立估值证据，只能支持经营方向，不能独立证明精确价格区间；经营变化也不能被理解成精确估值公式。"
     )
 
 
@@ -252,30 +253,177 @@ def scenario_starting_point(value) -> str:
     return text
 
 
-def shared_scenario_prefix(contract: dict) -> str:
-    values = [str(contract.get(f"{key}_business_assumption") or "") for key in ("bear", "base", "bull")]
-    if not all(values):
+def clean_asset_driver(value) -> str:
+    text = plain(value).strip(" ，；。")
+    text = re.sub(r"^未来6至12个月重点验证[：:]\s*", "", text)
+    text = text.replace("大致按当前方向发展，未来价值温和变化", "").strip(" ，；。")
+    return text or "当前冻结资料列出的核心经营变量"
+
+
+def valid_range(value) -> bool:
+    return isinstance(value, list) and len(value) == 2 and all(isinstance(item, (int, float)) for item in value)
+
+
+def compact_amount(value: float, currency: str) -> str:
+    unit = display_currency(currency)
+    absolute = abs(value)
+    if absolute >= 1_000_000_000_000:
+        return f"{value / 1_000_000_000_000:,.2f}万亿{unit}"
+    if absolute >= 100_000_000:
+        return f"{value / 100_000_000:,.1f}亿{unit}"
+    return f"{value:,.2f}{unit}"
+
+
+def amount_range(value, currency: str) -> str:
+    if not valid_range(value):
         return ""
-    prefix = values[0]
-    for value in values[1:]:
-        while prefix and not value.startswith(prefix):
-            prefix = prefix[:-1]
-    return prefix if len(prefix.strip(" ，；。")) >= 20 else ""
+    return f"{compact_amount(value[0], currency)}至{compact_amount(value[1], currency)}"
 
 
-def scenario_increment(contract: dict, key: str) -> str:
-    raw = str(contract.get(f"{key}_business_assumption") or "")
-    prefix = shared_scenario_prefix(contract)
-    if prefix and key != "base":
-        raw = raw[len(prefix):].lstrip(" ，；。")
-    text = plain(raw).strip(" ，；。")
-    return text + "。" if text else scenario_starting_point(contract.get(f"{key}_business_assumption"))
+def ratio_range(value) -> str:
+    if not valid_range(value):
+        return ""
+    return f"{value[0] * 100:.1f}%至{value[1] * 100:.1f}%"
+
+
+def per_share_range(value, currency: str) -> str:
+    if not valid_range(value):
+        return ""
+    unit = display_currency(currency)
+    return f"{value[0]:,.2f}至{value[1]:,.2f}{unit}"
+
+
+def scenario_operating_variable(item: dict, contract: dict, key: str) -> str:
+    driver = clean_asset_driver(item.get("catalyst"))
+    risk = clean_asset_driver(contract.get("current_counterevidence") or item.get("downside"))
+    name = item.get("asset_name") or item.get("asset_id")
+    if key == "bear":
+        return risk
+    if key == "base":
+        return f"{driver}；{name}的正常情景要求这些变量按冻结研究中的节奏兑现"
+    driver_parts = [part.strip(" ，；。") for part in re.split(r"[、，；]", driver) if part.strip(" ，；。")]
+    bull_focus = "、".join(driver_parts[-2:]) if len(driver_parts) >= 2 else driver
+    return f"{name}还需要在正常路径之上进一步兑现“{bull_focus}”，而不是只达到原有预期"
+
+
+def scenario_financial_transmission(item: dict, contract: dict, key: str) -> str:
+    asset_id = item.get("asset_id")
+    driver = clean_asset_driver(item.get("catalyst"))
+    values = contract.get(f"{key}_earnings_or_value") or {}
+    currency = values.get("currency") or (contract.get("lock_reference_price") or {}).get("currency") or ""
+    if asset_id in {"BTC", "ETH"}:
+        return {
+            "bear": "资金撤出和网络需求减弱会压低边际买盘，资产价格因此承压；这类资产不使用公司利润表",
+            "base": "网络使用与资金流保持正常，供需大致平衡，资产价值随实际采用程度变化；没有每股收益可供估值",
+            "bull": "增量资金、网络活动和采用率同步增强会扩大买盘，资产价值因稀缺性和使用需求上升；价格不由公司盈利决定",
+        }[key]
+    if asset_id == "US.MSTR":
+        btc_range = values.get("forecast_btc_price_usd")
+        shown = price_range(btc_range, "USD")
+        return {
+            "bear": f"比特币落在{shown}会压低持币资产价值，债务和优先股请求权因而对普通股形成更大压力",
+            "base": f"比特币维持在{shown}时，现金、债务与未转换或合理转换股数共同决定正常每股净资产",
+            "bull": f"比特币升至{shown}会放大持币资产价值，但新增普通股和潜在转换仍会摊薄每股上行",
+        }[key]
+    if asset_id == "US.SPCX":
+        bridge = plain(values.get("scenario_business_bridge")).strip(" ，；。")
+        return {
+            "bear": "Starlink用户增速或发射收入放缓，而Starship和AI基础设施研发支出维持高位，会扩大亏损和现金消耗",
+            "base": f"{bridge}；连接业务、发射和AI收入正常增长，大额研发投入仍限制净利润和自由现金流",
+            "bull": "Starlink用户、每户收入和发射次数同时超出正常路径，会提高总收入；若研发现金消耗受控，亏损收窄速度才会加快",
+        }[key]
+    nav = amount_range(values.get("forecast_nav_range"), currency)
+    if nav:
+        return {
+            "bear": f"核心持股走弱并叠加债务利息，会把每股净资产价值压到{nav}，融资成本进一步侵蚀股东价值",
+            "base": f"核心持股和净债务按当前路径变化时，每股净资产价值落在{nav}，资产增值与利息负担大致相抵",
+            "bull": f"核心持股升值快于债务和融资成本增长，会把每股净资产价值推到{nav}，更多资产价值留给普通股股东",
+        }[key]
+    parts = []
+    revenue = amount_range(values.get("forecast_revenue_range"), currency)
+    margin = ratio_range(values.get("forecast_operating_margin_range"))
+    eps = per_share_range(values.get("forecast_eps_range"), currency)
+    fcf = amount_range(values.get("forecast_fcf_range"), currency)
+    if revenue:
+        parts.append(f"收入{revenue}")
+    if margin:
+        parts.append(f"营业利润率{margin}")
+    if fcf:
+        parts.append(f"自由现金流{fcf}")
+    elif eps:
+        parts.append(f"每股收益{eps}")
+    if parts:
+        figures = "、".join(parts)
+        return {
+            "bear": f"较差经营结果会把{figures}压到上述范围，收入和利润率下滑共同削弱净利润与每股价值",
+            "base": f"正常兑现对应{figures}，该组合代表业务按计划发展时能够形成的利润或现金水平",
+            "bull": f"较好经营结果会把{figures}推到上述范围，收入扩张叠加利润率改善会放大净利润与每股价值",
+        }[key]
+    return f"{driver}会改变收入、利润率或现金流，但冻结资料没有提供可独立展示的数值经营桥，因此这里只能确认方向"
+
+
+def scenario_price_explanation(item: dict, contract: dict, key: str) -> str:
+    assumption = contract.get(f"{key}_valuation_assumption") or {}
+    method = assumption.get("method")
+    multiple = assumption.get("forecast_multiple")
+    name = item.get("asset_name")
+    if method == "FORECAST_EPS_X_INDEPENDENT_FORWARD_PE" and valid_range(multiple):
+        return {
+            "bear": f"较差情景用{multiple[0]:g}至{multiple[1]:g}倍前瞻市盈率折算每股收益，经营承压和估值收缩共同形成下方区间",
+            "base": f"正常路径把每股收益放入{multiple[0]:g}至{multiple[1]:g}倍前瞻市盈率，得到{item.get('asset_name')}经营按计划兑现时的中间价格范围",
+            "bull": f"较好情景以{multiple[0]:g}至{multiple[1]:g}倍前瞻市盈率反映更高盈利，只有利润上行与市场定价提升同时发生才匹配上方区间",
+        }[key]
+    if method == "FORECAST_REVENUE_PER_SHARE_X_INDEPENDENT_FORWARD_PS" and valid_range(multiple):
+        return {
+            "bear": f"较差情景把每股收入按{multiple[0]:g}至{multiple[1]:g}倍市销率计价，收入走弱和估值下移共同对应下方区间",
+            "base": f"正常情况下，每股收入采用{multiple[0]:g}至{multiple[1]:g}倍市销率，形成{name}经营正常兑现时的中间价格范围",
+            "bull": f"较好情景用{multiple[0]:g}至{multiple[1]:g}倍市销率反映收入加速；业务超预期和市场提高定价缺一不可",
+        }[key]
+    capture = assumption.get("discount_or_value_capture")
+    if method == "FORECAST_NAV_X_HOLDING_DISCOUNT" and valid_range(capture):
+        return {
+            "bear": f"较差情况下只有每股净资产价值的{capture[0] * 100:.0f}%至{capture[1] * 100:.0f}%反映到股价，较深控股折价对应下方区间",
+            "base": f"正常路径让每股净资产价值的{capture[0] * 100:.0f}%至{capture[1] * 100:.0f}%进入股价，得到资产和负债正常变化时的中间范围",
+            "bull": f"较好情景要求市场认可每股净资产价值的{capture[0] * 100:.0f}%至{capture[1] * 100:.0f}%，控股折价收窄后才对应上方区间",
+        }[key]
+    if method == "BTC_NAV_TWO_CONSISTENT_CAPITAL_MODELS":
+        return {
+            "bear": "较差情景优先看未转换资本结构，债务和优先股仍完整扣除，较低每股比特币净资产对应下方区间",
+            "base": "正常路径同时比较未转换与合理转换结果，用两套一致口径覆盖中间价格范围，避免债务和转股重复计算",
+            "bull": "较好情景在达到转换条件时采用转换口径，删除相应请求权后再算每股净资产，较高溢价对应上方区间",
+        }[key]
+    if method == "LOW_CONFIDENCE_DIRECT_SCENARIO_PRICE":
+        return {
+            "bear": f"{name}没有稳定公司估值锚，较差区间直接反映需求转弱、资金撤出或融资条件恶化",
+            "base": f"{name}的中间范围沿用原锁定宽情景，表示采用和资金环境大致维持，而不是由精确利润公式推出",
+            "bull": f"{name}的上方区间要求需求、采用率与资金环境共同改善；这是低把握直接情景，不是公允价值",
+        }[key]
+    return {
+        "bear": f"{name}的下方区间沿用原锁定较差估值参数，反映经营风险占主导",
+        "base": f"{name}的中间范围保留原锁定正常估值口径，对应业务按计划发展",
+        "bull": f"{name}的上方区间采用原锁定较好估值参数，只有经营和定价同时改善才成立",
+    }[key]
+
+
+def valuation_boundary_note(item: dict, contract: dict) -> str:
+    name = item.get("asset_name") or item.get("asset_id")
+    if contract.get("valuation_evidence_status") == "INCOMPLETE":
+        return f"{name}目前缺少可独立核验的历史估值区间或同行估值锚，因此表中倍数只能保留为原锁定的低把握假设。"
+    if item.get("asset_id") == "US.SPCX":
+        return "SpaceX虽然已有正式财报，但上市历史短，业务结构和融资条件变化大，尚不能建立稳定估值中枢。"
+    if item.get("asset_id") in {"BTC", "ETH"}:
+        return f"{name}没有公司利润表，价格主要由资金环境、网络使用、供需和监管共同决定。"
+    if item.get("asset_id") == "US.MSTR":
+        return "Strategy的价格还取决于比特币净资产溢价、债务、优先股和潜在转股，资本结构会扩大误差。"
+    return ""
 
 
 def scenario_business_explanation(item: dict, contract: dict, key: str) -> str:
-    if key == "base":
-        return scenario_starting_point(contract.get("base_business_assumption"))
-    return scenario_increment(contract, key)
+    return (
+        f"经营变量：{scenario_operating_variable(item, contract, key)}。"
+        f"盈利传导：{scenario_financial_transmission(item, contract, key)}。"
+        f"价格区间：{scenario_price_explanation(item, contract, key)}。"
+    )
 
 
 def asset_confidence_reason(item: dict, contract: dict, confidence: str) -> str:
@@ -305,20 +453,24 @@ def scenario_reference(item: dict) -> str:
     for key, label in (("bear", "较差"), ("base", "正常"), ("bull", "较好")):
         probability = probabilities.get(f"{key}_pct")
         rows.append(
-            f"<tr><td>{label}</td><td>{esc(str(probability) + '%' if probability is not None else '暂未可靠取得')}</td>"
+            f'<tr data-scenario-causal="1" data-scenario-asset="{esc(item.get("asset_id", ""))}" data-scenario-key="{key}"><td>{label}</td><td>{esc(str(probability) + "%" if probability is not None else "暂未可靠取得")}</td>'
             f"<td>{esc(price_range(contract.get(f'{key}_price_range'), currency))}</td>"
             f"<td>{esc(scenario_business_explanation(item, contract, key))}</td></tr>"
         )
     extreme = ""
     if isinstance(value, (int, float)) and (value > 0.50 or value < -0.30):
         direction = "高" if value > 0 else "低"
-        driver = concise_sentence(item.get("catalyst"), 105)
-        risk = concise_sentence(item.get("downside"), 105)
+        bear_prices = contract.get("bear_price_range") or []
+        bull_prices = contract.get("bull_price_range") or []
+        span = ""
+        if valid_range(bear_prices) and valid_range(bull_prices):
+            span = f"较差情景下沿为{price_number(bear_prices[0], currency)}，较好情景上沿为{price_number(bull_prices[1], currency)}，"
         extreme = (
             f'<p class="extreme-reason" data-extreme-reason="1"><strong>为什么这个结果会这么{direction}：</strong>'
-            f'{esc(driver)} 当前价格与一年情景差距较大；主要反向风险是“{esc(risk)}”。</p>'
+            f'{esc(item.get("asset_name"))}的{esc(span)}经营桥与估值参数同时拉开了两端结果，因此合并参考被明显拉{direction}。</p>'
         )
     confidence_reason = asset_confidence_reason(item, contract, confidence)
+    boundary_note = valuation_boundary_note(item, contract)
     return (
         f'<details class="scenario-reference" data-full-year-scenario="1" data-asset-specific-scenario="1" data-year-asset="{esc(item.get("asset_id", ""))}"><summary>查看一年情景</summary><div>'
         f'<p><strong>当前参考价格：</strong>{esc(price_number(lock.get("value"), currency))}</p>'
@@ -327,6 +479,7 @@ def scenario_reference(item: dict) -> str:
         f'<p><strong>合并参考值：</strong>{esc(price_number(contract.get("expected_price_candidate"), currency))}，'
         f'相对当前参考价格约为{esc(pct(value))}。</p>'
         f'<p><strong>为什么把握度是{esc(confidence_label(confidence))}：</strong>{esc(confidence_reason)}</p>'
+        f'{"<p><strong>价格证据边界：</strong>" + esc(boundary_note) + "</p>" if boundary_note else ""}'
         f'{extreme}</div></details>'
     )
 
@@ -1096,6 +1249,52 @@ def per_asset_visible_year_repetition(text: str) -> dict:
     }
 
 
+def scenario_causal_semantic_audit(text: str) -> dict:
+    rows = re.findall(
+        r'<tr data-scenario-causal="1" data-scenario-asset="([^"]+)" data-scenario-key="([^"]+)">(.*?)</tr>',
+        text,
+        flags=re.S,
+    )
+    banned = [
+        "明显超出当前预期，未来价值和市场定价同时改善",
+        "低于所需条件",
+        "低于当前方向所需条件",
+        "明显超出预期",
+        "比正式起点低约",
+        "超出正式起点约",
+    ]
+    failures = []
+    earnings_terms = ("收入", "利润", "现金流", "资产价值", "净资产", "每股价值", "资金需求", "边际买盘")
+    price_terms = ("价格区间", "价格范围", "表中区间", "宽价格区间", "较差区间", "上方区间", "中间范围", "市盈率", "市销率", "净资产", "折价", "溢价", "估值锚")
+    for asset_id, key, row in rows:
+        visible = html.unescape(re.sub(r"<[^>]+>", " ", row))
+        operating = re.search(r"经营变量：(.+?)。盈利传导：", visible)
+        earnings = re.search(r"盈利传导：(.+?)。价格区间：", visible)
+        price = re.search(r"价格区间：(.+?)(?:。|$)", visible)
+        reasons = []
+        if not operating or len(operating.group(1).strip()) < 8:
+            reasons.append("缺少资产专属经营变量")
+        if not earnings or not any(term in earnings.group(1) for term in earnings_terms):
+            reasons.append("缺少经营到盈利、现金或资产价值的传导")
+        if not price or not any(term in price.group(1) for term in price_terms):
+            reasons.append("缺少经营结果到价格区间的连接")
+        hits = [phrase for phrase in banned if phrase in visible]
+        if hits:
+            reasons.append("仍含通用模板：" + "、".join(hits))
+        if reasons:
+            failures.append({"asset_id": asset_id, "scenario": key, "reasons": reasons})
+    return {
+        "scenario_count": len(rows),
+        "passed_count": len(rows) - len(failures),
+        "failed_count": len(failures),
+        "failures": failures,
+        "banned_phrase_hits": {
+            phrase: sum(phrase in html.unescape(re.sub(r"<[^>]+>", " ", row)) for _, _, row in rows)
+            for phrase in banned
+        },
+    }
+
+
 def semantic_checks(text: str, supplement: dict) -> dict:
     sections = ["today", "market", "themes", "portfolio", "opportunities", "events", "goals", "learning", "lookup", "sources"]
     forbidden = ["forecast_id", "Harness", "Gate", "SHA256", "machine_field", "LOW_CONFIDENCE_MODEL_CANDIDATE", "NOT_ACTIVATED", "NOT_PASS", "key=value"]
@@ -1103,6 +1302,7 @@ def semantic_checks(text: str, supplement: dict) -> dict:
     visible = html.unescape(re.sub(r"<[^>]+>", " ", readable_html))
     year_repetition = repeated_year_explanation_sentences(text)
     per_asset_year_repetition = per_asset_visible_year_repetition(text)
+    scenario_causal_audit = scenario_causal_semantic_audit(text)
     report = {
         "status": "PASS",
         "v11_sha_unchanged": sha(V11) == V11_SHA,
@@ -1229,6 +1429,7 @@ def semantic_checks(text: str, supplement: dict) -> dict:
         },
         "year_explanation_repetition_audit": year_repetition,
         "per_asset_visible_year_repetition_audit": per_asset_year_repetition,
+        "scenario_causal_semantic_audit": scenario_causal_audit,
         "plus100_research_base_table_link_count": sum(file_id in text for _, _, file_id in PLUS100_DRIVE_FILES),
         "plus100_independent_index_openable": bool(PLUS100_INDEX_URL and PLUS100_INDEX_URL in text),
     }
@@ -1270,6 +1471,10 @@ def semantic_checks(text: str, supplement: dict) -> dict:
         report["per_asset_visible_year_repetition_audit"]["asset_block_count"] == 42,
         report["per_asset_visible_year_repetition_audit"]["failed_asset_count"] == 0,
         report["per_asset_visible_year_repetition_audit"]["passed_asset_count"] == 42,
+        report["scenario_causal_semantic_audit"]["scenario_count"] == 126,
+        report["scenario_causal_semantic_audit"]["passed_count"] == 126,
+        report["scenario_causal_semantic_audit"]["failed_count"] == 0,
+        sum(report["scenario_causal_semantic_audit"]["banned_phrase_hits"].values()) == 0,
         report["plus100_research_base_table_link_count"] == 9,
         report["plus100_independent_index_openable"],
     ]
@@ -1399,6 +1604,7 @@ def refresh_existing(out: Path) -> None:
             "professional_term_explanation_count": report["required_professional_term_explanation_count"],
             "asset_specific_year_scenario_count": report["asset_specific_year_scenario_count"],
             "per_asset_visible_year_repetition": report["per_asset_visible_year_repetition_audit"],
+            "scenario_causal_semantic_audit": report["scenario_causal_semantic_audit"],
         },
         "three_business_repairs": {
             "complete_theme_story_count": report["complete_theme_story_count"],
@@ -1462,10 +1668,10 @@ def finalize_browser(out: Path) -> None:
         raise SystemExit("浏览器检查未通过，拒绝冻结")
     source_path = out / "V13普通中文产品源.json"
     source_info = json.loads(source_path.read_text(encoding="utf-8"))
-    source_info["status"] = "WAITING_GPT_TRUE_DETEMPLATE_CHECK_2"
+    source_info["status"] = "WAITING_GPT_126_SCENARIO_SEMANTIC_CHECK"
     source_info["browser_review"] = {"status": "PASS", "path": str(browser_path), "sha256": sha(browser_path)}
     write_json(source_path, source_info)
-    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_TRUE_DETEMPLATE_CHECK_2", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_126_SCENARIO_SEMANTIC_CHECK", "artifacts": []}
     for path in sorted(out.rglob("*")):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": str(path.relative_to(out)), "bytes": path.stat().st_size, "sha256": sha(path)})
