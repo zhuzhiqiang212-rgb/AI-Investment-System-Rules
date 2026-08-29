@@ -15,7 +15,7 @@ V12_DIR = ROOT / "output/candidates/2026-08-28/V12-CHAIRMAN-DECISION-20260828181
 V12 = V12_DIR / "V12董事长投资决策产品.html"
 V12_SOURCE = V12_DIR / "V12结构化产品源.json"
 LOCKED_FORECASTS = ROOT / "output/decision_inputs/2026-08-26/V7-V20-FORECAST-LOCK-20260826175555-JST/84份正式预测_LOCKED.json"
-PLUS100_SUPPLEMENT = ROOT / "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/PLUS100_EVENT_WINDOW_RESEARCH_SUPPLEMENT.json"
+PLUS100_SUPPLEMENT = ROOT / "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/PLUS100_EVENT_WINDOW_RESEARCH_SUPPLEMENT_v2.json"
 V11_SHA = "3FCCD3E4F3978C87DDC18C6E80D570EE61427BA1A8052BBDD651C4477EB83E78"
 V12_SHA = "C3D56CA6D3FE2624E396428515A916F66DE81336920A9815CD720C4DE4537494"
 V11_URL = "https://drive.google.com/file/d/1hhCZB9E-QRM0lDrDKKnU359BWaJwwOe8/view"
@@ -618,76 +618,98 @@ def build_plus40_roadmaps(source: dict) -> str:
 def build_wave_roadmap(source: dict, supplement: dict) -> str:
     pools = supplement["grade_pools"]
     a_rows, b_rows, c_rows = pools["A"], pools["B"], pools["C"]
+    ranking = {item["asset_id"]: item for item in supplement["a_grade_ranking"]}
     a_cards = []
     for item in a_rows:
-        stats = item["historical_price_statistics"]
-        five, twenty, sixty = stats["return_5d"], stats["return_20d"], stats["return_60d"]
-        drawdown = stats["max_drawdown_60d"]
+        stats = item["absolute_benchmark_excess_statistics"]
         event = item["future_12m_event_window"]
+        rank = ranking[item["asset_id"]]["rank"]
+        history_rows = "".join(
+            f"<tr><td>{esc(sample['event_timestamp_et'])}</td><td>{esc(sample['trading_day_anchor'])}</td>"
+            f"<td>{esc(sample['trigger_similarity']['trigger_similarity'])}</td>"
+            f"<td>{esc(pct(sample['excess_return']['20']))}</td><td>{esc(pct(sample['excess_return']['60']))}</td>"
+            f"<td><a href=\"{esc(sample['source'])}\">正式原文</a></td></tr>"
+            for sample in item["condition_matched_samples"]
+        )
         a_cards.append(f"""
         <article class="roadmap-task" data-wave-window="1" data-wave-grade="A">
-          <h4>{esc(item['asset_name'])}｜{esc(item['asset_id'])}</h4>
-          <p><strong>本轮事件：</strong>{paragraph(event['event'])}</p>
+          <h4>优先{rank}｜{esc(item['asset_name'])}｜{esc(item['asset_id'])}</h4>
+          <p><strong>未来事件：</strong>{paragraph(event['event'])}</p>
+          <p><strong>预计时间：</strong>{esc(event['time'])}；时间把握度为{esc(event['time_confidence'])}。</p>
           <p><strong>开始具备研究价值：</strong>{paragraph(event['entry_observation_condition'])}</p>
           <p><strong>结束或兑现：</strong>{paragraph(event['exit_or_realization_condition'])}</p>
-          <p><strong>预计窗口：</strong>{esc(event['estimated_holding_window'])}</p>
-          <div class="table-wrap"><table><thead><tr><th>历史窗口</th><th>中位数</th><th>中间一半范围</th><th>最差</th></tr></thead><tbody>
-            <tr><td>5个交易日</td><td>{esc(pct(five['median']))}</td><td>{esc(pct(five['p25']))}至{esc(pct(five['p75']))}</td><td>{esc(pct(five['worst']))}</td></tr>
-            <tr><td>20个交易日</td><td>{esc(pct(twenty['median']))}</td><td>{esc(pct(twenty['p25']))}至{esc(pct(twenty['p75']))}</td><td>{esc(pct(twenty['worst']))}</td></tr>
-            <tr><td>60个交易日</td><td>{esc(pct(sixty['median']))}</td><td>{esc(pct(sixty['p25']))}至{esc(pct(sixty['p75']))}</td><td>{esc(pct(sixty['worst']))}</td></tr>
+          <p><strong>大概占用多久：</strong>历史统计观察至事件后60个交易日；退出仍以公司事实兑现或证伪为准，不把一年期目标当作波段。</p>
+          <div class="table-wrap"><table><thead><tr><th>历史窗口</th><th>股票中位数</th><th>跑赢基准中位数</th><th>跑赢基准的次数</th><th>最差股票结果</th></tr></thead><tbody>
+            <tr><td>5个交易日</td><td>{esc(pct(stats['absolute_return_5d']['median']))}</td><td>{esc(pct(stats['excess_return_5d']['median']))}</td><td>{stats['excess_return_5d']['positive_count']}/{stats['sample_count']}</td><td>{esc(pct(stats['absolute_return_5d']['worst']))}</td></tr>
+            <tr><td>20个交易日</td><td>{esc(pct(stats['absolute_return_20d']['median']))}</td><td>{esc(pct(stats['excess_return_20d']['median']))}</td><td>{stats['excess_return_20d']['positive_count']}/{stats['sample_count']}</td><td>{esc(pct(stats['absolute_return_20d']['worst']))}</td></tr>
+            <tr><td>60个交易日</td><td>{esc(pct(stats['absolute_return_60d']['median']))}</td><td>{esc(pct(stats['excess_return_60d']['median']))}</td><td>{stats['excess_return_60d']['positive_count']}/{stats['sample_count']}</td><td>{esc(pct(stats['absolute_return_60d']['worst']))}</td></tr>
           </tbody></table></div>
-          <p><strong>历史样本：</strong>{stats['sample_count']}次正式财务申报窗口；60个交易日内最差最大回撤为{esc(pct(drawdown['worst']))}。</p>
-          <p><strong>为什么可参考：</strong>{paragraph(item['current_vs_history']['why_comparable'])}</p>
-          <p><strong>本次可能不同：</strong>{paragraph(item['current_vs_history']['important_difference'])}</p>
-          <p><strong>共同风险：</strong>{esc(item['risk_factor'])}。这类资产不能被机械视为彼此独立的多次成功机会。</p>
+          <p><strong>风险：</strong>历史最坏60日最大回撤为{esc(pct(stats['max_drawdown_60d']['worst']))}；这不是稳赚模式。历史正超额次数只表示过去的一致性，不能叫未来成功概率。</p>
+          <p><strong>为什么排在这里：</strong>{paragraph(ranking[item['asset_id']]['why_ranked_here'])}</p>
+          <p><strong>共同风险：</strong>{paragraph(item['risk_factor'])}。同一风险来源不能机械算成多次独立成功。</p>
+          <details><summary>查看真实公告时间与条件匹配样本</summary><div class="table-wrap"><table><thead><tr><th>正式消息时间（美东）</th><th>交易日</th><th>触发相似度</th><th>20日超额</th><th>60日超额</th><th>来源</th></tr></thead><tbody>{history_rows}</tbody></table></div></details>
         </article>""")
     b_rows_html = "".join(
         f"<tr data-wave-grade=\"B\"><td>{esc(item['asset_name'])}<br><small>{esc(item['asset_id'])}</small></td>"
-        f"<td>{paragraph(item['future_12m_event_window']['event'])}</td><td>{esc(item['grade_reason'])}</td>"
-        f"<td>{paragraph(item['future_12m_event_window']['entry_observation_condition'])}</td></tr>"
+        f"<td>{paragraph(item['future_12m_event_window']['event'])}<br><small>{esc(item['future_12m_event_window']['time'])}</small></td>"
+        f"<td>{paragraph('；'.join(item['grade_failures']))}</td>"
+        f"<td>{paragraph('；'.join(item['missing_for_upgrade']))}</td></tr>"
         for item in b_rows
     )
     c_rows_html = "".join(
-        f"<li data-wave-grade=\"C\"><strong>{esc(item['asset_name'])}：</strong>{esc(item['grade_reason'])}</li>" for item in c_rows
-    ) or "<li>本轮没有仅凭故事保留的C级对象；B级对象仍有明确事件，但缺足够同口径历史样本。</li>"
-    path_cards = "".join(
-        f'<article class="roadmap-task"><h4>{esc(path["path"])}</h4><p>{esc(path["meaning"])}</p>'
-        f'<p><strong>基础组合：</strong>FUTU约33.61%，SBI约17.84%。</p>'
-        f'<p><strong>波段贡献、失败损失和最大回撤：</strong>当前不能可靠计算。</p>'
-        f'<p><strong>原因：</strong>{esc(path["reason"])}</p></article>'
-        for path in supplement["annual_paths"]["paths"]
-    )
+        f"<li data-wave-grade=\"C\"><strong>{esc(item['asset_name'])}：</strong>{paragraph('；'.join(item['grade_failures']))}</li>" for item in c_rows
+    ) or "<li>本轮没有C级对象。39个B级对象仍有可定位事件，但缺少足够相似样本、稳定超额收益或可接受的下行风险，不能进入年度计算。</li>"
     a_names = "、".join(item["asset_name"] for item in a_rows) or "没有"
-    next_items = supplement["annual_paths"]["chairman_questions"]["next_validation_events"][:5]
-    next_html = "".join(
-        f"<li><strong>{esc(item['asset_id'])}：</strong>{paragraph(item['event'])}</li>" for item in next_items
+    calendar_rows = "".join(
+        f"<tr data-event-calendar=\"1\"><td>{esc(item['asset_name'])}<br><small>{esc(item['asset_id'])}</small></td>"
+        f"<td>{paragraph(item['event'])}</td><td>{esc(item['time'])}</td><td>{esc(item['time_confidence'])}</td>"
+        f"<td>{paragraph(item['basis'])}</td></tr>"
+        for item in supplement["future_event_calendar"]
     )
+    old_regrade_rows = "".join(
+        f"<tr data-old-a-regrade=\"1\"><td>{esc(item['asset_name'])}<br><small>{esc(item['asset_id'])}</small></td>"
+        f"<td>{esc(item['transition'])}</td><td>{paragraph(item['downgrade_reason'])}</td></tr>"
+        for item in supplement["old_21_regrade"]
+    )
+    overlap_rows = "".join(
+        f"<li><strong>{esc(item['window'])}：</strong>{esc('、'.join(item['assets']))}。{paragraph(item['reason'])}</li>"
+        for item in supplement["overlap_and_risk"]["time_overlap_groups"]
+    ) or "<li>没有可支持顺序复用的独立窗口。</li>"
+    risk_rows = "".join(
+        f"<li><strong>{paragraph(item['risk_factor'])}：</strong>{esc('、'.join(item['assets']))}。{paragraph(item['reason'])}</li>"
+        for item in supplement["overlap_and_risk"]["common_risk_groups"]
+    )
+    missing_rows = "".join(f"<li>{paragraph(item)}</li>" for item in supplement["annual_path_calculability"]["missing_variables"])
     return f"""
-    <div class="goal wave-roadmap"><h3>+100%挑战路线图｜42项资产全量事件研究</h3>
-      <p>本轮把42项资产全部作为母池，逐项检查未来事件、历史可比样本和事件后真实价格。历史统计只看事件前后5、20和60个交易日，没有借用任何一年期较差、正常或较好情景。</p>
+    <div class="goal wave-roadmap"><h3>+100%挑战路线图｜把“能算”与“值得研究”分开</h3>
+      <p>上一轮的21项A级现在统一改称<strong>历史数据可量化候选</strong>。本轮重新核对市场真正收到消息的时间、当前触发是否与历史相似、股票是否真正跑赢同期基准，以及最坏回撤。只有同时过关的对象，才叫A级大波段候选。</p>
       <div class="metrics">
-        {metric('A级可量化', f"{len(a_rows)}个", '有至少5次可比正式事件与完整价格统计')}
-        {metric('B级等待', f"{len(b_rows)}个", '方向可核，但仍缺一项关键证据')}
-        {metric('C级排除', f"{len(c_rows)}个", '只有故事，不能进入计算')}
-        {metric('+100%结论', '当前仍未证明', '时间、相关性和资金复用尚未闭合')}
+        {metric('真正A级', f"{len(a_rows)}个", '事件、相似样本、超额收益和风险同时过关')}
+        {metric('B级等待', f"{len(b_rows)}个", '有事件，但仍缺关键证据或收益稳定性')}
+        {metric('C级排除', f"{len(c_rows)}个", '现阶段不支持事件波段研究')}
+        {metric('+100%能否计算', '目前不能', '战术资金池、释放规则和独立机会仍未闭合')}
       </div>
-      <h4>A级｜已经可以量化事件波动</h4>
-      <p><strong>资产：</strong>{esc(a_names)}。A级只说明历史事件波动可以统计，不代表已经批准投入资金，也不代表这些机会彼此独立。</p>
-      <details><summary>查看{len(a_rows)}项A级历史样本与风险</summary><div class="roadmap-grid">{''.join(a_cards)}</div></details>
-      <h4>B级｜方向明确，但缺关键证据</h4>
+      <h4>A级大波段候选｜按研究质量排序</h4>
+      <p><strong>当前名单：</strong>{esc(a_names)}。A级表示历史上存在可重复的相对市场优势，仍不代表未来必然成功，也没有决定使用多少资金。</p>
+      <div class="roadmap-grid">{''.join(a_cards)}</div>
+      <h4>B级｜有潜在事件，但还不能进入年度路径</h4>
       <div class="table-wrap"><table><thead><tr><th>资产</th><th>当前事件</th><th>为什么还不能量化</th><th>升级到A级要补什么</th></tr></thead><tbody>{b_rows_html}</tbody></table></div>
-      <h4>C级｜只有故事，退出波段计算</h4><ul>{c_rows_html}</ul>
-      <h4>时间重叠与共同风险</h4>
-      <p>21项A级窗口集中在同一财报季，并大量依赖AI资本开支、存储价格、云建设或加密流动性。时间重叠时不能假装先后复用同一笔资金；同一风险组也不能机械算成多次独立成功。</p>
-      <h4>三种年度研究路径</h4><div class="roadmap-grid">{path_cards}</div>
-      <div class="risk"><strong>当前结论：</strong>{esc(supplement['annual_paths']['conclusion'])}</div>
+      <h4>C级｜现阶段不支持事件波段研究</h4><ul>{c_rows_html}</ul>
+      <details><summary>查看旧21项“可量化候选”如何重新判级</summary><div class="table-wrap"><table><thead><tr><th>资产</th><th>新判级</th><th>保留或降级原因</th></tr></thead><tbody>{old_regrade_rows}</tbody></table></div></details>
+      <h4>未来12个月事件日历</h4>
+      <p>确定日期、确定月份或季度、当前无法确定三种状态分开登记。没有公告确切日期时只保留真实窗口，不补造统一日期。</p>
+      <details><summary>查看42项完整事件日历</summary><div class="table-wrap"><table><thead><tr><th>资产</th><th>未来事件</th><th>时间</th><th>时间把握</th><th>依据</th></tr></thead><tbody>{calendar_rows}</tbody></table></div></details>
+      <h4>时间冲突与共同风险</h4><ul>{overlap_rows}</ul><ul>{risk_rows}</ul>
+      <div class="risk"><strong>为什么现在仍不能计算+100%：</strong>{paragraph(supplement['annual_path_calculability']['conclusion'])}</div>
+      <p><strong>还缺的明确变量：</strong></p><ul>{missing_rows}</ul>
+      <p>因此保守、中性、激进三条年度路径目前都只能描述研究条件，不能给组合收益百分比。基础组合收益已有同口径数据，但在战术资金比例、资金释放顺序和共同风险没有确定前，强行给数字会制造伪精确。</p>
       <h4>董事长最需要的5个答案</h4>
       <ol>
-        <li>当前有<strong>{len(a_rows)}个</strong>A级可量化事件窗口。</li>
-        <li>A级资产为：{esc(a_names)}；各自事件和进入、退出条件见上方展开表。</li>
-        <li>每项历史正常波动、最差结果和最大回撤均按5、20、60个交易日显示，没有只挑最好的一次。</li>
-        <li>挑战+100%仍缺不重叠的事件顺序、获批资金比例、同口径成功与失败概率，以及共同风险下的最大回撤约束。</li>
-        <li>下一步优先验证：<ul>{next_html}</ul></li>
+        <li>当前有<strong>{len(a_rows)}个</strong>真正A级大波段候选。</li>
+        <li>按优先顺序是：{esc(a_names)}；各自未来事件、进入和结束条件见上方。</li>
+        <li>历史相似情况下，股票自身收益、跑赢基准的收益、最差结果和最大回撤均按5、20、60个交易日展示，没有只挑最好的一次。</li>
+        <li>3个A级中，Vertiv和Modine同受数据中心电力与建设影响，且事件窗口重叠；它们不能当成两次完全独立、可以顺序复用资金的成功机会。</li>
+        <li>挑战+100%仍缺董事长批准的战术资金池比例、事件结束后的资金释放规则，以及剔除共同风险后的独立机会数量。补齐前，当前路径不能可靠计算。</li>
       </ol>
     </div>"""
 
@@ -734,6 +756,7 @@ main{max-width:var(--max);margin:auto;padding:0 24px 80px}.chapter{padding:62px 
 .priority-stack{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin:22px 0 34px}.priority-asset{min-width:0;padding:26px;border-left:4px solid var(--green)}.pdca-cases{margin-top:22px}.pdca-case{border-top:4px solid var(--green)}
 .holding-group{margin:34px 0}.holding-group>p{max-width:850px}.holding small,.opportunity small{color:var(--muted);font-weight:400}.decision-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}.decision,.rank{color:var(--green);font-weight:700}.confidence{color:var(--muted)}
 .roadmap-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.roadmap-task{background:#fff;border:1px solid var(--line);border-left:4px solid var(--blue);padding:18px}.roadmap-task h4{margin:0 0 10px}.roadmap-task p{margin:8px 0}.roadmap ol{max-width:920px}.samsung-explainer{background:#f4f7f5;border:1px solid var(--line);padding:18px;margin:18px 0}.samsung-explainer table{min-width:720px}.scenario-reference{margin:14px 0;background:#f8faf9}.scenario-reference summary{color:var(--blue)}.high-absolute{border-top:4px solid var(--amber)}
+.wave-roadmap .roadmap-task,.wave-roadmap details{min-width:0}
 .metric span,.metric small{display:block;color:var(--muted)}.metric strong{display:block;font-size:24px;color:var(--green)}.bar{height:14px;background:#e7ebe9;border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}.goal{margin:28px 0}
 .callout{background:var(--green2);border-left:4px solid var(--green);padding:18px 20px;margin:20px 0}.warning{background:#fff7e7;border-left-color:var(--amber)}
 .table-wrap{overflow-x:auto;border:1px solid var(--line);background:white}table{border-collapse:collapse;width:100%;min-width:980px}th,td{text-align:left;vertical-align:top;padding:11px;border-bottom:1px solid var(--line)}th{background:#f2f5f3}
@@ -918,12 +941,14 @@ def semantic_checks(text: str) -> dict:
             "估值": "当前股价相对于公司未来赚钱能力" in text,
         },
         "goal_40_plain_conclusion": "已经识别主要改善来源，但仍缺关键条件" in text,
-        "goal_100_plain_conclusion": "当前仍未证明" in visible and "42项资产已全量研究" in visible,
+        "goal_100_plain_conclusion": "目前不能" in visible and "未来12个月事件日历" in visible,
         "plus40_account_roadmap_count": text.count('data-plus40-roadmap='),
         "wave_window_count": text.count('data-wave-window="1"'),
         "wave_grade_a_count": text.count('data-wave-grade="A"'),
         "wave_grade_b_count": text.count('data-wave-grade="B"'),
         "wave_grade_c_count": text.count('data-wave-grade="C"'),
+        "future_event_calendar_count": text.count('data-event-calendar="1"'),
+        "old_a_regrade_count": text.count('data-old-a-regrade="1"'),
         "full_year_scenario_count": text.count('data-full-year-scenario="1"'),
         "extreme_reason_count": text.count('data-extreme-reason="1"'),
         "common_scenario_explanation_count": visible.count("“一年综合参考”不是目标价"),
@@ -968,10 +993,12 @@ def semantic_checks(text: str) -> dict:
         report["priority_opportunity_narrative_count"] == len(PRIORITY_OPPORTUNITY_NARRATIVES),
         report["complete_theme_story_count"] == 4,
         report["plus40_account_roadmap_count"] == 2,
-        report["wave_window_count"] == 21,
-        report["wave_grade_a_count"] == 21,
-        report["wave_grade_b_count"] == 21,
+        report["wave_window_count"] == 3,
+        report["wave_grade_a_count"] == 3,
+        report["wave_grade_b_count"] == 39,
         report["wave_grade_c_count"] == 0,
+        report["future_event_calendar_count"] == 42,
+        report["old_a_regrade_count"] == 21,
         report["full_year_scenario_count"] == 42,
         report["extreme_reason_count"] == 15,
         report["common_scenario_explanation_count"] == 1,
@@ -1087,19 +1114,21 @@ def refresh_existing(out: Path) -> None:
         raise SystemExit("阅读层定向更新后的内存预检失败")
     html_path.write_text(text, encoding="utf-8", newline="\n")
     source_info["generated_at_jst"] = updated_at
-    source_info["status"] = "V13_PLUS100_RESEARCH_UPDATED_PENDING_BROWSER_REVIEW"
+    source_info["status"] = "V13_PLUS100_METHOD_V2_UPDATED_PENDING_BROWSER_REVIEW"
     source_info["plus100_research"] = {
         "path": str(PLUS100_SUPPLEMENT),
         "sha256": sha(PLUS100_SUPPLEMENT),
         "asset_count": supplement["asset_count"],
-        "grade_counts": supplement["grade_counts"],
-        "plus100_reliably_supported": supplement["annual_paths"]["plus100_reliably_supported"],
+        "grade_counts": supplement["new_grade_counts"],
+        "old_a_regrade_count": len(supplement["old_21_regrade"]),
+        "future_event_calendar_count": len(supplement["future_event_calendar"]),
+        "plus100_calculable": supplement["annual_path_calculability"]["plus100_calculable"],
     }
     write_json(out / "V13普通中文产品源.json", source_info)
     write_json(out / "V13术语翻译检查报告.json", report)
     write_json(out / "V13限定返修检查报告.json", {
         "status": "PASS",
-        "scope": "仅去除一年情景公共说明重复，并接入42项事件窗口增量研究；冻结V11、V12和84份预测均未改写",
+        "scope": "仅将+100%模块升级为真实消息时间、触发相似度、基准超额收益和下行风险方法；冻结V11、V12和84份预测均未改写",
         "three_business_repairs": {
             "complete_theme_story_count": report["complete_theme_story_count"],
             "year_reference_display": {
@@ -1117,7 +1146,9 @@ def refresh_existing(out: Path) -> None:
                 "b_grade_wait_count": report["wave_grade_b_count"],
                 "c_grade_excluded_count": report["wave_grade_c_count"],
                 "one_year_scenario_used_as_wave_return_count": report["one_year_scenario_used_as_wave_return_count"],
-                "plus100_reliably_supported": supplement["annual_paths"]["plus100_reliably_supported"],
+                "future_event_calendar_count": report["future_event_calendar_count"],
+                "old_a_regrade_count": report["old_a_regrade_count"],
+                "plus100_calculable": supplement["annual_path_calculability"]["plus100_calculable"],
             },
         },
         "translation_examples": [
@@ -1145,7 +1176,7 @@ def refresh_existing(out: Path) -> None:
         "locked_forecast_changed_count": 0,
         "v11_v12_changed_count": 0,
     })
-    manifest = {"run_id": source_info["run_id"], "status": "V13_PLUS100_RESEARCH_UPDATED_PENDING_BROWSER_REVIEW", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "V13_PLUS100_METHOD_V2_UPDATED_PENDING_BROWSER_REVIEW", "artifacts": []}
     for path in sorted(out.iterdir()):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": path.name, "bytes": path.stat().st_size, "sha256": sha(path)})
@@ -1160,10 +1191,10 @@ def finalize_browser(out: Path) -> None:
         raise SystemExit("浏览器检查未通过，拒绝冻结")
     source_path = out / "V13普通中文产品源.json"
     source_info = json.loads(source_path.read_text(encoding="utf-8"))
-    source_info["status"] = "WAITING_GPT_PLUS100_RESEARCH_REVIEW"
+    source_info["status"] = "WAITING_GPT_PLUS100_METHOD_REREVIEW"
     source_info["browser_review"] = {"status": "PASS", "path": str(browser_path), "sha256": sha(browser_path)}
     write_json(source_path, source_info)
-    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_PLUS100_RESEARCH_REVIEW", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_PLUS100_METHOD_REREVIEW", "artifacts": []}
     for path in sorted(out.rglob("*")):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": str(path.relative_to(out)), "bytes": path.stat().st_size, "sha256": sha(path)})
