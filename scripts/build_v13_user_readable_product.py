@@ -98,12 +98,23 @@ def plain(value) -> str:
         text = f"{driver}是这只资产当前最需要核对的具体指标；这些指标能否持续改善，决定当前判断能否成立。{remainder}"
     for old, new in REPLACEMENTS.items():
         text = text.replace(old, new)
+    # The source contracts use ``bn`` for billions. Render the amount and
+    # currency in ordinary Chinese without relying on a word boundary before
+    # Chinese text (``bn与`` has no Unicode word boundary).
+    text = text.replace("H1 sales 1,620bn", "上半年销售额1.62万亿日元")
     text = re.sub(
-        r"(?<![A-Za-z])([0-9]+(?:\.[0-9]+)?)\s*bn\b",
-        lambda match: f"{float(match.group(1)) * 10:g}亿美元",
+        r"EUR\s*([0-9][0-9,]*(?:\.[0-9]+)?)\s*bn(?![A-Za-z])",
+        lambda match: f"{float(match.group(1).replace(',', '')) * 10:g}亿欧元",
         text,
         flags=re.I,
     )
+    text = re.sub(
+        r"(?<![A-Za-z])([0-9][0-9,]*(?:\.[0-9]+)?)\s*bn(?![A-Za-z])",
+        lambda match: f"{float(match.group(1).replace(',', '')) * 10:g}亿美元",
+        text,
+        flags=re.I,
+    )
+    text = text.replace("亿美元美元", "亿美元").replace("亿欧元欧元", "亿欧元")
     text = text.replace("真正变成收入、利润或现金", "兑现为收入、转化为利润并形成现金回报")
     text = text.replace("当前价格从当前价格出发", "按当前股价看")
     text = text.replace("什么把数字推到这么很高", "为什么这个结果会这么高")
@@ -233,35 +244,16 @@ def concise_sentence(value, limit=110) -> str:
     return first if len(first) <= limit else first[:limit].rstrip("，； ") + "。"
 
 
-def business_channel(asset_id: str) -> str:
-    if asset_id in {"BTC", "ETH"}:
-        return "资金流、实际利率和网络使用变化会先改变供需，再改变市场价格"
-    if asset_id in {"US.MSTR", "JP.9984"}:
-        return "核心资产价值、债务和市场折价会共同改变每股价值"
-    if asset_id in {"US.COIN", "US.CRCL", "US.IBKR"}:
-        return "交易或资产规模、费率与利率会先改变收入，再影响利润和现金"
-    if asset_id in {"JP.8306", "JP.8316", "JP.8411", "JP.8766"}:
-        return "利差、信用成本与资本回报会先改变利润，再影响净资产收益率和估值"
-    if asset_id in {"JP.7203", "JP.6758", "JP.6954", "JP.7974", "JP.8001"}:
-        return "销量、订单、产品价格与成本会先改变营业利润，再影响现金回报和估值"
-    if asset_id in {"US.MSFT", "US.META", "US.ORCL", "US.PLTR"}:
-        return "客户需求和已签合同能否转成收入，并覆盖资本开支，决定利润与自由现金流"
-    if asset_id in {"US.ETN", "US.GEV", "US.PWR", "US.VRT", "US.MOD", "US.CEG", "US.NRG"}:
-        return "订单、积压订单、交付和利润率会先改变盈利，再影响自由现金流和市场估值"
-    if asset_id == "US.SPCX":
-        return "Starlink用户、发射业务和研发投入会先改变收入与现金消耗，再影响市场估值"
-    return "出货、售价、订单和利润率会先改变每股收益与现金流，再影响市场估值"
-
-
 def scenario_business_explanation(item: dict, contract: dict, key: str) -> str:
     assumption = concise_sentence(contract.get(f"{key}_business_assumption"), 145)
-    channel = business_channel(item.get("asset_id", ""))
     if key == "bear":
-        return f"{assumption} 这会通过“{channel}”压低利润或资产价值，也可能让市场降低愿意支付的价格。"
+        risk = concise_sentence(item.get("downside"), 95)
+        return f"{assumption} 需要防范的是：{risk}"
     if key == "base":
-        priced = concise_sentence(item.get("catalyst"), 100)
-        return f"{assumption} 正常情景要由“{priced}”继续验证；只有经营改善覆盖当前股价已经包含的期待，价格才有支撑。"
-    return f"{assumption} 较好结果必须沿着“{channel}”进入利润、现金或资产价值，市场才有理由给出更高价格。"
+        driver = concise_sentence(item.get("catalyst"), 95)
+        return f"{assumption} 接下来核对：{driver}"
+    driver = concise_sentence(item.get("catalyst"), 95)
+    return f"{assumption} 这要求“{driver}”明显超出目前判断。"
 
 
 def asset_confidence_reason(item: dict, confidence: str) -> str:
@@ -272,7 +264,7 @@ def asset_confidence_reason(item: dict, confidence: str) -> str:
         return f"{name}已有较完整的正式经营数据，当前把握主要来自“{driver}”；但“{risk}”仍可能使实际价格偏离经营判断。"
     if confidence == "B":
         return f"{name}的方向有公司与行业证据支持，关键验证是“{driver}”；由于“{risk}”，一年后的盈利和估值仍有明显误差。"
-    return f"{name}的一年价格高度依赖“{driver}”，而“{risk}”；缺少稳定估值锚，所以只能给较低把握的宽范围。"
+    return f"{name}的关键变量是“{driver}”，但“{risk}”；两者一年后的幅度都难以精确判断，因此价格把握度较低。"
 
 
 def scenario_reference(item: dict) -> str:
@@ -299,10 +291,11 @@ def scenario_reference(item: dict) -> str:
     extreme = ""
     if isinstance(value, (int, float)) and (value > 0.50 or value < -0.30):
         direction = "高" if value > 0 else "低"
+        driver = concise_sentence(item.get("catalyst"), 105)
+        risk = concise_sentence(item.get("downside"), 105)
         extreme = (
             f'<p class="extreme-reason" data-extreme-reason="1"><strong>为什么这个结果会这么{direction}：</strong>'
-            f'{esc(scenario_business_explanation(item, contract, "base"))} 同时，较差与较好情景的范围很宽，'
-            f'说明业务变化和市场愿意支付的价格会共同放大结果；价格判断把握度为{esc(confidence_label(confidence))}。</p>'
+            f'{esc(driver)} 当前价格与一年情景差距较大；主要反向风险是“{esc(risk)}”。</p>'
         )
     confidence_reason = asset_confidence_reason(item, confidence)
     return (
@@ -879,7 +872,7 @@ def build_pdca(source: dict) -> str:
 
 CSS = """
 :root{--ink:#17201c;--muted:#66706b;--line:#dce3df;--paper:#fbfcfb;--green:#195c47;--green2:#e9f3ee;--red:#9f3e39;--amber:#94620f;--blue:#245b7a;--max:1160px}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.72 "Segoe UI","Microsoft YaHei",Arial,sans-serif;letter-spacing:0}a{color:var(--blue)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;max-width:100%;overflow-x:hidden}body{margin:0;max-width:100%;overflow-x:hidden;background:var(--paper);color:var(--ink);font:16px/1.72 "Segoe UI","Microsoft YaHei",Arial,sans-serif;letter-spacing:0}a{color:var(--blue)}
 header.hero{background:#173f34;color:white;padding:54px 24px 38px}.hero-inner{max-width:var(--max);margin:auto}.eyebrow{font-size:13px;opacity:.78}.hero h1{font-size:38px;line-height:1.15;margin:10px 0 14px}.hero p{max-width:860px;font-size:18px}.stamp{font-size:13px;opacity:.8}
 .nav{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);overflow:auto;white-space:nowrap}.nav-inner{max-width:var(--max);margin:auto;display:flex}.nav a{padding:13px 12px;text-decoration:none;color:var(--ink);font-size:14px}.nav a:hover{background:var(--green2)}
 main{max-width:var(--max);margin:auto;padding:0 24px 80px}.chapter{padding:62px 0 18px;border-bottom:1px solid var(--line)}.chapter>h2{font-size:28px;margin:0 0 12px}.chapter-intro{font-size:18px;max-width:900px;color:#303a35}.prose{max-width:920px}.lead{font-size:17px}
@@ -1133,7 +1126,23 @@ def semantic_checks(text: str, supplement: dict) -> dict:
                 "ROE（净资产收益率，表示股东投入100元资本一年大约赚多少）",
             ]
         ),
-        "unexplained_bn_count": len(re.findall(r"\b\d+(?:\.\d+)?\s*bn\b", visible, flags=re.I)),
+        "unexplained_bn_count": len(
+            re.findall(r"(?<![A-Za-z])\d[\d,]*(?:\.\d+)?\s*bn(?![A-Za-z])", visible, flags=re.I)
+        ),
+        "year_scenario_template_phrase_hits": {
+            "这会通过": visible.count("这会通过"),
+            "压低利润或资产价值，也可能让市场降低愿意支付的价格": visible.count(
+                "压低利润或资产价值，也可能让市场降低愿意支付的价格"
+            ),
+            "正常情景要由": visible.count("正常情景要由"),
+            "只有经营改善覆盖当前股价已经包含的期待": visible.count(
+                "只有经营改善覆盖当前股价已经包含的期待"
+            ),
+            "较好结果必须沿着": visible.count("较好结果必须沿着"),
+            "缺少稳定估值锚，所以只能给较低把握的宽范围": visible.count(
+                "缺少稳定估值锚，所以只能给较低把握的宽范围"
+            ),
+        },
         "plus100_research_base_table_link_count": sum(file_id in text for _, _, file_id in PLUS100_DRIVE_FILES),
         "plus100_independent_index_openable": bool(PLUS100_INDEX_URL and PLUS100_INDEX_URL in text),
     }
@@ -1169,6 +1178,7 @@ def semantic_checks(text: str, supplement: dict) -> dict:
         sum(report["specified_bad_sentence_hits"].values()) == 0,
         report["required_professional_term_explanation_count"] == 9,
         report["unexplained_bn_count"] == 0,
+        sum(report["year_scenario_template_phrase_hits"].values()) == 0,
         report["plus100_research_base_table_link_count"] == 9,
         report["plus100_independent_index_openable"],
     ]
@@ -1360,10 +1370,10 @@ def finalize_browser(out: Path) -> None:
         raise SystemExit("浏览器检查未通过，拒绝冻结")
     source_path = out / "V13普通中文产品源.json"
     source_info = json.loads(source_path.read_text(encoding="utf-8"))
-    source_info["status"] = "WAITING_GPT_THREE_BLOCKER_CLOSURE_CHECK"
+    source_info["status"] = "WAITING_GPT_FINAL_LANGUAGE_CLOSURE"
     source_info["browser_review"] = {"status": "PASS", "path": str(browser_path), "sha256": sha(browser_path)}
     write_json(source_path, source_info)
-    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_THREE_BLOCKER_CLOSURE_CHECK", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_FINAL_LANGUAGE_CLOSURE", "artifacts": []}
     for path in sorted(out.rglob("*")):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": str(path.relative_to(out)), "bytes": path.stat().st_size, "sha256": sha(path)})
