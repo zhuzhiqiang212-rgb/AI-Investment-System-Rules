@@ -15,7 +15,7 @@ V12_DIR = ROOT / "output/candidates/2026-08-28/V12-CHAIRMAN-DECISION-20260828181
 V12 = V12_DIR / "V12董事长投资决策产品.html"
 V12_SOURCE = V12_DIR / "V12结构化产品源.json"
 LOCKED_FORECASTS = ROOT / "output/decision_inputs/2026-08-26/V7-V20-FORECAST-LOCK-20260826175555-JST/84份正式预测_LOCKED.json"
-PLUS100_SUPPLEMENT = ROOT / "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/PLUS100_EVENT_WINDOW_RESEARCH_SUPPLEMENT_v2.json"
+PLUS100_SUPPLEMENT = ROOT / "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/PLUS100_EVENT_WINDOW_RESEARCH_SUPPLEMENT_v3.json"
 V11_SHA = "3FCCD3E4F3978C87DDC18C6E80D570EE61427BA1A8052BBDD651C4477EB83E78"
 V12_SHA = "C3D56CA6D3FE2624E396428515A916F66DE81336920A9815CD720C4DE4537494"
 V11_URL = "https://drive.google.com/file/d/1hhCZB9E-QRM0lDrDKKnU359BWaJwwOe8/view"
@@ -617,16 +617,17 @@ def build_plus40_roadmaps(source: dict) -> str:
 
 def build_wave_roadmap(source: dict, supplement: dict) -> str:
     pools = supplement["grade_pools"]
-    a_rows, b_rows, c_rows = pools["A"], pools["B"], pools["C"]
+    b_rows, c_rows = pools["B"], pools["C"]
     ranking = {item["asset_id"]: item for item in supplement["a_grade_ranking"]}
+    a_rows = sorted(pools["A"], key=lambda item: ranking[item["asset_id"]]["rank"])
     a_cards = []
     for item in a_rows:
         stats = item["absolute_benchmark_excess_statistics"]
         event = item["future_12m_event_window"]
         rank = ranking[item["asset_id"]]["rank"]
         history_rows = "".join(
-            f"<tr><td>{esc(sample['event_timestamp_et'])}</td><td>{esc(sample['trading_day_anchor'])}</td>"
-            f"<td>{esc(sample['trigger_similarity']['trigger_similarity'])}</td>"
+            f"<tr><td>{esc(sample['event_timestamp_et'])}</td><td>{esc(sample['tradable_entry_date'])}<br><small>{sample['tradable_entry_price']:.2f}</small></td>"
+            f"<td>{esc(sample['trigger_similarity']['actual_vs_expectation'])}</td><td>{esc(sample['trigger_similarity']['trigger_match'])}</td>"
             f"<td>{esc(pct(sample['excess_return']['20']))}</td><td>{esc(pct(sample['excess_return']['60']))}</td>"
             f"<td><a href=\"{esc(sample['source'])}\">正式原文</a></td></tr>"
             for sample in item["condition_matched_samples"]
@@ -634,6 +635,7 @@ def build_wave_roadmap(source: dict, supplement: dict) -> str:
         a_cards.append(f"""
         <article class="roadmap-task" data-wave-window="1" data-wave-grade="A">
           <h4>优先{rank}｜{esc(item['asset_name'])}｜{esc(item['asset_id'])}</h4>
+          <p><strong>进入模式：</strong>财报后确认型。只有正式消息公开后才观察，收益从首个真实可交易开盘价开始，不把确认前跳空算成可捕获收益。</p>
           <p><strong>未来事件：</strong>{paragraph(event['event'])}</p>
           <p><strong>预计时间：</strong>{esc(event['time'])}；时间把握度为{esc(event['time_confidence'])}。</p>
           <p><strong>开始具备研究价值：</strong>{paragraph(event['entry_observation_condition'])}</p>
@@ -647,7 +649,7 @@ def build_wave_roadmap(source: dict, supplement: dict) -> str:
           <p><strong>风险：</strong>历史最坏60日最大回撤为{esc(pct(stats['max_drawdown_60d']['worst']))}；这不是稳赚模式。历史正超额次数只表示过去的一致性，不能叫未来成功概率。</p>
           <p><strong>为什么排在这里：</strong>{paragraph(ranking[item['asset_id']]['why_ranked_here'])}</p>
           <p><strong>共同风险：</strong>{paragraph(item['risk_factor'])}。同一风险来源不能机械算成多次独立成功。</p>
-          <details><summary>查看真实公告时间与条件匹配样本</summary><div class="table-wrap"><table><thead><tr><th>正式消息时间（美东）</th><th>交易日</th><th>触发相似度</th><th>20日超额</th><th>60日超额</th><th>来源</th></tr></thead><tbody>{history_rows}</tbody></table></div></details>
+          <details><summary>查看真实公告时间与条件匹配样本</summary><div class="table-wrap"><table><thead><tr><th>正式消息时间（美东）</th><th>可交易起点</th><th>相对当时预期</th><th>触发匹配</th><th>20日超额</th><th>60日超额</th><th>来源</th></tr></thead><tbody>{history_rows}</tbody></table></div></details>
         </article>""")
     b_rows_html = "".join(
         f"<tr data-wave-grade=\"B\"><td>{esc(item['asset_name'])}<br><small>{esc(item['asset_id'])}</small></td>"
@@ -658,7 +660,7 @@ def build_wave_roadmap(source: dict, supplement: dict) -> str:
     )
     c_rows_html = "".join(
         f"<li data-wave-grade=\"C\"><strong>{esc(item['asset_name'])}：</strong>{paragraph('；'.join(item['grade_failures']))}</li>" for item in c_rows
-    ) or "<li>本轮没有C级对象。39个B级对象仍有可定位事件，但缺少足够相似样本、稳定超额收益或可接受的下行风险，不能进入年度计算。</li>"
+    ) or "<li>本轮没有C级对象。</li>"
     a_names = "、".join(item["asset_name"] for item in a_rows) or "没有"
     calendar_rows = "".join(
         f"<tr data-event-calendar=\"1\"><td>{esc(item['asset_name'])}<br><small>{esc(item['asset_id'])}</small></td>"
@@ -682,15 +684,15 @@ def build_wave_roadmap(source: dict, supplement: dict) -> str:
     missing_rows = "".join(f"<li>{paragraph(item)}</li>" for item in supplement["annual_path_calculability"]["missing_variables"])
     return f"""
     <div class="goal wave-roadmap"><h3>+100%挑战路线图｜把“能算”与“值得研究”分开</h3>
-      <p>上一轮的21项A级现在统一改称<strong>历史数据可量化候选</strong>。本轮重新核对市场真正收到消息的时间、当前触发是否与历史相似、股票是否真正跑赢同期基准，以及最坏回撤。只有同时过关的对象，才叫A级大波段候选。</p>
+      <p>上一轮的21项A级现在统一改称<strong>历史数据可量化候选</strong>。本轮重新核对市场真正收到消息的时间、当时公司指引或市场一致预期，以及消息公开后第一个真正可交易的开盘价。确认前的财报跳空不再计入波段收益；只有确认后仍有稳定超额收益且下行可接受，才叫A级大波段候选。</p>
       <div class="metrics">
         {metric('真正A级', f"{len(a_rows)}个", '事件、相似样本、超额收益和风险同时过关')}
-        {metric('B级等待', f"{len(b_rows)}个", '有事件，但仍缺关键证据或收益稳定性')}
-        {metric('C级排除', f"{len(c_rows)}个", '现阶段不支持事件波段研究')}
+        {metric('B级等待', f"{len(b_rows)}个", '事件逻辑成熟，只差一个明确条件')}
+        {metric('C级排除', f"{len(c_rows)}个", '当前不能形成可靠波段研究')}
         {metric('+100%能否计算', '目前不能', '战术资金池、释放规则和独立机会仍未闭合')}
       </div>
       <h4>A级大波段候选｜按研究质量排序</h4>
-      <p><strong>当前名单：</strong>{esc(a_names)}。A级表示历史上存在可重复的相对市场优势，仍不代表未来必然成功，也没有决定使用多少资金。</p>
+      <p><strong>当前名单：</strong>{esc(a_names)}。A级必须是现实中可捕获的确认后收益，不含财报公布前的跳空；它仍不代表未来必然成功，也没有决定使用多少资金。</p>
       <div class="roadmap-grid">{''.join(a_cards)}</div>
       <h4>B级｜有潜在事件，但还不能进入年度路径</h4>
       <div class="table-wrap"><table><thead><tr><th>资产</th><th>当前事件</th><th>为什么还不能量化</th><th>升级到A级要补什么</th></tr></thead><tbody>{b_rows_html}</tbody></table></div>
@@ -705,11 +707,11 @@ def build_wave_roadmap(source: dict, supplement: dict) -> str:
       <p>因此保守、中性、激进三条年度路径目前都只能描述研究条件，不能给组合收益百分比。基础组合收益已有同口径数据，但在战术资金比例、资金释放顺序和共同风险没有确定前，强行给数字会制造伪精确。</p>
       <h4>董事长最需要的5个答案</h4>
       <ol>
-        <li>当前有<strong>{len(a_rows)}个</strong>真正A级大波段候选。</li>
+        <li>当前有<strong>{len(a_rows)}个</strong>真正A级大波段候选；原来的Modine、Vertiv和Arista Networks均已按新口径重新检查，不默认保留。</li>
         <li>按优先顺序是：{esc(a_names)}；各自未来事件、进入和结束条件见上方。</li>
         <li>历史相似情况下，股票自身收益、跑赢基准的收益、最差结果和最大回撤均按5、20、60个交易日展示，没有只挑最好的一次。</li>
-        <li>3个A级中，Vertiv和Modine同受数据中心电力与建设影响，且事件窗口重叠；它们不能当成两次完全独立、可以顺序复用资金的成功机会。</li>
-        <li>挑战+100%仍缺董事长批准的战术资金池比例、事件结束后的资金释放规则，以及剔除共同风险后的独立机会数量。补齐前，当前路径不能可靠计算。</li>
+        <li>本轮没有把同一AI资本开支链上的资产机械当成多个独立成功事件；若未来出现A级，还要重新检查时间重叠和共同风险。</li>
+        <li>挑战+100%目前首先缺足够的A级事件；在此之前还不具备进入战术资金池比例和资金释放规则设计的条件。</li>
       </ol>
     </div>"""
 
@@ -907,7 +909,7 @@ def render(source: dict, supplement: dict, run_id: str, generated_at: str) -> st
     </main><footer>V13普通中文完整投资产品｜仅用于研究理解，不构成收益承诺。</footer></body></html>"""
 
 
-def semantic_checks(text: str) -> dict:
+def semantic_checks(text: str, supplement: dict) -> dict:
     sections = ["today", "market", "themes", "portfolio", "opportunities", "events", "goals", "learning", "lookup", "sources"]
     forbidden = ["forecast_id", "Harness", "Gate", "SHA256", "machine_field", "LOW_CONFIDENCE_MODEL_CANDIDATE", "NOT_ACTIVATED", "NOT_PASS", "key=value"]
     readable_html = re.sub(r"<(?:style|script)\b[^>]*>.*?</(?:style|script)>", "", text, flags=re.I | re.S)
@@ -993,10 +995,10 @@ def semantic_checks(text: str) -> dict:
         report["priority_opportunity_narrative_count"] == len(PRIORITY_OPPORTUNITY_NARRATIVES),
         report["complete_theme_story_count"] == 4,
         report["plus40_account_roadmap_count"] == 2,
-        report["wave_window_count"] == 3,
-        report["wave_grade_a_count"] == 3,
-        report["wave_grade_b_count"] == 39,
-        report["wave_grade_c_count"] == 0,
+        report["wave_window_count"] == supplement["new_grade_counts"]["A"],
+        report["wave_grade_a_count"] == supplement["new_grade_counts"]["A"],
+        report["wave_grade_b_count"] == supplement["new_grade_counts"]["B"],
+        report["wave_grade_c_count"] == supplement["new_grade_counts"]["C"],
         report["future_event_calendar_count"] == 42,
         report["old_a_regrade_count"] == 21,
         report["full_year_scenario_count"] == 42,
@@ -1043,7 +1045,7 @@ def main() -> None:
         raise SystemExit("候选目录已存在，拒绝重复生成")
     generated_at = now.isoformat(timespec="seconds")
     text = render(source, supplement, run_id, generated_at)
-    report = semantic_checks(text)
+    report = semantic_checks(text, supplement)
     failures = []
     expected = {"section_count": 10, "holding_count": 24, "opportunity_count": 18, "asset_lookup_count": 42, "theme_count": 4}
     for key, value in expected.items():
@@ -1104,7 +1106,7 @@ def refresh_existing(out: Path) -> None:
     html_path = out / "V13普通中文完整投资产品.html"
     updated_at = datetime.now(JST).isoformat(timespec="seconds")
     text = render(source, supplement, source_info["run_id"], updated_at)
-    report = semantic_checks(text)
+    report = semantic_checks(text, supplement)
     expected = {"section_count": 10, "holding_count": 24, "opportunity_count": 18, "asset_lookup_count": 42, "theme_count": 4}
     if (
         any(report[key] != value for key, value in expected.items())
@@ -1114,7 +1116,7 @@ def refresh_existing(out: Path) -> None:
         raise SystemExit("阅读层定向更新后的内存预检失败")
     html_path.write_text(text, encoding="utf-8", newline="\n")
     source_info["generated_at_jst"] = updated_at
-    source_info["status"] = "V13_PLUS100_METHOD_V2_UPDATED_PENDING_BROWSER_REVIEW"
+    source_info["status"] = "V13_PLUS100_FINAL_METHOD_UPDATED_PENDING_BROWSER_REVIEW"
     source_info["plus100_research"] = {
         "path": str(PLUS100_SUPPLEMENT),
         "sha256": sha(PLUS100_SUPPLEMENT),
@@ -1128,7 +1130,7 @@ def refresh_existing(out: Path) -> None:
     write_json(out / "V13术语翻译检查报告.json", report)
     write_json(out / "V13限定返修检查报告.json", {
         "status": "PASS",
-        "scope": "仅将+100%模块升级为真实消息时间、触发相似度、基准超额收益和下行风险方法；冻结V11、V12和84份预测均未改写",
+        "scope": "仅将+100%模块升级为财报后真实可交易起点、当时预期匹配与严格A/B/C方法；冻结V11、V12和84份预测均未改写",
         "three_business_repairs": {
             "complete_theme_story_count": report["complete_theme_story_count"],
             "year_reference_display": {
@@ -1176,7 +1178,7 @@ def refresh_existing(out: Path) -> None:
         "locked_forecast_changed_count": 0,
         "v11_v12_changed_count": 0,
     })
-    manifest = {"run_id": source_info["run_id"], "status": "V13_PLUS100_METHOD_V2_UPDATED_PENDING_BROWSER_REVIEW", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "V13_PLUS100_FINAL_METHOD_UPDATED_PENDING_BROWSER_REVIEW", "artifacts": []}
     for path in sorted(out.iterdir()):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": path.name, "bytes": path.stat().st_size, "sha256": sha(path)})
@@ -1191,10 +1193,10 @@ def finalize_browser(out: Path) -> None:
         raise SystemExit("浏览器检查未通过，拒绝冻结")
     source_path = out / "V13普通中文产品源.json"
     source_info = json.loads(source_path.read_text(encoding="utf-8"))
-    source_info["status"] = "WAITING_GPT_PLUS100_METHOD_REREVIEW"
+    source_info["status"] = "WAITING_GPT_PLUS100_FINAL_METHOD_REVIEW"
     source_info["browser_review"] = {"status": "PASS", "path": str(browser_path), "sha256": sha(browser_path)}
     write_json(source_path, source_info)
-    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_PLUS100_METHOD_REREVIEW", "artifacts": []}
+    manifest = {"run_id": source_info["run_id"], "status": "WAITING_GPT_PLUS100_FINAL_METHOD_REVIEW", "artifacts": []}
     for path in sorted(out.rglob("*")):
         if path.is_file() and path.name != "V13_SHA256清单.json":
             manifest["artifacts"].append({"name": str(path.relative_to(out)), "bytes": path.stat().st_size, "sha256": sha(path)})

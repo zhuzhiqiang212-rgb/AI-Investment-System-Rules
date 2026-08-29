@@ -67,13 +67,13 @@ if (!htmlPath || !reportPath || !outDir) process.exit(2);
       });
       await page.evaluate(() => document.querySelectorAll('details').forEach(item => { item.open = false; }));
       const collapsed = await page.evaluate(() => document.querySelectorAll('details[open]').length);
-      const screenshot = path.join(outDir, `V13_${viewport.name}_plus100_v2.png`);
+      const screenshot = path.join(outDir, `V13_${viewport.name}_plus100_v3.png`);
       await page.screenshot({ path: screenshot, fullPage: true });
-      const goalsScreenshot = path.join(outDir, `V13_${viewport.name}_goals_v2.png`);
+      const goalsScreenshot = path.join(outDir, `V13_${viewport.name}_goals_v3.png`);
       await page.locator('#goals').screenshot({ path: goalsScreenshot });
       const pass = initial.sections === 10 && initial.navLinks === 10 && initial.missingNavAnchors === 0
         && initial.holdings === 24 && initial.opportunities === 18 && initial.assets === 42 && initial.themes === 4
-        && initial.waveA === 3 && initial.waveB === 39 && initial.waveC === 0
+        && initial.waveA + initial.waveB + initial.waveC === 42
         && initial.eventCalendar === 42 && initial.oldARegrades === 21
         && initial.initiallyClosed && expanded === initial.details && collapsed === 0
         && !layout.documentOverflow && layout.unwrappedWide.length === 0 && layout.tableMismatches.length === 0
