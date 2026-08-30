@@ -1,55 +1,243 @@
 {
   "schema_version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
   "harness_id": "V7_MINIMAL_HARNESS_PHASE1",
-  "run_id": "V7-PRODUCTION-SOP-V1-20260830-101558-JST",
-  "generated_at_jst": "2026-08-30T10:15:58+09:00",
+  "run_id": "V7-COMPLETE-PRODUCT-PHASE2-20260830-104200-JST",
+  "generated_at_jst": "2026-08-30T10:42:00+09:00",
   "control_status": "ACCEPTANCE_PENDING",
-  "active_task_id": "V7-PRODUCTION-SOP-V1-IMPLEMENTATION",
+  "active_task_id": "V7-COMPLETE-PRODUCT-PHASE2-MACRO-WORLDVIEW",
   "tasks": [
-    {"task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD", "task_name": "V7最小Harness第一阶段建设", "status": "COMPLETED", "closed_by_role": "GPT_CONTROL", "closure_basis": "MINIMAL_HARNESS_ACCEPTANCE_PASS"},
-    {"task_id": "V7-COMPLETE-PRODUCT-PHASE1-SKELETON-INTERFACES", "task_name": "V7完整产品骨架与数据接口定义", "status": "COMPLETED", "closed_by_role": "GPT_CONTROL", "closure_basis": "PHASE1_ACCEPTANCE_PASS_IN_SOP_FORMAL_ORDER"},
-    {"task_id": "V7-PRODUCTION-SOP-V1-IMPLEMENTATION", "task_name": "V7正式生产SOP v1.0建设", "status": "ACCEPTANCE_PENDING", "opened_by_role": "GPT_CONTROL", "opened_by_actor": "V7总控-3"}
+    {
+      "task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
+      "task_name": "V7最小Harness第一阶段建设",
+      "status": "COMPLETED",
+      "closed_by_role": "GPT_CONTROL",
+      "closure_basis": "MINIMAL_HARNESS_ACCEPTANCE_PASS"
+    },
+    {
+      "task_id": "V7-COMPLETE-PRODUCT-PHASE1-SKELETON-INTERFACES",
+      "task_name": "V7完整产品骨架与数据接口定义",
+      "status": "COMPLETED",
+      "closed_by_role": "GPT_CONTROL",
+      "closure_basis": "PHASE1_ACCEPTANCE_PASS_IN_SOP_FORMAL_ORDER"
+    },
+    {
+      "task_id": "V7-PRODUCTION-SOP-V1-IMPLEMENTATION",
+      "task_name": "V7正式生产SOP v1.0建设",
+      "status": "COMPLETED",
+      "opened_by_role": "GPT_CONTROL",
+      "opened_by_actor": "V7总控-3",
+      "closed_by_role": "GPT_CONTROL",
+      "closure_basis": "SOP_ACCEPTANCE_PASS_BY_V7_CONTROL_4_WORK"
+    },
+    {
+      "task_id": "V7-COMPLETE-PRODUCT-PHASE2-MACRO-WORLDVIEW",
+      "task_name": "V7完整产品Phase 2宏观与世界观恢复",
+      "status": "ACCEPTANCE_PENDING",
+      "opened_by_role": "CHAIRMAN",
+      "opened_by_actor": "董事长"
+    }
   ],
   "roles": {
-    "CHAIRMAN": {"permissions": ["DECIDE_FINAL_TARGET", "MAKE_FINAL_BUSINESS_DECISION", "AUTHORIZE_RELEASE", "APPROVE_MAJOR_GOVERNANCE_CHANGE"], "prohibitions": []},
-    "GPT_CONTROL": {"permissions": ["DEFINE_TASK", "FREEZE_SCOPE", "AUTHORIZE_EXECUTION", "DISPATCH", "RECEIVE_RESULT", "ORGANIZE_ACCEPTANCE"], "prohibitions": ["IMPERSONATE_CHAIRMAN", "AUTO_CONVERT_BUSINESS_ACCEPTANCE_TO_RELEASE"]},
-    "CODEX_EXECUTOR": {"permissions": ["EXECUTE_FORMAL_TASK", "CREATE_ALLOWED_FILES", "RUN_LOCAL_TESTS", "REPORT_RESULTS"], "prohibitions": ["EXPAND_SCOPE", "MODIFY_CURRENT_GOVERNANCE", "DEFINE_NEW_BUSINESS_TARGET", "DECLARE_FINAL_BUSINESS_PASS", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"]},
-    "INDEPENDENT_VALIDATOR": {"permissions": ["READ_CONTROL", "VALIDATE_CONTROL", "REPORT_FINDINGS"], "prohibitions": ["PRODUCE_ARTIFACT", "MODIFY_CONTROL", "AUTO_REPAIR", "AUTO_ADVANCE", "RELEASE", "TRADE", "ORDER"]}
+    "CHAIRMAN": {
+      "permissions": [
+        "DECIDE_FINAL_TARGET",
+        "MAKE_FINAL_BUSINESS_DECISION",
+        "AUTHORIZE_RELEASE",
+        "APPROVE_MAJOR_GOVERNANCE_CHANGE"
+      ],
+      "prohibitions": []
+    },
+    "GPT_CONTROL": {
+      "permissions": [
+        "DEFINE_TASK",
+        "FREEZE_SCOPE",
+        "AUTHORIZE_EXECUTION",
+        "DISPATCH",
+        "RECEIVE_RESULT",
+        "ORGANIZE_ACCEPTANCE"
+      ],
+      "prohibitions": [
+        "IMPERSONATE_CHAIRMAN",
+        "AUTO_CONVERT_BUSINESS_ACCEPTANCE_TO_RELEASE"
+      ]
+    },
+    "CODEX_EXECUTOR": {
+      "permissions": [
+        "EXECUTE_FORMAL_TASK",
+        "CREATE_ALLOWED_FILES",
+        "RUN_LOCAL_TESTS",
+        "REPORT_RESULTS"
+      ],
+      "prohibitions": [
+        "EXPAND_SCOPE",
+        "MODIFY_CURRENT_GOVERNANCE",
+        "DEFINE_NEW_BUSINESS_TARGET",
+        "DECLARE_FINAL_BUSINESS_PASS",
+        "RELEASE",
+        "TRADE",
+        "ORDER",
+        "AUTO_CONTINUE"
+      ]
+    },
+    "INDEPENDENT_VALIDATOR": {
+      "permissions": [
+        "READ_CONTROL",
+        "VALIDATE_CONTROL",
+        "REPORT_FINDINGS"
+      ],
+      "prohibitions": [
+        "PRODUCE_ARTIFACT",
+        "MODIFY_CONTROL",
+        "AUTO_REPAIR",
+        "AUTO_ADVANCE",
+        "RELEASE",
+        "TRADE",
+        "ORDER"
+      ]
+    }
   },
   "task": {
-    "task_id": "V7-PRODUCTION-SOP-V1-IMPLEMENTATION",
-    "task_name": "V7正式生产SOP v1.0建设",
-    "owner_controller": {"role": "GPT_CONTROL", "actor": "V7总控-3"},
-    "executor": {"role": "CODEX_EXECUTOR", "actor": "Codex-V7-1"},
-    "acceptance_owner": {"role": "GPT_CONTROL", "actor": "V7总控-3"},
+    "task_id": "V7-COMPLETE-PRODUCT-PHASE2-MACRO-WORLDVIEW",
+    "task_name": "V7完整产品Phase 2宏观与世界观恢复",
+    "owner_controller": {
+      "role": "GPT_CONTROL",
+      "actor": "V7总控--4（Work）"
+    },
+    "executor": {
+      "role": "CODEX_EXECUTOR",
+      "actor": "Codex-V7-1"
+    },
+    "acceptance_owner": {
+      "role": "GPT_CONTROL",
+      "actor": "V7总控--4（Work）"
+    },
     "business_blueprint_id": "V7_COMPLETE_PRODUCT_CURRENT_v2.0",
     "production_sop_id": "V7_PRODUCTION_SOP_CURRENT_v1.0",
-    "production_sop_status": "IMPLEMENTED_ACCEPTANCE_PENDING",
-    "research_baseline_id": "V13_RESEARCH_BASELINE",
+    "phase": "PHASE2_MACRO_WORLDVIEW_RECOVERY",
+    "phase2_status": "IMPLEMENTED_ACCEPTANCE_PENDING",
     "production_ready": "NO"
   },
   "scope": {
-    "allowed": ["CREATE_FORMAL_SOP", "CREATE_SOP_SCHEMA", "CREATE_SOURCE_CLASSIFICATION", "CREATE_FRESHNESS_RULES", "CREATE_INCREMENTAL_CONSUMPTION_RULES", "CREATE_EDINET_INTERFACE_RULES", "CREATE_MISSING_DATA_RULES", "CREATE_REFRESH_TRIGGER_RULES", "CREATE_PRODUCTION_STATE_MACHINE", "CREATE_TESTS", "CREATE_README", "UPDATE_THIS_HARNESS_RUN", "RUN_LOCAL_TESTS"],
-    "forbidden": ["REAL_EDINET_FETCH", "SCAN_NEWS", "SCAN_LAOLEI", "SCAN_HUSHUI", "PRODUCE_MACRO", "PRODUCE_FLOW", "PRODUCE_SECTOR", "MODIFY_V13", "MODIFY_V13_HTML", "MODIFY_V13_PDF", "RESEARCH_SECURITIES", "BUILD_FULL_PRODUCT", "CONNECT_MACRO_PIPELINE", "CONNECT_PDCA_PIPELINE", "UPDATE_COMPANY_JUDGEMENT", "UPDATE_REAL_PORTFOLIO", "RUN_FORMAL_PDCA", "GENERATE_TODAY_ACTION", "PRODUCE_DAILY_REPORT", "OVERWRITE_DAILY_REPORT", "BROKER_ORDER_API", "BUILD_FULL_HARNESS", "START_PHASE2", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"]
+    "allowed": [
+      "CREATE_PHASE2_MACRO_WORLDVIEW_ARTIFACTS",
+      "CREATE_PHASE2_SCHEMA",
+      "CREATE_PHASE2_VALIDATOR",
+      "CREATE_PHASE2_TESTS",
+      "UPDATE_THIS_HARNESS_RUN",
+      "RUN_LOCAL_TESTS"
+    ],
+    "forbidden": [
+      "REAL_EDINET_FETCH",
+      "SCAN_NEWS",
+      "SCAN_LAOLEI",
+      "SCAN_HUSHUI",
+      "PRODUCE_DAILY_MACRO_JUDGEMENT",
+      "PRODUCE_FLOW",
+      "PRODUCE_SECTOR",
+      "MODIFY_V13",
+      "MODIFY_V13_HTML",
+      "MODIFY_V13_PDF",
+      "RESEARCH_SECURITIES",
+      "BUILD_FULL_PRODUCT",
+      "CONNECT_MACRO_PIPELINE",
+      "CONNECT_PDCA_PIPELINE",
+      "UPDATE_COMPANY_JUDGEMENT",
+      "UPDATE_REAL_PORTFOLIO",
+      "RUN_FORMAL_PDCA",
+      "GENERATE_TODAY_ACTION",
+      "PRODUCE_DAILY_REPORT",
+      "OVERWRITE_DAILY_REPORT",
+      "BROKER_ORDER_API",
+      "BUILD_FULL_HARNESS",
+      "START_PHASE3",
+      "RELEASE",
+      "TRADE",
+      "ORDER",
+      "AUTO_CONTINUE"
+    ]
   },
   "stages": {
-    "ordered": ["S0_DEFINED", "S1_INPUT_BOUND", "S2_AUTHORIZED", "S3_EXECUTED", "S4_VALIDATED", "S5_ACCEPTANCE_PENDING", "S5_ACCEPTED"],
+    "ordered": [
+      "S0_DEFINED",
+      "S1_INPUT_BOUND",
+      "S2_AUTHORIZED",
+      "S3_EXECUTED",
+      "S4_VALIDATED",
+      "S5_ACCEPTANCE_PENDING",
+      "S5_ACCEPTED"
+    ],
     "current": "S5_ACCEPTANCE_PENDING",
     "history": [
-      {"stage": "S0_DEFINED", "status": "PASS", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T09:58:49+09:00"},
-      {"stage": "S1_INPUT_BOUND", "status": "PASS", "actor_role": "CODEX_EXECUTOR", "actor": "Codex-V7-1", "at_jst": "2026-08-30T10:01:00+09:00"},
-      {"stage": "S2_AUTHORIZED", "status": "PASS", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T10:02:00+09:00"},
-      {"stage": "S3_EXECUTED", "status": "PASS", "actor_role": "CODEX_EXECUTOR", "actor": "Codex-V7-1", "at_jst": "2026-08-30T10:13:00+09:00"},
-      {"stage": "S4_VALIDATED", "status": "PASS", "actor_role": "INDEPENDENT_VALIDATOR", "actor": "SOP and Minimal Harness read-only validators", "at_jst": "2026-08-30T10:15:58+09:00"},
-      {"stage": "S5_ACCEPTANCE_PENDING", "status": "WAITING", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T10:15:58+09:00"}
+      {
+        "stage": "S0_DEFINED",
+        "status": "PASS",
+        "actor_role": "GPT_CONTROL",
+        "actor": "V7总控--4（Work）",
+        "at_jst": "2026-08-30T10:42:00+09:00",
+        "basis": "CHAIRMAN_APPROVAL_RECEIVED"
+      },
+      {
+        "stage": "S1_INPUT_BOUND",
+        "status": "PASS",
+        "actor_role": "CODEX_EXECUTOR",
+        "actor": "Codex-V7-1",
+        "at_jst": "2026-08-30T10:42:00+09:00"
+      },
+      {
+        "stage": "S2_AUTHORIZED",
+        "status": "PASS",
+        "actor_role": "GPT_CONTROL",
+        "actor": "V7总控--4（Work）",
+        "at_jst": "2026-08-30T10:42:00+09:00",
+        "basis": "USER_CHAIRMAN_APPROVAL"
+      },
+      {
+        "stage": "S3_EXECUTED",
+        "status": "PASS",
+        "actor_role": "CODEX_EXECUTOR",
+        "actor": "Codex-V7-1",
+        "at_jst": "2026-08-30T10:42:00+09:00"
+      },
+      {
+        "stage": "S4_VALIDATED",
+        "status": "PASS",
+        "actor_role": "INDEPENDENT_VALIDATOR",
+        "actor": "Phase2 macro/worldview read-only validators",
+        "at_jst": "2026-08-30T10:42:00+09:00"
+      },
+      {
+        "stage": "S5_ACCEPTANCE_PENDING",
+        "status": "WAITING",
+        "actor_role": "GPT_CONTROL",
+        "actor": "V7总控--4（Work）",
+        "at_jst": "2026-08-30T10:42:00+09:00"
+      }
     ]
   },
   "authorization": {
     "authorized_by_role": "GPT_CONTROL",
-    "authorized_by_actor": "V7总控-3",
-    "authorized_at_jst": "2026-08-30T09:58:49+09:00",
-    "authorized_actions": ["CREATE_SOP_ARTIFACTS", "CREATE_RULE_STRUCTURES", "CREATE_EDINET_INTERFACE_ONLY", "CREATE_TESTS", "UPDATE_THIS_HARNESS_RUN", "REPORT_RESULTS"],
-    "explicitly_forbidden_actions": ["REAL_PRODUCTION", "REAL_EDINET_FETCH", "NEWS_SCAN", "MODIFY_V13", "PHASE2", "DAILY_REPORT", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"],
+    "authorized_by_actor": "V7总控--4（Work）",
+    "authorized_at_jst": "2026-08-30T10:42:00+09:00",
+    "chairman_approval_basis": "USER_MESSAGE_APPROVED_PHASE2",
+    "authorized_actions": [
+      "CREATE_PHASE2_MACRO_WORLDVIEW_ARTIFACTS",
+      "CREATE_RULE_STRUCTURES",
+      "CREATE_TESTS",
+      "UPDATE_THIS_HARNESS_RUN",
+      "REPORT_RESULTS"
+    ],
+    "explicitly_forbidden_actions": [
+      "REAL_PRODUCTION",
+      "REAL_EDINET_FETCH",
+      "NEWS_SCAN",
+      "MODIFY_V13",
+      "PHASE3",
+      "DAILY_REPORT",
+      "RELEASE",
+      "TRADE",
+      "ORDER",
+      "AUTO_CONTINUE"
+    ],
     "modify_input_allowed": false,
     "production_allowed": false,
     "release_allowed": false,
@@ -57,29 +245,143 @@
     "order_allowed": false
   },
   "inputs": [
-    {"artifact_id": "SOP_FORMAL_ORDER_AND_DESIGN_AUTHORITY", "filename": "pasted-text.txt", "path": "C:\\Users\\localhost\\.codex\\attachments\\8894ef27-7a45-4ef1-880d-9d52761b646f\\pasted-text.txt", "version": "V7_PRODUCTION_SOP_CURRENT_v1.0_DESIGN", "size_bytes": 22484, "sha256": "3F2AECBEA26A97D5EF3CBBD97B77CD967548852EA1EDD7F8D0DC722D2A1D0ADC", "input_role": "FORMAL_TASK_AND_SOP_DESIGN_AUTHORITY", "binding_status": "BOUND"},
-    {"artifact_id": "BUSINESS_BLUEPRINT_AUTHORITY", "filename": "pasted-text.txt", "path": "C:\\Users\\localhost\\.codex\\attachments\\ce912ef2-41e1-45bc-8266-b40f1ad6f065\\pasted-text.txt", "version": "V7_COMPLETE_PRODUCT_CURRENT_v2.0", "size_bytes": 17729, "sha256": "81ABF8D38DCEE12B948CC5AEE6E01B4629F91BB84D0184B769145035EB58AFB6", "input_role": "BUSINESS_BLUEPRINT_AUTHORITY_REFERENCE", "binding_status": "BOUND"},
-    {"artifact_id": "PHASE1_STRUCTURE", "filename": "phase1_structure_example.json", "path": "harness/v7_phase1_product_interfaces/phase1_structure_example.json", "version": "1.0", "size_bytes": 9144, "sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C", "input_role": "ACCEPTED_PHASE1_STRUCTURE", "binding_status": "BOUND"},
-    {"artifact_id": "MINIMAL_HARNESS_SCHEMA", "filename": "run_control.schema.json", "path": "harness/v7_minimal_phase1/run_control.schema.json", "version": "V7_MINIMAL_HARNESS_PHASE1_1.0", "size_bytes": 1618, "sha256": "DAA4C11FD13D51DA1715AFC353DCB4203447020538A0BD747D92FDB4EB1BF8AC", "input_role": "ACTIVE_HARNESS_SCHEMA", "binding_status": "BOUND"},
-    {"artifact_id": "MINIMAL_HARNESS_VALIDATOR", "filename": "validate_run_control.py", "path": "harness/v7_minimal_phase1/validate_run_control.py", "version": "V7_MINIMAL_HARNESS_PHASE1_1.0", "size_bytes": 12167, "sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482", "input_role": "ACTIVE_HARNESS_VALIDATOR", "binding_status": "BOUND"},
-    {"artifact_id": "V13_RESEARCH_BASELINE", "filename": "V13普通中文完整投资产品.html", "path": "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/V13普通中文完整投资产品.html", "version": "V13-USER-READABLE-20260829015943-JST", "size_bytes": 365540, "sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4", "input_role": "FROZEN_RESEARCH_BASELINE_DO_NOT_MODIFY", "binding_status": "BOUND"}
+    {
+      "artifact_id": "SOP_FORMAL_ORDER_AND_DESIGN_AUTHORITY",
+      "filename": "pasted-text.txt",
+      "path": "C:\\Users\\localhost\\.codex\\attachments\\8894ef27-7a45-4ef1-880d-9d52761b646f\\pasted-text.txt",
+      "version": "V7_PRODUCTION_SOP_CURRENT_v1.0_DESIGN",
+      "size_bytes": 22484,
+      "sha256": "3F2AECBEA26A97D5EF3CBBD97B77CD967548852EA1EDD7F8D0DC722D2A1D0ADC",
+      "input_role": "FORMAL_TASK_AND_SOP_DESIGN_AUTHORITY",
+      "binding_status": "BOUND"
+    },
+    {
+      "artifact_id": "BUSINESS_BLUEPRINT_AUTHORITY",
+      "filename": "pasted-text.txt",
+      "path": "C:\\Users\\localhost\\.codex\\attachments\\ce912ef2-41e1-45bc-8266-b40f1ad6f065\\pasted-text.txt",
+      "version": "V7_COMPLETE_PRODUCT_CURRENT_v2.0",
+      "size_bytes": 17729,
+      "sha256": "81ABF8D38DCEE12B948CC5AEE6E01B4629F91BB84D0184B769145035EB58AFB6",
+      "input_role": "BUSINESS_BLUEPRINT_AUTHORITY_REFERENCE",
+      "binding_status": "BOUND"
+    },
+    {
+      "artifact_id": "PHASE1_STRUCTURE",
+      "filename": "phase1_structure_example.json",
+      "path": "harness/v7_phase1_product_interfaces/phase1_structure_example.json",
+      "version": "1.0",
+      "size_bytes": 9144,
+      "sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C",
+      "input_role": "ACCEPTED_PHASE1_STRUCTURE",
+      "binding_status": "BOUND"
+    },
+    {
+      "artifact_id": "MINIMAL_HARNESS_SCHEMA",
+      "filename": "run_control.schema.json",
+      "path": "harness/v7_minimal_phase1/run_control.schema.json",
+      "version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
+      "size_bytes": 1618,
+      "sha256": "DAA4C11FD13D51DA1715AFC353DCB4203447020538A0BD747D92FDB4EB1BF8AC",
+      "input_role": "ACTIVE_HARNESS_SCHEMA",
+      "binding_status": "BOUND"
+    },
+    {
+      "artifact_id": "MINIMAL_HARNESS_VALIDATOR",
+      "filename": "validate_run_control.py",
+      "path": "harness/v7_minimal_phase1/validate_run_control.py",
+      "version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
+      "size_bytes": 12167,
+      "sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482",
+      "input_role": "ACTIVE_HARNESS_VALIDATOR",
+      "binding_status": "BOUND"
+    },
+    {
+      "artifact_id": "V13_RESEARCH_BASELINE",
+      "filename": "V13普通中文完整投资产品.html",
+      "path": "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/V13普通中文完整投资产品.html",
+      "version": "V13-USER-READABLE-20260829015943-JST",
+      "size_bytes": 365540,
+      "sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
+      "input_role": "FROZEN_RESEARCH_BASELINE_DO_NOT_MODIFY",
+      "binding_status": "BOUND"
+    }
   ],
   "outputs": [
-    {"artifact_id": "FORMAL_PRODUCTION_SOP", "path": "harness/v7_production_sop_v1/V7正式生产SOP_Current_v1.0.json", "size_bytes": 15274, "sha256": "DA8B76F6638857F97187BB03E28D03399FD8A8E36683284E26B436F24205B227", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "PRODUCTION_SOP_SCHEMA", "path": "harness/v7_production_sop_v1/production_sop.schema.json", "size_bytes": 2548, "sha256": "FF9BD7F637063E653CEEF172B53753CAD285A0B7FAC898AE420DF12485E8BCD2", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "SOURCE_CLASSIFICATION_RULES", "path": "harness/v7_production_sop_v1/source_classification_rules.json", "size_bytes": 1703, "sha256": "48E68A1F10AC2199A02B35AD5B8689C4FF4001104C69B74C878A496C18DAA039", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "FRESHNESS_CONSUMPTION_RULES", "path": "harness/v7_production_sop_v1/freshness_and_consumption_rules.json", "size_bytes": 2360, "sha256": "5F2AB4AEE6CFDC040A55E7D136169A93589B504F13862D8E5A04069EB27A0A71", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "PRODUCTION_STATE_MACHINE", "path": "harness/v7_production_sop_v1/production_state_machine.json", "size_bytes": 3462, "sha256": "8917263DF340029D3F43864E47F7D7336FF360782050B56F7021C2440D48B08E", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "SOP_READ_ONLY_VALIDATOR", "path": "harness/v7_production_sop_v1/validate_production_sop.py", "size_bytes": 9648, "sha256": "F3F2B026C7D54DAC23E0470D9EE5A3FEA2FEDACDD85CAD7469B22F5FFDCA924D", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "SOP_20_TEST_SUITE", "path": "harness/v7_production_sop_v1/tests/test_production_sop.py", "size_bytes": 5023, "sha256": "2ACBD200AEF183A11D99E411724A25C49033204F0816EB6D5ED2339B93573000", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "SOP_TEST_RUNNER", "path": "harness/v7_production_sop_v1/tests/run_tests.py", "size_bytes": 2024, "sha256": "023FB7697BEB8356944DBE32D0C1F72CB513400EA417CCA97910D46D61B771FF", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "SOP_TEST_REPORT", "path": "harness/v7_production_sop_v1/sop_test_report.json", "size_bytes": 2212, "sha256": "8DC948B7BC631638EA9CE3B4C56FAB020B4C234A03F89451CD78DDA7F731CE32", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "SOP_README", "path": "harness/v7_production_sop_v1/README.html", "size_bytes": 2222, "sha256": "980B4D3E9914D693486E73C2EADD46C8CBC99311C5BFE22B34422D4B3BE54B6B", "producer_role": "CODEX_EXECUTOR"}
+    {
+      "artifact_id": "PHASE2_MACRO_WORLDVIEW",
+      "path": "harness/v7_phase2_macro_worldview/macro_worldview_current.json",
+      "size_bytes": 6033,
+      "sha256": "718A2E8824985A40D3F83C2DB72A218D88135C7A641D8346D55CE046883B75B6",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE2_SCHEMA",
+      "path": "harness/v7_phase2_macro_worldview/macro_worldview.schema.json",
+      "size_bytes": 1025,
+      "sha256": "52F386AA36759241B9B5ED455D5EAA698F762C406B6FFA6C8E364A98D897EA3E",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE2_VALIDATOR",
+      "path": "harness/v7_phase2_macro_worldview/validate_macro_worldview.py",
+      "size_bytes": 5684,
+      "sha256": "4BA8E006BF9CFE4F2EC3D6444AA3AF6CE2BFBEDD02A968EB1E3906D8C0FE4CAD",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE2_TEST_SUITE",
+      "path": "harness/v7_phase2_macro_worldview/tests/test_macro_worldview.py",
+      "size_bytes": 4509,
+      "sha256": "C58EA967EA73FD93ED7512E0DB2C56F55962D21A8460FB4471D27C738AF48F2C",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE2_TEST_RUNNER",
+      "path": "harness/v7_phase2_macro_worldview/tests/run_tests.py",
+      "size_bytes": 1249,
+      "sha256": "A26BF47950AFC6016F5D119296D395F75A38549D23A640B8DAFCC8B61478E160",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE2_TEST_REPORT",
+      "path": "harness/v7_phase2_macro_worldview/phase2_test_report.json",
+      "size_bytes": 1542,
+      "sha256": "3BF230DE3785CF9EFE7AF1E0B0C49F155F73BEBD7CFA99B2878CEF0DD337BB50",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE2_README",
+      "path": "harness/v7_phase2_macro_worldview/README.html",
+      "size_bytes": 1046,
+      "sha256": "E9F72BCBA907796108A69A4D0D57BA07C369C034AF33714F32E11734288CAAD8",
+      "producer_role": "CODEX_EXECUTOR"
+    }
   ],
   "consumption_chain": [
-    {"relation_id": "FORMAL_SOP_TO_VALIDATOR", "producer": "CODEX_EXECUTOR", "produced_artifact": "FORMAL_PRODUCTION_SOP", "produced_artifact_sha256": "DA8B76F6638857F97187BB03E28D03399FD8A8E36683284E26B436F24205B227", "consumer": "SOP_READ_ONLY_VALIDATOR", "consumed_artifact_sha256": "DA8B76F6638857F97187BB03E28D03399FD8A8E36683284E26B436F24205B227"},
-    {"relation_id": "VALIDATOR_TO_TEST_SUITE", "producer": "CODEX_EXECUTOR", "produced_artifact": "SOP_READ_ONLY_VALIDATOR", "produced_artifact_sha256": "F3F2B026C7D54DAC23E0470D9EE5A3FEA2FEDACDD85CAD7469B22F5FFDCA924D", "consumer": "SOP_20_TEST_SUITE", "consumed_artifact_sha256": "F3F2B026C7D54DAC23E0470D9EE5A3FEA2FEDACDD85CAD7469B22F5FFDCA924D"},
-    {"relation_id": "TEST_REPORT_TO_RUN_CONTROL", "producer": "CODEX_EXECUTOR", "produced_artifact": "SOP_TEST_REPORT", "produced_artifact_sha256": "8DC948B7BC631638EA9CE3B4C56FAB020B4C234A03F89451CD78DDA7F731CE32", "consumer": "RUN_CONTROL_BINDING", "consumed_artifact_sha256": "8DC948B7BC631638EA9CE3B4C56FAB020B4C234A03F89451CD78DDA7F731CE32"}
+    {
+      "relation_id": "PHASE2_MACRO_WORLDVIEW_TO_VALIDATOR",
+      "producer": "CODEX_EXECUTOR",
+      "produced_artifact": "PHASE2_MACRO_WORLDVIEW",
+      "produced_artifact_sha256": "718A2E8824985A40D3F83C2DB72A218D88135C7A641D8346D55CE046883B75B6",
+      "consumer": "PHASE2_MACRO_WORLDVIEW_VALIDATOR",
+      "consumed_artifact_sha256": "718A2E8824985A40D3F83C2DB72A218D88135C7A641D8346D55CE046883B75B6"
+    },
+    {
+      "relation_id": "PHASE2_VALIDATOR_TO_TEST_SUITE",
+      "producer": "CODEX_EXECUTOR",
+      "produced_artifact": "PHASE2_VALIDATOR",
+      "produced_artifact_sha256": "4BA8E006BF9CFE4F2EC3D6444AA3AF6CE2BFBEDD02A968EB1E3906D8C0FE4CAD",
+      "consumer": "PHASE2_TEST_SUITE",
+      "consumed_artifact_sha256": "4BA8E006BF9CFE4F2EC3D6444AA3AF6CE2BFBEDD02A968EB1E3906D8C0FE4CAD"
+    },
+    {
+      "relation_id": "PHASE2_TEST_REPORT_TO_RUN_CONTROL",
+      "producer": "CODEX_EXECUTOR",
+      "produced_artifact": "PHASE2_TEST_REPORT",
+      "produced_artifact_sha256": "3BF230DE3785CF9EFE7AF1E0B0C49F155F73BEBD7CFA99B2878CEF0DD337BB50",
+      "consumer": "RUN_CONTROL_BINDING",
+      "consumed_artifact_sha256": "3BF230DE3785CF9EFE7AF1E0B0C49F155F73BEBD7CFA99B2878CEF0DD337BB50"
+    }
   ],
   "validation": {
     "validator_artifact_id": "MINIMAL_HARNESS_VALIDATOR",
@@ -87,19 +389,54 @@
     "auto_repair": false,
     "auto_advance": false,
     "result": "TECHNICAL_CHECK_PASS",
-    "sop_validator_artifact_id": "SOP_READ_ONLY_VALIDATOR",
-    "sop_validator_result": "21_OF_21_PASS",
-    "self_test_report_artifact_id": "SOP_TEST_REPORT",
+    "phase2_validator_artifact_id": "PHASE2_MACRO_WORLDVIEW_VALIDATOR",
+    "phase2_validator_result": "11_OF_11_PASS",
+    "self_test_report_artifact_id": "PHASE2_TEST_REPORT",
     "self_test_result": "20_OF_20_PASS"
   },
   "pass_levels": [
-    {"level": 1, "name": "TECHNICAL_CHECK_PASS", "status": "PASS", "decided_by_role": "INDEPENDENT_VALIDATOR", "basis": "DIRECT_VALIDATION"},
-    {"level": 2, "name": "CONTENT_OR_LOCAL_ACCEPTANCE_PASS", "status": "PASS", "decided_by_role": "CODEX_EXECUTOR", "basis": "EXPLICIT_REVIEW"},
-    {"level": 3, "name": "INDEPENDENT_FINAL_ACCEPTANCE_PASS", "status": "PENDING", "decided_by_role": null, "basis": null},
-    {"level": 4, "name": "GPT_BUSINESS_ACCEPTANCE_PASS", "status": "PENDING", "decided_by_role": null, "basis": null},
-    {"level": 5, "name": "CHAIRMAN_APPROVED", "status": "PENDING", "decided_by_role": null, "basis": null}
+    {
+      "level": 1,
+      "name": "TECHNICAL_CHECK_PASS",
+      "status": "PASS",
+      "decided_by_role": "INDEPENDENT_VALIDATOR",
+      "basis": "DIRECT_VALIDATION"
+    },
+    {
+      "level": 2,
+      "name": "CONTENT_OR_LOCAL_ACCEPTANCE_PASS",
+      "status": "PASS",
+      "decided_by_role": "CODEX_EXECUTOR",
+      "basis": "EXPLICIT_REVIEW"
+    },
+    {
+      "level": 3,
+      "name": "INDEPENDENT_FINAL_ACCEPTANCE_PASS",
+      "status": "PENDING",
+      "decided_by_role": null,
+      "basis": null
+    },
+    {
+      "level": 4,
+      "name": "GPT_BUSINESS_ACCEPTANCE_PASS",
+      "status": "PENDING",
+      "decided_by_role": null,
+      "basis": null
+    },
+    {
+      "level": 5,
+      "name": "CHAIRMAN_APPROVED",
+      "status": "PENDING",
+      "decided_by_role": null,
+      "basis": null
+    }
   ],
-  "release": {"chairman_decision": "PENDING", "decision_by_role": null, "release_authorized": false, "authorized_by_role": null},
+  "release": {
+    "chairman_decision": "PENDING",
+    "decision_by_role": null,
+    "release_authorized": false,
+    "authorized_by_role": null
+  },
   "safety_counters": {
     "v13_modified_count": 0,
     "release_executed_count": 0,
@@ -117,22 +454,32 @@
     "flow_production_started_count": 0,
     "sector_production_started_count": 0,
     "pdca_production_started_count": 0,
-    "phase2_started_count": 0
+    "phase2_started_count": 1,
+    "phase3_started_count": 0
   },
   "recovery": {
     "last_valid_stage": "S4_VALIDATED",
-    "last_valid_input": "SOP_FORMAL_ORDER_AND_DESIGN_AUTHORITY",
-    "last_valid_output": "SOP_TEST_REPORT",
+    "last_valid_input": "V7_PRODUCTION_SOP_CURRENT_v1.0",
+    "last_valid_output": "PHASE2_TEST_REPORT",
     "failed_stage": null,
-    "blocked_reason": "WAITING_V7_CONTROL_3_SOP_ACCEPTANCE",
+    "blocked_reason": "WAITING_V7_CONTROL_4_PHASE2_ACCEPTANCE",
     "retry_allowed": true,
     "resume_from": "S5_ACCEPTANCE_PENDING"
   },
   "next_action": {
     "auto_continue": false,
     "required_role": "GPT_CONTROL",
-    "required_actor": "V7总控-3",
-    "action": "ACCEPT_OR_RETURN_V7_PRODUCTION_SOP_V1",
-    "forbidden_until_decision": ["PHASE2", "REAL_EDINET_FETCH", "NEWS_SCAN", "FULL_PRODUCT_PRODUCTION", "DAILY_REPORT", "RELEASE", "TRADE", "ORDER"]
+    "required_actor": "V7总控--4（Work）",
+    "action": "ACCEPT_OR_RETURN_V7_PHASE2_MACRO_WORLDVIEW",
+    "forbidden_until_decision": [
+      "PHASE3",
+      "REAL_EDINET_FETCH",
+      "NEWS_SCAN",
+      "FULL_PRODUCT_PRODUCTION",
+      "DAILY_REPORT",
+      "RELEASE",
+      "TRADE",
+      "ORDER"
+    ]
   }
 }

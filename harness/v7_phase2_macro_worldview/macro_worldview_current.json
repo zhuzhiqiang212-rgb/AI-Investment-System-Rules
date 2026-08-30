@@ -1,0 +1,217 @@
+{
+  "identity": {
+    "artifact_id": "V7_PHASE2_MACRO_WORLDVIEW_CURRENT_v1.0",
+    "name": "V7 Phase 2 宏观与世界观恢复",
+    "type": "MACRO_WORLDVIEW_LAYER",
+    "version": "1.0",
+    "status": "CURRENT",
+    "phase": "PHASE2_MACRO_WORLDVIEW_RECOVERY",
+    "run_id": "V7-COMPLETE-PRODUCT-PHASE2-20260830-104200-JST",
+    "created_at_jst": "2026-08-30T10:42:00+09:00",
+    "contains_real_daily_content": false,
+    "production_ready": "NO"
+  },
+  "governance_bindings": {
+    "business_blueprint_id": "V7_COMPLETE_PRODUCT_CURRENT_v2.0",
+    "production_sop_id": "V7_PRODUCTION_SOP_CURRENT_v1.0",
+    "phase1_structure_sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C",
+    "production_sop_sha256": "DA8B76F6638857F97187BB03E28D03399FD8A8E36683284E26B436F24205B227",
+    "research_baseline_id": "V13_RESEARCH_BASELINE",
+    "research_baseline_sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4"
+  },
+  "phase2_scope": {
+    "purpose": "Restore the macro/worldview layer as a controlled judgement interface before real daily production.",
+    "allowed": [
+      "DEFINE_MACRO_INPUT_CONTRACT",
+      "DEFINE_WORLDVIEW_AXES",
+      "DEFINE_MACRO_DELTA_STATES",
+      "DEFINE_SOURCE_TRACE_FOR_MACRO",
+      "DEFINE_MACRO_TO_STRATEGY_HANDOFF",
+      "CREATE_VALIDATOR_AND_TESTS"
+    ],
+    "forbidden": [
+      "REAL_NEWS_SCAN",
+      "REAL_MARKET_DATA_FETCH",
+      "REAL_EDINET_FETCH",
+      "PRODUCE_DAILY_MACRO_JUDGEMENT",
+      "GENERATE_TODAY_ACTION",
+      "PRODUCE_DAILY_REPORT",
+      "MODIFY_V13",
+      "MODIFY_V13_HTML",
+      "MODIFY_V13_PDF",
+      "RESEARCH_SECURITIES",
+      "BUILD_FULL_PRODUCT",
+      "CONNECT_MACRO_PIPELINE",
+      "CONNECT_PDCA_PIPELINE",
+      "OVERWRITE_DAILY_REPORT",
+      "BROKER_ORDER_API",
+      "BUILD_FULL_HARNESS",
+      "START_PHASE3",
+      "RELEASE",
+      "TRADE",
+      "ORDER"
+    ]
+  },
+  "macro_input_contract": {
+    "required_inputs": [
+      "BUSINESS_BLUEPRINT",
+      "PRODUCTION_SOP",
+      "MARKET_DATA",
+      "FRESH_INTEL",
+      "PERSISTENT_KNOWLEDGE",
+      "PDCA_STATE"
+    ],
+    "optional_inputs": [
+      "ARCHIVE_ON_TRIGGER"
+    ],
+    "identity_required_for_each_input": [
+      "source_id",
+      "source_class",
+      "as_of_or_published_at",
+      "sha256_or_version",
+      "freshness_class",
+      "consumption_state"
+    ],
+    "stale_core_market_data_result": "PRODUCTION_BLOCKED",
+    "soft_missing_result": "DEGRADED_MODE_WITH_CONFIDENCE_DOWNGRADE"
+  },
+  "worldview_axes": [
+    {
+      "axis_id": "US_MACRO",
+      "required_topics": [
+        "growth",
+        "inflation",
+        "employment",
+        "fed_policy",
+        "treasury_yield"
+      ],
+      "output": "US_MACRO_JUDGEMENT"
+    },
+    {
+      "axis_id": "JAPAN_MACRO",
+      "required_topics": [
+        "boj_policy",
+        "jpy",
+        "wage_inflation",
+        "corporate_governance",
+        "domestic_demand"
+      ],
+      "output": "JAPAN_MACRO_JUDGEMENT"
+    },
+    {
+      "axis_id": "CHINA_MACRO",
+      "required_topics": [
+        "policy_support",
+        "property_cycle",
+        "demand_spillover",
+        "geopolitical_constraints"
+      ],
+      "output": "CHINA_MACRO_JUDGEMENT"
+    },
+    {
+      "axis_id": "GLOBAL_LIQUIDITY",
+      "required_topics": [
+        "usd_liquidity",
+        "rates",
+        "credit",
+        "risk_appetite",
+        "cross_asset_signal"
+      ],
+      "output": "GLOBAL_LIQUIDITY_JUDGEMENT"
+    },
+    {
+      "axis_id": "AI_CAPEX_CYCLE",
+      "required_topics": [
+        "cloud_capex",
+        "ai_revenue_conversion",
+        "power_constraint",
+        "memory_constraint"
+      ],
+      "output": "AI_CAPEX_WORLDVIEW"
+    },
+    {
+      "axis_id": "GEOPOLITICAL_RISK",
+      "required_topics": [
+        "export_controls",
+        "supply_chain",
+        "election_or_policy_risk",
+        "regional_conflict"
+      ],
+      "output": "GEOPOLITICAL_RISK_VIEW"
+    }
+  ],
+  "macro_delta_states": [
+    "CHANGED",
+    "UNCHANGED",
+    "STRENGTHENED",
+    "WEAKENED",
+    "INVALIDATED"
+  ],
+  "macro_judgement_contract": {
+    "required_fields": [
+      "judgement_id",
+      "axis_id",
+      "state",
+      "plain_language_summary",
+      "facts_checked",
+      "source_ids",
+      "source_tier_summary",
+      "portfolio_relevance",
+      "confidence",
+      "what_would_change_this_view",
+      "handoff_to_strategy"
+    ],
+    "forbidden_shortcuts": [
+      "NEWS_DIRECTLY_TO_BUY",
+      "EXPERT_OPINION_DIRECTLY_TO_V7_JUDGEMENT",
+      "MISSING_DATA_AS_NO_RISK",
+      "UNCHANGED_ASSUMED_WITHOUT_FRESHNESS_CHECK"
+    ]
+  },
+  "handoff_rules": {
+    "macro_to_strategy_requires": [
+      "macro_judgement_id",
+      "state",
+      "portfolio_relevance",
+      "source_ids",
+      "confidence"
+    ],
+    "strategy_may_not_ignore_macro_invalidated_state": true,
+    "no_action_generation_in_phase2": true,
+    "phase3_required_for_strategy_flow_sector": true
+  },
+  "product_section_binding": {
+    "section_id": "SECTION_2",
+    "title": "世界观与宏观",
+    "slots_bound": [
+      "united_states",
+      "japan",
+      "china",
+      "global_liquidity",
+      "rates",
+      "fx",
+      "ai_capex",
+      "geopolitical_risk"
+    ],
+    "status": "INTERFACE_READY_NO_REAL_DATA"
+  },
+  "safety": {
+    "real_news_scan_executed": false,
+    "real_market_data_fetch_executed": false,
+    "real_edinet_fetch_executed": false,
+    "daily_report_produced": false,
+    "v13_modified": false,
+    "phase3_started": false,
+    "release_executed": false,
+    "trade_executed": false,
+    "order_executed": false
+  },
+  "success_criteria": {
+    "MACRO_INPUT_CONTRACT": "PASS",
+    "WORLDVIEW_AXES": "PASS",
+    "MACRO_DELTA_STATES": "PASS",
+    "SOURCE_TRACEABILITY": "PASS",
+    "MACRO_TO_STRATEGY_HANDOFF": "PASS",
+    "NO_REAL_PRODUCTION": "PASS"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "report_id": "V7_PHASE2_MACRO_WORLDVIEW_20_TEST_REPORT",
+  "run_id": "V7-COMPLETE-PRODUCT-PHASE2-20260830-104200-JST",
+  "test_count": 20,
+  "pass_count": 20,
+  "failure_count": 0,
+  "result": "20_OF_20_PASS",
+  "tests": [
+    {
+      "test": "test_01",
+      "status": "PASS"
+    },
+    {
+      "test": "test_02",
+      "status": "PASS"
+    },
+    {
+      "test": "test_03",
+      "status": "PASS"
+    },
+    {
+      "test": "test_04",
+      "status": "PASS"
+    },
+    {
+      "test": "test_05",
+      "status": "PASS"
+    },
+    {
+      "test": "test_06",
+      "status": "PASS"
+    },
+    {
+      "test": "test_07",
+      "status": "PASS"
+    },
+    {
+      "test": "test_08",
+      "status": "PASS"
+    },
+    {
+      "test": "test_09",
+      "status": "PASS"
+    },
+    {
+      "test": "test_10",
+      "status": "PASS"
+    },
+    {
+      "test": "test_11",
+      "status": "PASS"
+    },
+    {
+      "test": "test_12",
+      "status": "PASS"
+    },
+    {
+      "test": "test_13",
+      "status": "PASS"
+    },
+    {
+      "test": "test_14",
+      "status": "PASS"
+    },
+    {
+      "test": "test_15",
+      "status": "PASS"
+    },
+    {
+      "test": "test_16",
+      "status": "PASS"
+    },
+    {
+      "test": "test_17",
+      "status": "PASS"
+    },
+    {
+      "test": "test_18",
+      "status": "PASS"
+    },
+    {
+      "test": "test_19",
+      "status": "PASS"
+    },
+    {
+      "test": "test_20",
+      "status": "PASS"
+    }
+  ]
+}

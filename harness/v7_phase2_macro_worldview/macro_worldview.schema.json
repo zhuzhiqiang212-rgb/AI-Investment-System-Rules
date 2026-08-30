@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "V7_PHASE2_MACRO_WORLDVIEW_SCHEMA_1.0",
+  "type": "object",
+  "required": [
+    "identity",
+    "governance_bindings",
+    "phase2_scope",
+    "macro_input_contract",
+    "worldview_axes",
+    "macro_delta_states",
+    "macro_judgement_contract",
+    "handoff_rules",
+    "product_section_binding",
+    "safety",
+    "success_criteria"
+  ],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "required": [
+        "artifact_id",
+        "type",
+        "version",
+        "status",
+        "phase",
+        "run_id",
+        "contains_real_daily_content",
+        "production_ready"
+      ]
+    },
+    "worldview_axes": {
+      "type": "array",
+      "minItems": 6
+    },
+    "macro_delta_states": {
+      "const": [
+        "CHANGED",
+        "UNCHANGED",
+        "STRENGTHENED",
+        "WEAKENED",
+        "INVALIDATED"
+      ]
+    },
+    "safety": {
+      "type": "object"
+    }
+  }
+}
