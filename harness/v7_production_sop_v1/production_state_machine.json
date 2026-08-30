@@ -1,0 +1,25 @@
+{
+  "schema_version": "V7_PRODUCTION_STATE_MACHINE_1.0",
+  "steps": [
+    {"step": 0, "name": "HARNESS_INITIALIZATION_AND_TASK_BINDING", "required_inputs": ["HARNESS", "TASK"], "outputs": ["BOUND_RUN"], "block_conditions": ["HARNESS_INPUT_BINDING_FAILED"]},
+    {"step": 1, "name": "CURRENT_BLUEPRINT_AND_SOP_IDENTITY_CHECK", "required_inputs": ["BUSINESS_BLUEPRINT", "PRODUCTION_SOP"], "outputs": ["IDENTITY_CHECK"], "block_conditions": ["CURRENT_BLUEPRINT_IDENTITY_ERROR", "CURRENT_SOP_IDENTITY_ERROR"]},
+    {"step": 2, "name": "LATEST_PORTFOLIO_STATE_READ", "required_inputs": ["PORTFOLIO_STATE"], "outputs": ["PORTFOLIO_FRESHNESS"], "block_conditions": ["CORE_PORTFOLIO_UNCONFIRMED_FOR_POSITION_ACTION"]},
+    {"step": 3, "name": "MARKET_DATA_REFRESH", "required_inputs": ["MARKET_DATA"], "outputs": ["MARKET_SNAPSHOT"], "block_conditions": ["CORE_MARKET_DATA_SEVERELY_STALE"]},
+    {"step": 4, "name": "FRESH_INTEL_INCREMENTAL_SCAN", "required_inputs": ["FRESH_INTEL"], "outputs": ["INTEL_DELTA"], "block_conditions": []},
+    {"step": 5, "name": "EDINET_AND_OFFICIAL_DISCLOSURE_INCREMENTAL_CHECK", "required_inputs": ["EDINET_API", "COMPANY_IR"], "outputs": ["PRIMARY_DISCLOSURE_DELTA"], "block_conditions": ["UNRESOLVED_KEY_DISCLOSURE_CONFLICT"]},
+    {"step": 6, "name": "MACRO_DELTA", "required_inputs": ["MARKET_SNAPSHOT", "INTEL_DELTA"], "outputs": ["MACRO_JUDGEMENT"], "block_conditions": []},
+    {"step": 7, "name": "STRATEGY_JUDGEMENT", "required_inputs": ["MACRO_JUDGEMENT"], "outputs": ["STRATEGY_JUDGEMENT"], "block_conditions": []},
+    {"step": 8, "name": "FLOW_JUDGEMENT", "required_inputs": ["MARKET_SNAPSHOT", "STRATEGY_JUDGEMENT"], "outputs": ["FLOW_JUDGEMENT"], "block_conditions": []},
+    {"step": 9, "name": "SECTOR_ROTATION", "required_inputs": ["FLOW_JUDGEMENT"], "outputs": ["SECTOR_JUDGEMENT"], "block_conditions": []},
+    {"step": 10, "name": "V13_BASELINE_PLUS_DYNAMIC_OVERLAY", "required_inputs": ["RESEARCH_BASELINE", "PRIMARY_DISCLOSURE_DELTA", "SECTOR_JUDGEMENT", "PDCA_STATE"], "outputs": ["TODAY_COMPANY_JUDGEMENT"], "block_conditions": []},
+    {"step": 11, "name": "ANNUAL_PORTFOLIO_CONTRIBUTION_LEDGER", "required_inputs": ["TODAY_COMPANY_JUDGEMENT", "PORTFOLIO_STATE"], "outputs": ["EXPECTED_PORTFOLIO_RETURN", "GAP_TO_40"], "block_conditions": []},
+    {"step": 12, "name": "TODAY_ACTION_GENERATION", "required_inputs": ["PORTFOLIO_STATE", "TODAY_COMPANY_JUDGEMENT"], "outputs": ["TODAY_ACTION"], "block_conditions": ["UNVERIFIED_PORTFOLIO_FOR_PRECISE_A_ACTION"]},
+    {"step": 13, "name": "PDCA_READ_AND_NEW_PREDICTION_REGISTRATION", "required_inputs": ["PDCA_STATE"], "outputs": ["PDCA_PENDING"], "block_conditions": []},
+    {"step": 14, "name": "SOURCE_AND_TRACE_VALIDATION", "required_inputs": ["ALL_JUDGEMENTS", "ALL_SOURCE_IDS"], "outputs": ["TRACE_RESULT"], "block_conditions": ["ORPHAN_MATERIAL_JUDGEMENT"]},
+    {"step": 15, "name": "TECHNICAL_VALIDATION", "required_inputs": ["ALL_OUTPUTS"], "outputs": ["TECHNICAL_CHECK"], "block_conditions": ["TECHNICAL_GATE_FAILED"]},
+    {"step": 16, "name": "BUSINESS_ACCEPTANCE", "required_inputs": ["TECHNICAL_CHECK"], "outputs": ["BUSINESS_REVIEW_RESULT"], "block_conditions": ["BUSINESS_REVIEW_RETURNED"]}
+  ],
+  "macro_delta_states": ["CHANGED", "UNCHANGED", "STRENGTHENED", "WEAKENED", "INVALIDATED"],
+  "terminal_states": ["PRODUCTION_BLOCKED", "DEGRADED_MODE", "WAITING_BUSINESS_ACCEPTANCE", "PRODUCTION_ACCEPTED"],
+  "automatic_phase2_transition": false
+}

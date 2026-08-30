@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>V7正式生产SOP v1.0说明</title>
+  <style>
+    body{font-family:"Microsoft YaHei",sans-serif;line-height:1.65;max-width:960px;margin:32px auto;padding:0 20px;color:#20252b}
+    h1,h2{color:#17324d}code{background:#eef2f5;padding:2px 5px;border-radius:3px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd3da;padding:8px;text-align:left}
+  </style>
+</head>
+<body>
+  <h1>V7正式生产SOP v1.0</h1>
+  <p>本目录实现“每天怎样生产”的规则与校验结构，不是业务蓝图，也不是每日产品。</p>
+  <h2>核心边界</h2>
+  <ul>
+    <li>结构继承，事实刷新；机制复用，结论重算。</li>
+    <li>EDINET定位为日本公司法定一手披露源，只做增量检查，不重复下载未变化历史文件。</li>
+    <li>老雷、湖水及其他TXT按SHA和消费状态增量读取，不迁移或重扫全部历史资料。</li>
+    <li>V13作为研究基座，动态层可以更新事实与结论，但不能覆盖V13身份。</li>
+    <li>硬阻断停止生产；软缺失进入降级模式并降低相应判断把握度。</li>
+  </ul>
+  <h2>主要实物</h2>
+  <table>
+    <tr><th>文件</th><th>用途</th></tr>
+    <tr><td><code>V7正式生产SOP_Current_v1.0.json</code></td><td>正式、机器可读的SOP规则。</td></tr>
+    <tr><td><code>production_sop.schema.json</code></td><td>SOP结构约束。</td></tr>
+    <tr><td><code>source_classification_rules.json</code></td><td>来源层级、EDINET身份及冲突处理。</td></tr>
+    <tr><td><code>freshness_and_consumption_rules.json</code></td><td>时效分类、增量消费和重复抑制。</td></tr>
+    <tr><td><code>production_state_machine.json</code></td><td>Step 0至Step 16生产状态机。</td></tr>
+    <tr><td><code>validate_production_sop.py</code></td><td>只读语义校验。</td></tr>
+    <tr><td><code>tests/</code></td><td>施工单要求的20项测试。</td></tr>
+  </table>
+  <p><strong>当前状态：</strong><code>PRODUCTION_READY = NO</code>。必须等待V7总控-3验收，不自动进入Phase 2。</p>
+</body>
+</html>

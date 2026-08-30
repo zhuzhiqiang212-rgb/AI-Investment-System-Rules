@@ -1,0 +1,38 @@
+{
+  "schema_version": "V7_FRESHNESS_AND_CONSUMPTION_1.0",
+  "freshness_classes": ["HOT", "CURRENT", "STALE", "ARCHIVE"],
+  "class_meanings": {
+    "HOT": "Very recent and potentially decision-changing.",
+    "CURRENT": "Still relevant to the current judgement.",
+    "STALE": "Not a default daily input; review only with a trigger.",
+    "ARCHIVE": "Historical trace, PDCA, or deep research only."
+  },
+  "lifecycle_profiles": {
+    "MARKET_DATA": {"typical_scale": "MINUTES_TO_HOURS", "configured_by": "SOP_RUNTIME_CONFIGURATION"},
+    "BREAKING_NEWS": {"typical_scale": "HOURS_TO_DAYS", "configured_by": "SOP_RUNTIME_CONFIGURATION"},
+    "EARNINGS": {"typical_scale": "UNTIL_NEXT_EARNINGS_OR_MATERIAL_REVISION", "configured_by": "SOP_RUNTIME_CONFIGURATION"},
+    "POLICY": {"typical_scale": "WEEKS_TO_MONTHS", "configured_by": "SOP_RUNTIME_CONFIGURATION"},
+    "STRUCTURAL_KNOWLEDGE": {"typical_scale": "MONTHS_TO_YEARS", "configured_by": "SOP_RUNTIME_CONFIGURATION"},
+    "POSITION_DATA": {"typical_scale": "LATEST_VALID_SNAPSHOT", "configured_by": "SOP_RUNTIME_CONFIGURATION"}
+  },
+  "uniform_seven_day_rule": false,
+  "thresholds_configurable": true,
+  "artifact_state_fields": ["artifact_id", "sha256", "first_seen", "last_seen", "last_consumed", "consumed_by_run_id", "freshness", "requires_review"],
+  "txt_state_fields": ["file_name", "file_path", "sha256", "modified_at", "last_consumed", "last_consumed_run", "freshness", "requires_reread"],
+  "edinet_document_state_fields": ["document_id", "published_at", "ingested_at", "sha_or_version", "last_consumed", "materiality", "consumed_by_run_id"],
+  "decision_rules": {
+    "unchanged_and_consumed_without_trigger": "SKIP_FULL_RECONSUMPTION",
+    "sha_changed": "PENDING_CONSUMPTION",
+    "review_trigger_present": "PENDING_REVIEW",
+    "new_material_primary_disclosure": "PRIMARY_DISCLOSURE_REFRESH_REQUIRED"
+  },
+  "laolei_hushui_policy": {
+    "mode": "INCREMENTAL",
+    "fresh_area_is_logical_not_forced_migration": true,
+    "archive_default_daily_read": false,
+    "archive_allowed_uses": ["PDCA", "HISTORICAL_VERIFICATION", "DEEP_RESEARCH", "PERSISTENT_KNOWLEDGE_REVIEW"]
+  },
+  "persistent_knowledge_fields": ["source", "source_type", "confidence", "last_reviewed", "review_trigger"],
+  "source_types": ["PRIMARY_FACT", "OPINION", "ANALYSIS"],
+  "persistent_knowledge_is_fresh_intel": false
+}

@@ -1,0 +1,237 @@
+{
+  "identity": {
+    "sop_id": "V7_PRODUCTION_SOP_CURRENT_v1.0",
+    "name": "V7正式生产SOP_Current_v1.0",
+    "type": "PRODUCTION_SOP",
+    "version": "1.0",
+    "status": "CURRENT",
+    "effective_at": "2026-08-30T09:58:49+09:00",
+    "artifact_sha_binding": "EXTERNAL_HARNESS_SHA256",
+    "purpose": "Define how a future V7 daily product run must collect, refresh, judge, trace, validate, and stop.",
+    "is_business_blueprint": false,
+    "is_product_output": false
+  },
+  "governance_bindings": {
+    "business_blueprint": {
+      "blueprint_id": "V7_COMPLETE_PRODUCT_CURRENT_v2.0",
+      "status": "CURRENT",
+      "authority_reference": "C:\\Users\\localhost\\.codex\\attachments\\ce912ef2-41e1-45bc-8266-b40f1ad6f065\\pasted-text.txt",
+      "authority_sha256": "81ABF8D38DCEE12B948CC5AEE6E01B4629F91BB84D0184B769145035EB58AFB6"
+    },
+    "phase1_structure": {
+      "artifact_id": "PHASE1_STRUCTURE_EXAMPLE",
+      "path": "harness/v7_phase1_product_interfaces/phase1_structure_example.json",
+      "sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C",
+      "acceptance": "PASS"
+    },
+    "minimal_harness": {
+      "harness_id": "V7_MINIMAL_HARNESS_PHASE1",
+      "schema_path": "harness/v7_minimal_phase1/run_control.schema.json",
+      "schema_sha256": "DAA4C11FD13D51DA1715AFC353DCB4203447020538A0BD747D92FDB4EB1BF8AC",
+      "acceptance_evidence_sha256": "EBDC6C6C178ED16F598C9A59045D45048517AA8FE57D89190F76E3E6012465A0"
+    },
+    "sop_design_authority": {
+      "artifact_id": "V7_PRODUCTION_SOP_V1_FORMAL_ORDER",
+      "path": "C:\\Users\\localhost\\.codex\\attachments\\8894ef27-7a45-4ef1-880d-9d52761b646f\\pasted-text.txt",
+      "size_bytes": 22484,
+      "sha256": "3F2AECBEA26A97D5EF3CBBD97B77CD967548852EA1EDD7F8D0DC722D2A1D0ADC"
+    },
+    "research_baseline": {
+      "baseline_id": "V13_RESEARCH_BASELINE",
+      "path": "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/V13普通中文完整投资产品.html",
+      "sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
+      "identity_immutable": true
+    }
+  },
+  "principles": [
+    "STRUCTURE_INHERITED_FACTS_REFRESHED_MECHANISMS_REUSED_JUDGEMENTS_RECALCULATED",
+    "OLD_KNOWLEDGE_INHERITED_NEW_FACTS_REFRESHED_INCREMENTAL_READ_FULL_RESEARCH_ON_MATERIAL_CHANGE",
+    "NO_DAILY_FULL_HISTORY_RESCAN",
+    "NO_SKIP_OF_CURRENT_CHANGE_CHECK",
+    "NEWS_NEVER_DIRECTLY_CREATES_TRADE_ACTION",
+    "NO_TRADE_IS_A_VALID_ANSWER"
+  ],
+  "input_system": {
+    "BUSINESS_BLUEPRINT": {"required_each_run": true, "single_current_required": true, "required_identity": ["version", "status", "path_or_reference", "sha256_or_formal_identity", "effective_date"]},
+    "PRODUCTION_SOP": {"required_each_run": true, "single_current_required": true, "required_identity": ["sop_id", "version", "status", "path", "sha256", "effective_date"]},
+    "RESEARCH_BASELINE": {"required_each_run": true, "role": "RELATIVELY_STATIC_RESEARCH_BASE", "current_baseline": "V13_RESEARCH_BASELINE"},
+    "FRESH_INTEL": {"required_each_run": true, "read_mode": "INCREMENTAL", "examples": ["BREAKING_NEWS", "COMPANY_EVENT", "POLICY_CHANGE", "INDUSTRY_CHANGE", "LAOLEI_NEW", "HUSHUI_NEW"]},
+    "PERSISTENT_KNOWLEDGE": {"required_each_run": true, "read_mode": "REUSE_THEN_REVIEW_ON_TRIGGER", "daily_full_source_rescan": false},
+    "MARKET_DATA": {"required_each_run": true, "as_of_required": true, "source_identity_required": true},
+    "PORTFOLIO_STATE": {"required_each_run": true, "latest_valid_snapshot_required": true, "chat_memory_is_formal_source": false},
+    "PDCA_STATE": {"required_each_run": true, "use": "ADJUST_NEXT_RUN_JUDGEMENT_PROCESS"}
+  },
+  "source_hierarchy": {
+    "rules_artifact": "source_classification_rules.json",
+    "tiers": ["TIER1_PRIMARY_OFFICIAL", "TIER2_TRUSTED_MARKET_DATA", "TIER3_QUALITY_MEDIA", "TIER4_RESEARCH_ANALYSIS", "TIER5_COMMUNITY_SOCIAL"],
+    "primary_fact_wins_over_lower_tier_opinion": true,
+    "expert_input_automatically_becomes_v7_judgement": false,
+    "conflicting_expert_views_policy": ["PRESERVE_EACH_VIEW", "CHECK_UNDERLYING_FACTS", "COMPARE_LOGIC", "FORM_V7_JUDGEMENT", "PRESERVE_UNCERTAINTY_IF_NEEDED"]
+  },
+  "freshness_management": {
+    "rules_artifact": "freshness_and_consumption_rules.json",
+    "classes": ["HOT", "CURRENT", "STALE", "ARCHIVE"],
+    "lifecycle_profiles": ["MARKET_DATA", "BREAKING_NEWS", "EARNINGS", "POLICY", "STRUCTURAL_KNOWLEDGE", "POSITION_DATA"],
+    "thresholds_configurable": true,
+    "single_fixed_lifetime_for_all_information": false,
+    "stale_default_daily_core_input": false,
+    "archive_default_daily_input": false
+  },
+  "incremental_consumption": {
+    "artifact_state_fields": ["artifact_id", "sha256", "first_seen", "last_seen", "last_consumed", "consumed_by_run_id", "freshness", "requires_review"],
+    "unchanged_consumed_default": "SKIP_FULL_RECONSUMPTION",
+    "changed_sha_default": "PENDING_CONSUMPTION",
+    "review_trigger_override": "PENDING_REVIEW",
+    "laolei_mode": "INCREMENTAL_NO_FORCED_FILE_MIGRATION",
+    "hushui_mode": "INCREMENTAL_NO_FORCED_FILE_MIGRATION",
+    "archive_allowed_uses": ["PDCA", "HISTORICAL_VERIFICATION", "DEEP_RESEARCH", "LONG_TERM_KNOWLEDGE_EXTRACTION"]
+  },
+  "edinet_rules": {
+    "source_class": "PRIMARY_REGULATORY_DISCLOSURE",
+    "source_name": "EDINET_API",
+    "tier": 1,
+    "uses": ["SECURITIES_REPORT", "PERIODIC_DISCLOSURE", "XBRL_FINANCIAL_DATA", "LARGE_SHAREHOLDING_REPORT", "TENDER_OFFER_DISCLOSURE", "STATUTORY_COMPANY_DISCLOSURE"],
+    "non_uses": ["REALTIME_PRICE", "INTRADAY_MARKET", "SHORT_TERM_FLOW", "MARKET_SENTIMENT", "BREAKING_NEWS"],
+    "document_identity_fields": ["document_id", "published_at", "ingested_at", "sha_or_version", "last_consumed", "materiality", "consumed_by_run_id"],
+    "triggers": {
+      "new_formal_financial_or_statutory_disclosure": "PRIMARY_DISCLOSURE_REFRESH_REQUIRED",
+      "media_reports_material_financial_change": "VERIFY_WITH_EDINET_OR_OFFICIAL_IR_IF_AVAILABLE",
+      "material_large_shareholding_change": "CHECK_EDINET_LARGE_SHAREHOLDING_REPORT",
+      "no_new_disclosure_and_baseline_exists": "NO_FULL_HISTORY_REDOWNLOAD"
+    },
+    "duplicate_suppression": {
+      "if_unchanged_and_consumed_and_no_trigger": "SKIP_FULL_RECONSUMPTION",
+      "if_sha_or_version_changed": "PENDING_CONSUMPTION",
+      "if_new_and_material": "PRIMARY_DISCLOSURE_REFRESH_REQUIRED"
+    }
+  },
+  "news_routing": {
+    "routes": ["MACRO", "STRATEGY", "FLOW", "SECTOR", "COMPANY", "PORTFOLIO"],
+    "macro_topics": ["CPI", "PCE", "EMPLOYMENT", "FED", "BOJ", "US_TREASURY", "FISCAL", "USD", "JPY", "CHINA_POLICY", "GLOBAL_LIQUIDITY", "GEOPOLITICS"],
+    "strategy_topics": ["AI_CAPEX_CYCLE", "SEMICONDUCTOR_CYCLE", "MEMORY_CYCLE", "JAPAN_CAPITAL_MARKET_STRUCTURE", "INDUSTRIAL_POLICY", "GLOBAL_RISK_APPETITE_STRUCTURE"],
+    "flow_topics": ["ETF_FLOW", "SECTOR_FLOW", "STYLE_FLOW", "CROSS_ASSET_FLOW", "INSTITUTIONAL_ALLOCATION", "RISK_APPETITE"],
+    "sector_topics": ["SEMICONDUCTOR", "HBM", "AI_SERVER", "SEMICONDUCTOR_EQUIPMENT", "CLOUD", "JAPAN_FINANCIALS", "GAMING", "CRYPTO"],
+    "company_topics": ["EARNINGS", "GUIDANCE", "ORDERS", "PRODUCT", "CUSTOMER", "CAPEX", "MANAGEMENT", "COMPETITION", "REGULATION", "M_AND_A", "STATUTORY_DISCLOSURE"],
+    "required_chain": ["NEWS", "FACT_CHECK", "IMPACT_ASSESSMENT", "JUDGEMENT_CHANGE", "PORTFOLIO_IMPACT", "ACTION_CHANGE"],
+    "direct_news_to_buy_allowed": false
+  },
+  "baseline_dynamic_rules": {
+    "formula": ["V13_RESEARCH_BASELINE", "NEW_COMPANY_EVENTS", "EDINET_OR_OFFICIAL_DISCLOSURE", "MARKET_DATA", "SECTOR_CHANGE", "PDCA_FEEDBACK", "TODAY_COMPANY_JUDGEMENT"],
+    "no_material_change_allowed": true,
+    "no_material_change_status": "NO_MATERIAL_CHANGE",
+    "baseline_identity_may_be_overwritten": false,
+    "dynamic_fields_may_change": ["LATEST_FACTS", "LATEST_PRICE", "LATEST_EARNINGS", "LATEST_GUIDANCE", "LATEST_VALUATION", "LATEST_SCENARIOS", "LATEST_CONFIDENCE", "LATEST_ACTION_LEVEL"]
+  },
+  "full_refresh_triggers": [
+    "NEW_EARNINGS",
+    "MATERIAL_EARNINGS_PREANNOUNCEMENT",
+    "MATERIAL_GUIDANCE_CHANGE",
+    "CORE_PRODUCT_CHANGE",
+    "MAJOR_CUSTOMER_CHANGE",
+    "MATERIAL_CAPEX_CHANGE",
+    "M_AND_A",
+    "REGULATORY_EVENT",
+    "INVESTMENT_THESIS_INVALIDATED",
+    "PDCA_REPEATED_LOGIC_FAILURE",
+    "MATERIAL_NEW_EDINET_DISCLOSURE"
+  ],
+  "full_refresh_status": "FULL_COMPANY_REFRESH_REQUIRED",
+  "portfolio_freshness_rules": {
+    "states": ["CURRENT", "STALE", "UNVERIFIED"],
+    "precise_position_action_requires_current_or_verified": true,
+    "unverified_blocks_precise_a_execute_amount": true,
+    "unverified_does_not_force_fabricated_position": true
+  },
+  "target_rules": {
+    "plus_40": {
+      "required_outputs": ["EXPECTED_PORTFOLIO_RETURN", "GAP_TO_40"],
+      "requires_valid_portfolio_and_forecast_data": true,
+      "missing_data_output": "TARGET_CALCULATION_UNAVAILABLE",
+      "fabrication_allowed": false
+    },
+    "plus_100": {
+      "default_mode": "INACTIVE",
+      "modes": ["INACTIVE", "WATCH", "ACTIVE", "DEACTIVATED"],
+      "automatic_activation_allowed": false,
+      "business_approval_required": true
+    }
+  },
+  "action_rules": {
+    "levels": ["A_EXECUTE", "B_WAIT_TRIGGER", "C_WATCH", "D_EXCLUDE"],
+    "required_fields": ["symbol_or_asset", "action", "reason", "trigger", "invalid_condition", "target_position_or_amount", "source_of_funds", "confidence", "supporting_judgement_ids", "source_ids"],
+    "prediction_action_independent": true,
+    "bullish_wait_is_legal": true,
+    "no_trade_is_legal": true,
+    "no_trade_reasons": ["INSUFFICIENT_PAYOFF", "INSUFFICIENT_DATA", "UNSUITABLE_PRICE", "RISK_BUDGET_LIMIT"]
+  },
+  "pdca_feedback_rules": {
+    "read_before_production": true,
+    "register_after_production": ["prediction", "confidence", "triggers", "action", "invalidation"],
+    "new_record_status": "PDCA_PENDING",
+    "same_day_auto_correctness_verdict_allowed": false,
+    "next_run_adjustable_fields": ["signal_weight", "confidence", "required_confirmation", "timing_rule", "source_weight", "model_notes"],
+    "repeated_direction_right_timing_wrong_response": "INCREASE_TIMING_CONFIRMATION_REQUIREMENT"
+  },
+  "missing_data_rules": {
+    "HARD_BLOCK": {
+      "result": "PRODUCTION_BLOCKED",
+      "conditions": ["CURRENT_BLUEPRINT_IDENTITY_ERROR", "CURRENT_SOP_IDENTITY_ERROR", "HARNESS_INPUT_BINDING_FAILED", "CORE_PORTFOLIO_UNCONFIRMED_FOR_REQUIRED_POSITION_ACTION", "CORE_MARKET_DATA_SEVERELY_STALE", "UNRESOLVED_KEY_DISCLOSURE_CONFLICT"]
+    },
+    "SOFT_MISSING": {
+      "result": "DEGRADED_MODE",
+      "conditions": ["NONCORE_ETF_FLOW_MISSING", "LOW_PRIORITY_SOURCE_TEMPORARILY_UNAVAILABLE"],
+      "required_disclosure": "DATA_MISSING",
+      "confidence_must_decrease": true
+    }
+  },
+  "source_conflict_rules": {
+    "status": "SOURCE_CONFLICT",
+    "resolution_steps": ["MARK_CONFLICT", "PREFER_PRIMARY_FACT", "CHECK_TIMESTAMPS", "CHECK_ORIGINAL_DISCLOSURE", "ASSESS_TRUE_CONFLICT", "PRESERVE_UNCERTAINTY_IF_UNRESOLVED"]
+  },
+  "read_priorities": {
+    "PRIORITY_1_EACH_RUN": ["PORTFOLIO_STATE", "MARKET_DATA", "MATERIAL_NEWS", "LATEST_FRESH_INTEL", "NEW_EARNINGS_OR_DISCLOSURE", "MATERIAL_NEW_EDINET_DISCLOSURE"],
+    "PRIORITY_2_ON_CHANGE": ["FLOW", "SECTOR", "INDUSTRY", "NEW_EXPERT_VIEW"],
+    "PRIORITY_3_ON_DEMAND": ["ARCHIVE", "HISTORICAL_LONGFORM", "OLD_TXT", "LONG_TERM_SOURCE_RESEARCH"]
+  },
+  "production_steps": [
+    {"step": 0, "name": "HARNESS_INITIALIZATION_AND_TASK_BINDING", "required_inputs": ["HARNESS", "TASK"], "outputs": ["BOUND_RUN"], "block_conditions": ["HARNESS_INPUT_BINDING_FAILED"]},
+    {"step": 1, "name": "CURRENT_BLUEPRINT_AND_SOP_IDENTITY_CHECK", "required_inputs": ["BUSINESS_BLUEPRINT", "PRODUCTION_SOP"], "outputs": ["IDENTITY_CHECK"], "block_conditions": ["CURRENT_BLUEPRINT_IDENTITY_ERROR", "CURRENT_SOP_IDENTITY_ERROR"]},
+    {"step": 2, "name": "LATEST_PORTFOLIO_STATE_READ", "required_inputs": ["PORTFOLIO_STATE"], "outputs": ["PORTFOLIO_FRESHNESS"], "block_conditions": ["CORE_PORTFOLIO_UNCONFIRMED_FOR_POSITION_ACTION"]},
+    {"step": 3, "name": "MARKET_DATA_REFRESH", "required_inputs": ["MARKET_DATA"], "outputs": ["MARKET_SNAPSHOT"], "block_conditions": ["CORE_MARKET_DATA_SEVERELY_STALE"]},
+    {"step": 4, "name": "FRESH_INTEL_INCREMENTAL_SCAN", "required_inputs": ["FRESH_INTEL"], "outputs": ["INTEL_DELTA"], "block_conditions": []},
+    {"step": 5, "name": "EDINET_AND_OFFICIAL_DISCLOSURE_INCREMENTAL_CHECK", "required_inputs": ["EDINET_API", "COMPANY_IR"], "outputs": ["PRIMARY_DISCLOSURE_DELTA"], "block_conditions": ["UNRESOLVED_KEY_DISCLOSURE_CONFLICT"]},
+    {"step": 6, "name": "MACRO_DELTA", "required_inputs": ["MARKET_SNAPSHOT", "INTEL_DELTA"], "outputs": ["MACRO_JUDGEMENT"], "block_conditions": []},
+    {"step": 7, "name": "STRATEGY_JUDGEMENT", "required_inputs": ["MACRO_JUDGEMENT"], "outputs": ["STRATEGY_JUDGEMENT"], "block_conditions": []},
+    {"step": 8, "name": "FLOW_JUDGEMENT", "required_inputs": ["MARKET_SNAPSHOT", "STRATEGY_JUDGEMENT"], "outputs": ["FLOW_JUDGEMENT"], "block_conditions": []},
+    {"step": 9, "name": "SECTOR_ROTATION", "required_inputs": ["FLOW_JUDGEMENT"], "outputs": ["SECTOR_JUDGEMENT"], "block_conditions": []},
+    {"step": 10, "name": "V13_BASELINE_PLUS_DYNAMIC_OVERLAY", "required_inputs": ["RESEARCH_BASELINE", "PRIMARY_DISCLOSURE_DELTA", "SECTOR_JUDGEMENT", "PDCA_STATE"], "outputs": ["TODAY_COMPANY_JUDGEMENT"], "block_conditions": []},
+    {"step": 11, "name": "ANNUAL_PORTFOLIO_CONTRIBUTION_LEDGER", "required_inputs": ["TODAY_COMPANY_JUDGEMENT", "PORTFOLIO_STATE"], "outputs": ["EXPECTED_PORTFOLIO_RETURN", "GAP_TO_40"], "block_conditions": []},
+    {"step": 12, "name": "TODAY_ACTION_GENERATION", "required_inputs": ["PORTFOLIO_STATE", "TODAY_COMPANY_JUDGEMENT"], "outputs": ["TODAY_ACTION"], "block_conditions": ["UNVERIFIED_PORTFOLIO_FOR_PRECISE_A_ACTION"]},
+    {"step": 13, "name": "PDCA_READ_AND_NEW_PREDICTION_REGISTRATION", "required_inputs": ["PDCA_STATE"], "outputs": ["PDCA_PENDING"], "block_conditions": []},
+    {"step": 14, "name": "SOURCE_AND_TRACE_VALIDATION", "required_inputs": ["ALL_JUDGEMENTS", "ALL_SOURCE_IDS"], "outputs": ["TRACE_RESULT"], "block_conditions": ["ORPHAN_MATERIAL_JUDGEMENT"]},
+    {"step": 15, "name": "TECHNICAL_VALIDATION", "required_inputs": ["ALL_OUTPUTS"], "outputs": ["TECHNICAL_CHECK"], "block_conditions": ["TECHNICAL_GATE_FAILED"]},
+    {"step": 16, "name": "BUSINESS_ACCEPTANCE", "required_inputs": ["TECHNICAL_CHECK"], "outputs": ["BUSINESS_REVIEW_RESULT"], "block_conditions": ["BUSINESS_REVIEW_RETURNED"]}
+  ],
+  "macro_delta_states": ["CHANGED", "UNCHANGED", "STRENGTHENED", "WEAKENED", "INVALIDATED"],
+  "readiness": {
+    "sop_implementation": "PASS",
+    "harness_validation": "PASS",
+    "sop_tests": "PASS",
+    "production_ready": "NO",
+    "approval_required": "V7_CONTROL_3",
+    "reason": "SOP implementation must be accepted before Phase 2 or production."
+  },
+  "safety": {
+    "real_edinet_fetch_executed": false,
+    "news_scan_executed": false,
+    "laolei_scan_executed": false,
+    "hushui_scan_executed": false,
+    "macro_production_started": false,
+    "v13_content_modified": false,
+    "phase2_started": false,
+    "daily_report_produced": false,
+    "release_executed": false,
+    "trade_executed": false,
+    "order_executed": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "V7_PRODUCTION_SOP_SCHEMA_1.0",
+  "title": "V7 Production SOP v1.0",
+  "type": "object",
+  "required": ["identity", "governance_bindings", "principles", "input_system", "source_hierarchy", "freshness_management", "incremental_consumption", "edinet_rules", "news_routing", "baseline_dynamic_rules", "full_refresh_triggers", "portfolio_freshness_rules", "target_rules", "action_rules", "pdca_feedback_rules", "missing_data_rules", "source_conflict_rules", "production_steps", "readiness", "safety"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "required": ["sop_id", "name", "version", "status", "effective_at", "artifact_sha_binding"],
+      "properties": {
+        "sop_id": {"const": "V7_PRODUCTION_SOP_CURRENT_v1.0"},
+        "name": {"const": "V7正式生产SOP_Current_v1.0"},
+        "version": {"const": "1.0"},
+        "status": {"const": "CURRENT"},
+        "effective_at": {"type": "string"},
+        "artifact_sha_binding": {"const": "EXTERNAL_HARNESS_SHA256"}
+      }
+    },
+    "governance_bindings": {"type": "object", "required": ["business_blueprint", "phase1_structure", "minimal_harness", "sop_design_authority", "research_baseline"]},
+    "input_system": {"type": "object", "required": ["BUSINESS_BLUEPRINT", "PRODUCTION_SOP", "RESEARCH_BASELINE", "FRESH_INTEL", "PERSISTENT_KNOWLEDGE", "MARKET_DATA", "PORTFOLIO_STATE", "PDCA_STATE"]},
+    "freshness_management": {"type": "object", "required": ["classes", "lifecycle_profiles", "thresholds_configurable"]},
+    "incremental_consumption": {"type": "object", "required": ["artifact_state_fields", "unchanged_consumed_default", "changed_sha_default", "review_trigger_override"]},
+    "edinet_rules": {"type": "object", "required": ["source_class", "source_name", "uses", "non_uses", "document_identity_fields", "triggers", "duplicate_suppression"]},
+    "production_steps": {"type": "array", "minItems": 17, "maxItems": 17, "items": {"type": "object", "required": ["step", "name", "required_inputs", "outputs", "block_conditions"]}},
+    "readiness": {"type": "object", "required": ["sop_implementation", "harness_validation", "sop_tests", "production_ready", "approval_required"]},
+    "safety": {"type": "object", "required": ["real_edinet_fetch_executed", "news_scan_executed", "laolei_scan_executed", "hushui_scan_executed", "macro_production_started", "v13_content_modified", "phase2_started", "daily_report_produced", "release_executed", "trade_executed", "order_executed"]}
+  }
+}

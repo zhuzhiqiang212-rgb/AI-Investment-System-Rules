@@ -1,0 +1,27 @@
+{
+  "schema_version": "V7_SOURCE_CLASSIFICATION_1.0",
+  "source_tiers": [
+    {"tier": 1, "name": "PRIMARY_OFFICIAL", "sources": ["EDINET_API", "COMPANY_IR", "GOVERNMENT", "CENTRAL_BANK", "EXCHANGE"], "fact_priority": 1},
+    {"tier": 2, "name": "TRUSTED_MARKET_DATA", "sources": ["VERIFIED_MARKET_DATA_PROVIDER"], "fact_priority": 2},
+    {"tier": 3, "name": "QUALITY_MAINSTREAM_MEDIA", "sources": ["RELIABLE_NEWS_MEDIA"], "fact_priority": 3},
+    {"tier": 4, "name": "RESEARCH_AND_EXPERT_ANALYSIS", "sources": ["LAOLEI", "HUSHUI", "INSTITUTIONAL_RESEARCH"], "fact_priority": 4},
+    {"tier": 5, "name": "COMMUNITY_AND_SOCIAL", "sources": ["COMMUNITY", "SOCIAL_MEDIA"], "fact_priority": 5}
+  ],
+  "edinet": {
+    "source_name": "EDINET_API",
+    "source_class": "PRIMARY_REGULATORY_DISCLOSURE",
+    "tier": 1,
+    "jurisdiction": "JP",
+    "fact_uses": ["SECURITIES_REPORT", "PERIODIC_DISCLOSURE", "XBRL_FINANCIAL_DATA", "LARGE_SHAREHOLDING_REPORT", "TENDER_OFFER_DISCLOSURE", "OTHER_STATUTORY_DISCLOSURE"],
+    "not_for": ["REALTIME_PRICE", "INTRADAY_MARKET", "SHORT_TERM_FLOW", "MARKET_SENTIMENT", "BREAKING_NEWS"]
+  },
+  "conflict_policy": {
+    "status": "SOURCE_CONFLICT",
+    "steps": ["MARK_CONFLICT", "PREFER_PRIMARY_FACT", "CHECK_TIMESTAMPS", "READ_ORIGINAL_DISCLOSURE", "DETERMINE_TRUE_CONFLICT", "PRESERVE_UNCERTAINTY_IF_UNRESOLVED"],
+    "lower_tier_may_override_higher_tier_fact": false,
+    "expert_opinion_is_primary_fact": false
+  },
+  "news_routes": ["MACRO", "STRATEGY", "FLOW", "SECTOR", "COMPANY", "PORTFOLIO"],
+  "news_to_action_chain": ["NEWS", "FACT_CHECK", "IMPACT_ASSESSMENT", "JUDGEMENT_CHANGE", "PORTFOLIO_IMPACT", "ACTION_CHANGE"],
+  "news_can_directly_create_buy": false
+}

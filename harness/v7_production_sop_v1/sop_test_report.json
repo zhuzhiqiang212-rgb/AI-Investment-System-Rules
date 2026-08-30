@@ -1,0 +1,90 @@
+{
+  "report_id": "V7_PRODUCTION_SOP_V1_20_TEST_REPORT",
+  "generated_at_jst": "2026-08-30T10:14:55.450205+09:00",
+  "test_count": 20,
+  "pass_count": 20,
+  "failure_count": 0,
+  "result": "20_OF_20_PASS",
+  "tests": [
+    {
+      "test": "test_01_blueprint_and_sop_bind_separately",
+      "status": "PASS"
+    },
+    {
+      "test": "test_02_two_current_sops_fail",
+      "status": "PASS"
+    },
+    {
+      "test": "test_03_missing_sop_version_blocks_ready",
+      "status": "PASS"
+    },
+    {
+      "test": "test_04_unchanged_consumed_fresh_intel_is_skipped",
+      "status": "PASS"
+    },
+    {
+      "test": "test_05_changed_fresh_intel_sha_is_pending",
+      "status": "PASS"
+    },
+    {
+      "test": "test_06_freshness_classes_are_complete",
+      "status": "PASS"
+    },
+    {
+      "test": "test_07_persistent_knowledge_is_not_fresh_intel",
+      "status": "PASS"
+    },
+    {
+      "test": "test_08_edinet_is_primary_regulatory_disclosure",
+      "status": "PASS"
+    },
+    {
+      "test": "test_09_media_cannot_override_edinet_fact",
+      "status": "PASS"
+    },
+    {
+      "test": "test_10_unchanged_consumed_edinet_document_is_skipped",
+      "status": "PASS"
+    },
+    {
+      "test": "test_11_new_material_edinet_disclosure_refreshes",
+      "status": "PASS"
+    },
+    {
+      "test": "test_12_new_earnings_triggers_full_company_refresh",
+      "status": "PASS"
+    },
+    {
+      "test": "test_13_unverified_portfolio_blocks_precise_a_action",
+      "status": "PASS"
+    },
+    {
+      "test": "test_14_hard_block_stops_production",
+      "status": "PASS"
+    },
+    {
+      "test": "test_15_soft_missing_allows_degraded_mode",
+      "status": "PASS"
+    },
+    {
+      "test": "test_16_bullish_and_wait_is_legal",
+      "status": "PASS"
+    },
+    {
+      "test": "test_17_no_trade_is_legal",
+      "status": "PASS"
+    },
+    {
+      "test": "test_18_pdca_changes_next_run_fields",
+      "status": "PASS"
+    },
+    {
+      "test": "test_19_no_real_news_or_edinet_scan_occurred",
+      "status": "PASS"
+    },
+    {
+      "test": "test_20_v13_was_not_modified",
+      "status": "PASS"
+    }
+  ]
+}
