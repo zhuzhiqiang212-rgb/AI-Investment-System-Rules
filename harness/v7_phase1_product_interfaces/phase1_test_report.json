@@ -1,0 +1,57 @@
+{
+  "report_type": "V7_PHASE1_STRUCTURE_SELF_TEST",
+  "generated_at_jst": "2026-08-30T09:29:59+09:00",
+  "test_count": 12,
+  "pass_count": 12,
+  "fail_count": 0,
+  "tests": [
+    {
+      "test_id": "test_01_seven_core_interfaces_are_represented",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_02_missing_version_or_sha_cannot_be_ready",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_03_two_current_blueprints_fail",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_04_v13_baseline_and_dynamic_overlay_can_coexist",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_05_dynamic_overlay_cannot_override_baseline_identity",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_06_bullish_prediction_and_wait_action_are_legal",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_07_action_trace_can_reference_all_upstream_ids",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_08_target40_fields_aggregate_without_fake_return",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_09_target100_defaults_inactive",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_10_missing_production_sop_keeps_production_not_ready",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_11_fresh_intel_supports_four_freshness_classes",
+      "result": "PASS"
+    },
+    {
+      "test_id": "test_12_phase1_does_not_modify_v13",
+      "result": "PASS"
+    }
+  ]
+}

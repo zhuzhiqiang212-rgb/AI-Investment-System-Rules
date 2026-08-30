@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "V7_PHASE1_DAILY_PRODUCT_SKELETON_1.0",
+  "title": "V7 Daily Product Skeleton",
+  "type": "object",
+  "required": ["skeleton_id", "business_blueprint_version", "production_readiness", "design_principle", "sections", "chairman_reading_order", "layer_chain", "conclusion_trace", "prediction_action_separation", "target_40_interface", "target_100_interface", "action_interface"],
+  "properties": {
+    "skeleton_id": {"const": "V7_DAILY_PRODUCT_SKELETON_PHASE1_1.0"},
+    "business_blueprint_version": {"const": "V7_COMPLETE_PRODUCT_CURRENT_v2.0"},
+    "production_readiness": {"const": "NO"},
+    "design_principle": {"const": "STRUCTURE_FROZEN_FACTS_REFRESHED_LOGIC_INHERITED_CONCLUSIONS_CHANGEABLE"},
+    "sections": {"type": "array", "minItems": 10, "maxItems": 10},
+    "chairman_reading_order": {"const": ["SECTION_0", "SECTION_1", "SECTION_7", "SECTION_6", "SECTION_2", "SECTION_3", "SECTION_4", "SECTION_5", "SECTION_8", "SECTION_9"]},
+    "layer_chain": {"const": ["MACRO", "STRATEGY", "FLOW", "SECTOR", "COMPANY", "PORTFOLIO", "ACTION", "PDCA"]},
+    "conclusion_trace": {"type": "object"},
+    "prediction_action_separation": {"type": "object"},
+    "target_40_interface": {"type": "object"},
+    "target_100_interface": {"type": "object"},
+    "action_interface": {"type": "object"}
+  }
+}

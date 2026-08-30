@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "V7_PHASE1_PRODUCT_INPUT_INTERFACES_1.0",
+  "title": "V7 Phase 1 Product Input Interfaces",
+  "type": "object",
+  "required": ["schema_version", "interfaces"],
+  "properties": {
+    "schema_version": {"const": "V7_PHASE1_PRODUCT_INPUT_INTERFACES_1.0"},
+    "interfaces": {
+      "type": "object",
+      "required": ["BUSINESS_BLUEPRINT", "PRODUCTION_SOP", "RESEARCH_BASELINE", "FRESH_INTEL", "PERSISTENT_KNOWLEDGE", "MARKET_DATA", "PORTFOLIO_STATE", "PDCA_STATE"],
+      "properties": {
+        "BUSINESS_BLUEPRINT": {"$ref": "#/$defs/businessBlueprint"},
+        "PRODUCTION_SOP": {"$ref": "#/$defs/productionSop"},
+        "RESEARCH_BASELINE": {"$ref": "#/$defs/researchBaseline"},
+        "FRESH_INTEL": {"$ref": "#/$defs/freshIntel"},
+        "PERSISTENT_KNOWLEDGE": {"$ref": "#/$defs/persistentKnowledge"},
+        "MARKET_DATA": {"$ref": "#/$defs/marketData"},
+        "PORTFOLIO_STATE": {"$ref": "#/$defs/portfolioState"},
+        "PDCA_STATE": {"$ref": "#/$defs/pdcaState"}
+      }
+    }
+  },
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "required": ["name", "type", "version", "lifecycle_status", "file_name", "file_path", "sha256", "effective_at", "updated_at"],
+      "properties": {
+        "name": {"type": "string"}, "type": {"type": "string"}, "version": {"type": ["string", "null"]},
+        "lifecycle_status": {"enum": ["CURRENT", "HISTORICAL", "NOT_BUILT", "INTERFACE_ONLY"]},
+        "file_name": {"type": ["string", "null"]}, "file_path": {"type": ["string", "null"]},
+        "sha256": {"type": ["string", "null"]}, "effective_at": {"type": ["string", "null"]},
+        "updated_at": {"type": ["string", "null"]}
+      }
+    },
+    "businessBlueprint": {
+      "type": "object", "required": ["records", "current_blueprint_id"],
+      "properties": {"current_blueprint_id": {"type": "string"}, "records": {"type": "array", "items": {"allOf": [{"$ref": "#/$defs/identity"}, {"type": "object", "required": ["blueprint_id", "status"], "properties": {"blueprint_id": {"type": "string"}, "status": {"enum": ["CURRENT", "HISTORICAL"]}}}]}}}
+    },
+    "productionSop": {
+      "allOf": [{"$ref": "#/$defs/identity"}, {"type": "object", "required": ["sop_id", "status"], "properties": {"sop_id": {"type": "string"}, "status": {"enum": ["NOT_BUILT", "CURRENT", "HISTORICAL"]}}}]
+    },
+    "researchBaseline": {
+      "allOf": [{"$ref": "#/$defs/identity"}, {"type": "object", "required": ["baseline_id", "baseline_name", "accepted_status", "accepted_date", "scope"], "properties": {"baseline_id": {"type": "string"}, "baseline_name": {"type": "string"}, "accepted_status": {"type": "string"}, "accepted_date": {"type": "string"}, "scope": {"type": "array"}}}]
+    },
+    "freshIntel": {
+      "type": "object", "required": ["status", "records", "freshness_classes"],
+      "properties": {"status": {"const": "INTERFACE_ONLY"}, "freshness_classes": {"const": ["HOT", "CURRENT", "STALE", "ARCHIVE"]}, "records": {"type": "array", "items": {"type": "object", "required": ["source_name", "file_name", "file_path", "sha256", "published_at", "ingested_at", "freshness_class", "expires_or_review_at", "topic_tags"]}}}
+    },
+    "persistentKnowledge": {
+      "type": "object", "required": ["status", "records"],
+      "properties": {"status": {"const": "INTERFACE_ONLY"}, "records": {"type": "array", "items": {"type": "object", "required": ["knowledge_id", "topic", "source_identity", "original_date", "review_at", "status"]}}}
+    },
+    "marketData": {
+      "type": "object", "required": ["status", "records"],
+      "properties": {"status": {"const": "INTERFACE_ONLY"}, "records": {"type": "array", "items": {"type": "object", "required": ["data_source", "as_of", "market", "asset", "data_type", "file_or_dataset_identity", "sha256_or_version"]}}}
+    },
+    "portfolioState": {
+      "type": "object", "required": ["status", "records"],
+      "properties": {"status": {"const": "INTERFACE_ONLY"}, "records": {"type": "array", "items": {"type": "object", "required": ["portfolio_snapshot_id", "as_of", "source", "account_scope", "file_name", "file_path", "sha256"]}}}
+    },
+    "pdcaState": {
+      "type": "object", "required": ["status", "records"],
+      "properties": {"status": {"const": "INTERFACE_ONLY"}, "records": {"type": "array", "items": {"type": "object", "required": ["prediction_id", "prediction_date", "target", "expected_path", "actual_result", "error_type", "model_adjustment", "confidence_adjustment"]}}}
+    }
+  }
+}

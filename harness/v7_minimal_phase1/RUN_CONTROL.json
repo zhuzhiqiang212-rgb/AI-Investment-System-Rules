@@ -1,164 +1,78 @@
 {
   "schema_version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
   "harness_id": "V7_MINIMAL_HARNESS_PHASE1",
-  "run_id": "V7-MINIMAL-HARNESS-PHASE1-20260830-021141-JST",
-  "generated_at_jst": "2026-08-30T02:11:41+09:00",
+  "run_id": "V7-COMPLETE-PRODUCT-PHASE1-20260830-093016-JST",
+  "generated_at_jst": "2026-08-30T09:30:16+09:00",
   "control_status": "ACCEPTANCE_PENDING",
-  "active_task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
+  "active_task_id": "V7-COMPLETE-PRODUCT-PHASE1-SKELETON-INTERFACES",
   "tasks": [
-    {
-      "task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
-      "task_name": "V7最小Harness第一阶段建设",
-      "status": "ACCEPTANCE_PENDING",
-      "opened_by_role": "GPT_CONTROL",
-      "opened_by_actor": "V7总控-3"
-    }
+    {"task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD", "task_name": "V7最小Harness第一阶段建设", "status": "COMPLETED", "closed_by_role": "GPT_CONTROL", "closure_basis": "MINIMAL_HARNESS_ACCEPTANCE_PASS_IN_PHASE1_FORMAL_ORDER"},
+    {"task_id": "V7-COMPLETE-PRODUCT-PHASE1-SKELETON-INTERFACES", "task_name": "V7完整产品骨架与数据接口定义", "status": "ACCEPTANCE_PENDING", "opened_by_role": "GPT_CONTROL", "opened_by_actor": "V7总控-3"}
   ],
   "roles": {
-    "CHAIRMAN": {
-      "permissions": ["DECIDE_FINAL_TARGET", "MAKE_FINAL_BUSINESS_DECISION", "AUTHORIZE_RELEASE", "APPROVE_MAJOR_GOVERNANCE_CHANGE"],
-      "prohibitions": []
-    },
-    "GPT_CONTROL": {
-      "permissions": ["DEFINE_TASK", "FREEZE_SCOPE", "AUTHORIZE_EXECUTION", "DISPATCH", "RECEIVE_RESULT", "ORGANIZE_ACCEPTANCE"],
-      "prohibitions": ["IMPERSONATE_CHAIRMAN", "AUTO_CONVERT_BUSINESS_ACCEPTANCE_TO_RELEASE"]
-    },
-    "CODEX_EXECUTOR": {
-      "permissions": ["EXECUTE_FORMAL_TASK", "CREATE_ALLOWED_FILES", "RUN_LOCAL_TESTS", "REPORT_RESULTS"],
-      "prohibitions": ["EXPAND_SCOPE", "MODIFY_CURRENT_GOVERNANCE", "DEFINE_NEW_BUSINESS_TARGET", "DECLARE_FINAL_BUSINESS_PASS", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"]
-    },
-    "INDEPENDENT_VALIDATOR": {
-      "permissions": ["READ_CONTROL", "VALIDATE_CONTROL", "REPORT_FINDINGS"],
-      "prohibitions": ["PRODUCE_ARTIFACT", "MODIFY_CONTROL", "AUTO_REPAIR", "AUTO_ADVANCE", "RELEASE", "TRADE", "ORDER"]
-    }
+    "CHAIRMAN": {"permissions": ["DECIDE_FINAL_TARGET", "MAKE_FINAL_BUSINESS_DECISION", "AUTHORIZE_RELEASE", "APPROVE_MAJOR_GOVERNANCE_CHANGE"], "prohibitions": []},
+    "GPT_CONTROL": {"permissions": ["DEFINE_TASK", "FREEZE_SCOPE", "AUTHORIZE_EXECUTION", "DISPATCH", "RECEIVE_RESULT", "ORGANIZE_ACCEPTANCE"], "prohibitions": ["IMPERSONATE_CHAIRMAN", "AUTO_CONVERT_BUSINESS_ACCEPTANCE_TO_RELEASE"]},
+    "CODEX_EXECUTOR": {"permissions": ["EXECUTE_FORMAL_TASK", "CREATE_ALLOWED_FILES", "RUN_LOCAL_TESTS", "REPORT_RESULTS"], "prohibitions": ["EXPAND_SCOPE", "MODIFY_CURRENT_GOVERNANCE", "DEFINE_NEW_BUSINESS_TARGET", "DECLARE_FINAL_BUSINESS_PASS", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"]},
+    "INDEPENDENT_VALIDATOR": {"permissions": ["READ_CONTROL", "VALIDATE_CONTROL", "REPORT_FINDINGS"], "prohibitions": ["PRODUCE_ARTIFACT", "MODIFY_CONTROL", "AUTO_REPAIR", "AUTO_ADVANCE", "RELEASE", "TRADE", "ORDER"]}
   },
   "task": {
-    "task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
-    "task_name": "V7最小Harness正式施工任务单第一阶段",
+    "task_id": "V7-COMPLETE-PRODUCT-PHASE1-SKELETON-INTERFACES",
+    "task_name": "V7完整产品衔接Phase 1完整产品骨架与数据接口定义",
     "owner_controller": {"role": "GPT_CONTROL", "actor": "V7总控-3"},
     "executor": {"role": "CODEX_EXECUTOR", "actor": "Codex-V7-1"},
     "acceptance_owner": {"role": "GPT_CONTROL", "actor": "V7总控-3"},
-    "accepted_project_boundary": {
-      "V13_INDEPENDENT_FINAL_ACCEPTANCE": "PASS",
-      "GPT_BUSINESS_ACCEPTANCE": "PASS",
-      "V13_PDF_PHYSICAL_CHECK": "PASS",
-      "boundary_note": "These are frozen V13 facts, not acceptance of this Harness build."
-    }
+    "business_blueprint_binding": {"blueprint_id": "V7_COMPLETE_PRODUCT_CURRENT_v2.0", "authority_input_id": "PHASE1_FORMAL_TASK_AND_BLUEPRINT_AUTHORITY", "status": "CURRENT", "standalone_blueprint_file_created": false},
+    "production_sop_status": "NOT_BUILT",
+    "research_baseline_id": "V13_RESEARCH_BASELINE"
   },
   "scope": {
-    "allowed": [
-      "CREATE_MINIMAL_RUN_CONTROL",
-      "CREATE_READ_ONLY_VALIDATOR",
-      "CREATE_MINIMAL_SCHEMA",
-      "CREATE_MINIMAL_TESTS",
-      "CREATE_MINIMAL_README",
-      "RUN_LOCAL_TESTS"
-    ],
-    "forbidden": [
-      "MODIFY_V13_HTML",
-      "MODIFY_V13_PDF",
-      "RESEARCH_SECURITIES",
-      "BUILD_FULL_PRODUCT",
-      "CONNECT_MACRO_PIPELINE",
-      "CONNECT_PDCA_PIPELINE",
-      "PRODUCE_DAILY_REPORT",
-      "OVERWRITE_DAILY_REPORT",
-      "RELEASE",
-      "TRADE",
-      "ORDER",
-      "BROKER_ORDER_API",
-      "BUILD_FULL_HARNESS"
-    ]
+    "allowed": ["CREATE_PRODUCT_SKELETON_SCHEMA", "CREATE_INPUT_INTERFACE_SCHEMA", "CREATE_VERSION_IDENTITY_MODEL", "CREATE_RELATION_TRACE_MODEL", "CREATE_MINIMAL_EXAMPLE_DATA", "CREATE_STRUCTURE_TESTS", "UPDATE_THIS_HARNESS_RUN", "CREATE_PHASE1_README", "RUN_LOCAL_TESTS"],
+    "forbidden": ["MODIFY_V13_HTML", "MODIFY_V13_PDF", "RESEARCH_SECURITIES", "BUILD_FULL_PRODUCT", "CONNECT_MACRO_PIPELINE", "CONNECT_PDCA_PIPELINE", "PRODUCE_DAILY_REPORT", "OVERWRITE_DAILY_REPORT", "RELEASE", "TRADE", "ORDER", "BROKER_ORDER_API", "BUILD_FULL_HARNESS", "SCAN_NEWS", "SCAN_LAOLEI", "SCAN_HUSHUI", "FETCH_MACRO_DATA", "FETCH_REALTIME_MARKET_DATA", "BUILD_PRODUCTION_SOP", "START_PHASE2", "CREATE_REAL_PORTFOLIO_JUDGEMENT", "CREATE_REAL_TRADE_ADVICE"]
   },
   "stages": {
     "ordered": ["S0_DEFINED", "S1_INPUT_BOUND", "S2_AUTHORIZED", "S3_EXECUTED", "S4_VALIDATED", "S5_ACCEPTANCE_PENDING", "S5_ACCEPTED"],
     "current": "S5_ACCEPTANCE_PENDING",
     "history": [
-      {"stage": "S0_DEFINED", "status": "PASS", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T01:48:00+09:00"},
-      {"stage": "S1_INPUT_BOUND", "status": "PASS", "actor_role": "CODEX_EXECUTOR", "actor": "Codex-V7-1", "at_jst": "2026-08-30T01:55:00+09:00"},
-      {"stage": "S2_AUTHORIZED", "status": "PASS", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T01:56:00+09:00"},
-      {"stage": "S3_EXECUTED", "status": "PASS", "actor_role": "CODEX_EXECUTOR", "actor": "Codex-V7-1", "at_jst": "2026-08-30T02:08:00+09:00"},
-      {"stage": "S4_VALIDATED", "status": "PASS", "actor_role": "INDEPENDENT_VALIDATOR", "actor": "V7 minimal read-only validator", "at_jst": "2026-08-30T02:10:00+09:00"},
-      {"stage": "S5_ACCEPTANCE_PENDING", "status": "WAITING", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T02:11:41+09:00"}
+      {"stage": "S0_DEFINED", "status": "PASS", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T09:17:47+09:00"},
+      {"stage": "S1_INPUT_BOUND", "status": "PASS", "actor_role": "CODEX_EXECUTOR", "actor": "Codex-V7-1", "at_jst": "2026-08-30T09:23:27+09:00"},
+      {"stage": "S2_AUTHORIZED", "status": "PASS", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T09:24:00+09:00"},
+      {"stage": "S3_EXECUTED", "status": "PASS", "actor_role": "CODEX_EXECUTOR", "actor": "Codex-V7-1", "at_jst": "2026-08-30T09:28:00+09:00"},
+      {"stage": "S4_VALIDATED", "status": "PASS", "actor_role": "INDEPENDENT_VALIDATOR", "actor": "Phase 1 and Minimal Harness read-only validators", "at_jst": "2026-08-30T09:30:00+09:00"},
+      {"stage": "S5_ACCEPTANCE_PENDING", "status": "WAITING", "actor_role": "GPT_CONTROL", "actor": "V7总控-3", "at_jst": "2026-08-30T09:30:16+09:00"}
     ]
   },
   "authorization": {
-    "authorized_by_role": "GPT_CONTROL",
-    "authorized_by_actor": "V7总控-3",
-    "authorized_at_jst": "2026-08-30T01:48:00+09:00",
-    "authorized_actions": ["CREATE_MINIMAL_HARNESS_FILES", "RUN_LOCAL_TESTS", "REPORT_RESULTS"],
-    "explicitly_forbidden_actions": ["MODIFY_V13", "BUILD_FULL_PRODUCT", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"],
-    "modify_input_allowed": false,
-    "production_allowed": false,
-    "release_allowed": false,
-    "trade_allowed": false,
-    "order_allowed": false
+    "authorized_by_role": "GPT_CONTROL", "authorized_by_actor": "V7总控-3", "authorized_at_jst": "2026-08-30T09:17:47+09:00",
+    "authorized_actions": ["CREATE_PHASE1_SKELETON", "CREATE_PHASE1_INTERFACES", "CREATE_MINIMAL_EXAMPLE", "RUN_STRUCTURE_TESTS", "UPDATE_THIS_HARNESS_RUN", "REPORT_RESULTS"],
+    "explicitly_forbidden_actions": ["PRODUCTION", "NEWS_SCAN", "MACRO_FETCH", "MODIFY_V13", "BUILD_PRODUCTION_SOP", "START_PHASE2", "RELEASE", "TRADE", "ORDER", "AUTO_CONTINUE"],
+    "modify_input_allowed": false, "production_allowed": false, "release_allowed": false, "trade_allowed": false, "order_allowed": false
   },
   "inputs": [
-    {
-      "artifact_id": "FORMAL_TASK_ORDER",
-      "filename": "pasted-text.txt",
-      "path": "C:\\Users\\localhost\\.codex\\attachments\\1fe32ed5-e15d-4880-8d0f-99512d1a9328\\pasted-text.txt",
-      "version": "V7_MINIMAL_HARNESS_PHASE1_TASK_ORDER",
-      "size_bytes": 16089,
-      "sha256": "521FAF382DA02BF8A3B6CE5F926FE2EE6E3E8DA9D5004B26609F386506E5A7D7",
-      "input_role": "FORMAL_GPT_CONTROL_TASK",
-      "binding_status": "BOUND"
-    },
-    {
-      "artifact_id": "V13_FROZEN_PROTECTED_ARTIFACT",
-      "filename": "V13普通中文完整投资产品.html",
-      "path": "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/V13普通中文完整投资产品.html",
-      "version": "V13-USER-READABLE-20260829015943-JST",
-      "size_bytes": 365540,
-      "sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
-      "input_role": "FROZEN_PROTECTED_ARTIFACT_DO_NOT_MODIFY",
-      "binding_status": "BOUND"
-    }
+    {"artifact_id": "PHASE1_FORMAL_TASK_AND_BLUEPRINT_AUTHORITY", "filename": "pasted-text.txt", "path": "C:\\Users\\localhost\\.codex\\attachments\\ce912ef2-41e1-45bc-8266-b40f1ad6f065\\pasted-text.txt", "version": "V7_COMPLETE_PRODUCT_CURRENT_v2.0_PHASE1_ORDER", "size_bytes": 17729, "sha256": "81ABF8D38DCEE12B948CC5AEE6E01B4629F91BB84D0184B769145035EB58AFB6", "input_role": "FORMAL_TASK_AND_BLUEPRINT_AUTHORITY_REFERENCE", "binding_status": "BOUND"},
+    {"artifact_id": "MINIMAL_HARNESS_SCHEMA", "filename": "run_control.schema.json", "path": "harness/v7_minimal_phase1/run_control.schema.json", "version": "V7_MINIMAL_HARNESS_PHASE1_1.0", "size_bytes": 1618, "sha256": "DAA4C11FD13D51DA1715AFC353DCB4203447020538A0BD747D92FDB4EB1BF8AC", "input_role": "ACTIVE_HARNESS_SCHEMA", "binding_status": "BOUND"},
+    {"artifact_id": "MINIMAL_HARNESS_VALIDATOR", "filename": "validate_run_control.py", "path": "harness/v7_minimal_phase1/validate_run_control.py", "version": "V7_MINIMAL_HARNESS_PHASE1_1.0", "size_bytes": 12167, "sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482", "input_role": "ACTIVE_READ_ONLY_HARNESS_VALIDATOR", "binding_status": "BOUND"},
+    {"artifact_id": "MINIMAL_HARNESS_ACCEPTANCE_EVIDENCE", "filename": "minimal_harness_test_report.json", "path": "harness/v7_minimal_phase1/minimal_harness_test_report.json", "version": "10_OF_10_PASS", "size_bytes": 1216, "sha256": "EBDC6C6C178ED16F598C9A59045D45048517AA8FE57D89190F76E3E6012465A0", "input_role": "MINIMAL_HARNESS_ACCEPTANCE_EVIDENCE", "binding_status": "BOUND"},
+    {"artifact_id": "V13_RESEARCH_BASELINE", "filename": "V13普通中文完整投资产品.html", "path": "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/V13普通中文完整投资产品.html", "version": "V13-USER-READABLE-20260829015943-JST", "size_bytes": 365540, "sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4", "input_role": "FROZEN_RESEARCH_BASELINE_DO_NOT_MODIFY", "binding_status": "BOUND"}
   ],
   "outputs": [
-    {"artifact_id": "MINIMAL_SCHEMA", "path": "harness/v7_minimal_phase1/run_control.schema.json", "size_bytes": 1618, "sha256": "DAA4C11FD13D51DA1715AFC353DCB4203447020538A0BD747D92FDB4EB1BF8AC", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "READ_ONLY_VALIDATOR", "path": "harness/v7_minimal_phase1/validate_run_control.py", "size_bytes": 12167, "sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "TEN_CASE_TEST_SUITE", "path": "harness/v7_minimal_phase1/tests/test_validate_run_control.py", "size_bytes": 9154, "sha256": "B9ADEE5CFE47E4E2684C4A88C0C745D9EDAF911311C702E00F34F30B80ADBB7A", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "TEST_RUNNER", "path": "harness/v7_minimal_phase1/tests/run_tests.py", "size_bytes": 1750, "sha256": "A0FAE7FEE037B0EC5B2DD73014FC75AE11E95ABA893D91338CEE4D4F494550FE", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "SELF_TEST_REPORT", "path": "harness/v7_minimal_phase1/minimal_harness_test_report.json", "size_bytes": 1216, "sha256": "EBDC6C6C178ED16F598C9A59045D45048517AA8FE57D89190F76E3E6012465A0", "producer_role": "CODEX_EXECUTOR"},
-    {"artifact_id": "MINIMAL_README", "path": "harness/v7_minimal_phase1/README.html", "size_bytes": 1621, "sha256": "4EFE0E711703914A84FAF3B722D0288700336D5495EF4D595FFB58A8817945FB", "producer_role": "CODEX_EXECUTOR"}
+    {"artifact_id": "PRODUCT_INPUT_INTERFACE_SCHEMA", "path": "harness/v7_phase1_product_interfaces/product_input_interfaces.schema.json", "size_bytes": 4538, "sha256": "C16547EE2C7E6FA1D9262B4EEDC55EFA30016FE6092BA3CD2FB3288522159676", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "DAILY_PRODUCT_SKELETON_SCHEMA", "path": "harness/v7_phase1_product_interfaces/daily_product_skeleton.schema.json", "size_bytes": 1370, "sha256": "BB315FACFC9DD381F49DDBBB7646F3EA0EBBA26256B448C9F32A8BADAD4F5A5C", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "PHASE1_STRUCTURE_EXAMPLE", "path": "harness/v7_phase1_product_interfaces/phase1_structure_example.json", "size_bytes": 9144, "sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "PHASE1_READ_ONLY_VALIDATOR", "path": "harness/v7_phase1_product_interfaces/validate_phase1_structure.py", "size_bytes": 9575, "sha256": "2E2ECABA9120CBF401F4A4D792C1233514E8F01508696F8AA94188F6286CFC48", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "PHASE1_12_TEST_SUITE", "path": "harness/v7_phase1_product_interfaces/tests/test_phase1_structure.py", "size_bytes": 4661, "sha256": "0D4167E7B0C5AB557936CAF689BA7333F70724A7E33E5B1982326C84D93A1AFA", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "PHASE1_TEST_RUNNER", "path": "harness/v7_phase1_product_interfaces/tests/run_tests.py", "size_bytes": 1642, "sha256": "80A4792A0B6EEF98F5EFF6AA65C08294B9B084BD6F943BED42AC7CFA901C29DF", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "PHASE1_TEST_REPORT", "path": "harness/v7_phase1_product_interfaces/phase1_test_report.json", "size_bytes": 1489, "sha256": "DF67D98C7D355E3B979D2A39D3E850DCB49180E8560FE48CE9E8300404945E26", "producer_role": "CODEX_EXECUTOR"},
+    {"artifact_id": "PHASE1_README", "path": "harness/v7_phase1_product_interfaces/README.html", "size_bytes": 1264, "sha256": "70948F8E7E69EDA6E7BEEC8D5C9C795D566ECC5E817BDE1552CA2F561788AC01", "producer_role": "CODEX_EXECUTOR"}
   ],
   "consumption_chain": [
-    {
-      "relation_id": "VALIDATOR_CONSUMED_BY_TEST_SUITE",
-      "producer": "CODEX_EXECUTOR",
-      "produced_artifact": "READ_ONLY_VALIDATOR",
-      "produced_artifact_sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482",
-      "consumer": "TEN_CASE_TEST_SUITE",
-      "consumed_artifact_sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482"
-    },
-    {
-      "relation_id": "TEST_SUITE_CONSUMED_BY_TEST_RUNNER",
-      "producer": "CODEX_EXECUTOR",
-      "produced_artifact": "TEN_CASE_TEST_SUITE",
-      "produced_artifact_sha256": "B9ADEE5CFE47E4E2684C4A88C0C745D9EDAF911311C702E00F34F30B80ADBB7A",
-      "consumer": "TEST_RUNNER",
-      "consumed_artifact_sha256": "B9ADEE5CFE47E4E2684C4A88C0C745D9EDAF911311C702E00F34F30B80ADBB7A"
-    },
-    {
-      "relation_id": "TEST_REPORT_BOUND_IN_RUN_CONTROL",
-      "producer": "CODEX_EXECUTOR",
-      "produced_artifact": "SELF_TEST_REPORT",
-      "produced_artifact_sha256": "EBDC6C6C178ED16F598C9A59045D45048517AA8FE57D89190F76E3E6012465A0",
-      "consumer": "RUN_CONTROL_BINDING",
-      "consumed_artifact_sha256": "EBDC6C6C178ED16F598C9A59045D45048517AA8FE57D89190F76E3E6012465A0"
-    }
+    {"relation_id": "INPUT_SCHEMA_TO_STRUCTURE_EXAMPLE", "producer": "CODEX_EXECUTOR", "produced_artifact": "PRODUCT_INPUT_INTERFACE_SCHEMA", "produced_artifact_sha256": "C16547EE2C7E6FA1D9262B4EEDC55EFA30016FE6092BA3CD2FB3288522159676", "consumer": "PHASE1_STRUCTURE_EXAMPLE", "consumed_artifact_sha256": "C16547EE2C7E6FA1D9262B4EEDC55EFA30016FE6092BA3CD2FB3288522159676"},
+    {"relation_id": "SKELETON_SCHEMA_TO_STRUCTURE_EXAMPLE", "producer": "CODEX_EXECUTOR", "produced_artifact": "DAILY_PRODUCT_SKELETON_SCHEMA", "produced_artifact_sha256": "BB315FACFC9DD381F49DDBBB7646F3EA0EBBA26256B448C9F32A8BADAD4F5A5C", "consumer": "PHASE1_STRUCTURE_EXAMPLE", "consumed_artifact_sha256": "BB315FACFC9DD381F49DDBBB7646F3EA0EBBA26256B448C9F32A8BADAD4F5A5C"},
+    {"relation_id": "STRUCTURE_EXAMPLE_TO_PHASE1_VALIDATOR", "producer": "CODEX_EXECUTOR", "produced_artifact": "PHASE1_STRUCTURE_EXAMPLE", "produced_artifact_sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C", "consumer": "PHASE1_READ_ONLY_VALIDATOR", "consumed_artifact_sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C"},
+    {"relation_id": "PHASE1_VALIDATOR_TO_TEST_SUITE", "producer": "CODEX_EXECUTOR", "produced_artifact": "PHASE1_READ_ONLY_VALIDATOR", "produced_artifact_sha256": "2E2ECABA9120CBF401F4A4D792C1233514E8F01508696F8AA94188F6286CFC48", "consumer": "PHASE1_12_TEST_SUITE", "consumed_artifact_sha256": "2E2ECABA9120CBF401F4A4D792C1233514E8F01508696F8AA94188F6286CFC48"},
+    {"relation_id": "PHASE1_TEST_SUITE_TO_RUNNER", "producer": "CODEX_EXECUTOR", "produced_artifact": "PHASE1_12_TEST_SUITE", "produced_artifact_sha256": "0D4167E7B0C5AB557936CAF689BA7333F70724A7E33E5B1982326C84D93A1AFA", "consumer": "PHASE1_TEST_RUNNER", "consumed_artifact_sha256": "0D4167E7B0C5AB557936CAF689BA7333F70724A7E33E5B1982326C84D93A1AFA"},
+    {"relation_id": "PHASE1_TEST_REPORT_TO_RUN_CONTROL", "producer": "CODEX_EXECUTOR", "produced_artifact": "PHASE1_TEST_REPORT", "produced_artifact_sha256": "DF67D98C7D355E3B979D2A39D3E850DCB49180E8560FE48CE9E8300404945E26", "consumer": "RUN_CONTROL_BINDING", "consumed_artifact_sha256": "DF67D98C7D355E3B979D2A39D3E850DCB49180E8560FE48CE9E8300404945E26"}
   ],
-  "validation": {
-    "validator_artifact_id": "READ_ONLY_VALIDATOR",
-    "validator_mode": "READ_ONLY",
-    "auto_repair": false,
-    "auto_advance": false,
-    "result": "TECHNICAL_CHECK_PASS",
-    "self_test_report_artifact_id": "SELF_TEST_REPORT",
-    "self_test_result": "10_OF_10_PASS"
-  },
+  "validation": {"validator_artifact_id": "MINIMAL_HARNESS_VALIDATOR", "validator_mode": "READ_ONLY", "auto_repair": false, "auto_advance": false, "result": "TECHNICAL_CHECK_PASS", "phase1_structure_validator_artifact_id": "PHASE1_READ_ONLY_VALIDATOR", "phase1_structure_result": "17_OF_17_PASS", "self_test_report_artifact_id": "PHASE1_TEST_REPORT", "self_test_result": "12_OF_12_PASS"},
   "pass_levels": [
     {"level": 1, "name": "TECHNICAL_CHECK_PASS", "status": "PASS", "decided_by_role": "INDEPENDENT_VALIDATOR", "basis": "DIRECT_VALIDATION"},
     {"level": 2, "name": "CONTENT_OR_LOCAL_ACCEPTANCE_PASS", "status": "PASS", "decided_by_role": "CODEX_EXECUTOR", "basis": "EXPLICIT_REVIEW"},
@@ -166,35 +80,8 @@
     {"level": 4, "name": "GPT_BUSINESS_ACCEPTANCE_PASS", "status": "PENDING", "decided_by_role": null, "basis": null},
     {"level": 5, "name": "CHAIRMAN_APPROVED", "status": "PENDING", "decided_by_role": null, "basis": null}
   ],
-  "release": {
-    "chairman_decision": "PENDING",
-    "decision_by_role": null,
-    "release_authorized": false,
-    "authorized_by_role": null
-  },
-  "safety_counters": {
-    "v13_modified_count": 0,
-    "release_executed_count": 0,
-    "trade_executed_count": 0,
-    "order_executed_count": 0,
-    "daily_report_overwrite_count": 0,
-    "full_product_build_started_count": 0,
-    "scope_deviation_count": 0
-  },
-  "recovery": {
-    "last_valid_stage": "S4_VALIDATED",
-    "last_valid_input": "FORMAL_TASK_ORDER",
-    "last_valid_output": "SELF_TEST_REPORT",
-    "failed_stage": null,
-    "blocked_reason": "WAITING_V7_CONTROL_3_ACCEPTANCE",
-    "retry_allowed": true,
-    "resume_from": "S5_ACCEPTANCE_PENDING"
-  },
-  "next_action": {
-    "auto_continue": false,
-    "required_role": "GPT_CONTROL",
-    "required_actor": "V7总控-3",
-    "action": "ACCEPT_OR_RETURN_MINIMAL_HARNESS",
-    "forbidden_until_decision": ["FULL_PRODUCT_INTEGRATION", "MACRO_PIPELINE", "PDCA_PIPELINE", "NEW_DAILY_REPORT", "V14", "RELEASE", "TRADE", "ORDER"]
-  }
+  "release": {"chairman_decision": "PENDING", "decision_by_role": null, "release_authorized": false, "authorized_by_role": null},
+  "safety_counters": {"v13_modified_count": 0, "release_executed_count": 0, "trade_executed_count": 0, "order_executed_count": 0, "daily_report_overwrite_count": 0, "full_product_build_started_count": 0, "scope_deviation_count": 0, "news_scan_executed_count": 0, "macro_production_started_count": 0, "pdca_production_started_count": 0, "phase2_started_count": 0},
+  "recovery": {"last_valid_stage": "S4_VALIDATED", "last_valid_input": "V13_RESEARCH_BASELINE", "last_valid_output": "PHASE1_TEST_REPORT", "failed_stage": null, "blocked_reason": "WAITING_V7_CONTROL_3_PHASE1_ACCEPTANCE", "retry_allowed": true, "resume_from": "S5_ACCEPTANCE_PENDING"},
+  "next_action": {"auto_continue": false, "required_role": "GPT_CONTROL", "required_actor": "V7总控-3", "action": "ACCEPT_OR_RETURN_PHASE1", "forbidden_until_decision": ["PRODUCTION_SOP_BUILD", "PHASE2", "FULL_PRODUCT_PRODUCTION", "NEWS_SCAN", "MACRO_PRODUCTION", "PDCA_PRODUCTION", "RELEASE", "TRADE", "ORDER"]}
 }
