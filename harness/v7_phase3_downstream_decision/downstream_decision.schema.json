@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "V7 Phase 3 Downstream Decision Interface",
+  "type": "object",
+  "required": [
+    "identity",
+    "governance_bindings",
+    "phase3_scope",
+    "layer_interfaces",
+    "causal_chain",
+    "action_safety",
+    "safety",
+    "success_criteria"
+  ],
+  "properties": {
+    "identity": {
+      "type": "object"
+    },
+    "governance_bindings": {
+      "type": "object"
+    },
+    "phase3_scope": {
+      "type": "object"
+    },
+    "layer_interfaces": {
+      "type": "array",
+      "minItems": 7
+    },
+    "causal_chain": {
+      "type": "object"
+    },
+    "action_safety": {
+      "type": "object"
+    },
+    "safety": {
+      "type": "object"
+    },
+    "success_criteria": {
+      "type": "object"
+    }
+  }
+}
