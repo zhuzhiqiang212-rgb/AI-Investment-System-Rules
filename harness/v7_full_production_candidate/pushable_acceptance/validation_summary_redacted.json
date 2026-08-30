@@ -1,0 +1,21 @@
+{
+  "task_id": "V7-FORMAL-FULL-PRODUCTION-CANDIDATE",
+  "run_id": "V7-FULL-PRODUCTION-CANDIDATE-20260830-123337-JST",
+  "status": "TECHNICAL_CHECK_PASS",
+  "candidate_checks": "20/20 PASS",
+  "html_pdf_consistency": "PASS",
+  "pdf_page_count": 103,
+  "desktop_390px_browser": "PASS",
+  "phase1": "17/17 PASS",
+  "phase2": "13/13 PASS",
+  "phase3": "27/27 PASS",
+  "production_sop": "21/21 PASS",
+  "edinet": "SOFT_MISSING / DEGRADED_MODE",
+  "futu": "READ_ONLY_PASS_NO_VALUES_IN_PUSHABLE_PACKAGE",
+  "market": "42/42_PASS_NO_VALUES_IN_PUSHABLE_PACKAGE",
+  "v13_unchanged": true,
+  "locked_forecasts_changed": 0,
+  "pdca_registry_changed": 0,
+  "release_trade_order_daily_overwrite_count": 0,
+  "harness_result": "20/20 PASS"
+}

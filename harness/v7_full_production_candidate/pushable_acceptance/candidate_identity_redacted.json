@@ -1,0 +1,26 @@
+{
+  "task_id": "V7-FORMAL-FULL-PRODUCTION-CANDIDATE",
+  "run_id": "V7-FULL-PRODUCTION-CANDIDATE-20260830-123337-JST",
+  "status": "CANDIDATE_ACCEPTANCE_PENDING",
+  "current_controller": "V7总控--4（Work）",
+  "current_executor": "Codex--V7--2",
+  "current_acceptance_owner": "对应独立终验线程（由总控派发）",
+  "candidate_html": {
+    "artifact_name": "V7正式完整生产候选.html",
+    "size_bytes": 371620,
+    "sha256": "098184D0249D1A9D0E092B01FEB58789AF425011D01408E51A52371593F32901",
+    "handling": "LOCAL_SENSITIVE_EVIDENCE_NOT_PUSHED"
+  },
+  "candidate_pdf": {
+    "artifact_name": "V7正式完整生产候选.pdf",
+    "size_bytes": 1051760,
+    "sha256": "756763341328580797BDE297F35E218627960EDE2D48A0013A2218DFD7FD8E89",
+    "page_count": 103,
+    "handling": "LOCAL_SENSITIVE_EVIDENCE_NOT_PUSHED"
+  },
+  "v13_original_sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
+  "candidate_only": true,
+  "released": false,
+  "daily_report_overwritten": false,
+  "trade_or_order_created": false
+}

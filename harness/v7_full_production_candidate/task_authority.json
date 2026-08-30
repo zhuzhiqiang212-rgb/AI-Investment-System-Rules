@@ -1,0 +1,14 @@
+{
+  "task_id": "V7-FORMAL-FULL-PRODUCTION-CANDIDATE",
+  "run_id": "V7-FULL-PRODUCTION-CANDIDATE-20260830-123337-JST",
+  "current_controller": "V7总控--4（Work）",
+  "current_executor": "Codex--V7--2",
+  "current_acceptance_owner": "对应独立终验线程（由总控派发）",
+  "status": "FORMAL_FULL_PRODUCTION_CANDIDATE_ACCEPTANCE_PENDING_DEGRADED_MODE",
+  "candidate_only": true,
+  "candidate_pdf_authorized": true,
+  "local_sensitive_evidence_status": "LOCAL_SENSITIVE_EVIDENCE_NOT_PUSHED",
+  "release_authorized": false,
+  "trade_authorized": false,
+  "order_authorized": false
+}

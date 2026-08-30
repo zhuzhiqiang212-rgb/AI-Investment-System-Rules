@@ -1,0 +1,262 @@
+{
+  "control_result": "CONTROL_VALID",
+  "technical_result": "TECHNICAL_CHECK_PASS",
+  "check_count": 20,
+  "failure_count": 0,
+  "failures": [],
+  "checks": [
+    {
+      "check_id": "TOP_LEVEL_FIELDS",
+      "result": "PASS",
+      "actual": [
+        "active_task_id",
+        "authorization",
+        "consumption_chain",
+        "control_status",
+        "generated_at_jst",
+        "harness_id",
+        "inputs",
+        "next_action",
+        "outputs",
+        "pass_levels",
+        "recovery",
+        "release",
+        "roles",
+        "run_id",
+        "safety_counters",
+        "schema_version",
+        "scope",
+        "stages",
+        "task",
+        "tasks",
+        "validation"
+      ]
+    },
+    {
+      "check_id": "IDENTITY",
+      "result": "PASS",
+      "actual": [
+        "V7_MINIMAL_HARNESS_PHASE1_1.0",
+        "V7_MINIMAL_HARNESS_PHASE1"
+      ]
+    },
+    {
+      "check_id": "REQUIRED_ROLES",
+      "result": "PASS",
+      "actual": [
+        "CHAIRMAN",
+        "CODEX_EXECUTOR",
+        "GPT_CONTROL",
+        "INDEPENDENT_VALIDATOR"
+      ]
+    },
+    {
+      "check_id": "TASK_ROLE_BINDINGS",
+      "result": "PASS",
+      "actual": [
+        "CODEX_EXECUTOR",
+        "GPT_CONTROL",
+        "INDEPENDENT_VALIDATOR"
+      ]
+    },
+    {
+      "check_id": "SCOPE_LOCK",
+      "result": "PASS",
+      "actual": {
+        "missing": [],
+        "conflicts": []
+      }
+    },
+    {
+      "check_id": "STAGE_MODEL",
+      "result": "PASS",
+      "actual": {
+        "ordered": [
+          "S0_DEFINED",
+          "S1_INPUT_BOUND",
+          "S2_AUTHORIZED",
+          "S3_EXECUTED",
+          "S4_VALIDATED",
+          "S5_ACCEPTANCE_PENDING",
+          "S5_ACCEPTED"
+        ],
+        "current": "S5_ACCEPTANCE_PENDING",
+        "history": [
+          "S0_DEFINED",
+          "S1_INPUT_BOUND",
+          "S2_AUTHORIZED",
+          "S3_EXECUTED",
+          "S4_VALIDATED",
+          "S5_ACCEPTANCE_PENDING"
+        ]
+      }
+    },
+    {
+      "check_id": "NO_STAGE_SKIP",
+      "result": "PASS",
+      "actual": [
+        "S0_DEFINED",
+        "S1_INPUT_BOUND",
+        "S2_AUTHORIZED",
+        "S3_EXECUTED",
+        "S4_VALIDATED",
+        "S5_ACCEPTANCE_PENDING"
+      ]
+    },
+    {
+      "check_id": "STAGE_ROLE_PERMISSION",
+      "result": "PASS",
+      "actual": []
+    },
+    {
+      "check_id": "AUTHORIZATION_BEFORE_EXECUTION",
+      "result": "PASS",
+      "actual": {
+        "S2": 2,
+        "S3": 3
+      }
+    },
+    {
+      "check_id": "AUTHORIZATION_BOUNDARY",
+      "result": "PASS",
+      "actual": {
+        "authorized_by_role": "GPT_CONTROL",
+        "authorized_by_actor": "V7总控--4（Work）",
+        "authorized_at_jst": "2026-08-30T13:32:00+09:00",
+        "authorized_actions": [
+          "BUILD_FORMAL_FULL_PRODUCTION_CANDIDATE_PDF",
+          "VALIDATE_HTML_PDF_CONSISTENCY",
+          "SEPARATE_LOCAL_SENSITIVE_EVIDENCE",
+          "BUILD_REDACTED_ACCEPTANCE_PACKAGE",
+          "UPDATE_RUN_CONTROL",
+          "COMMIT",
+          "PUSH_IF_SAFE"
+        ],
+        "modify_input_allowed": false,
+        "production_allowed": false,
+        "candidate_production_allowed": true,
+        "candidate_pdf_allowed": true,
+        "release_allowed": false,
+        "trade_allowed": false,
+        "order_allowed": false
+      }
+    },
+    {
+      "check_id": "SINGLE_ACTIVE_TASK",
+      "result": "PASS",
+      "actual": {
+        "active_task_id": "V7-FORMAL-FULL-PRODUCTION-CANDIDATE",
+        "open": [
+          "V7-FORMAL-FULL-PRODUCTION-CANDIDATE"
+        ]
+      }
+    },
+    {
+      "check_id": "INPUT_BINDINGS",
+      "result": "PASS",
+      "actual": []
+    },
+    {
+      "check_id": "OUTPUT_IDENTITIES",
+      "result": "PASS",
+      "actual": []
+    },
+    {
+      "check_id": "CONSUMPTION_SHA_BINDING",
+      "result": "PASS",
+      "actual": []
+    },
+    {
+      "check_id": "VALIDATOR_READ_ONLY",
+      "result": "PASS",
+      "actual": {
+        "validator_artifact_id": "SENSITIVE_SEPARATION_REPORT",
+        "validator_mode": "READ_ONLY",
+        "auto_repair": false,
+        "auto_advance": false,
+        "result": "TECHNICAL_CHECK_PASS",
+        "candidate_result": "20_OF_20_PASS",
+        "browser_result": "DESKTOP_AND_390PX_PASS",
+        "pdf_result": "PDF_103_PAGES_COMPLETE_READABLE_CONSISTENT_PASS",
+        "sensitive_separation_result": "LOCAL_SENSITIVE_EVIDENCE_NOT_PUSHED",
+        "edinet_result": "SOFT_MISSING_DEGRADED_MODE",
+        "harness_upgrade_recommended": true
+      }
+    },
+    {
+      "check_id": "PASS_LEVEL_SEPARATION",
+      "result": "PASS",
+      "actual": []
+    },
+    {
+      "check_id": "RELEASE_AUTHORIZATION",
+      "result": "PASS",
+      "actual": {
+        "chairman_decision": "PENDING",
+        "decision_by_role": null,
+        "release_authorized": false,
+        "authorized_by_role": null
+      }
+    },
+    {
+      "check_id": "FORBIDDEN_ACTION_COUNTERS",
+      "result": "PASS",
+      "actual": {
+        "v13_modified_count": 0,
+        "release_executed_count": 0,
+        "trade_executed_count": 0,
+        "order_executed_count": 0,
+        "daily_report_overwrite_count": 0,
+        "daily_report_produced_count": 0,
+        "full_product_build_started_count": 0,
+        "candidate_product_build_count": 1,
+        "candidate_pdf_build_count": 1,
+        "scope_deviation_count": 0,
+        "real_edinet_fetch_count": 0,
+        "news_scan_executed_count": 1,
+        "real_market_data_fetch_count": 1,
+        "real_broker_api_call_count": 1,
+        "broker_order_api_call_count": 0,
+        "local_sensitive_evidence_exists_count": 1,
+        "local_sensitive_evidence_pushed_count": 0,
+        "phase3_started_count": 1,
+        "next_phase_started_count": 0
+      }
+    },
+    {
+      "check_id": "RECOVERY_STATE",
+      "result": "PASS",
+      "actual": {
+        "last_valid_stage": "S4_VALIDATED",
+        "last_valid_input": "LOCKED_84_FORECASTS",
+        "last_valid_output": "CANDIDATE_IDENTITY_REDACTED",
+        "failed_stage": null,
+        "blocked_reason": "AWAITING_V7_CONTROL_BUSINESS_ACCEPTANCE; EDINET_API_KEY_SOFT_MISSING",
+        "retry_allowed": true,
+        "resume_from": "S5_ACCEPTANCE_PENDING"
+      }
+    },
+    {
+      "check_id": "NO_AUTOMATIC_ADVANCE",
+      "result": "PASS",
+      "actual": {
+        "auto_continue": false,
+        "required_role": "GPT_CONTROL",
+        "required_actor": "V7总控--4（Work）",
+        "action": "REVIEW_FORMAL_FULL_PRODUCTION_CANDIDATE_AND_DISPATCH_INDEPENDENT_REVIEW_IF_APPROPRIATE",
+        "forbidden_until_decision": [
+          "RELEASE",
+          "DAILY_REPORT",
+          "TRADE",
+          "ORDER",
+          "AUTO_NEXT_PHASE"
+        ]
+      }
+    }
+  ],
+  "recovery": {
+    "last_valid_stage": "S4_VALIDATED",
+    "blocked_reason": "AWAITING_V7_CONTROL_BUSINESS_ACCEPTANCE; EDINET_API_KEY_SOFT_MISSING",
+    "resume_from": "S5_ACCEPTANCE_PENDING"
+  }
+}

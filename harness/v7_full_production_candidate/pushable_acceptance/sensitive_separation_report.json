@@ -1,0 +1,19 @@
+{
+  "task_id": "V7-FORMAL-FULL-PRODUCTION-CANDIDATE",
+  "run_id": "V7-FULL-PRODUCTION-CANDIDATE-20260830-123337-JST",
+  "status": "PASS",
+  "local_sensitive_evidence_exists": true,
+  "local_sensitive_evidence_pushed": false,
+  "classification": "LOCAL_SENSITIVE_EVIDENCE_NOT_PUSHED",
+  "local_sensitive_classes": [
+    "FULL_CANDIDATE_HTML",
+    "FULL_CANDIDATE_PDF",
+    "BROKER_ACCOUNT_SNAPSHOT",
+    "ACCOUNT_TARGET_BRIDGE_DETAIL",
+    "SCREENSHOTS_AND_RENDERED_PAGES"
+  ],
+  "pushable_package_contains_account_identifier": false,
+  "pushable_package_contains_live_account_value": false,
+  "pushable_package_contains_screenshot_binary": false,
+  "pushable_package_contains_full_candidate_content": false
+}
