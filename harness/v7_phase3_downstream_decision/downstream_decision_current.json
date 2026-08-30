@@ -5,9 +5,9 @@
     "type": "DOWNSTREAM_DECISION_INTERFACE_LAYER",
     "version": "1.0",
     "status": "CURRENT",
-    "phase": "PHASE3_DOWNSTREAM_DECISION_RECOVERY",
-    "run_id": "V7-COMPLETE-PRODUCT-PHASE3-20260830-112800-JST",
-    "created_at_jst": "2026-08-30T11:28:00+09:00",
+    "phase": "PHASE3_DOWNSTREAM_DECISION_INTERFACES",
+    "run_id": "V7-PHASE3-DOWNSTREAM-20260830-112147-JST",
+    "created_at_jst": "2026-08-30T11:21:47+09:00",
     "contains_real_daily_content": false,
     "production_ready": "NO"
   },
@@ -15,243 +15,242 @@
     "business_blueprint_id": "V7_COMPLETE_PRODUCT_CURRENT_v2.0",
     "production_sop_id": "V7_PRODUCTION_SOP_CURRENT_v1.0",
     "production_sop_sha256": "DA8B76F6638857F97187BB03E28D03399FD8A8E36683284E26B436F24205B227",
+    "phase1_structure_id": "V7_DAILY_PRODUCT_SKELETON_PHASE1_1.0",
+    "phase1_structure_sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C",
     "phase2_macro_worldview_id": "V7_PHASE2_MACRO_WORLDVIEW_CURRENT_v1.0",
     "phase2_macro_worldview_sha256": "718A2E8824985A40D3F83C2DB72A218D88135C7A641D8346D55CE046883B75B6",
+    "phase2_acceptance_commit": "57e2a0618ad41287e3fdd70a068cebc6b6c6301c",
     "research_baseline_id": "V13_RESEARCH_BASELINE",
-    "research_baseline_sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4"
+    "research_baseline_sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
+    "formal_task_authority": {
+      "path": "harness/v7_phase3_downstream_decision/phase3_task_authority.json",
+      "source_thread_id": "01a04df1-b650-75b1-958a-a5ead6ea6a2a",
+      "sha256_binding": "EXTERNAL_HARNESS_SHA256"
+    }
+  },
+  "sample_disposition": {
+    "sample_commit": "d137904eca95e99935169ad8a8d2bfdad057c1f5",
+    "formal_status": "UNAUTHORIZED_SAMPLE_SUPERSEDED",
+    "handling": "REVIEWED_THEN_FULLY_REBUILT_AND_OVERWRITTEN",
+    "automatic_promotion": false,
+    "release_basis": false,
+    "disposition_artifact": "unauthorized_sample_disposition.json"
   },
   "phase3_scope": {
-    "purpose": "Recover downstream decision interfaces after macro/worldview, without producing real daily conclusions.",
+    "purpose": "Define the complete downstream decision interfaces after accepted Phase 2, without producing current judgements or actions.",
     "allowed": [
       "DEFINE_STRATEGY_INTERFACE",
       "DEFINE_FLOW_INTERFACE",
-      "DEFINE_SECTOR_INTERFACE",
-      "DEFINE_COMPANY_INTERFACE",
-      "DEFINE_PORTFOLIO_INTERFACE",
-      "DEFINE_ACTION_INTERFACE",
+      "DEFINE_SECTOR_ROTATION_INTERFACE",
+      "DEFINE_COMPANY_SECURITY_INTERFACE",
+      "DEFINE_PORTFOLIO_POSITION_INTERFACE",
+      "DEFINE_TODAY_ACTION_INTERFACE",
       "DEFINE_PDCA_INTERFACE",
-      "CREATE_VALIDATOR_AND_TESTS"
+      "DEFINE_EVIDENCE_TRACE_INTERFACE",
+      "CREATE_VALIDATOR_TESTS_AND_HARNESS_RUN"
     ],
     "forbidden": [
       "REAL_NEWS_SCAN",
       "REAL_MARKET_DATA_FETCH",
       "REAL_EDINET_FETCH",
-      "PRODUCE_DAILY_MACRO_JUDGEMENT",
-      "PRODUCE_STRATEGY_JUDGEMENT",
-      "PRODUCE_FLOW",
-      "PRODUCE_SECTOR",
+      "REAL_BROKER_API_CALL",
+      "PRODUCE_DAILY_JUDGEMENT",
       "RESEARCH_SECURITIES",
       "UPDATE_COMPANY_JUDGEMENT",
       "UPDATE_REAL_PORTFOLIO",
-      "GENERATE_TODAY_ACTION",
-      "PRODUCE_DAILY_REPORT",
-      "OVERWRITE_DAILY_REPORT",
-      "MODIFY_V13",
+      "GENERATE_REAL_TODAY_ACTION",
+      "PRODUCE_OR_OVERWRITE_DAILY_REPORT",
       "MODIFY_V13_HTML",
       "MODIFY_V13_PDF",
-      "BUILD_FULL_PRODUCT",
-      "CONNECT_MACRO_PIPELINE",
-      "CONNECT_PDCA_PIPELINE",
-      "BROKER_ORDER_API",
-      "BUILD_FULL_HARNESS",
       "RELEASE",
       "TRADE",
-      "ORDER"
+      "ORDER",
+      "AUTO_START_NEXT_PHASE"
     ]
   },
-  "layer_interfaces": [
-    {
-      "layer": "STRATEGY",
+  "interfaces": {
+    "STRATEGY": {
+      "interface_id": "V7_PHASE3_STRATEGY_INTERFACE_1.0",
       "section_id": "SECTION_3",
-      "required_inputs": [
-        "MACRO_JUDGEMENT_IDS",
-        "BUSINESS_BLUEPRINT",
-        "PRODUCTION_SOP"
-      ],
-      "required_fields": [
-        "strategy_id",
-        "primary_theme",
-        "secondary_theme",
-        "avoid_theme",
-        "why_a_not_b",
-        "macro_dependencies",
-        "confidence",
-        "invalid_conditions"
-      ],
-      "output": "STRATEGY_INTERFACE_RECORD"
+      "purpose": "Translate accepted macro/worldview judgements into investable strategic themes without selecting trades.",
+      "required_inputs": ["MACRO_JUDGEMENT_IDS", "MACRO_DELTA_STATES", "BUSINESS_BLUEPRINT_ID", "PRODUCTION_SOP_ID"],
+      "required_fields": ["strategy_judgement_id", "as_of", "primary_theme", "secondary_theme", "alternative_theme", "avoid_theme", "why_a_not_b", "macro_dependency_ids", "time_horizon", "confidence", "counterevidence", "invalid_conditions", "source_ids", "evidence_ids"],
+      "output": "STRATEGY_JUDGEMENT_RECORD",
+      "hard_blocks": ["MISSING_MACRO_JUDGEMENT_ID", "MACRO_INVALIDATED_NOT_ADDRESSED"],
+      "degraded_conditions": ["NONCORE_MACRO_AXIS_SOFT_MISSING"],
+      "real_records": []
     },
-    {
-      "layer": "FLOW",
+    "FLOW": {
+      "interface_id": "V7_PHASE3_FLOW_INTERFACE_1.0",
       "section_id": "SECTION_4",
-      "required_inputs": [
-        "STRATEGY_INTERFACE_RECORD",
-        "MARKET_DATA",
-        "FRESH_INTEL"
-      ],
-      "required_fields": [
-        "flow_id",
-        "market_flow",
-        "sector_flow",
-        "style",
-        "risk_appetite_confirmation",
-        "source_ids",
-        "freshness_class"
-      ],
-      "output": "FLOW_INTERFACE_RECORD"
+      "purpose": "Confirm whether observable capital flows support or contradict strategy.",
+      "required_inputs": ["STRATEGY_JUDGEMENT_IDS", "MARKET_DATA_ID", "FRESH_INTEL_IDS"],
+      "required_fields": ["flow_judgement_id", "as_of", "market_flow", "sector_flow", "style_flow", "etf_flow", "cross_asset_flow", "institutional_allocation", "risk_appetite", "strategy_support_state", "freshness_class", "confidence", "counterevidence", "source_ids", "evidence_ids"],
+      "output": "FLOW_JUDGEMENT_RECORD",
+      "states": ["CONFIRMS", "PARTIALLY_CONFIRMS", "CONTRADICTS", "UNVERIFIED"],
+      "hard_blocks": ["CORE_FLOW_DATA_IDENTITY_INVALID"],
+      "degraded_conditions": ["NONCORE_FLOW_DATA_MISSING"],
+      "real_records": []
     },
-    {
-      "layer": "SECTOR",
+    "SECTOR_ROTATION": {
+      "interface_id": "V7_PHASE3_SECTOR_ROTATION_INTERFACE_1.0",
       "section_id": "SECTION_5",
-      "required_inputs": [
-        "STRATEGY_INTERFACE_RECORD",
-        "FLOW_INTERFACE_RECORD"
-      ],
-      "required_fields": [
-        "sector_id",
-        "ranking",
-        "strong",
-        "strengthening",
-        "stable",
-        "weakening",
-        "reversal_watch",
-        "evidence_ids"
-      ],
-      "output": "SECTOR_INTERFACE_RECORD"
+      "purpose": "Rank sectors using strategy and flow evidence while preserving reversals and exclusions.",
+      "required_inputs": ["STRATEGY_JUDGEMENT_IDS", "FLOW_JUDGEMENT_IDS"],
+      "required_fields": ["sector_judgement_id", "sector_id", "as_of", "rotation_state", "ranking", "earnings_direction", "flow_support", "valuation_state", "catalysts", "counterevidence", "invalid_conditions", "strategy_judgement_ids", "flow_judgement_ids", "source_ids", "evidence_ids"],
+      "output": "SECTOR_JUDGEMENT_RECORD",
+      "rotation_states": ["STRONG", "STRENGTHENING", "STABLE", "WEAKENING", "REVERSAL_WATCH", "EXCLUDED"],
+      "hard_blocks": ["MISSING_STRATEGY_OR_FLOW_TRACE"],
+      "degraded_conditions": ["VALUATION_REFERENCE_SOFT_MISSING"],
+      "real_records": []
     },
-    {
-      "layer": "COMPANY",
+    "COMPANY_SECURITY": {
+      "interface_id": "V7_PHASE3_COMPANY_SECURITY_INTERFACE_1.0",
       "section_id": "SECTION_6",
-      "required_inputs": [
-        "SECTOR_INTERFACE_RECORD",
-        "V13_RESEARCH_BASELINE",
-        "DYNAMIC_OVERLAY"
-      ],
-      "required_fields": [
-        "company_id",
-        "baseline_reference",
-        "scenario",
-        "valuation",
-        "catalyst",
-        "upstream_support",
-        "confidence",
-        "source_ids"
-      ],
-      "output": "COMPANY_INTERFACE_RECORD"
+      "purpose": "Combine V13 Research Baseline with current overlays and upstream sector support.",
+      "required_inputs": ["SECTOR_JUDGEMENT_IDS", "V13_RESEARCH_BASELINE_ID", "DYNAMIC_OVERLAY_IDS", "PDCA_FEEDBACK_IDS"],
+      "required_fields": ["company_judgement_id", "asset_id", "as_of", "baseline_reference", "baseline_sha256", "dynamic_overlay_ids", "sector_judgement_ids", "business_change", "earnings_or_value_bridge", "valuation_basis", "scenario_reference", "prediction_direction", "catalysts", "counterevidence", "invalid_condition", "confidence", "source_ids", "evidence_ids"],
+      "output": "COMPANY_JUDGEMENT_RECORD",
+      "baseline_identity_immutable": true,
+      "dynamic_overlay_may_update": ["LATEST_FACTS", "LATEST_PRICE", "LATEST_FINANCIALS", "LATEST_VALUATION", "PREDICTION_DIRECTION", "CONFIDENCE"],
+      "dynamic_overlay_may_not_update": ["BASELINE_ID", "BASELINE_FILE", "BASELINE_SHA256"],
+      "no_material_change_allowed": true,
+      "hard_blocks": ["BASELINE_IDENTITY_MISMATCH", "MATERIAL_PRIMARY_FACT_CONFLICT_UNRESOLVED"],
+      "degraded_conditions": ["NONCORE_VALUATION_REFERENCE_MISSING"],
+      "real_records": []
     },
-    {
-      "layer": "PORTFOLIO",
+    "PORTFOLIO_POSITION": {
+      "interface_id": "V7_PHASE3_PORTFOLIO_POSITION_INTERFACE_1.0",
       "section_id": "SECTION_7",
-      "required_inputs": [
-        "COMPANY_INTERFACE_RECORD",
-        "PORTFOLIO_STATE",
-        "RISK_BUDGET"
-      ],
-      "required_fields": [
-        "portfolio_judgement_id",
-        "position_boundary",
-        "cash_boundary",
-        "risk_budget",
-        "source_of_funds",
-        "account_confirmation_required"
-      ],
-      "output": "PORTFOLIO_INTERFACE_RECORD"
+      "purpose": "Translate company judgements into account-aware contribution, concentration, cash, and risk boundaries.",
+      "required_inputs": ["COMPANY_JUDGEMENT_IDS", "PORTFOLIO_SNAPSHOT_ID", "ACCOUNT_SCOPE", "RISK_BUDGET_ID"],
+      "required_fields": ["portfolio_judgement_id", "portfolio_snapshot_id", "portfolio_state", "account_id", "asset_id", "quantity", "market_value", "portfolio_weight", "expected_return_reference", "expected_contribution", "bull_contribution", "bear_contribution", "concentration_effect", "cash_boundary", "risk_budget_effect", "source_of_funds_boundary", "company_judgement_ids", "source_ids", "evidence_ids"],
+      "output": "PORTFOLIO_JUDGEMENT_RECORD",
+      "portfolio_states": ["CURRENT", "STALE", "UNVERIFIED"],
+      "unverified_blocks_precise_amount_action": true,
+      "target_40_fields": ["expected_portfolio_return", "gap_to_40", "calculation_status"],
+      "target_40_missing_data_status": "TARGET_CALCULATION_UNAVAILABLE",
+      "target_100_default_mode": "INACTIVE",
+      "fabricated_contribution_allowed": false,
+      "hard_blocks": ["PORTFOLIO_IDENTITY_INVALID_FOR_POSITION_ACTION"],
+      "degraded_conditions": ["NONACTION_ACCOUNT_DETAIL_SOFT_MISSING"],
+      "real_records": []
     },
-    {
-      "layer": "ACTION",
+    "TODAY_ACTION": {
+      "interface_id": "V7_PHASE3_TODAY_ACTION_INTERFACE_1.0",
       "section_id": "SECTION_0",
-      "required_inputs": [
-        "PORTFOLIO_INTERFACE_RECORD",
-        "BROKER_REALITY_CHECK"
-      ],
-      "required_fields": [
-        "action_id",
-        "level",
-        "trigger",
-        "invalid_condition",
-        "reason",
-        "source_of_funds",
-        "chairman_confirmation_required"
-      ],
-      "output": "ACTION_INTERFACE_RECORD"
+      "purpose": "Represent an explainable recommendation state separately from prediction, authorization, execution, and order creation.",
+      "required_inputs": ["PORTFOLIO_JUDGEMENT_IDS", "COMPANY_JUDGEMENT_IDS", "BROKER_REALITY_STATE"],
+      "required_fields": ["action_id", "asset_id", "prediction_direction", "action_level", "recommendation", "trigger", "invalid_condition", "reason", "target_position_or_amount", "source_of_funds", "confidence", "portfolio_judgement_ids", "company_judgement_ids", "upstream_trace_ids", "source_ids", "evidence_ids", "authorization_state", "order_state"],
+      "output": "TODAY_ACTION_RECORD",
+      "action_levels": ["A_EXECUTE", "B_WAIT_TRIGGER", "C_WATCH", "D_EXCLUDE", "NO_TRADE"],
+      "prediction_action_independent": true,
+      "bullish_wait_legal": true,
+      "no_trade_legal": true,
+      "a_execute_requirements": ["PORTFOLIO_CURRENT_OR_VERIFIED", "TRIGGER_PRESENT", "INVALID_CONDITION_PRESENT", "SOURCE_OF_FUNDS_IDENTIFIED", "CHAIRMAN_AUTHORIZATION_SEPARATE"],
+      "phase3_real_action_allowed": false,
+      "broker_order_api_allowed": false,
+      "hard_blocks": ["UNVERIFIED_PORTFOLIO_FOR_PRECISE_A_ACTION", "MISSING_COMPANY_OR_PORTFOLIO_TRACE"],
+      "degraded_conditions": ["BROKER_REALITY_STALE_FOR_NONEXECUTABLE_WATCH"],
+      "real_records": []
     },
-    {
-      "layer": "PDCA",
+    "PDCA": {
+      "interface_id": "V7_PHASE3_PDCA_INTERFACE_1.0",
       "section_id": "SECTION_8",
-      "required_inputs": [
-        "PREVIOUS_PREDICTION",
-        "ACTUAL_RESULT",
-        "ACTION_INTERFACE_RECORD"
-      ],
-      "required_fields": [
-        "pdca_id",
-        "previous_prediction",
-        "actual",
-        "error",
-        "adjustment",
-        "next_impact",
-        "evidence_ids"
-      ],
-      "output": "PDCA_INTERFACE_RECORD"
+      "purpose": "Register predictions and later outcomes without same-day scoring, then feed calibrated changes into future runs.",
+      "required_inputs": ["PREVIOUS_PREDICTION_ID", "ACTUAL_RESULT_ID", "ACTION_ID", "EVIDENCE_IDS"],
+      "required_fields": ["pdca_id", "prediction_id", "prediction_date", "verdict_date", "target", "expected_path", "actual_result", "error_type", "confidence_before", "confidence_after", "model_adjustment", "signal_weight_adjustment", "required_confirmation_adjustment", "timing_rule_adjustment", "source_weight_adjustment", "next_impact", "status", "source_ids", "evidence_ids"],
+      "output": "PDCA_STATE_RECORD",
+      "new_prediction_status": "PENDING_NOT_DUE",
+      "same_day_correctness_verdict_allowed": false,
+      "feedback_fields": ["signal_weight", "confidence", "required_confirmation", "timing_rule", "source_weight", "model_notes"],
+      "hard_blocks": ["HISTORICAL_RECORD_OVERWRITE_ATTEMPT"],
+      "degraded_conditions": ["NONMATERIAL_INTERMEDIATE_CHECK_MISSING"],
+      "real_records": []
+    },
+    "EVIDENCE_TRACE": {
+      "interface_id": "V7_PHASE3_EVIDENCE_TRACE_INTERFACE_1.0",
+      "section_id": "SECTION_9",
+      "purpose": "Give every material conclusion a resolvable source identity, timestamp, content hash, role, and consumption state.",
+      "required_inputs": ["SOURCE_ARTIFACTS", "CONCLUSION_IDS"],
+      "required_fields": ["evidence_id", "source_id", "source_name", "source_class", "source_tier", "fact_or_opinion", "artifact_id", "file_or_url", "sha256_or_version", "published_at", "ingested_at", "as_of", "freshness_class", "consumption_state", "consumed_by_run_id", "supports_conclusion_ids", "conflict_state"],
+      "output": "EVIDENCE_TRACE_RECORD",
+      "source_tiers": ["TIER1_PRIMARY_OFFICIAL", "TIER2_TRUSTED_MARKET_DATA", "TIER3_QUALITY_MEDIA", "TIER4_RESEARCH_ANALYSIS", "TIER5_COMMUNITY_SOCIAL"],
+      "conflict_states": ["NO_CONFLICT", "SOURCE_CONFLICT", "UNRESOLVED"],
+      "orphan_material_conclusion_allowed": false,
+      "opinion_may_override_primary_fact": false,
+      "hard_blocks": ["ORPHAN_MATERIAL_CONCLUSION", "INVALID_EVIDENCE_IDENTITY", "UNRESOLVED_MATERIAL_PRIMARY_FACT_CONFLICT"],
+      "degraded_conditions": ["NONMATERIAL_SECONDARY_SOURCE_MISSING"],
+      "real_records": []
     }
-  ],
-  "causal_chain": {
-    "ordered_layers": [
-      "MACRO",
-      "STRATEGY",
-      "FLOW",
-      "SECTOR",
-      "COMPANY",
-      "PORTFOLIO",
-      "ACTION",
-      "PDCA"
-    ],
-    "required_trace_fields": [
-      "macro_judgement_id",
-      "strategy_judgement_id",
-      "flow_judgement_id",
-      "sector_judgement_id",
-      "company_judgement_id",
-      "portfolio_judgement_id",
-      "action_id",
-      "source_ids"
-    ],
-    "missing_upstream_result": "PRODUCTION_BLOCKED_OR_DEGRADED_MODE",
-    "no_layer_may_skip_source_trace": true
   },
-  "action_safety": {
-    "real_action_present": false,
-    "broker_order_api_allowed": false,
-    "trade_execution_allowed": false,
-    "chairman_confirmation_required_before_action": true,
-    "broker_reality_check_required_before_action": true,
-    "allowed_action_levels": [
-      "A_EXECUTE",
-      "B_WAIT_TRIGGER",
-      "C_WATCH",
-      "D_EXCLUDE"
-    ],
-    "phase3_may_generate_today_action": false
+  "causal_chain": {
+    "ordered_layers": ["MACRO", "STRATEGY", "FLOW", "SECTOR", "COMPANY", "PORTFOLIO", "ACTION", "PDCA"],
+    "cross_cutting_interface": "EVIDENCE_TRACE",
+    "required_trace_fields": ["macro_judgement_id", "strategy_judgement_id", "flow_judgement_id", "sector_judgement_id", "company_judgement_id", "portfolio_judgement_id", "action_id", "source_ids", "evidence_ids"],
+    "missing_upstream_result": "PRODUCTION_BLOCKED_OR_DEGRADED_MODE_BY_MATERIALITY",
+    "no_layer_may_skip_trace": true
+  },
+  "cross_layer_rules": {
+    "prediction_action_separation": {
+      "prediction_equals_action": false,
+      "bullish_wait_example_valid": true,
+      "recommendation_is_authorization": false,
+      "authorization_is_order": false
+    },
+    "baseline_dynamic_separation": {
+      "baseline_identity_immutable": true,
+      "dynamic_overlay_updates_current_facts_and_judgements": true,
+      "dynamic_overlay_may_overwrite_baseline_sha": false
+    },
+    "source_priority": {
+      "primary_official_fact_priority": 1,
+      "lower_tier_opinion_overrides_primary_fact": false,
+      "unresolved_material_conflict_result": "PRODUCTION_BLOCKED"
+    },
+    "action_authority_separation": {
+      "phase3_creates_real_action": false,
+      "phase3_calls_broker_api": false,
+      "chairman_authorization_required_separately": true,
+      "order_generation_allowed": false
+    },
+    "target_calculation_boundary": {
+      "real_data_required": true,
+      "missing_data_output": "TARGET_CALCULATION_UNAVAILABLE",
+      "plus_100_default_mode": "INACTIVE",
+      "target_backsolve_allowed": false
+    }
   },
   "product_section_binding": {
-    "sections_bound": [
-      "SECTION_0",
-      "SECTION_3",
-      "SECTION_4",
-      "SECTION_5",
-      "SECTION_6",
-      "SECTION_7",
-      "SECTION_8"
-    ],
-    "section_9_evidence_required": true,
+    "interface_to_section": {
+      "TODAY_ACTION": "SECTION_0",
+      "STRATEGY": "SECTION_3",
+      "FLOW": "SECTION_4",
+      "SECTOR_ROTATION": "SECTION_5",
+      "COMPANY_SECURITY": "SECTION_6",
+      "PORTFOLIO_POSITION": "SECTION_7",
+      "PDCA": "SECTION_8",
+      "EVIDENCE_TRACE": "SECTION_9"
+    },
+    "all_required_sections_bound": true,
     "status": "INTERFACE_READY_NO_REAL_DATA"
+  },
+  "readiness": {
+    "phase3_implementation": "PASS",
+    "phase3_tests": "PASS",
+    "harness_validation": "PASS",
+    "production_ready": "NO",
+    "next_phase_auto_start": false,
+    "approval_required": "V7_CONTROL_4"
   },
   "safety": {
     "real_news_scan_executed": false,
     "real_market_data_fetch_executed": false,
     "real_edinet_fetch_executed": false,
-    "daily_report_produced": false,
+    "real_broker_api_called": false,
+    "daily_report_produced_or_overwritten": false,
     "v13_modified": false,
-    "phase4_started": false,
+    "next_phase_started": false,
     "release_executed": false,
     "trade_executed": false,
     "order_executed": false
@@ -259,12 +258,15 @@
   "success_criteria": {
     "STRATEGY_INTERFACE": "PASS",
     "FLOW_INTERFACE": "PASS",
-    "SECTOR_INTERFACE": "PASS",
-    "COMPANY_INTERFACE": "PASS",
-    "PORTFOLIO_INTERFACE": "PASS",
-    "ACTION_INTERFACE": "PASS",
+    "SECTOR_ROTATION_INTERFACE": "PASS",
+    "COMPANY_SECURITY_INTERFACE": "PASS",
+    "PORTFOLIO_POSITION_INTERFACE": "PASS",
+    "TODAY_ACTION_INTERFACE": "PASS",
     "PDCA_INTERFACE": "PASS",
-    "TRACEABILITY_CHAIN": "PASS",
+    "EVIDENCE_TRACE_INTERFACE": "PASS",
+    "CAUSAL_TRACEABILITY": "PASS",
+    "BASELINE_DYNAMIC_SEPARATION": "PASS",
+    "PREDICTION_ACTION_SEPARATION": "PASS",
     "NO_REAL_PRODUCTION": "PASS"
   }
 }

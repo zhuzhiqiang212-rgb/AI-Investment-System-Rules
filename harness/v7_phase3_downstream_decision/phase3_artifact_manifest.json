@@ -1,0 +1,76 @@
+{
+  "manifest_id": "V7_PHASE3_ARTIFACT_MANIFEST_v1.0",
+  "task_id": "V7-PHASE3-DOWNSTREAM-DECISION-INTERFACES",
+  "run_id": "V7-PHASE3-DOWNSTREAM-20260830-112147-JST",
+  "generated_at_jst": "2026-08-30T12:03:24+09:00",
+  "artifacts": [
+    {
+      "path": "harness/v7_phase3_downstream_decision/phase3_task_authority.json",
+      "size_bytes": 1064,
+      "sha256": "BD18A9986385D17EA6AC970D495E29F717C0A3BA48CD9A2022B71A19F2B8E2A9"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/unauthorized_sample_disposition.json",
+      "size_bytes": 945,
+      "sha256": "C3E245F0A07F28CD7559F50B4CC6425929385DC0416478D54ECD8913FEC464E9"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/downstream_decision_current.json",
+      "size_bytes": 15150,
+      "sha256": "695108AA9084C78255E1D9849EFC29732C77C51552B10940E317891FE65E0C55"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/downstream_decision.schema.json",
+      "size_bytes": 2514,
+      "sha256": "8CD42B653B59C86C5629D46BA03E4D40101DFD888822A5F5FB444F7970A7C9AD"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/validate_downstream_decision.py",
+      "size_bytes": 14039,
+      "sha256": "FCC5CD29286981871B0CA2BB6855BE57B925C10C4090AD901833C6CA5C935752"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/tests/test_phase3_formal.py",
+      "size_bytes": 7159,
+      "sha256": "0B37FEA775FBDA7A135D71039FD8A869DCDD430F1FF7524D73D339D7A3B0F905"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/tests/run_formal_tests.py",
+      "size_bytes": 2037,
+      "sha256": "CB762A70D093A770909B64BBBBFD1A55E839FF10CA86C68A752F9B413065390D"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/tests/test_downstream_decision.py",
+      "size_bytes": 1105,
+      "sha256": "17B743DB006C7D87939FCD15DFF898DDA38AD0BAAEA2B28996B2901AFCE7EE83"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/tests/run_tests.py",
+      "size_bytes": 162,
+      "sha256": "19D381B5719574D295670C4D5DCFD7F7B4A31F2C88E1C388B749738746243328"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/phase3_formal_test_report.json",
+      "size_bytes": 6275,
+      "sha256": "BD3C278CE4A02BED2EBE67E6BE97ED4E96E5CAD8579F7ABBBCA9B001DDA80D0F"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/phase3_test_report.json",
+      "size_bytes": 661,
+      "sha256": "DD83F78E00A4EB36A5A177F0E6EF7E88987A9D41C9FF935A6C767E413CB8B7A8"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/README.html",
+      "size_bytes": 1350,
+      "sha256": "3972A350683F3368110F28DCA199BD853B7D9E354877255AE4BAA8002285336D"
+    },
+    {
+      "path": "harness/v7_phase3_downstream_decision/build_run_control.py",
+      "size_bytes": 13614,
+      "sha256": "E285B7156428C3E37F7492EFFE544104DED92DBD96F85CCC3659D05D3774C1EE"
+    }
+  ],
+  "v13_sha256_verified": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
+  "sample_handling": "REVIEWED_THEN_FULLY_REBUILT_AND_OVERWRITTEN",
+  "release_basis": false
+}

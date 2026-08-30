@@ -1,10 +1,10 @@
 {
   "schema_version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
   "harness_id": "V7_MINIMAL_HARNESS_PHASE1",
-  "run_id": "V7-COMPLETE-PRODUCT-PHASE3-20260830-112800-JST",
-  "generated_at_jst": "2026-08-30T11:28:00+09:00",
-  "control_status": "ACCEPTED",
-  "active_task_id": null,
+  "run_id": "V7-PHASE3-DOWNSTREAM-20260830-112147-JST",
+  "generated_at_jst": "2026-08-30T12:03:24+09:00",
+  "control_status": "ACCEPTANCE_PENDING",
+  "active_task_id": "V7-PHASE3-DOWNSTREAM-DECISION-INTERFACES",
   "tasks": [
     {
       "task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
@@ -41,15 +41,17 @@
       "closure_basis": "PHASE2_MACRO_WORLDVIEW_VALID_AND_HARNESS_CONTROL_VALID"
     },
     {
-      "task_id": "V7-COMPLETE-PRODUCT-PHASE3-DOWNSTREAM-DECISION",
-      "task_name": "V7完整产品Phase 3下游决策接口",
-      "status": "COMPLETED",
+      "task_id": "V7-PHASE3-WORK-UNAUTHORIZED-SAMPLE",
+      "task_name": "Work越权Phase 3样件",
+      "status": "CANCELLED",
+      "closure_basis": "UNAUTHORIZED_SAMPLE_SUPERSEDED_NOT_RELEASE_BASIS"
+    },
+    {
+      "task_id": "V7-PHASE3-DOWNSTREAM-DECISION-INTERFACES",
+      "task_name": "V7 Phase 3 下游决策接口正式重做",
+      "status": "AWAITING_GPT_ACCEPTANCE",
       "opened_by_role": "GPT_CONTROL",
-      "opened_by_actor": "V7总控--4（Work）",
-      "closed_by_role": "GPT_CONTROL",
-      "closed_by_actor": "V7总控--4（Work）",
-      "closed_at_jst": "2026-08-30T11:28:00+09:00",
-      "closure_basis": "PHASE3_DOWNSTREAM_DECISION_VALID_AND_HARNESS_CONTROL_VALID"
+      "opened_by_actor": "V7总控--4（Work）"
     }
   ],
   "roles": {
@@ -112,47 +114,38 @@
     }
   },
   "task": {
-    "task_id": "V7-COMPLETE-PRODUCT-PHASE3-DOWNSTREAM-DECISION",
-    "task_name": "V7完整产品Phase 3下游决策接口",
+    "task_id": "V7-PHASE3-DOWNSTREAM-DECISION-INTERFACES",
+    "task_name": "V7 Phase 3 下游决策接口正式重做",
     "owner_controller": {
       "role": "GPT_CONTROL",
       "actor": "V7总控--4（Work）"
     },
     "executor": {
       "role": "CODEX_EXECUTOR",
-      "actor": "Codex-V7-1"
+      "actor": "Codex–V7"
     },
     "acceptance_owner": {
       "role": "GPT_CONTROL",
       "actor": "V7总控--4（Work）"
     },
-    "business_blueprint_id": "V7_COMPLETE_PRODUCT_CURRENT_v2.0",
-    "production_sop_id": "V7_PRODUCTION_SOP_CURRENT_v1.0",
-    "phase": "PHASE3_DOWNSTREAM_DECISION_RECOVERY",
-    "phase3_status": "ACCEPTED",
+    "phase": "PHASE3_DOWNSTREAM_DECISION_INTERFACES",
+    "phase3_status": "TECHNICALLY_VALIDATED_ACCEPTANCE_PENDING",
     "production_ready": "NO",
-    "accepted_by_role": "GPT_CONTROL",
-    "accepted_by_actor": "V7总控--4（Work）",
-    "accepted_at_jst": "2026-08-30T11:28:00+09:00"
+    "accepted_phase2_commit": "57e2a0618ad41287e3fdd70a068cebc6b6c6301c",
+    "unauthorized_sample_commit": "d137904eca95e99935169ad8a8d2bfdad057c1f5",
+    "sample_handling": "REVIEWED_THEN_FULLY_REBUILT_AND_OVERWRITTEN"
   },
   "scope": {
     "allowed": [
-      "CREATE_PHASE3_DOWNSTREAM_DECISION_ARTIFACTS",
+      "CREATE_PHASE3_INTERFACES",
       "CREATE_PHASE3_SCHEMA",
       "CREATE_PHASE3_VALIDATOR",
       "CREATE_PHASE3_TESTS",
-      "UPDATE_THIS_HARNESS_RUN",
-      "RUN_LOCAL_TESTS"
+      "UPDATE_THIS_RUN_CONTROL",
+      "RUN_LOCAL_TESTS",
+      "COMMIT_AND_PUSH_SCOPED_FILES"
     ],
     "forbidden": [
-      "REAL_EDINET_FETCH",
-      "SCAN_NEWS",
-      "SCAN_LAOLEI",
-      "SCAN_HUSHUI",
-      "PRODUCE_DAILY_MACRO_JUDGEMENT",
-      "PRODUCE_STRATEGY_JUDGEMENT",
-      "PRODUCE_FLOW",
-      "PRODUCE_SECTOR",
       "MODIFY_V13",
       "MODIFY_V13_HTML",
       "MODIFY_V13_PDF",
@@ -160,17 +153,17 @@
       "BUILD_FULL_PRODUCT",
       "CONNECT_MACRO_PIPELINE",
       "CONNECT_PDCA_PIPELINE",
-      "UPDATE_COMPANY_JUDGEMENT",
-      "UPDATE_REAL_PORTFOLIO",
-      "RUN_FORMAL_PDCA",
-      "GENERATE_TODAY_ACTION",
+      "REAL_EDINET_FETCH",
+      "REAL_NEWS_SCAN",
+      "REAL_MARKET_DATA_FETCH",
+      "REAL_BROKER_API_CALL",
       "PRODUCE_DAILY_REPORT",
       "OVERWRITE_DAILY_REPORT",
-      "BROKER_ORDER_API",
-      "BUILD_FULL_HARNESS",
       "RELEASE",
       "TRADE",
       "ORDER",
+      "BROKER_ORDER_API",
+      "BUILD_FULL_HARNESS",
       "AUTO_CONTINUE"
     ]
   },
@@ -184,77 +177,63 @@
       "S5_ACCEPTANCE_PENDING",
       "S5_ACCEPTED"
     ],
-    "current": "S5_ACCEPTED",
+    "current": "S5_ACCEPTANCE_PENDING",
     "history": [
       {
         "stage": "S0_DEFINED",
         "status": "PASS",
         "actor_role": "GPT_CONTROL",
         "actor": "V7总控--4（Work）",
-        "at_jst": "2026-08-30T11:28:00+09:00",
-        "basis": "USER_REQUESTED_CONTINUE_WITHOUT_STEP_APPROVALS"
+        "at_jst": "2026-08-30T11:21:47+09:00"
       },
       {
         "stage": "S1_INPUT_BOUND",
         "status": "PASS",
         "actor_role": "CODEX_EXECUTOR",
-        "actor": "Codex-V7-1",
-        "at_jst": "2026-08-30T11:28:00+09:00"
+        "actor": "Codex–V7",
+        "at_jst": "2026-08-30T11:21:47+09:00"
       },
       {
         "stage": "S2_AUTHORIZED",
         "status": "PASS",
         "actor_role": "GPT_CONTROL",
         "actor": "V7总控--4（Work）",
-        "at_jst": "2026-08-30T11:28:00+09:00",
-        "basis": "USER_AUTHORIZED_FULL_SAFE_EXECUTION"
+        "at_jst": "2026-08-30T11:21:47+09:00"
       },
       {
         "stage": "S3_EXECUTED",
         "status": "PASS",
         "actor_role": "CODEX_EXECUTOR",
-        "actor": "Codex-V7-1",
-        "at_jst": "2026-08-30T11:28:00+09:00"
+        "actor": "Codex–V7",
+        "at_jst": "2026-08-30T12:03:24+09:00"
       },
       {
         "stage": "S4_VALIDATED",
         "status": "PASS",
         "actor_role": "INDEPENDENT_VALIDATOR",
-        "actor": "Phase3 downstream decision read-only validators",
-        "at_jst": "2026-08-30T11:28:00+09:00"
+        "actor": "Phase3 and Harness read-only validators",
+        "at_jst": "2026-08-30T12:03:24+09:00"
       },
       {
-        "stage": "S5_ACCEPTED",
-        "status": "PASS",
+        "stage": "S5_ACCEPTANCE_PENDING",
+        "status": "CURRENT",
         "actor_role": "GPT_CONTROL",
         "actor": "V7总控--4（Work）",
-        "at_jst": "2026-08-30T11:28:00+09:00",
-        "basis": "PHASE3_TECHNICAL_AND_BUSINESS_ACCEPTANCE_PASS"
+        "at_jst": "2026-08-30T12:03:24+09:00"
       }
     ]
   },
   "authorization": {
     "authorized_by_role": "GPT_CONTROL",
     "authorized_by_actor": "V7总控--4（Work）",
-    "authorized_at_jst": "2026-08-30T11:28:00+09:00",
-    "chairman_approval_basis": "USER_REQUESTED_FULL_SAFE_EXECUTION_NO_STEP_APPROVALS",
+    "authorized_at_jst": "2026-08-30T11:21:47+09:00",
     "authorized_actions": [
-      "CREATE_PHASE3_DOWNSTREAM_DECISION_ARTIFACTS",
-      "CREATE_RULE_STRUCTURES",
-      "CREATE_TESTS",
-      "UPDATE_THIS_HARNESS_RUN",
-      "REPORT_RESULTS"
-    ],
-    "explicitly_forbidden_actions": [
-      "REAL_PRODUCTION",
-      "REAL_EDINET_FETCH",
-      "NEWS_SCAN",
-      "MODIFY_V13",
-      "DAILY_REPORT",
-      "RELEASE",
-      "TRADE",
-      "ORDER",
-      "AUTO_CONTINUE_TO_EXECUTION"
+      "CREATE_PHASE3_INTERFACES",
+      "VALIDATE",
+      "TEST",
+      "UPDATE_RUN_CONTROL",
+      "COMMIT",
+      "PUSH_IF_SAFE"
     ],
     "modify_input_allowed": false,
     "production_allowed": false,
@@ -264,40 +243,32 @@
   },
   "inputs": [
     {
-      "artifact_id": "SOP_FORMAL_ORDER_AND_DESIGN_AUTHORITY",
-      "filename": "pasted-text.txt",
-      "path": "C:\\Users\\localhost\\.codex\\attachments\\8894ef27-7a45-4ef1-880d-9d52761b646f\\pasted-text.txt",
-      "version": "V7_PRODUCTION_SOP_CURRENT_v1.0_DESIGN",
-      "size_bytes": 22484,
-      "sha256": "3F2AECBEA26A97D5EF3CBBD97B77CD967548852EA1EDD7F8D0DC722D2A1D0ADC",
-      "input_role": "FORMAL_TASK_AND_SOP_DESIGN_AUTHORITY",
-      "binding_status": "BOUND"
-    },
-    {
-      "artifact_id": "BUSINESS_BLUEPRINT_AUTHORITY",
-      "filename": "pasted-text.txt",
-      "path": "C:\\Users\\localhost\\.codex\\attachments\\ce912ef2-41e1-45bc-8266-b40f1ad6f065\\pasted-text.txt",
-      "version": "V7_COMPLETE_PRODUCT_CURRENT_v2.0",
-      "size_bytes": 17729,
-      "sha256": "81ABF8D38DCEE12B948CC5AEE6E01B4629F91BB84D0184B769145035EB58AFB6",
-      "input_role": "BUSINESS_BLUEPRINT_AUTHORITY_REFERENCE",
-      "binding_status": "BOUND"
-    },
-    {
       "artifact_id": "PHASE1_STRUCTURE",
-      "filename": "phase1_structure_example.json",
       "path": "harness/v7_phase1_product_interfaces/phase1_structure_example.json",
-      "version": "1.0",
       "size_bytes": 9144,
       "sha256": "A3A1B6A97D4167C763C065210E87D670FE480A68C9882974810816B06547159C",
       "input_role": "ACCEPTED_PHASE1_STRUCTURE",
       "binding_status": "BOUND"
     },
     {
+      "artifact_id": "PHASE2_MACRO_WORLDVIEW",
+      "path": "harness/v7_phase2_macro_worldview/macro_worldview_current.json",
+      "size_bytes": 6033,
+      "sha256": "718A2E8824985A40D3F83C2DB72A218D88135C7A641D8346D55CE046883B75B6",
+      "input_role": "ACCEPTED_PHASE2_OUTPUT",
+      "binding_status": "BOUND"
+    },
+    {
+      "artifact_id": "PRODUCTION_SOP",
+      "path": "harness/v7_production_sop_v1/V7正式生产SOP_Current_v1.0.json",
+      "size_bytes": 15274,
+      "sha256": "DA8B76F6638857F97187BB03E28D03399FD8A8E36683284E26B436F24205B227",
+      "input_role": "ACCEPTED_SOP",
+      "binding_status": "BOUND"
+    },
+    {
       "artifact_id": "MINIMAL_HARNESS_SCHEMA",
-      "filename": "run_control.schema.json",
       "path": "harness/v7_minimal_phase1/run_control.schema.json",
-      "version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
       "size_bytes": 1618,
       "sha256": "DAA4C11FD13D51DA1715AFC353DCB4203447020538A0BD747D92FDB4EB1BF8AC",
       "input_role": "ACTIVE_HARNESS_SCHEMA",
@@ -305,9 +276,7 @@
     },
     {
       "artifact_id": "MINIMAL_HARNESS_VALIDATOR",
-      "filename": "validate_run_control.py",
       "path": "harness/v7_minimal_phase1/validate_run_control.py",
-      "version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
       "size_bytes": 12167,
       "sha256": "FAB3D11826C4725E89DFCD75B7CD12A871E4CA0E7908CAEB8CC5BCE13678B482",
       "input_role": "ACTIVE_HARNESS_VALIDATOR",
@@ -315,90 +284,145 @@
     },
     {
       "artifact_id": "V13_RESEARCH_BASELINE",
-      "filename": "V13普通中文完整投资产品.html",
       "path": "output/candidates/2026-08-29/V13-USER-READABLE-20260829015943-JST/V13普通中文完整投资产品.html",
-      "version": "V13-USER-READABLE-20260829015943-JST",
       "size_bytes": 365540,
       "sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
-      "input_role": "FROZEN_RESEARCH_BASELINE_DO_NOT_MODIFY",
+      "input_role": "FROZEN_BASELINE",
       "binding_status": "BOUND"
     }
   ],
   "outputs": [
     {
+      "artifact_id": "PHASE3_TASK_AUTHORITY",
+      "path": "harness/v7_phase3_downstream_decision/phase3_task_authority.json",
+      "size_bytes": 1064,
+      "sha256": "BD18A9986385D17EA6AC970D495E29F717C0A3BA48CD9A2022B71A19F2B8E2A9",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE3_SAMPLE_DISPOSITION",
+      "path": "harness/v7_phase3_downstream_decision/unauthorized_sample_disposition.json",
+      "size_bytes": 945,
+      "sha256": "C3E245F0A07F28CD7559F50B4CC6425929385DC0416478D54ECD8913FEC464E9",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
       "artifact_id": "PHASE3_DOWNSTREAM_DECISION",
       "path": "harness/v7_phase3_downstream_decision/downstream_decision_current.json",
-      "size_bytes": 7465,
-      "sha256": "4A4CD461A6FA2FC40ABBFBC9DDDB06252062F2D7BCF097DC3C234AB65480BD95",
+      "size_bytes": 15150,
+      "sha256": "695108AA9084C78255E1D9849EFC29732C77C51552B10940E317891FE65E0C55",
       "producer_role": "CODEX_EXECUTOR"
     },
     {
       "artifact_id": "PHASE3_SCHEMA",
       "path": "harness/v7_phase3_downstream_decision/downstream_decision.schema.json",
-      "size_bytes": 831,
-      "sha256": "B6456F14A93367A90BBC0859AADA96621D796C9FE731DB67664936DC57AEB956",
+      "size_bytes": 2514,
+      "sha256": "8CD42B653B59C86C5629D46BA03E4D40101DFD888822A5F5FB444F7970A7C9AD",
       "producer_role": "CODEX_EXECUTOR"
     },
     {
       "artifact_id": "PHASE3_VALIDATOR",
       "path": "harness/v7_phase3_downstream_decision/validate_downstream_decision.py",
-      "size_bytes": 6298,
-      "sha256": "10C740A3F1C9A88AD97488AE3F892EE0C9F4439A3D51389B8320E631204FD205",
+      "size_bytes": 14039,
+      "sha256": "FCC5CD29286981871B0CA2BB6855BE57B925C10C4090AD901833C6CA5C935752",
       "producer_role": "CODEX_EXECUTOR"
     },
     {
-      "artifact_id": "PHASE3_TEST_SUITE",
+      "artifact_id": "PHASE3_FORMAL_TEST_SUITE",
+      "path": "harness/v7_phase3_downstream_decision/tests/test_phase3_formal.py",
+      "size_bytes": 7159,
+      "sha256": "0B37FEA775FBDA7A135D71039FD8A869DCDD430F1FF7524D73D339D7A3B0F905",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE3_FORMAL_TEST_RUNNER",
+      "path": "harness/v7_phase3_downstream_decision/tests/run_formal_tests.py",
+      "size_bytes": 2037,
+      "sha256": "CB762A70D093A770909B64BBBBFD1A55E839FF10CA86C68A752F9B413065390D",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE3_FORMAL_TEST_REPORT",
+      "path": "harness/v7_phase3_downstream_decision/phase3_formal_test_report.json",
+      "size_bytes": 6275,
+      "sha256": "BD3C278CE4A02BED2EBE67E6BE97ED4E96E5CAD8579F7ABBBCA9B001DDA80D0F",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE3_SAMPLE_COMPATIBILITY_TEST",
       "path": "harness/v7_phase3_downstream_decision/tests/test_downstream_decision.py",
-      "size_bytes": 4712,
-      "sha256": "AE739B3CAF6EE6CEAD0C78910C5DAC063696FF52F515EDA4D9C88EDCD6986905",
+      "size_bytes": 1105,
+      "sha256": "17B743DB006C7D87939FCD15DFF898DDA38AD0BAAEA2B28996B2901AFCE7EE83",
       "producer_role": "CODEX_EXECUTOR"
     },
     {
-      "artifact_id": "PHASE3_TEST_RUNNER",
+      "artifact_id": "PHASE3_SAMPLE_COMPATIBILITY_RUNNER",
       "path": "harness/v7_phase3_downstream_decision/tests/run_tests.py",
-      "size_bytes": 1031,
-      "sha256": "E817F27D9BDEE7CD14060A5AE79FA1094A364738B319774C2FAC970CAC544245",
+      "size_bytes": 162,
+      "sha256": "19D381B5719574D295670C4D5DCFD7F7B4A31F2C88E1C388B749738746243328",
       "producer_role": "CODEX_EXECUTOR"
     },
     {
-      "artifact_id": "PHASE3_TEST_REPORT",
+      "artifact_id": "PHASE3_SAMPLE_REPORT_SUPERSEDED",
       "path": "harness/v7_phase3_downstream_decision/phase3_test_report.json",
-      "size_bytes": 1806,
-      "sha256": "51B5DA57281C628CC1DD1B8412A7DEB12059282582659E497D1D4B80D21A3760",
+      "size_bytes": 661,
+      "sha256": "DD83F78E00A4EB36A5A177F0E6EF7E88987A9D41C9FF935A6C767E413CB8B7A8",
       "producer_role": "CODEX_EXECUTOR"
     },
     {
       "artifact_id": "PHASE3_README",
       "path": "harness/v7_phase3_downstream_decision/README.html",
-      "size_bytes": 952,
-      "sha256": "3206D0FC97387B20AE26709AA7C9CBF1FD94EAEA2F587D25C2BFD0F956B51A77",
+      "size_bytes": 1350,
+      "sha256": "3972A350683F3368110F28DCA199BD853B7D9E354877255AE4BAA8002285336D",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE3_CONTROL_BUILDER",
+      "path": "harness/v7_phase3_downstream_decision/build_run_control.py",
+      "size_bytes": 13614,
+      "sha256": "E285B7156428C3E37F7492EFFE544104DED92DBD96F85CCC3659D05D3774C1EE",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "PHASE3_ARTIFACT_MANIFEST",
+      "path": "harness/v7_phase3_downstream_decision/phase3_artifact_manifest.json",
+      "size_bytes": 3161,
+      "sha256": "233B8179B00718426B062DE9DFF67533A1A94E2D1FE8CA7ACCF3EEA7ED728988",
       "producer_role": "CODEX_EXECUTOR"
     }
   ],
   "consumption_chain": [
     {
-      "relation_id": "PHASE3_DECISION_TO_VALIDATOR",
+      "relation_id": "PHASE3_CURRENT_TO_VALIDATOR",
       "producer": "CODEX_EXECUTOR",
       "produced_artifact": "PHASE3_DOWNSTREAM_DECISION",
-      "produced_artifact_sha256": "4A4CD461A6FA2FC40ABBFBC9DDDB06252062F2D7BCF097DC3C234AB65480BD95",
-      "consumer": "PHASE3_DOWNSTREAM_DECISION_VALIDATOR",
-      "consumed_artifact_sha256": "4A4CD461A6FA2FC40ABBFBC9DDDB06252062F2D7BCF097DC3C234AB65480BD95"
+      "produced_artifact_sha256": "695108AA9084C78255E1D9849EFC29732C77C51552B10940E317891FE65E0C55",
+      "consumer": "PHASE3_VALIDATOR",
+      "consumed_artifact_sha256": "695108AA9084C78255E1D9849EFC29732C77C51552B10940E317891FE65E0C55"
     },
     {
-      "relation_id": "PHASE3_VALIDATOR_TO_TEST_SUITE",
+      "relation_id": "PHASE3_VALIDATOR_TO_TESTS",
       "producer": "CODEX_EXECUTOR",
       "produced_artifact": "PHASE3_VALIDATOR",
-      "produced_artifact_sha256": "10C740A3F1C9A88AD97488AE3F892EE0C9F4439A3D51389B8320E631204FD205",
-      "consumer": "PHASE3_TEST_SUITE",
-      "consumed_artifact_sha256": "10C740A3F1C9A88AD97488AE3F892EE0C9F4439A3D51389B8320E631204FD205"
+      "produced_artifact_sha256": "FCC5CD29286981871B0CA2BB6855BE57B925C10C4090AD901833C6CA5C935752",
+      "consumer": "PHASE3_FORMAL_TEST_SUITE",
+      "consumed_artifact_sha256": "FCC5CD29286981871B0CA2BB6855BE57B925C10C4090AD901833C6CA5C935752"
     },
     {
-      "relation_id": "PHASE3_TEST_REPORT_TO_RUN_CONTROL",
+      "relation_id": "PHASE3_REPORT_TO_RUN_CONTROL",
       "producer": "CODEX_EXECUTOR",
-      "produced_artifact": "PHASE3_TEST_REPORT",
-      "produced_artifact_sha256": "51B5DA57281C628CC1DD1B8412A7DEB12059282582659E497D1D4B80D21A3760",
+      "produced_artifact": "PHASE3_FORMAL_TEST_REPORT",
+      "produced_artifact_sha256": "BD3C278CE4A02BED2EBE67E6BE97ED4E96E5CAD8579F7ABBBCA9B001DDA80D0F",
       "consumer": "RUN_CONTROL_BINDING",
-      "consumed_artifact_sha256": "51B5DA57281C628CC1DD1B8412A7DEB12059282582659E497D1D4B80D21A3760"
+      "consumed_artifact_sha256": "BD3C278CE4A02BED2EBE67E6BE97ED4E96E5CAD8579F7ABBBCA9B001DDA80D0F"
+    },
+    {
+      "relation_id": "PHASE3_SAMPLE_DISPOSITION_TO_CURRENT",
+      "producer": "CODEX_EXECUTOR",
+      "produced_artifact": "PHASE3_SAMPLE_DISPOSITION",
+      "produced_artifact_sha256": "C3E245F0A07F28CD7559F50B4CC6425929385DC0416478D54ECD8913FEC464E9",
+      "consumer": "PHASE3_DOWNSTREAM_DECISION",
+      "consumed_artifact_sha256": "C3E245F0A07F28CD7559F50B4CC6425929385DC0416478D54ECD8913FEC464E9"
     }
   ],
   "validation": {
@@ -407,10 +431,9 @@
     "auto_repair": false,
     "auto_advance": false,
     "result": "TECHNICAL_CHECK_PASS",
-    "phase3_validator_artifact_id": "PHASE3_DOWNSTREAM_DECISION_VALIDATOR",
-    "phase3_validator_result": "16_OF_16_PASS",
-    "self_test_report_artifact_id": "PHASE3_TEST_REPORT",
-    "self_test_result": "24_OF_24_PASS"
+    "phase3_validator_result": "27_OF_27_PASS",
+    "self_test_result": "30_OF_30_PASS",
+    "harness_result": "20_OF_20_PASS_CONTROL_VALID"
   },
   "pass_levels": [
     {
@@ -423,23 +446,23 @@
     {
       "level": 2,
       "name": "CONTENT_OR_LOCAL_ACCEPTANCE_PASS",
-      "status": "PASS",
-      "decided_by_role": "GPT_CONTROL",
-      "basis": "EXPLICIT_REVIEW"
+      "status": "PENDING",
+      "decided_by_role": null,
+      "basis": null
     },
     {
       "level": 3,
       "name": "INDEPENDENT_FINAL_ACCEPTANCE_PASS",
-      "status": "PASS",
-      "decided_by_role": "INDEPENDENT_VALIDATOR",
-      "basis": "DIRECT_VALIDATION"
+      "status": "PENDING",
+      "decided_by_role": null,
+      "basis": null
     },
     {
       "level": 4,
       "name": "GPT_BUSINESS_ACCEPTANCE_PASS",
-      "status": "PASS",
-      "decided_by_role": "GPT_CONTROL",
-      "basis": "EXPLICIT_REVIEW"
+      "status": "PENDING",
+      "decided_by_role": null,
+      "basis": null
     },
     {
       "level": 5,
@@ -466,33 +489,28 @@
     "scope_deviation_count": 0,
     "real_edinet_fetch_count": 0,
     "news_scan_executed_count": 0,
-    "laolei_scan_executed_count": 0,
-    "hushui_scan_executed_count": 0,
-    "macro_production_started_count": 0,
-    "flow_production_started_count": 0,
-    "sector_production_started_count": 0,
-    "pdca_production_started_count": 0,
-    "phase2_started_count": 1,
-    "phase3_started_count": 1
+    "real_market_data_fetch_count": 0,
+    "real_broker_api_call_count": 0,
+    "phase3_started_count": 1,
+    "next_phase_started_count": 0
   },
   "recovery": {
-    "last_valid_stage": "S5_ACCEPTED",
-    "last_valid_input": "V7_PHASE2_MACRO_WORLDVIEW_CURRENT_v1.0",
-    "last_valid_output": "PHASE3_TEST_REPORT",
+    "last_valid_stage": "S4_VALIDATED",
+    "last_valid_input": "PHASE2_MACRO_WORLDVIEW",
+    "last_valid_output": "PHASE3_FORMAL_TEST_REPORT",
     "failed_stage": null,
-    "blocked_reason": "SAFE_INTERFACE_RECOVERY_COMPLETE_REAL_PRODUCTION_NOT_AUTHORIZED",
+    "blocked_reason": "AWAITING_GPT_CONTROL_PHASE3_ACCEPTANCE",
     "retry_allowed": true,
-    "resume_from": "S5_ACCEPTED"
+    "resume_from": "S5_ACCEPTANCE_PENDING"
   },
   "next_action": {
     "auto_continue": false,
     "required_role": "GPT_CONTROL",
     "required_actor": "V7总控--4（Work）",
-    "action": "AUTHORIZE_REAL_PRODUCTION_OR_RELEASE_SEPARATELY",
+    "action": "REVIEW_PHASE3_FORMAL_ARTIFACTS_AND_ACCEPT_OR_RETURN",
     "forbidden_until_decision": [
-      "REAL_EDINET_FETCH",
-      "NEWS_SCAN",
-      "FULL_PRODUCT_PRODUCTION",
+      "NEXT_PHASE",
+      "REAL_PRODUCTION",
       "DAILY_REPORT",
       "RELEASE",
       "TRADE",

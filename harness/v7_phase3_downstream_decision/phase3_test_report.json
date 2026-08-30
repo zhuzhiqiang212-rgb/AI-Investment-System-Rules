@@ -1,106 +1,14 @@
 {
-  "report_id": "V7_PHASE3_DOWNSTREAM_DECISION_24_TEST_REPORT",
-  "run_id": "V7-COMPLETE-PRODUCT-PHASE3-20260830-112800-JST",
-  "test_count": 24,
-  "pass_count": 24,
-  "failure_count": 0,
-  "result": "24_OF_24_PASS",
-  "tests": [
-    {
-      "test": "test_01",
-      "status": "PASS"
-    },
-    {
-      "test": "test_02",
-      "status": "PASS"
-    },
-    {
-      "test": "test_03",
-      "status": "PASS"
-    },
-    {
-      "test": "test_04",
-      "status": "PASS"
-    },
-    {
-      "test": "test_05",
-      "status": "PASS"
-    },
-    {
-      "test": "test_06",
-      "status": "PASS"
-    },
-    {
-      "test": "test_07",
-      "status": "PASS"
-    },
-    {
-      "test": "test_08",
-      "status": "PASS"
-    },
-    {
-      "test": "test_09",
-      "status": "PASS"
-    },
-    {
-      "test": "test_10",
-      "status": "PASS"
-    },
-    {
-      "test": "test_11",
-      "status": "PASS"
-    },
-    {
-      "test": "test_12",
-      "status": "PASS"
-    },
-    {
-      "test": "test_13",
-      "status": "PASS"
-    },
-    {
-      "test": "test_14",
-      "status": "PASS"
-    },
-    {
-      "test": "test_15",
-      "status": "PASS"
-    },
-    {
-      "test": "test_16",
-      "status": "PASS"
-    },
-    {
-      "test": "test_17",
-      "status": "PASS"
-    },
-    {
-      "test": "test_18",
-      "status": "PASS"
-    },
-    {
-      "test": "test_19",
-      "status": "PASS"
-    },
-    {
-      "test": "test_20",
-      "status": "PASS"
-    },
-    {
-      "test": "test_21",
-      "status": "PASS"
-    },
-    {
-      "test": "test_22",
-      "status": "PASS"
-    },
-    {
-      "test": "test_23",
-      "status": "PASS"
-    },
-    {
-      "test": "test_24",
-      "status": "PASS"
-    }
-  ]
+  "report_id": "V7_PHASE3_UNAUTHORIZED_SAMPLE_REPORT_SUPERSEDED",
+  "task_id": "V7-PHASE3-DOWNSTREAM-DECISION-INTERFACES",
+  "run_id": "V7-PHASE3-DOWNSTREAM-20260830-112147-JST",
+  "status": "SUPERSEDED_NOT_ACCEPTANCE_EVIDENCE",
+  "unauthorized_sample_commit": "d137904eca95e99935169ad8a8d2bfdad057c1f5",
+  "handling": "REVIEWED_THEN_FULLY_REBUILT_AND_OVERWRITTEN",
+  "formal_report": "phase3_formal_test_report.json",
+  "formal_report_sha256": "BD3C278CE4A02BED2EBE67E6BE97ED4E96E5CAD8579F7ABBBCA9B001DDA80D0F",
+  "formal_tests": "30_OF_30_PASS",
+  "compatibility_discovery_tests": "32_OF_32_PASS",
+  "automatic_promotion": false,
+  "release_basis": false
 }

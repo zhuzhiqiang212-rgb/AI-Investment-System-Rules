@@ -4,11 +4,13 @@
 <style>body{font-family:"Microsoft YaHei",sans-serif;line-height:1.65;max-width:960px;margin:32px auto;padding:0 20px;color:#20252b}code{background:#eef2f5;padding:2px 5px;border-radius:3px}</style></head>
 <body>
 <h1>V7 Phase 3 下游决策接口</h1>
-<p>本目录接通宏观之后的战略、资金流、板块、公司、组合、动作和PDCA接口；不抓取真实数据，不生成今日判断，不产生订单。</p>
+<p>本目录定义宏观之后的战略、资金流、板块轮动、公司与个股、组合与持仓、今日动作、PDCA、证据追踪八个正式接口；不抓取真实数据，不生成今日判断，不产生订单。</p>
 <ul>
 <li>每一层都必须保留上游判断、来源、置信度与失效条件。</li>
 <li>公司层继承V13研究基座，只允许未来动态覆盖事实，不改基座身份。</li>
-<li>动作层只保留接口，真实动作必须另行经过董事长确认和券商现实核对。</li>
+<li>动作层严格区分预测、研究建议、授权与订单；Phase 3 不具备真实交易权限。</li>
+<li>证据追踪是独立接口，任何重大结论都必须能回到来源身份、时间和指纹。</li>
+<li>越权样件提交 <code>d137904</code> 未被升格；本轮逐项审阅缺口后已经完整覆盖重建，详见 <code>unauthorized_sample_disposition.json</code>。</li>
 </ul>
-<p>当前状态：<code>PHASE3_ACCEPTANCE = PASS</code>，<code>PRODUCTION_READY = NO</code>。</p>
+<p>当前状态：<code>PHASE3_TECHNICAL_SELF_TEST = PASS</code>，<code>GPT_ACCEPTANCE = PENDING</code>，<code>PRODUCTION_READY = NO</code>。</p>
 </body></html>

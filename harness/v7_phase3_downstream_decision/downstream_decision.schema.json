@@ -1,42 +1,53 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "V7 Phase 3 Downstream Decision Interface",
+  "$id": "V7_PHASE3_DOWNSTREAM_DECISION_SCHEMA_1.0",
+  "title": "V7 Phase 3 Downstream Decision Interfaces",
   "type": "object",
-  "required": [
-    "identity",
-    "governance_bindings",
-    "phase3_scope",
-    "layer_interfaces",
-    "causal_chain",
-    "action_safety",
-    "safety",
-    "success_criteria"
-  ],
+  "required": ["identity", "governance_bindings", "sample_disposition", "phase3_scope", "interfaces", "causal_chain", "cross_layer_rules", "product_section_binding", "readiness", "safety"],
   "properties": {
     "identity": {
-      "type": "object"
+      "type": "object",
+      "required": ["artifact_id", "version", "status", "run_id", "contains_real_daily_content", "production_ready"],
+      "properties": {
+        "artifact_id": {"const": "V7_PHASE3_DOWNSTREAM_DECISION_CURRENT_v1.0"},
+        "version": {"const": "1.0"},
+        "status": {"const": "CURRENT"},
+        "contains_real_daily_content": {"const": false},
+        "production_ready": {"const": "NO"}
+      }
     },
     "governance_bindings": {
-      "type": "object"
+      "type": "object",
+      "required": ["business_blueprint_id", "production_sop_id", "phase1_structure_sha256", "phase2_macro_worldview_sha256", "research_baseline_sha256", "formal_task_authority"]
     },
-    "phase3_scope": {
-      "type": "object"
+    "sample_disposition": {
+      "type": "object",
+      "required": ["sample_commit", "formal_status", "handling", "automatic_promotion", "release_basis"]
     },
-    "layer_interfaces": {
-      "type": "array",
-      "minItems": 7
+    "interfaces": {
+      "type": "object",
+      "required": ["STRATEGY", "FLOW", "SECTOR_ROTATION", "COMPANY_SECURITY", "PORTFOLIO_POSITION", "TODAY_ACTION", "PDCA", "EVIDENCE_TRACE"],
+      "additionalProperties": false
     },
     "causal_chain": {
-      "type": "object"
+      "type": "object",
+      "required": ["ordered_layers", "required_trace_fields", "missing_upstream_result", "no_layer_may_skip_trace"]
     },
-    "action_safety": {
-      "type": "object"
+    "cross_layer_rules": {
+      "type": "object",
+      "required": ["prediction_action_separation", "baseline_dynamic_separation", "source_priority", "action_authority_separation", "target_calculation_boundary"]
+    },
+    "product_section_binding": {
+      "type": "object",
+      "required": ["interface_to_section", "all_required_sections_bound"]
+    },
+    "readiness": {
+      "type": "object",
+      "required": ["phase3_implementation", "phase3_tests", "harness_validation", "production_ready", "next_phase_auto_start"]
     },
     "safety": {
-      "type": "object"
-    },
-    "success_criteria": {
-      "type": "object"
+      "type": "object",
+      "required": ["real_news_scan_executed", "real_market_data_fetch_executed", "real_edinet_fetch_executed", "real_broker_api_called", "daily_report_produced_or_overwritten", "v13_modified", "next_phase_started", "release_executed", "trade_executed", "order_executed"]
     }
   }
 }

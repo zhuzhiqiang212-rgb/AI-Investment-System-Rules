@@ -1,0 +1,21 @@
+{
+  "sample_commit": "d137904eca95e99935169ad8a8d2bfdad057c1f5",
+  "formal_status": "UNAUTHORIZED_SAMPLE_SUPERSEDED",
+  "handling": "REVIEWED_THEN_FULLY_REBUILT_AND_OVERWRITTEN",
+  "automatic_promotion": false,
+  "release_basis": false,
+  "identified_gaps": [
+    "Only seven downstream layer interfaces were modeled; EVIDENCE_TRACE was not a standalone interface.",
+    "Portfolio contribution and target-calculation boundaries were incomplete.",
+    "Baseline identity protection and Dynamic Overlay rules were not explicit enough.",
+    "Action executability conditions did not fully separate prediction, recommendation, authorization, and order execution.",
+    "Evidence orphan and source-conflict behavior lacked executable semantic checks."
+  ],
+  "formal_rebuild_basis": [
+    "ACCEPTED_PHASE2",
+    "ACCEPTED_PRODUCTION_SOP",
+    "ACCEPTED_PHASE1_STRUCTURE",
+    "FROZEN_V13_RESEARCH_BASELINE",
+    "FORMAL_PHASE3_TASK_AUTHORITY"
+  ]
+}

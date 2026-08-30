@@ -1,0 +1,37 @@
+{
+  "task_id": "V7-PHASE3-DOWNSTREAM-DECISION-INTERFACES",
+  "task_name": "Phase 3 下游决策接口重做",
+  "issued_by": "V7总控--4（Work）",
+  "executor": "Codex–V7",
+  "source_thread_id": "01a04df1-b650-75b1-958a-a5ead6ea6a2a",
+  "issued_at_jst": "2026-08-30T11:21:47+09:00",
+  "accepted_phase2_commit": "57e2a0618ad41287e3fdd70a068cebc6b6c6301c",
+  "unauthorized_sample_commit": "d137904eca95e99935169ad8a8d2bfdad057c1f5",
+  "required_interfaces": [
+    "STRATEGY",
+    "FLOW",
+    "SECTOR_ROTATION",
+    "COMPANY_SECURITY",
+    "PORTFOLIO_POSITION",
+    "TODAY_ACTION",
+    "PDCA",
+    "EVIDENCE_TRACE"
+  ],
+  "requirements": [
+    "REBUILD_FORMAL_PHASE3_FILES",
+    "CREATE_VALIDATOR_AND_TESTS",
+    "UPDATE_RUN_CONTROL",
+    "PRESERVE_V13_SHA",
+    "COMMIT_TO_P0_MERGE_ROUND7",
+    "DO_NOT_AUTO_ACCEPT_UNAUTHORIZED_SAMPLE"
+  ],
+  "forbidden": [
+    "MODIFY_V13_HTML_OR_PDF",
+    "PRODUCE_OR_OVERWRITE_DAILY_REPORT",
+    "CALL_REAL_EDINET_NEWS_MARKET_OR_BROKER_INTERFACES",
+    "RELEASE",
+    "TRADE",
+    "ORDER",
+    "AUTO_START_NEXT_PHASE"
+  ]
+}
