@@ -2,9 +2,9 @@
   "schema_version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
   "harness_id": "V7_MINIMAL_HARNESS_PHASE1",
   "run_id": "V7-PHASE3-DOWNSTREAM-20260830-112147-JST",
-  "generated_at_jst": "2026-08-30T12:03:24+09:00",
-  "control_status": "ACCEPTANCE_PENDING",
-  "active_task_id": "V7-PHASE3-DOWNSTREAM-DECISION-INTERFACES",
+  "generated_at_jst": "2026-08-30T12:10:41+09:00",
+  "control_status": "ACCEPTED",
+  "active_task_id": null,
   "tasks": [
     {
       "task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
@@ -49,9 +49,13 @@
     {
       "task_id": "V7-PHASE3-DOWNSTREAM-DECISION-INTERFACES",
       "task_name": "V7 Phase 3 下游决策接口正式重做",
-      "status": "AWAITING_GPT_ACCEPTANCE",
+      "status": "COMPLETED",
       "opened_by_role": "GPT_CONTROL",
-      "opened_by_actor": "V7总控--4（Work）"
+      "opened_by_actor": "V7总控--4（Work）",
+      "closed_by_role": "GPT_CONTROL",
+      "closed_by_actor": "V7总控--4（Work）",
+      "closed_at_jst": "2026-08-30T12:10:41+09:00",
+      "closure_basis": "PHASE3_ACCEPTANCE_PASS"
     }
   ],
   "roles": {
@@ -129,7 +133,7 @@
       "actor": "V7总控--4（Work）"
     },
     "phase": "PHASE3_DOWNSTREAM_DECISION_INTERFACES",
-    "phase3_status": "TECHNICALLY_VALIDATED_ACCEPTANCE_PENDING",
+    "phase3_status": "PHASE3_ACCEPTANCE_PASS",
     "production_ready": "NO",
     "accepted_phase2_commit": "57e2a0618ad41287e3fdd70a068cebc6b6c6301c",
     "unauthorized_sample_commit": "d137904eca95e99935169ad8a8d2bfdad057c1f5",
@@ -177,7 +181,7 @@
       "S5_ACCEPTANCE_PENDING",
       "S5_ACCEPTED"
     ],
-    "current": "S5_ACCEPTANCE_PENDING",
+    "current": "S5_ACCEPTED",
     "history": [
       {
         "stage": "S0_DEFINED",
@@ -215,11 +219,12 @@
         "at_jst": "2026-08-30T12:03:24+09:00"
       },
       {
-        "stage": "S5_ACCEPTANCE_PENDING",
-        "status": "CURRENT",
+        "stage": "S5_ACCEPTED",
+        "status": "PASS",
         "actor_role": "GPT_CONTROL",
         "actor": "V7总控--4（Work）",
-        "at_jst": "2026-08-30T12:03:24+09:00"
+        "at_jst": "2026-08-30T12:10:41+09:00",
+        "basis": "PHASE3_ACCEPTANCE_PASS"
       }
     ]
   },
@@ -446,9 +451,9 @@
     {
       "level": 2,
       "name": "CONTENT_OR_LOCAL_ACCEPTANCE_PASS",
-      "status": "PENDING",
-      "decided_by_role": null,
-      "basis": null
+      "status": "PASS",
+      "decided_by_role": "GPT_CONTROL",
+      "basis": "EXPLICIT_REVIEW"
     },
     {
       "level": 3,
@@ -460,9 +465,9 @@
     {
       "level": 4,
       "name": "GPT_BUSINESS_ACCEPTANCE_PASS",
-      "status": "PENDING",
-      "decided_by_role": null,
-      "basis": null
+      "status": "PASS",
+      "decided_by_role": "GPT_CONTROL",
+      "basis": "EXPLICIT_REVIEW"
     },
     {
       "level": 5,
@@ -495,19 +500,19 @@
     "next_phase_started_count": 0
   },
   "recovery": {
-    "last_valid_stage": "S4_VALIDATED",
+    "last_valid_stage": "S5_ACCEPTED",
     "last_valid_input": "PHASE2_MACRO_WORLDVIEW",
     "last_valid_output": "PHASE3_FORMAL_TEST_REPORT",
     "failed_stage": null,
-    "blocked_reason": "AWAITING_GPT_CONTROL_PHASE3_ACCEPTANCE",
+    "blocked_reason": "WAITING_NEXT_EXPLICIT_GPT_CONTROL_INSTRUCTION",
     "retry_allowed": true,
-    "resume_from": "S5_ACCEPTANCE_PENDING"
+    "resume_from": "S5_ACCEPTED"
   },
   "next_action": {
     "auto_continue": false,
     "required_role": "GPT_CONTROL",
     "required_actor": "V7总控--4（Work）",
-    "action": "REVIEW_PHASE3_FORMAL_ARTIFACTS_AND_ACCEPT_OR_RETURN",
+    "action": "WAIT_FOR_EXPLICIT_NEXT_PHASE_INSTRUCTION",
     "forbidden_until_decision": [
       "NEXT_PHASE",
       "REAL_PRODUCTION",
