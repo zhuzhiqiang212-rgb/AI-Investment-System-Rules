@@ -1,0 +1,19 @@
+{
+  "run_id": "V7-TODAY-FORMAL-READING-20260830-151834-JST",
+  "technical_validation": "PASS",
+  "content_structure_self_check": "PASS",
+  "desktop_1440": "PASS",
+  "mobile_390": "PASS",
+  "html_pdf_consistency": "PASS",
+  "pdf_pages": 6,
+  "harness_validation": "CONTROL_VALID / 20_OF_20_PASS",
+  "harness_unit_tests": "10_OF_10_PASS",
+  "edinet": "SOFT_MISSING / API_KEY_NOT_CONFIGURED",
+  "material_new_fact_count": 0,
+  "v13_modified_count": 0,
+  "locked_forecast_changed_count": 0,
+  "release_count": 0,
+  "trade_count": 0,
+  "order_count": 0,
+  "business_acceptance": "PENDING"
+}

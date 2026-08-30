@@ -1,10 +1,10 @@
 {
   "schema_version": "V7_MINIMAL_HARNESS_PHASE1_1.0",
   "harness_id": "V7_MINIMAL_HARNESS_PHASE1",
-  "run_id": "V7-FULL-PRODUCTION-CANDIDATE-20260830-123337-JST",
-  "generated_at_jst": "2026-08-30T13:52:03+09:00",
+  "run_id": "V7-TODAY-FORMAL-READING-20260830-151834-JST",
+  "generated_at_jst": "2026-08-30T15:38:07+09:00",
   "control_status": "ACCEPTANCE_PENDING",
-  "active_task_id": "V7-FORMAL-FULL-PRODUCTION-CANDIDATE",
+  "active_task_id": "V7-TODAY-FORMAL-READING-PRODUCT-REBUILD",
   "tasks": [
     {
       "task_id": "V7-MINIMAL-HARNESS-PHASE1-BUILD",
@@ -60,6 +60,14 @@
     {
       "task_id": "V7-FORMAL-FULL-PRODUCTION-CANDIDATE",
       "task_name": "V7正式完整生产候选PDF与可验收交付包收口",
+      "status": "FAILED_CLOSED",
+      "opened_by_role": "GPT_CONTROL",
+      "opened_by_actor": "V7总控--4（Work）",
+      "closure_basis": "RETURNED_BY_CHAIRMAN_USAGE_TEST"
+    },
+    {
+      "task_id": "V7-TODAY-FORMAL-READING-PRODUCT-REBUILD",
+      "task_name": "今日正式完整生产阅读版候选重做",
       "status": "AWAITING_GPT_BUSINESS_ACCEPTANCE",
       "opened_by_role": "GPT_CONTROL",
       "opened_by_actor": "V7总控--4（Work）"
@@ -125,8 +133,8 @@
     }
   },
   "task": {
-    "task_id": "V7-FORMAL-FULL-PRODUCTION-CANDIDATE",
-    "task_name": "V7正式完整生产候选PDF与可验收交付包收口",
+    "task_id": "V7-TODAY-FORMAL-READING-PRODUCT-REBUILD",
+    "task_name": "今日正式完整生产阅读版候选重做",
     "owner_controller": {
       "role": "GPT_CONTROL",
       "actor": "V7总控--4（Work）"
@@ -136,10 +144,10 @@
       "actor": "Codex--V7--2"
     },
     "acceptance_owner": {
-      "role": "INDEPENDENT_VALIDATOR",
-      "actor": "对应独立终验线程（由总控派发）"
+      "role": "GPT_CONTROL",
+      "actor": "V7总控--4（Work）业务验收；通过后派独立终验"
     },
-    "phase": "FORMAL_FULL_PRODUCTION_CANDIDATE",
+    "phase": "TODAY_FORMAL_READING_CANDIDATE",
     "status": "TECHNICALLY_VALIDATED_ACCEPTANCE_PENDING_DEGRADED_MODE",
     "release_ready": "NO"
   },
@@ -147,8 +155,8 @@
     "allowed": [
       "READ_FORMAL_INPUTS",
       "READ_ONLY_MARKET_AND_PORTFOLIO",
-      "BUILD_CANDIDATE_HTML",
-      "BUILD_CANDIDATE_PDF",
+      "BUILD_TODAY_READING_CANDIDATE_HTML",
+      "BUILD_TODAY_READING_CANDIDATE_PDF",
       "BUILD_EVIDENCE_REPORTS",
       "SEPARATE_LOCAL_SENSITIVE_EVIDENCE",
       "BUILD_REDACTED_ACCEPTANCE_PACKAGE",
@@ -157,7 +165,6 @@
       "COMMIT_AND_PUSH_SCOPED_REDACTED_FILES"
     ],
     "forbidden": [
-      "MODIFY_V13",
       "MODIFY_V13_HTML",
       "MODIFY_V13_PDF",
       "RESEARCH_SECURITIES",
@@ -165,12 +172,15 @@
       "CONNECT_MACRO_PIPELINE",
       "CONNECT_PDCA_PIPELINE",
       "PRODUCE_DAILY_REPORT",
+      "BUILD_FULL_HARNESS",
+      "MODIFY_V13",
+      "MODIFY_LOCKED_84_FORECASTS",
       "OVERWRITE_DAILY_REPORT",
       "RELEASE",
       "TRADE",
       "ORDER",
       "BROKER_ORDER_API",
-      "BUILD_FULL_HARNESS",
+      "PUSH_SENSITIVE_EVIDENCE",
       "AUTO_CONTINUE"
     ]
   },
@@ -191,57 +201,60 @@
         "status": "PASS",
         "actor_role": "GPT_CONTROL",
         "actor": "V7总控--4（Work）",
-        "at_jst": "2026-08-30T12:33:37+09:00"
+        "at_jst": "2026-08-30T15:18:34+09:00"
       },
       {
         "stage": "S1_INPUT_BOUND",
         "status": "PASS",
         "actor_role": "CODEX_EXECUTOR",
         "actor": "Codex--V7--2",
-        "at_jst": "2026-08-30T12:33:37+09:00"
+        "at_jst": "2026-08-30T15:18:34+09:00"
       },
       {
         "stage": "S2_AUTHORIZED",
         "status": "PASS",
         "actor_role": "GPT_CONTROL",
         "actor": "V7总控--4（Work）",
-        "at_jst": "2026-08-30T13:32:00+09:00"
+        "at_jst": "2026-08-30T15:18:34+09:00"
       },
       {
         "stage": "S3_EXECUTED",
         "status": "PASS",
         "actor_role": "CODEX_EXECUTOR",
         "actor": "Codex--V7--2",
-        "at_jst": "2026-08-30T13:52:03+09:00"
+        "at_jst": "2026-08-30T15:38:07+09:00"
       },
       {
         "stage": "S4_VALIDATED",
         "status": "PASS",
         "actor_role": "INDEPENDENT_VALIDATOR",
-        "actor": "候选只读技术校验器、PDF检查与浏览器QA",
-        "at_jst": "2026-08-30T13:52:03+09:00"
+        "actor": "只读技术校验器、PDF与浏览器QA",
+        "at_jst": "2026-08-30T15:38:07+09:00"
       },
       {
         "stage": "S5_ACCEPTANCE_PENDING",
         "status": "CURRENT",
         "actor_role": "GPT_CONTROL",
         "actor": "V7总控--4（Work）",
-        "at_jst": "2026-08-30T13:52:03+09:00"
+        "at_jst": "2026-08-30T15:38:07+09:00"
       }
     ]
   },
   "authorization": {
     "authorized_by_role": "GPT_CONTROL",
     "authorized_by_actor": "V7总控--4（Work）",
-    "authorized_at_jst": "2026-08-30T13:32:00+09:00",
+    "authorized_at_jst": "2026-08-30T15:18:34+09:00",
     "authorized_actions": [
-      "BUILD_FORMAL_FULL_PRODUCTION_CANDIDATE_PDF",
-      "VALIDATE_HTML_PDF_CONSISTENCY",
+      "READ_FORMAL_INPUTS",
+      "READ_ONLY_MARKET_AND_PORTFOLIO",
+      "BUILD_TODAY_READING_CANDIDATE_HTML",
+      "BUILD_TODAY_READING_CANDIDATE_PDF",
+      "BUILD_EVIDENCE_REPORTS",
       "SEPARATE_LOCAL_SENSITIVE_EVIDENCE",
       "BUILD_REDACTED_ACCEPTANCE_PACKAGE",
-      "UPDATE_RUN_CONTROL",
-      "COMMIT",
-      "PUSH_IF_SAFE"
+      "VALIDATE",
+      "UPDATE_THIS_RUN_CONTROL",
+      "COMMIT_AND_PUSH_SCOPED_REDACTED_FILES"
     ],
     "modify_input_allowed": false,
     "production_allowed": false,
@@ -311,47 +324,62 @@
   ],
   "outputs": [
     {
-      "artifact_id": "CANDIDATE_IDENTITY_REDACTED",
-      "path": "harness/v7_full_production_candidate/pushable_acceptance/candidate_identity_redacted.json",
-      "size_bytes": 1079,
-      "sha256": "12CCBEC1EE618A928BFD764019163A8C27DEED2CE6A8072199127D4450EC5E1D",
+      "artifact_id": "TODAY_READING_CANDIDATE_IDENTITY",
+      "path": "harness/v7_full_production_candidate/pushable_acceptance/today_reading_candidate_identity.json",
+      "size_bytes": 1024,
+      "sha256": "B6B0796A5F588C92477824B7F6CB66206F2F6ABD80C36F4540D3784105C13210",
       "producer_role": "CODEX_EXECUTOR"
     },
     {
-      "artifact_id": "SENSITIVE_SEPARATION_REPORT",
-      "path": "harness/v7_full_production_candidate/pushable_acceptance/sensitive_separation_report.json",
-      "size_bytes": 728,
-      "sha256": "3993106B5107AA5413598970B871621A58C232F3F9399F6D9454C0267CADF793",
+      "artifact_id": "TODAY_READING_VALIDATION_SUMMARY",
+      "path": "harness/v7_full_production_candidate/pushable_acceptance/today_reading_validation_summary.json",
+      "size_bytes": 605,
+      "sha256": "39670C7BB9C4B5F3E1082F4E6F9FB39B0CE40D24583526FE3B3ACFBE2230E9CA",
+      "producer_role": "CODEX_EXECUTOR"
+    },
+    {
+      "artifact_id": "TODAY_READING_SENSITIVE_SEPARATION",
+      "path": "harness/v7_full_production_candidate/pushable_acceptance/today_reading_sensitive_separation.json",
+      "size_bytes": 267,
+      "sha256": "3B32C4897E94A20515026CDC733FBFFE7A16438972BA45C167C67477447D9A37",
       "producer_role": "CODEX_EXECUTOR"
     }
   ],
   "consumption_chain": [
     {
-      "relation_id": "CANDIDATE_IDENTITY_TO_CONTROL",
+      "relation_id": "TODAY_READING_CANDIDATE_IDENTITY_TO_CONTROL",
       "producer": "CODEX_EXECUTOR",
-      "produced_artifact": "CANDIDATE_IDENTITY_REDACTED",
-      "produced_artifact_sha256": "12CCBEC1EE618A928BFD764019163A8C27DEED2CE6A8072199127D4450EC5E1D",
+      "produced_artifact": "TODAY_READING_CANDIDATE_IDENTITY",
+      "produced_artifact_sha256": "B6B0796A5F588C92477824B7F6CB66206F2F6ABD80C36F4540D3784105C13210",
       "consumer": "RUN_CONTROL_BINDING",
-      "consumed_artifact_sha256": "12CCBEC1EE618A928BFD764019163A8C27DEED2CE6A8072199127D4450EC5E1D"
+      "consumed_artifact_sha256": "B6B0796A5F588C92477824B7F6CB66206F2F6ABD80C36F4540D3784105C13210"
     },
     {
-      "relation_id": "SENSITIVE_SEPARATION_TO_CONTROL",
+      "relation_id": "TODAY_READING_VALIDATION_SUMMARY_TO_CONTROL",
       "producer": "CODEX_EXECUTOR",
-      "produced_artifact": "SENSITIVE_SEPARATION_REPORT",
-      "produced_artifact_sha256": "3993106B5107AA5413598970B871621A58C232F3F9399F6D9454C0267CADF793",
+      "produced_artifact": "TODAY_READING_VALIDATION_SUMMARY",
+      "produced_artifact_sha256": "39670C7BB9C4B5F3E1082F4E6F9FB39B0CE40D24583526FE3B3ACFBE2230E9CA",
       "consumer": "RUN_CONTROL_BINDING",
-      "consumed_artifact_sha256": "3993106B5107AA5413598970B871621A58C232F3F9399F6D9454C0267CADF793"
+      "consumed_artifact_sha256": "39670C7BB9C4B5F3E1082F4E6F9FB39B0CE40D24583526FE3B3ACFBE2230E9CA"
+    },
+    {
+      "relation_id": "TODAY_READING_SENSITIVE_SEPARATION_TO_CONTROL",
+      "producer": "CODEX_EXECUTOR",
+      "produced_artifact": "TODAY_READING_SENSITIVE_SEPARATION",
+      "produced_artifact_sha256": "3B32C4897E94A20515026CDC733FBFFE7A16438972BA45C167C67477447D9A37",
+      "consumer": "RUN_CONTROL_BINDING",
+      "consumed_artifact_sha256": "3B32C4897E94A20515026CDC733FBFFE7A16438972BA45C167C67477447D9A37"
     }
   ],
   "validation": {
-    "validator_artifact_id": "SENSITIVE_SEPARATION_REPORT",
+    "validator_artifact_id": "TODAY_READING_VALIDATION_SUMMARY",
     "validator_mode": "READ_ONLY",
     "auto_repair": false,
     "auto_advance": false,
     "result": "TECHNICAL_CHECK_PASS",
-    "candidate_result": "20_OF_20_PASS",
+    "candidate_result": "9_OF_9_PASS",
     "browser_result": "DESKTOP_AND_390PX_PASS",
-    "pdf_result": "PDF_103_PAGES_COMPLETE_READABLE_CONSISTENT_PASS",
+    "pdf_result": "PDF_6_PAGES_TEXT_AND_PIXEL_CHECK_PASS",
     "sensitive_separation_result": "LOCAL_SENSITIVE_EVIDENCE_NOT_PUSHED",
     "edinet_result": "SOFT_MISSING_DEGRADED_MODE",
     "harness_upgrade_recommended": true
@@ -407,8 +435,8 @@
     "daily_report_overwrite_count": 0,
     "daily_report_produced_count": 0,
     "full_product_build_started_count": 0,
-    "candidate_product_build_count": 1,
-    "candidate_pdf_build_count": 1,
+    "candidate_product_build_count": 2,
+    "candidate_pdf_build_count": 2,
     "scope_deviation_count": 0,
     "real_edinet_fetch_count": 0,
     "news_scan_executed_count": 1,
@@ -422,8 +450,8 @@
   },
   "recovery": {
     "last_valid_stage": "S4_VALIDATED",
-    "last_valid_input": "LOCKED_84_FORECASTS",
-    "last_valid_output": "CANDIDATE_IDENTITY_REDACTED",
+    "last_valid_input": "V13_RESEARCH_BASELINE",
+    "last_valid_output": "TODAY_READING_CANDIDATE_IDENTITY",
     "failed_stage": null,
     "blocked_reason": "AWAITING_V7_CONTROL_BUSINESS_ACCEPTANCE; EDINET_API_KEY_SOFT_MISSING",
     "retry_allowed": true,
@@ -433,7 +461,7 @@
     "auto_continue": false,
     "required_role": "GPT_CONTROL",
     "required_actor": "V7总控--4（Work）",
-    "action": "REVIEW_FORMAL_FULL_PRODUCTION_CANDIDATE_AND_DISPATCH_INDEPENDENT_REVIEW_IF_APPROPRIATE",
+    "action": "REVIEW_TODAY_FORMAL_READING_CANDIDATE_AND_DISPATCH_INDEPENDENT_REVIEW_IF_APPROPRIATE",
     "forbidden_until_decision": [
       "RELEASE",
       "DAILY_REPORT",

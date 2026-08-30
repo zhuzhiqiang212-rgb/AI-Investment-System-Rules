@@ -1,0 +1,20 @@
+{
+  "task_id": "V7-TODAY-FORMAL-READING-PRODUCT-REBUILD",
+  "run_id": "V7-TODAY-FORMAL-READING-20260830-151834-JST",
+  "status": "AWAITING_V7_CONTROL_BUSINESS_ACCEPTANCE",
+  "html": {
+    "relative_local_path": "output\\candidates\\2026-08-30\\V7-TODAY-FORMAL-READING-20260830-151834-JST\\V7今日正式完整生产阅读版候选.html",
+    "size_bytes": 21997,
+    "sha256": "3B53F7E380400222CD870729AD8CF6404C59610D1FBF8269E8C77D68C4EE2A4A"
+  },
+  "pdf": {
+    "relative_local_path": "output\\candidates\\2026-08-30\\V7-TODAY-FORMAL-READING-20260830-151834-JST\\V7今日正式完整生产阅读版候选.pdf",
+    "size_bytes": 518161,
+    "sha256": "6C2ECA3BFACC91AC94DC4B9DD1342994B61465EAD16DFD5CAC50ADAF6821D7C1",
+    "page_count": 6
+  },
+  "v13_sha256": "C726C9BA04A51E107162F6ECA5AD396294B58F132F361A7257755A2E8E8C90A4",
+  "locked84_sha256": "FFA84D49E20CFB0D15A5220E33A94547BA16683B2B4D8C4C731E549635F382B8",
+  "candidate_contains_sensitive_account_detail": true,
+  "candidate_pushed": false
+}
