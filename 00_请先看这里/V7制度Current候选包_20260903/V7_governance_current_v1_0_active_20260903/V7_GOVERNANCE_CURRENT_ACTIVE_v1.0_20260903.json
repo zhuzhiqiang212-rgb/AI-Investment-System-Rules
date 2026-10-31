@@ -1,0 +1,2583 @@
+{
+  "id": "V7_GOVERNANCE_CURRENT_ACTIVE_v1.0",
+  "date": "2026-09-03",
+  "chairman_confirmation": "继续",
+  "status": "FORMAL_GOVERNANCE_CURRENT_ACTIVE",
+  "scope": "GOVERNANCE_ONLY",
+  "drive_package": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903",
+  "components": [
+    {
+      "component": "制度总表",
+      "filename": "V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+      "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+      "bytes": 19876,
+      "sha256": "91CE4BD44D89B3D315F7514182A1F7F09CE7BC44FF781D8FBC2DA7D0BF9D8625",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；2026-09-10补充条款已通过总控核查并登记；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release",
+      "origin_source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+      "identity_note": "source_path now points to the actual registered G-drive file modified in this sync; origin_source_path preserves the earlier C-drive source reference. Formal fingerprint is for source_path, not origin_source_path.",
+      "previous_current_before_20261029": {
+        "component": "制度总表",
+        "filename": "V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+        "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+        "bytes": 13953,
+        "sha256": "99D7E2C58FBB7721E6561F279E71B353BC4420DCCB5819372FD1C3A102F16182",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-10补充条款已通过总控核查并登记；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release",
+        "origin_source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+        "identity_note": "source_path now points to the actual registered G-drive file modified in this sync; origin_source_path preserves the earlier C-drive source reference. Formal fingerprint is for source_path, not origin_source_path."
+      },
+      "current_20261029_scope": "Approved13index_addendum_only_sixsourcebodies_unchanged_pendingindependentreview",
+      "before_approved_migration_20261030": {
+        "component": "制度总表",
+        "filename": "V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+        "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+        "bytes": 18693,
+        "sha256": "2FDAB576C3389F60A6733AAF9FA88B007C777845500EC0A75D316790197E9F84",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-10补充条款已通过总控核查并登记；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release",
+        "origin_source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+        "identity_note": "source_path now points to the actual registered G-drive file modified in this sync; origin_source_path preserves the earlier C-drive source reference. Formal fingerprint is for source_path, not origin_source_path.",
+        "previous_current_before_20261029": {
+          "component": "制度总表",
+          "filename": "V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "bytes": 13953,
+          "sha256": "99D7E2C58FBB7721E6561F279E71B353BC4420DCCB5819372FD1C3A102F16182",
+          "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+          "note": "治理正式Current组成文件；2026-09-10补充条款已通过总控核查并登记；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release",
+          "origin_source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "identity_note": "source_path now points to the actual registered G-drive file modified in this sync; origin_source_path preserves the earlier C-drive source reference. Formal fingerprint is for source_path, not origin_source_path."
+        },
+        "current_20261029_scope": "Approved13index_addendum_only_sixsourcebodies_unchanged_pendingindependentreview"
+      },
+      "migration_20261030": {
+        "authority": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\六正文迁移专门批准原信.md",
+          "sha256": "65c31e2a5fa3605e14dd1fff2097d8706fe701851dd3b03677178eb0890a3067",
+          "bytes": 941,
+          "mtime_ns": "1793331471086022300"
+        },
+        "C_old_source_preserved": null,
+        "G_old_bytes_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\G现件_身份_V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "sha256": "2fdab576c3389f60a6733aaf9fa88b007c777845500ec0a75d316790197e9f84",
+          "bytes": 18693,
+          "mtime_ns": "1793331330114707300"
+        },
+        "same_filename_and_original_G_path": true,
+        "independent_review_pending": true
+      }
+    },
+    {
+      "component": "制度总纲",
+      "filename": "V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+      "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+      "bytes": 19918,
+      "sha256": "B33985E5FF74DDE62FC0FB34FF4CCA8C5172F5F892719DEE3DCA3F0042C23F9C",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-16任务44四制度原位写回一致性已由原终验4读回通过，按授权登记生效；身份闭环再读回另记，不代表产品或整体系通过。",
+      "previous_current_record": {
+        "component": "制度总纲",
+        "filename": "V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "bytes": 12558,
+        "sha256": "DD3CC85ABF2A7A13411B38D30C8D45CD700CF018C70DA80A1EEC1C7A8C221857",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release"
+      },
+      "last_effective_version_before_this_write": "Current v1.0",
+      "version": "Current v1.1",
+      "current_amendment": {
+        "task_id": "V7-R02-44",
+        "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+        "direct_authorization_user_message": "01a14329-b67a-7201-b6da-97ae947be53f",
+        "candidate_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261015_八项能力与现仓处置_修订23\\原件修改待写入\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "candidate_sha256": "98fa10f16979538cb54bc913284a649eae53ccd372a5266cf2a8231c21aaaa37",
+        "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+        "actual_source_registration_readback_review": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+        "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+        "effective_at": "2026-10-16T17:37:34.738272+09:00",
+        "release": false,
+        "independent_review_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+          "bytes": 3144,
+          "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+          "EF_BF_BD_count": 0,
+          "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+          "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+          "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+          "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+        },
+        "independent_reviewed_source_sha256": "42c5f72cf49f55c8fa5fee2f494c8656a998f9faedb095c6306283b39e0cb992",
+        "independent_reviewed_source_bytes": 15845,
+        "production_resumed": false,
+        "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+        "status_identity_readback_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+          "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+          "bytes": 3404,
+          "EF_BF_BD_count": 0,
+          "reviewer": "V7终验4",
+          "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+          "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+          "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+          "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+          "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+          "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+        }
+      },
+      "before_approved_migration_20261030": {
+        "component": "制度总纲",
+        "filename": "V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "bytes": 16204,
+        "sha256": "7FF94893ABAE20114405EAA916CFCC8778923D221B00221FB41F4A1FA0494C52",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-16任务44四制度原位写回一致性已由原终验4读回通过，按授权登记生效；身份闭环再读回另记，不代表产品或整体系通过。",
+        "previous_current_record": {
+          "component": "制度总纲",
+          "filename": "V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "bytes": 12558,
+          "sha256": "DD3CC85ABF2A7A13411B38D30C8D45CD700CF018C70DA80A1EEC1C7A8C221857",
+          "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+          "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release"
+        },
+        "last_effective_version_before_this_write": "Current v1.0",
+        "version": "Current v1.1",
+        "current_amendment": {
+          "task_id": "V7-R02-44",
+          "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+          "direct_authorization_user_message": "01a14329-b67a-7201-b6da-97ae947be53f",
+          "candidate_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261015_八项能力与现仓处置_修订23\\原件修改待写入\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "candidate_sha256": "98fa10f16979538cb54bc913284a649eae53ccd372a5266cf2a8231c21aaaa37",
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+          "actual_source_registration_readback_review": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+          "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+          "effective_at": "2026-10-16T17:37:34.738272+09:00",
+          "release": false,
+          "independent_review_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+            "bytes": 3144,
+            "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+            "EF_BF_BD_count": 0,
+            "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+            "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+            "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+            "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+          },
+          "independent_reviewed_source_sha256": "42c5f72cf49f55c8fa5fee2f494c8656a998f9faedb095c6306283b39e0cb992",
+          "independent_reviewed_source_bytes": 15845,
+          "production_resumed": false,
+          "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+          "status_identity_readback_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+            "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+            "bytes": 3404,
+            "EF_BF_BD_count": 0,
+            "reviewer": "V7终验4",
+            "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+            "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+            "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+            "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+            "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+            "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+          }
+        }
+      },
+      "migration_20261030": {
+        "authority": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\六正文迁移专门批准原信.md",
+          "sha256": "65c31e2a5fa3605e14dd1fff2097d8706fe701851dd3b03677178eb0890a3067",
+          "bytes": 941,
+          "mtime_ns": "1793331471086022300"
+        },
+        "C_old_source_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "sha256": "7ff94893abae20114405eaa916cfcc8778923d221b00221fb41f4a1fa0494c52",
+          "bytes": 16204,
+          "mtime_ns": "1792139854787221500"
+        },
+        "G_old_bytes_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\G现件_4_V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "sha256": "dd3cc85abf2a7a13411b38d30c8d45cd700cf018c70da80a1eec1c7a8c221857",
+          "bytes": 12558,
+          "mtime_ns": "1793331146828067700"
+        },
+        "same_filename_and_original_G_path": true,
+        "independent_review_pending": true
+      }
+    },
+    {
+      "component": "蓝图",
+      "filename": "V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+      "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+      "bytes": 25584,
+      "sha256": "E04B3DC7E011D88F1389D329580FA32E5B71B8594451A4764AEAD63A42092BC8",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-16任务44四制度原位写回一致性已由原终验4读回通过，按授权登记生效；身份闭环再读回另记，不代表产品或整体系通过。",
+      "previous_current_record": {
+        "component": "蓝图",
+        "filename": "V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "bytes": 18430,
+        "sha256": "972C99EF6ECE2BEFE192ACFA125CB00352390E5AAC7BBF2DA401381871B63C00",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release"
+      },
+      "last_effective_version_before_this_write": "Current v1.0",
+      "version": "Current v1.1",
+      "current_amendment": {
+        "task_id": "V7-R02-44",
+        "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+        "direct_authorization_user_message": "01a14329-b67a-7201-b6da-97ae947be53f",
+        "candidate_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261015_八项能力与现仓处置_修订23\\原件修改待写入\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "candidate_sha256": "6a0b0c8def89bc24ceebe6fb6f7348055baad69596a9a790fc44428eb7a2d4ee",
+        "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+        "actual_source_registration_readback_review": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+        "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+        "effective_at": "2026-10-16T17:37:34.738272+09:00",
+        "release": false,
+        "independent_review_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+          "bytes": 3144,
+          "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+          "EF_BF_BD_count": 0,
+          "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+          "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+          "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+          "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+        },
+        "independent_reviewed_source_sha256": "0fd4b371734beb91ddd549e05620ee49677c07ed1afca1995ae8899e2b881a1f",
+        "independent_reviewed_source_bytes": 22098,
+        "production_resumed": false,
+        "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+        "status_identity_readback_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+          "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+          "bytes": 3404,
+          "EF_BF_BD_count": 0,
+          "reviewer": "V7终验4",
+          "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+          "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+          "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+          "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+          "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+          "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+        }
+      },
+      "before_approved_migration_20261030": {
+        "component": "蓝图",
+        "filename": "V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "bytes": 22457,
+        "sha256": "491F1C102A128E0CA3BD2BB781DF4A0819AFEC80CCC92F0F25AD301FF7F3E74F",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-16任务44四制度原位写回一致性已由原终验4读回通过，按授权登记生效；身份闭环再读回另记，不代表产品或整体系通过。",
+        "previous_current_record": {
+          "component": "蓝图",
+          "filename": "V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "bytes": 18430,
+          "sha256": "972C99EF6ECE2BEFE192ACFA125CB00352390E5AAC7BBF2DA401381871B63C00",
+          "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+          "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release"
+        },
+        "last_effective_version_before_this_write": "Current v1.0",
+        "version": "Current v1.1",
+        "current_amendment": {
+          "task_id": "V7-R02-44",
+          "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+          "direct_authorization_user_message": "01a14329-b67a-7201-b6da-97ae947be53f",
+          "candidate_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261015_八项能力与现仓处置_修订23\\原件修改待写入\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "candidate_sha256": "6a0b0c8def89bc24ceebe6fb6f7348055baad69596a9a790fc44428eb7a2d4ee",
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+          "actual_source_registration_readback_review": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+          "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+          "effective_at": "2026-10-16T17:37:34.738272+09:00",
+          "release": false,
+          "independent_review_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+            "bytes": 3144,
+            "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+            "EF_BF_BD_count": 0,
+            "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+            "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+            "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+            "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+          },
+          "independent_reviewed_source_sha256": "0fd4b371734beb91ddd549e05620ee49677c07ed1afca1995ae8899e2b881a1f",
+          "independent_reviewed_source_bytes": 22098,
+          "production_resumed": false,
+          "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+          "status_identity_readback_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+            "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+            "bytes": 3404,
+            "EF_BF_BD_count": 0,
+            "reviewer": "V7终验4",
+            "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+            "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+            "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+            "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+            "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+            "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+          }
+        }
+      },
+      "migration_20261030": {
+        "authority": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\六正文迁移专门批准原信.md",
+          "sha256": "65c31e2a5fa3605e14dd1fff2097d8706fe701851dd3b03677178eb0890a3067",
+          "bytes": 941,
+          "mtime_ns": "1793331471086022300"
+        },
+        "C_old_source_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "sha256": "491f1c102a128e0ca3bd2bb781df4a0819afec80ccc92f0f25ad301ff7f3e74f",
+          "bytes": 22457,
+          "mtime_ns": "1792139854796222400"
+        },
+        "G_old_bytes_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\G现件_5_V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "sha256": "972c99ef6ece2befe192acfa125cb00352390e5aac7bbf2da401381871b63c00",
+          "bytes": 18430,
+          "mtime_ns": "1793331146852630400"
+        },
+        "same_filename_and_original_G_path": true,
+        "independent_review_pending": true
+      }
+    },
+    {
+      "component": "生产流程",
+      "filename": "V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+      "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+      "bytes": 12020,
+      "sha256": "B00753B8562412CA381E02A8BC13116EF183CFB6F4289B6168BA9E754D50D601",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release",
+      "before_approved_migration_20261030": {
+        "component": "生产流程",
+        "filename": "V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+        "bytes": 7738,
+        "sha256": "3AB06516B6CCC477F12D38DE9BDB539B225CB125BFA3F2D8135AAF5E208E6EC8",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release"
+      },
+      "migration_20261030": {
+        "authority": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\六正文迁移专门批准原信.md",
+          "sha256": "65c31e2a5fa3605e14dd1fff2097d8706fe701851dd3b03677178eb0890a3067",
+          "bytes": 941,
+          "mtime_ns": "1793331471086022300"
+        },
+        "C_old_source_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+          "sha256": "3ab06516b6ccc477f12d38de9bdb539b225cb125bfa3f2d8135aaf5e208e6ec8",
+          "bytes": 7738,
+          "mtime_ns": "1791045346972323000"
+        },
+        "G_old_bytes_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\G现件_6_V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+          "sha256": "3ab06516b6ccc477f12d38de9bdb539b225cb125bfa3f2d8135aaf5e208e6ec8",
+          "bytes": 7738,
+          "mtime_ns": "1793331146887922600"
+        },
+        "same_filename_and_original_G_path": true,
+        "independent_review_pending": true
+      }
+    },
+    {
+      "component": "质量标准",
+      "filename": "V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+      "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+      "bytes": 15096,
+      "sha256": "D6D1FC14A43667766FBAA9F531394E5DE2CD9D527D9F46EEBD30525C389354EC",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-16任务44四制度原位写回一致性已由原终验4读回通过，按授权登记生效；身份闭环再读回另记，不代表产品或整体系通过。",
+      "previous_current_record": {
+        "component": "质量标准",
+        "filename": "V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "bytes": 4814,
+        "sha256": "1794525B60FDBD93908F4F3026C5907007718C4FB0CE3A3A3B44C36740EADAD3",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release"
+      },
+      "last_effective_version_before_this_write": "Current v1.0",
+      "version": "Current v1.1",
+      "current_amendment": {
+        "task_id": "V7-R02-44",
+        "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+        "direct_authorization_user_message": "01a14329-b67a-7201-b6da-97ae947be53f",
+        "candidate_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261015_八项能力与现仓处置_修订23\\原件修改待写入\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "candidate_sha256": "180a347f0567ba8a174931f50adb8f47772e8167f1d6ec8220b0b8258695c79a",
+        "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+        "actual_source_registration_readback_review": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+        "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+        "effective_at": "2026-10-16T17:37:34.738272+09:00",
+        "release": false,
+        "independent_review_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+          "bytes": 3144,
+          "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+          "EF_BF_BD_count": 0,
+          "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+          "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+          "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+          "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+        },
+        "independent_reviewed_source_sha256": "eb8eb61a9aff8b42266f58355c700ea58cad3348affa142240a3e7238baa6bbf",
+        "independent_reviewed_source_bytes": 8401,
+        "production_resumed": false,
+        "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+        "status_identity_readback_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+          "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+          "bytes": 3404,
+          "EF_BF_BD_count": 0,
+          "reviewer": "V7终验4",
+          "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+          "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+          "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+          "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+          "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+          "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+        }
+      },
+      "before_approved_migration_20261030": {
+        "component": "质量标准",
+        "filename": "V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "bytes": 8760,
+        "sha256": "BFB53AFEC3F6ADC8431CB38FD987BD63308A8A578A538A196F65DB1D3AD9DE39",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-16任务44四制度原位写回一致性已由原终验4读回通过，按授权登记生效；身份闭环再读回另记，不代表产品或整体系通过。",
+        "previous_current_record": {
+          "component": "质量标准",
+          "filename": "V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "bytes": 4814,
+          "sha256": "1794525B60FDBD93908F4F3026C5907007718C4FB0CE3A3A3B44C36740EADAD3",
+          "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+          "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release"
+        },
+        "last_effective_version_before_this_write": "Current v1.0",
+        "version": "Current v1.1",
+        "current_amendment": {
+          "task_id": "V7-R02-44",
+          "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+          "direct_authorization_user_message": "01a14329-b67a-7201-b6da-97ae947be53f",
+          "candidate_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261015_八项能力与现仓处置_修订23\\原件修改待写入\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "candidate_sha256": "180a347f0567ba8a174931f50adb8f47772e8167f1d6ec8220b0b8258695c79a",
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+          "actual_source_registration_readback_review": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+          "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+          "effective_at": "2026-10-16T17:37:34.738272+09:00",
+          "release": false,
+          "independent_review_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+            "bytes": 3144,
+            "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+            "EF_BF_BD_count": 0,
+            "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+            "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+            "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+            "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+          },
+          "independent_reviewed_source_sha256": "eb8eb61a9aff8b42266f58355c700ea58cad3348affa142240a3e7238baa6bbf",
+          "independent_reviewed_source_bytes": 8401,
+          "production_resumed": false,
+          "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+          "status_identity_readback_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+            "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+            "bytes": 3404,
+            "EF_BF_BD_count": 0,
+            "reviewer": "V7终验4",
+            "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+            "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+            "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+            "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+            "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+            "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+          }
+        }
+      },
+      "migration_20261030": {
+        "authority": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\六正文迁移专门批准原信.md",
+          "sha256": "65c31e2a5fa3605e14dd1fff2097d8706fe701851dd3b03677178eb0890a3067",
+          "bytes": 941,
+          "mtime_ns": "1793331471086022300"
+        },
+        "C_old_source_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "sha256": "bfb53afec3f6adc8431cb38fd987bd63308a8a578a538a196f65db1d3ad9de39",
+          "bytes": 8760,
+          "mtime_ns": "1792139854805221200"
+        },
+        "G_old_bytes_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\G现件_7_V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "sha256": "1794525b60fdbd93908f4f3026c5907007718c4fb0ce3a3a3b44c36740eadad3",
+          "bytes": 4814,
+          "mtime_ns": "1793331146906892300"
+        },
+        "same_filename_and_original_G_path": true,
+        "independent_review_pending": true
+      }
+    },
+    {
+      "component": "生产材料入口",
+      "filename": "V7生产材料入口_Current_v1.0候选_董事长可读版_20260902.md",
+      "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7生产材料入口_Current_v1.0候选_董事长可读版_20260902.md",
+      "bytes": 7497,
+      "sha256": "71C150B489907BE55C943BF972667BBDDD64649731B78E26C84FA0963BE43CAF",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release",
+      "before_approved_migration_20261030": {
+        "component": "生产材料入口",
+        "filename": "V7生产材料入口_Current_v1.0候选_董事长可读版_20260902.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产材料入口_Current_v1.0候选_董事长可读版_20260902.md",
+        "bytes": 4491,
+        "sha256": "E384E79C5ACEB2141E0EB1B8B256B80214FB482C6BEB6EE008A98B982AFB60E5",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release"
+      },
+      "migration_20261030": {
+        "authority": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\六正文迁移专门批准原信.md",
+          "sha256": "65c31e2a5fa3605e14dd1fff2097d8706fe701851dd3b03677178eb0890a3067",
+          "bytes": 941,
+          "mtime_ns": "1793331471086022300"
+        },
+        "C_old_source_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产材料入口_Current_v1.0候选_董事长可读版_20260902.md",
+          "sha256": "e384e79c5aceb2141e0eb1b8b256b80214fb482c6beb6ee008a98b982afb60e5",
+          "bytes": 4491,
+          "mtime_ns": "1789114270102416400"
+        },
+        "G_old_bytes_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\G现件_8_V7生产材料入口_Current_v1.0候选_董事长可读版_20260902.md",
+          "sha256": "e384e79c5aceb2141e0eb1b8b256b80214fb482c6beb6ee008a98b982afb60e5",
+          "bytes": 4491,
+          "mtime_ns": "1793331146921549000"
+        },
+        "same_filename_and_original_G_path": true,
+        "independent_review_pending": true
+      }
+    },
+    {
+      "component": "周期产品蓝图",
+      "filename": "V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+      "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+      "bytes": 19369,
+      "sha256": "C24B6BC7A78C1E65F0C869D3068191ACF2F43B794DBA817BFA8247498365827B",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-09§1已授权补充，正文Current v1.1，本次§1条文与登记同步已由终验4定点核查并由总控查收（仅治理；投资内容仍待核），非执行岗独立终验，source_path及B过渡身份不变；2026-10-10本轮用户明示授权§1一段/§6两段最小补充与既有质量§4–6引用；终验4独立文字/业务核查准许原流程同步，实际原件/登记落点待独立读回；不改生产、Release、交易及B过渡身份；2026-10-16任务44四制度原位写回一致性已由原终验4读回通过，按授权登记生效；身份闭环再读回另记，不代表产品或整体系通过。",
+      "version": "Current v1.3",
+      "previous_current_record": {
+        "component": "周期产品蓝图",
+        "filename": "V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "bytes": 12169,
+        "sha256": "C260800F3BA17AABD8C85904A3814FC3EF77C9A549BEFA7B8F95CB04F00E03B1",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-09§1已授权补充，正文Current v1.1，本次§1条文与登记同步已由终验4定点核查并由总控查收（仅治理；投资内容仍待核），非执行岗独立终验，source_path及B过渡身份不变；2026-10-10本轮用户明示授权§1一段/§6两段最小补充与既有质量§4–6引用；终验4独立文字/业务核查准许原流程同步，实际原件/登记落点待独立读回；不改生产、Release、交易及B过渡身份",
+        "version": "Current v1.2",
+        "previous_current_record": {
+          "component": "周期产品蓝图",
+          "filename": "V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "bytes": 10070,
+          "sha256": "3DC05D0519A75A7050E866D9CC1E645E7F8A9B6B0FCA949FAB378A8CBB6BCCAA",
+          "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+          "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-09§1已授权补充，正文Current v1.1，本次§1条文与登记同步已由终验4定点核查并由总控查收（仅治理；投资内容仍待核），非执行岗独立终验，source_path及B过渡身份不变",
+          "version": "Current v1.1"
+        },
+        "current_amendment": {
+          "authority": "本轮用户缺失部分最小补充写入现有对应文件的明示授权；V7总控--5本轮同步及一致性恢复工单",
+          "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+          "authorized_scope": "§1一段、§6两段、质量§4–6仅引用及v1.2身份",
+          "independent_content_review": "C:/Users/localhost/Documents/Codex/2026-09-16/v7-4/outputs/V7_CROSS_INDUSTRY_r02差异终核与蓝图同步意见_20261010.md",
+          "independent_content_review_sha256": "C7BB2088715080DD259276581F2511C9B8131808A658BB0BEBC137E20C0DB574",
+          "review_time_as_reported_jst": "2026-10-10 13:33左右（总控转述）",
+          "synced_at_jst": "2026-10-10T13:43:45.233481+09:00",
+          "actual_source_registration_readback_review": "PENDING_INDEPENDENT_REVIEW",
+          "production_resumed": false,
+          "release": false,
+          "actual_readback_result": {
+            "reviewer": "终验4",
+            "review_original": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\outputs\\V7_CROSS_INDUSTRY_最终交付与治理落点终核_20261010.md",
+            "sha256": "65c50b9f6209a90b2b980a85b624f61b75819a3e8ba17d92c5913027af79118a",
+            "receipt_sections": [
+              "13:50研究交付与治理原件登记终核",
+              "14:00收尾差异追加，保留13:50原记录"
+            ],
+            "governance_result": "本轮三段文字及C原件/G周期登记的治理同步可确认",
+            "version_registered": "Current v1.2",
+            "source_sha256": "c260800f3ba17aabd8c85904a3814fc3ef77c9a549befa7b8f95cb04f00e03b1",
+            "source_bytes": 12169,
+            "historical_PENDING_field_preserved": true,
+            "not_r06_research_acceptance": true,
+            "not_product_release": true,
+            "recorded_at_jst": "2026-10-10T14:37:16.827339+09:00"
+          }
+        }
+      },
+      "current_amendment": {
+        "task_id": "V7-R02-44",
+        "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+        "direct_authorization_user_message": "01a14329-b67a-7201-b6da-97ae947be53f",
+        "candidate_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261015_八项能力与现仓处置_修订23\\原件修改待写入\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "candidate_sha256": "10dea861ecdd28f59dfc49cbf791a6e48f69094c6f58c6333108bb28bec4c09c",
+        "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+        "actual_source_registration_readback_review": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+        "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+        "effective_at": "2026-10-16T17:37:34.738272+09:00",
+        "release": false,
+        "independent_review_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+          "bytes": 3144,
+          "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+          "EF_BF_BD_count": 0,
+          "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+          "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+          "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+          "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+        },
+        "independent_reviewed_source_sha256": "0430c5abebbe9a6871ce8dd422d6153ca712845ef8e1d38ebd4157bcc23a2cba",
+        "independent_reviewed_source_bytes": 15780,
+        "production_resumed": false,
+        "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+        "status_identity_readback_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+          "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+          "bytes": 3404,
+          "EF_BF_BD_count": 0,
+          "reviewer": "V7终验4",
+          "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+          "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+          "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+          "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+          "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+          "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+        }
+      },
+      "last_effective_version_before_this_write": "Current v1.2",
+      "before_approved_migration_20261030": {
+        "component": "周期产品蓝图",
+        "filename": "V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "bytes": 16170,
+        "sha256": "999E0CBE63BD710963156340088805488A200312E756F38C11D5121A02A99D81",
+        "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+        "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-09§1已授权补充，正文Current v1.1，本次§1条文与登记同步已由终验4定点核查并由总控查收（仅治理；投资内容仍待核），非执行岗独立终验，source_path及B过渡身份不变；2026-10-10本轮用户明示授权§1一段/§6两段最小补充与既有质量§4–6引用；终验4独立文字/业务核查准许原流程同步，实际原件/登记落点待独立读回；不改生产、Release、交易及B过渡身份；2026-10-16任务44四制度原位写回一致性已由原终验4读回通过，按授权登记生效；身份闭环再读回另记，不代表产品或整体系通过。",
+        "version": "Current v1.3",
+        "previous_current_record": {
+          "component": "周期产品蓝图",
+          "filename": "V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "bytes": 12169,
+          "sha256": "C260800F3BA17AABD8C85904A3814FC3EF77C9A549BEFA7B8F95CB04F00E03B1",
+          "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+          "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-09§1已授权补充，正文Current v1.1，本次§1条文与登记同步已由终验4定点核查并由总控查收（仅治理；投资内容仍待核），非执行岗独立终验，source_path及B过渡身份不变；2026-10-10本轮用户明示授权§1一段/§6两段最小补充与既有质量§4–6引用；终验4独立文字/业务核查准许原流程同步，实际原件/登记落点待独立读回；不改生产、Release、交易及B过渡身份",
+          "version": "Current v1.2",
+          "previous_current_record": {
+            "component": "周期产品蓝图",
+            "filename": "V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+            "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+            "bytes": 10070,
+            "sha256": "3DC05D0519A75A7050E866D9CC1E645E7F8A9B6B0FCA949FAB378A8CBB6BCCAA",
+            "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+            "note": "治理正式Current组成文件；2026-09-11设计文字同步已通过总控独立核查；不等于投资产品、日报、PDF或Release；2026-10-09§1已授权补充，正文Current v1.1，本次§1条文与登记同步已由终验4定点核查并由总控查收（仅治理；投资内容仍待核），非执行岗独立终验，source_path及B过渡身份不变",
+            "version": "Current v1.1"
+          },
+          "current_amendment": {
+            "authority": "本轮用户缺失部分最小补充写入现有对应文件的明示授权；V7总控--5本轮同步及一致性恢复工单",
+            "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+            "authorized_scope": "§1一段、§6两段、质量§4–6仅引用及v1.2身份",
+            "independent_content_review": "C:/Users/localhost/Documents/Codex/2026-09-16/v7-4/outputs/V7_CROSS_INDUSTRY_r02差异终核与蓝图同步意见_20261010.md",
+            "independent_content_review_sha256": "C7BB2088715080DD259276581F2511C9B8131808A658BB0BEBC137E20C0DB574",
+            "review_time_as_reported_jst": "2026-10-10 13:33左右（总控转述）",
+            "synced_at_jst": "2026-10-10T13:43:45.233481+09:00",
+            "actual_source_registration_readback_review": "PENDING_INDEPENDENT_REVIEW",
+            "production_resumed": false,
+            "release": false,
+            "actual_readback_result": {
+              "reviewer": "终验4",
+              "review_original": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\outputs\\V7_CROSS_INDUSTRY_最终交付与治理落点终核_20261010.md",
+              "sha256": "65c50b9f6209a90b2b980a85b624f61b75819a3e8ba17d92c5913027af79118a",
+              "receipt_sections": [
+                "13:50研究交付与治理原件登记终核",
+                "14:00收尾差异追加，保留13:50原记录"
+              ],
+              "governance_result": "本轮三段文字及C原件/G周期登记的治理同步可确认",
+              "version_registered": "Current v1.2",
+              "source_sha256": "c260800f3ba17aabd8c85904a3814fc3ef77c9a549befa7b8f95cb04f00e03b1",
+              "source_bytes": 12169,
+              "historical_PENDING_field_preserved": true,
+              "not_r06_research_acceptance": true,
+              "not_product_release": true,
+              "recorded_at_jst": "2026-10-10T14:37:16.827339+09:00"
+            }
+          }
+        },
+        "current_amendment": {
+          "task_id": "V7-R02-44",
+          "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+          "direct_authorization_user_message": "01a14329-b67a-7201-b6da-97ae947be53f",
+          "candidate_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261015_八项能力与现仓处置_修订23\\原件修改待写入\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "candidate_sha256": "10dea861ecdd28f59dfc49cbf791a6e48f69094c6f58c6333108bb28bec4c09c",
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+          "actual_source_registration_readback_review": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+          "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+          "effective_at": "2026-10-16T17:37:34.738272+09:00",
+          "release": false,
+          "independent_review_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+            "bytes": 3144,
+            "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+            "EF_BF_BD_count": 0,
+            "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+            "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+            "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+            "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+          },
+          "independent_reviewed_source_sha256": "0430c5abebbe9a6871ce8dd422d6153ca712845ef8e1d38ebd4157bcc23a2cba",
+          "independent_reviewed_source_bytes": 15780,
+          "production_resumed": false,
+          "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+          "status_identity_readback_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+            "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+            "bytes": 3404,
+            "EF_BF_BD_count": 0,
+            "reviewer": "V7终验4",
+            "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+            "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+            "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+            "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+            "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+            "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+          }
+        },
+        "last_effective_version_before_this_write": "Current v1.2"
+      },
+      "migration_20261030": {
+        "authority": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\六正文迁移专门批准原信.md",
+          "sha256": "65c31e2a5fa3605e14dd1fff2097d8706fe701851dd3b03677178eb0890a3067",
+          "bytes": 941,
+          "mtime_ns": "1793331471086022300"
+        },
+        "C_old_source_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "sha256": "999e0cbe63bd710963156340088805488a200312e756f38c11d5121a02a99d81",
+          "bytes": 16170,
+          "mtime_ns": "1792139854814221700"
+        },
+        "G_old_bytes_preserved": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\G现件_9_V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "sha256": "98ef00ba6d5bbe1ce61669ffafb1366fb8a94332c12cc96f59964bcbeba3a5de",
+          "bytes": 10220,
+          "mtime_ns": "1793331146939678500"
+        },
+        "same_filename_and_original_G_path": true,
+        "independent_review_pending": true
+      }
+    },
+    {
+      "component": "工具分工",
+      "filename": "V7_Drive_GitHub_Skill_Obsidian分工核定表_董事长可读_20260903.md",
+      "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7_Drive_GitHub_Skill_Obsidian分工核定表_董事长可读_20260903.md",
+      "bytes": 7280,
+      "sha256": "30CB61006128C14104C76FDB2A27A71103773AF2B823BBB04ADB199F2602C549",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；不等于投资产品、日报、PDF或Release"
+    },
+    {
+      "component": "治理工具启动回执",
+      "filename": "V7治理工具正式启动回执_20260903.md",
+      "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7治理工具正式启动回执_20260903.md",
+      "bytes": 2489,
+      "sha256": "10DCD9FB79216D0F32F44E7DC61CD06A2F21FC5921DCAE8A6B7498C0980F8509",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；不等于投资产品、日报、PDF或Release"
+    },
+    {
+      "component": "治理工具状态JSON",
+      "filename": "V7_GOVERNANCE_TOOLS_ACTIVE_v1.0_20260903.json",
+      "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7_GOVERNANCE_TOOLS_ACTIVE_v1.0_20260903.json",
+      "bytes": 1249,
+      "sha256": "C8C23A5785B3F06FE6108BCFC3F7E77A587CE7A8D10D4CAE0E75634FF2BA3998",
+      "status": "FORMAL_GOVERNANCE_CURRENT_COMPONENT",
+      "note": "治理正式Current组成文件；不等于投资产品、日报、PDF或Release"
+    },
+    {
+      "component": "目标与学习管理补充条款",
+      "filename": "V7目标与学习管理补充条款_20260910.html",
+      "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7目标与学习管理补充条款_20260910.html",
+      "bytes": 8202,
+      "sha256": "4DCB6B245446F655BB1995B0B3A3FB3897BB1D5B611F21BA7261E43CCD10F1A2",
+      "status": "FORMAL_GOVERNANCE_CURRENT_SUPPLEMENT_REGISTERED_CONTROLLER_REVIEW_PASSED",
+      "note": "2026-09-10补充条款已通过总控核查并登记；业务条文未改；不修改收益程序，不恢复生产，不等于投资产品、日报、PDF或Release",
+      "origin_source_path": "G:\\我的云端硬盘\\AI_Investment_System\\output\\repair_candidates\\2026-09-10\\V7目标与学习管理补充条款_总控定稿.html",
+      "origin_source_bytes": 8194,
+      "origin_source_sha256": "ACDF097BC55A9564EB97DBB1BBBD56629455182888C15D0EDE09F4DF218685DC",
+      "identity_note": "source_path now points to the actual registered G-drive file after page-status update; origin_source_path keeps controller draft source. Origin and formal fingerprints intentionally differ because registration changed only the page status line."
+    }
+  ],
+  "governance_tools": {
+    "skills": "ACTIVE",
+    "harness_precheck": "ACTIVE",
+    "archive_index": "ACTIVE_AS_READONLY_REFERENCE"
+  },
+  "boundaries": {
+    "product_build": "NO",
+    "pdf": "NO",
+    "daily_report": "NO",
+    "release": "NO",
+    "trade": "NO",
+    "order": "NO",
+    "v13_modified": "NO"
+  },
+  "next_gate_requiring_chairman": "RESUME_BASELINE_FULL_PRODUCT_BUILD",
+  "change_records": [
+    {
+      "change_id": "V7-TARGET-LEARNING-RULE-SYNC-20260910",
+      "date": "2026-09-10",
+      "source_file": "G:\\我的云端硬盘\\AI_Investment_System\\output\\repair_candidates\\2026-09-10\\V7目标与学习管理补充条款_总控定稿.html",
+      "source_sha256": "ACDF097BC55A9564EB97DBB1BBBD56629455182888C15D0EDE09F4DF218685DC",
+      "action": "Append target and learning management supplement component; append entry and impact list to Current master table; preserve existing components and prohibitions",
+      "replaces_conflicting_historical_terms": "2026-07-19 target draft, 2026-07-30 target/opportunity module terms, and 2026-08-11 account supplement terms only where they conflict with the 2026-09-10 decision; historical results are not rewritten",
+      "implementation_status": "POLICY_REGISTERED_ONLY;收益程序、生产程序、完整投资产品、PDF、Release、交易下单均未自动改变",
+      "modified_files": [
+        {
+          "filename": "V7目标与学习管理补充条款_20260910.html",
+          "bytes": 8214,
+          "sha256": "CAEDC270AF0181F9472B6CD7513B89E1C0684FBD5D7DA335638603ADE1B2BFD7"
+        },
+        {
+          "filename": "V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "before_sha256": "314AA973BE6B35DF8EC4B9288965A747DC9005133862FDF01D780287D15001C5",
+          "after_bytes": 11559,
+          "after_sha256": "518424BDA61A2A42A43863E95825480693170AEB0DEF7F39643FACE2B8737E34"
+        }
+      ]
+    },
+    {
+      "change_id": "V7-TARGET-LEARNING-RULE-SYNC-20260910-IDENTITY-CLOSURE",
+      "date": "2026-09-10",
+      "action": "Close identity records for the two components changed in this sync only; no other component source_path rebinding",
+      "modified_components": [
+        {
+          "filename": "V7目标与学习管理补充条款_20260910.html",
+          "before_exists": false,
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7目标与学习管理补充条款_20260910.html",
+          "bytes": 8214,
+          "sha256": "CAEDC270AF0181F9472B6CD7513B89E1C0684FBD5D7DA335638603ADE1B2BFD7",
+          "origin_source_path": "G:\\我的云端硬盘\\AI_Investment_System\\output\\repair_candidates\\2026-09-10\\V7目标与学习管理补充条款_总控定稿.html",
+          "origin_source_bytes": 8194,
+          "origin_source_sha256": "ACDF097BC55A9564EB97DBB1BBBD56629455182888C15D0EDE09F4DF218685DC"
+        },
+        {
+          "filename": "V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "before_source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "after_source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "after_bytes": 11559,
+          "after_sha256": "518424BDA61A2A42A43863E95825480693170AEB0DEF7F39643FACE2B8737E34"
+        }
+      ]
+    },
+    {
+      "change_id": "V7-BASELINE-DESIGN-RULE-SYNC-20260911-C6",
+      "date": "2026-09-11",
+      "authorization": "董事长在状态收尾前于本线程明确批准：修改原10份正式文件，仅登记2026-09-11总控核查通过状态；A-I及9月10日待核查条款不改，不恢复生产。此前笼统“可以继续”不记作本轮修改前的充分明确授权。",
+      "design_draft": {
+        "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\output\\controller\\V7基线与周期产品_统一设计稿.html",
+        "bytes": 13075,
+        "sha256": "CAD86197300D570D10D4DD6865D5D1BF40ED49C9BF9B16FC5AE7814B98F1FDBD"
+      },
+      "action": "同步已确认的基线、周期产品、学习与程序边界文字；修正正式登记身份和两个治理入口；不实施程序或产品",
+      "primary_sources": {
+        "A": "V7制度总纲 §4",
+        "B": "V7制度总纲 §3",
+        "C": "V7蓝图 §10",
+        "D": "V7质量标准 §3",
+        "E": "V7蓝图 §10",
+        "F": "V7周期产品蓝图 §1 文件形态",
+        "G": "V7周期产品蓝图 §6",
+        "H": "V7质量标准 §4",
+        "I": "V7生产流程 §2"
+      },
+      "modified_files": [
+        {
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "before_bytes": 11559,
+          "before_sha256": "518424BDA61A2A42A43863E95825480693170AEB0DEF7F39643FACE2B8737E34",
+          "after_bytes": 12593,
+          "after_sha256": "B58D7F99C9C108EC003619F1D7C39F4FCEDE6CD524795F8B65CE6568E8A1F157"
+        },
+        {
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "before_bytes": 10431,
+          "before_sha256": "AEBFE5C3511CB050FB03627AABBCF0C9773EB5FB21EA6D6A7926F7B6E6B41CB8",
+          "after_bytes": 11380,
+          "after_sha256": "8F6A63A97969AB8552677DF8A4247ADB126C53F2B619E1E48E2039D65F3E91F2"
+        },
+        {
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "before_bytes": 16173,
+          "before_sha256": "3871F1EA65B1BB414C14C995A617AA6E845A14197BFA99B43CF6F4EAED9C48E8",
+          "after_bytes": 18091,
+          "after_sha256": "CE4D336BA3625429FA9E3CAB3C1DFA070A999C015372647B59382684396AE350"
+        },
+        {
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+          "before_bytes": 4608,
+          "before_sha256": "F0E7B32F1AAEF5A3A6A0B7BD900F2F7D64B84E445A59AD62A90E21D694B5A3E3",
+          "after_bytes": 5664,
+          "after_sha256": "38C1D06AABD180A48D932873986F68CCEA5710837E8F3C7ED8877F0F822AE589"
+        },
+        {
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "before_bytes": 2428,
+          "before_sha256": "F394280835B50452584E69E5F383F733E1DB08FA612CB0CCBBEC03D8F7436234",
+          "after_bytes": 4119,
+          "after_sha256": "78D36EFBEB9E9A42B8B04081C2B88DD148E2A32D5E05C5905CA19544E0FBA33A"
+        },
+        {
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产材料入口_Current_v1.0候选_董事长可读版_20260902.md",
+          "before_bytes": 4289,
+          "before_sha256": "E67E01D06514AA65D713D588AA245BADA4DA87099CF37CE1F995689462BCF076",
+          "after_bytes": 4491,
+          "after_sha256": "E384E79C5ACEB2141E0EB1B8B256B80214FB482C6BEB6EE008A98B982AFB60E5"
+        },
+        {
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "before_bytes": 6951,
+          "before_sha256": "C378FF30651F04820FCE56E20B80AA70C5354F5E04247552B5C333444A2D212A",
+          "after_bytes": 8507,
+          "after_sha256": "9790E3A34C9B4DC4D3D171F604E44DE7CC43274255A5DD8C98AE6531047683C3"
+        },
+        {
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\★开工必读_主控文件.html",
+          "before_bytes": 21614,
+          "before_sha256": "36547DDA0003942E23DB50D9BA515241574D81B7CDC1A6B5BF3E660506A32F40",
+          "after_bytes": 2490,
+          "after_sha256": "15A2F0ABE5FC7D6C49085E20766BA157ED59B05A4B7762C82748EB08509585FB"
+        },
+        {
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7_governance_current_v1_0_active_20260903\\V7治理正式Current生效_只看这一页_20260903.html",
+          "before_bytes": 3805,
+          "before_sha256": "07FCE76F9D6AB3E561426C8DB6C19D15609794E5356543BC537F871D5F0ABE6A",
+          "after_bytes": 2074,
+          "after_sha256": "193D3891386147E5B06136A1774A7F3AA98331F1DD696CDAC300BC7FE632EC77"
+        },
+        {
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7_governance_current_v1_0_active_20260903\\V7_GOVERNANCE_CURRENT_ACTIVE_v1.0_20260903.json",
+          "before_bytes": 11568,
+          "before_sha256": "5DE877F60E9ABEC1BC315D5F6D03A76D5BB512A5B86D22FEE5602432C175245A",
+          "after_bytes": "EXTERNAL_IDENTITY_MANIFEST",
+          "after_sha256": "EXTERNAL_IDENTITY_MANIFEST"
+        }
+      ],
+      "review_status": "CONTROLLER_INDEPENDENT_REVIEW_PASSED",
+      "supplement_20260910_status": "FORMAL_GOVERNANCE_CURRENT_SUPPLEMENT_REGISTERED_PENDING_CONTROLLER_RECHECK",
+      "implementation_status": "POLICY_TEXT_SYNC_ONLY; PRODUCT_PRODUCTION_FROZEN; NO_PDF; NO_DAILY_REPORT; NO_RELEASE; NO_TRADE; NO_ORDER; NO_V13_CHANGE",
+      "self_identity_note": "本登记JSON的写后bytes/SHA256仅记录于本轮外部identity_manifest_after.json，避免自引用",
+      "chairman_closure_approval": {
+        "timing": "AFTER_POLICY_TEXT_SYNC_AND_BEFORE_REVIEW_STATUS_CLOSURE",
+        "scope": "保留已写入的10份制度修订并登记2026-09-11核查结果",
+        "prohibitions": "A-I不改；2026-09-10待核查不关闭；不恢复生产"
+      },
+      "controller_independent_review": {
+        "time_utc": "2026-09-11T07:53:33Z",
+        "result": "PASSED",
+        "scope": "直接读取10份实物；核对原件备份身份、41段受保护业务内容、A-I唯一主要出处、7个登记身份及8个HTML本地链接",
+        "limitation": "制度文字和身份核查；不是投资产品终验"
+      },
+      "independent_text_review": {
+        "reviewer": "V7终验==3",
+        "result": "PASSED",
+        "scope": "仅A-I文字审查",
+        "limitation": "未验执行后10份文件，不是投资产品终验"
+      }
+    },
+    {
+      "change_id": "V7-TARGET-SUPPLEMENT-CONTROLLER-REVIEW-CLOSE-20260911",
+      "date": "2026-09-11",
+      "task_id": "V7-FULL-BASELINE-START-C6-A",
+      "action": "仅关闭2026-09-10补充条款当前待核查状态；业务条文、历史记录和生产边界不变",
+      "authorization": "董事长批准整体计划开始；本段按总控签发仅登记已核查事项，不恢复生产",
+      "controller_evidence": {
+        "review_result_path": "G:\\我的云端硬盘\\AI_Investment_System\\output\\controller\\V7目标补充条款_核查结果.html",
+        "planning_evidence_path": "G:\\我的云端硬盘\\AI_Investment_System\\output\\controller\\V7下一轮规划_核查依据_20260911.json",
+        "scope": "内容已由总控核查，本执行岗只登记状态，不冒称独立核查"
+      },
+      "modified_files": [
+        {
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7目标与学习管理补充条款_20260910.html",
+          "before_bytes": 8214,
+          "before_sha256": "CAEDC270AF0181F9472B6CD7513B89E1C0684FBD5D7DA335638603ADE1B2BFD7",
+          "after_bytes": 8202,
+          "after_sha256": "4DCB6B245446F655BB1995B0B3A3FB3897BB1D5B611F21BA7261E43CCD10F1A2"
+        },
+        {
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "before_bytes": 12593,
+          "before_sha256": "B58D7F99C9C108EC003619F1D7C39F4FCEDE6CD524795F8B65CE6568E8A1F157",
+          "after_bytes": 12667,
+          "after_sha256": "CCAFB08628C686B5403EB3855C998A09907A0016A5F10C4F0613720A54B6E9EC"
+        },
+        {
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7_governance_current_v1_0_active_20260903\\V7_GOVERNANCE_CURRENT_ACTIVE_v1.0_20260903.json",
+          "before_bytes": 19257,
+          "before_sha256": "D64030D0292988CE1EF5BDB477A3435EFE639C94D06F85821AA1EEE9D2338CA7",
+          "after_bytes": "EXTERNAL_MANIFEST",
+          "after_sha256": "EXTERNAL_MANIFEST"
+        },
+        {
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7_governance_current_v1_0_active_20260903\\V7治理正式Current生效_只看这一页_20260903.html",
+          "before_bytes": 2074,
+          "before_sha256": "193D3891386147E5B06136A1774A7F3AA98331F1DD696CDAC300BC7FE632EC77",
+          "after_bytes": 2062,
+          "after_sha256": "D683B723B189A7C63F693033DE7F769012B9F39F97BC7A41933AACB3A5BD41AB"
+        }
+      ],
+      "historical_preservation": "既有change_records原值保留；2026-09-11历史记录中当时未关闭2026-09-10状态的字段不回写",
+      "boundaries": "NO_PROGRAM_CHANGE / NO_PRODUCT_REBUILD / NO_PDF / NO_DAILY_REPORT / NO_RELEASE / NO_TRADE / NO_ORDER"
+    },
+    {
+      "change_id": "V7-DECISION-REPAIR-20260915-GOVERNANCE-IDENTITY-SYNC",
+      "date": "2026-09-15",
+      "task_id": "V7-DECISION-REPAIR-20260915",
+      "authorization": "董事长已在V7总控--5本线程批准《投资判断与放行复盘_统一修正范围》及其中两条正式制度文字修订；本身份同步属于该批准修订的必要登记收尾。",
+      "action": "仅同步蓝图与质量标准两项正式组成文件的bytes/sha256；其他9项、Current版本/状态/permissions/边界及历史change_records原值不动。",
+      "controller_content_review": {
+        "result": "PASSED",
+        "scope": "总控已独立逐字比对：两条正文只发生批准的替换/追加。",
+        "limitation": "完整投资产品仍待重新整审；不恢复生产，不等于Release。"
+      },
+      "modified_components": [
+        {
+          "component": "蓝图",
+          "before_bytes": 18091,
+          "before_sha256": "CE4D336BA3625429FA9E3CAB3C1DFA070A999C015372647B59382684396AE350",
+          "after_bytes": 18282,
+          "after_sha256": "5A72EC86F68114A09F3298FF9F34282547C625BF3AE1525621BAD58AFAC9C57A"
+        },
+        {
+          "component": "质量标准",
+          "before_bytes": 4119,
+          "before_sha256": "78D36EFBEB9E9A42B8B04081C2B88DD148E2A32D5E05C5905CA19544E0FBA33A",
+          "after_bytes": 4814,
+          "after_sha256": "1794525B60FDBD93908F4F3026C5907007718C4FB0CE3A3A3B44C36740EADAD3"
+        }
+      ],
+      "reference_note": "蓝图第3节总览仍写“留现金、降高beta、开放试仓”；本轮不改。发生解释张力时，以新§6关于资金层不单独决定个股动作的详细条款为准。",
+      "implementation_status": "GOVERNANCE_IDENTITY_SYNC_ONLY; FULL_PRODUCT_PENDING_RE_REVIEW; NO_PRODUCTION_RESUME; NO_RELEASE; NO_TRADE; NO_ORDER"
+    },
+    {
+      "change_id": "V7-RISK-CLAUSE-20261003-01",
+      "task_id": "V7-RISK-CLAUSE-20261003-01",
+      "run_id": "RUN-20261003-010649-RISK-CLAUSE-01",
+      "date": "2026-10-03",
+      "task_type": "GOVERNANCE_TEXT_CHANGE",
+      "authorization": {
+        "source_thread_id": "01a0ddf0-ccec-7121-8c28-f4b7845162e7",
+        "proposal_turn_id": "01a0fd37-c941-7d41-a70d-1ddca3ded649",
+        "approval_turn_id": "01a0fd4b-8776-72b3-b148-d5207115f1e3",
+        "user_message_id": "01a0fd4b-87f4-70d2-bb40-f115fa06abaa",
+        "user_text": "批准",
+        "machine_read_confirmed": true,
+        "approved_scope": "仅第一项风险条文，不捆绑其他三项"
+      },
+      "approved_handoff_path": "D:\\我的 AI 总控\\V7独立审计专项\\第一项风险条文_批准与执行交接.txt",
+      "approved_handoff_sha256": "227F50925CD922E098AC5A84351CE5710656D20CE0DCAFD4D709652B38B4ED1E",
+      "action": "仅两处月报风险条文及批准的权限说明；两个既有同步副本同步；仅更新对应components的bytes/sha256并追加本记录。",
+      "modified_components": [
+        {
+          "component": "周期产品蓝图",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "before_bytes": 8507,
+          "before_sha256": "9790E3A34C9B4DC4D3D171F604E44DE7CC43274255A5DD8C98AE6531047683C3",
+          "after_bytes": 8988,
+          "after_sha256": "E7851B2C985E29D98567303F5C43675C668B7FECEC933C5FB1CEF833E4C20652"
+        },
+        {
+          "component": "蓝图",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "before_bytes": 18282,
+          "before_sha256": "5A72EC86F68114A09F3298FF9F34282547C625BF3AE1525621BAD58AFAC9C57A",
+          "after_bytes": 18367,
+          "after_sha256": "9ADFF47717917EC304D52C9799FF4FB6DEEFC15EF63661E3B53E3CD01EA8B34D"
+        }
+      ],
+      "identity_and_pointers_preserved": true,
+      "other_nine_components_unchanged": true,
+      "implementation_status": "TEXT_APPLIED_S5_ACCEPTANCE_PENDING",
+      "independent_acceptance": "NOT_PERFORMED_BY_EXECUTOR",
+      "boundaries": "NO_PRODUCTION / NO_PRICE_FETCH / NO_AUTOMATION_RESUME / NO_CLAUDE_TASK / NO_GIT / NO_SCHEDULE_CHANGE / NO_RELEASE / NO_TRADE / NO_ORDER",
+      "registry_after_identity": "仅记录于任务目录外部执行回执，避免自引用"
+    },
+    {
+      "change_id": "V7-ACCEPTANCE-CLAUSE-20261003-02",
+      "task_id": "V7-ACCEPTANCE-CLAUSE-20261003-02",
+      "run_id": "RUN-20261003-104200-ACCEPTANCE-CLAUSE-02",
+      "date": "2026-10-03",
+      "task_type": "GOVERNANCE_TEXT_CHANGE",
+      "authorization": {
+        "task_id": "V7-ACCEPTANCE-CLAUSE-20261003-02",
+        "source_thread_id": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+        "source_thread_title": "V7总控--5",
+        "user_turn_id": "01a0ff60-9c3d-7132-beb0-ec47829e76fc",
+        "user_message_id": "01a0ff60-9dcf-7e32-85bb-90ad1601fac3",
+        "started_at_unix": 1790990916,
+        "started_at_jst": "2026-10-03T10:28:36.000+09:00",
+        "exact_user_authorization": "允许把已批准的第二项检查责任改文任务交给现有V7执行--7，完成后交V7终验4独立核查；仅限第二项及总表第11节，不改其他范围和暂停决定。",
+        "machine_read_confirmed": true,
+        "ambient_ui_state_excluded": true,
+        "current_task_dispatch_turn_id": "01a0ff62-1b82-7b30-964e-980628fcb70f",
+        "older_ui_question": {
+          "thread_id": "01a09dce-fe0b-7e30-a18f-8cb71e96e55c",
+          "turn_id": "01a0fa4f-1a66-7601-9419-612caff0fa38",
+          "user_message_id": "01a0fa4f-2015-7c00-ab30-cd149e47b9c5",
+          "started_at_unix": 1790905883,
+          "exact_text": "我点到V7 项目，但又不见了",
+          "chronology": "早于当前授权与工单，不是更新暂停指令"
+        },
+        "current_newer_user_pause_found": false
+      },
+      "approved_package_path": "D:\\我的 AI 总控\\V7独立审计专项\\第二项检查责任_已批准执行包.txt",
+      "approved_package_sha256": "0D8F3AEFEB49B575222284EC8C03567A2CB22F0177F20CE4FBBF70E5DF8C9C0B",
+      "review_source_sha256": "B67099487740FA885A1BB1DEB0D673522FACD41CE9DC86447FE333262ADF86E4",
+      "action": "仅第二项检查责任及总表§11；完整规则仅写生产流程§6，总纲§6单句引用；两个G盘同名副本同步；三组件bytes/sha256同步。",
+      "historical_dispatch_rejections": "原派工阻塞回执保留；当前直接授权后的首次正式派发与施工，历史拒绝不代表本次状态。",
+      "modified_components": [
+        {
+          "component": "制度总纲",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "before_bytes": 11380,
+          "before_sha256": "8F6A63A97969AB8552677DF8A4247ADB126C53F2B619E1E48E2039D65F3E91F2",
+          "after_bytes": 11524,
+          "after_sha256": "A86346400ECFAC1A2766045F096D433696E25D2E5DFF26C0E2ADF88A460F8A77"
+        },
+        {
+          "component": "生产流程",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+          "before_bytes": 5664,
+          "before_sha256": "38C1D06AABD180A48D932873986F68CCEA5710837E8F3C7ED8877F0F822AE589",
+          "after_bytes": 6418,
+          "after_sha256": "86E49EFB6746AF8F087EDD3433ACF91FEE484ABD9F5860DD856A8CE7F01D57B9"
+        },
+        {
+          "component": "制度总表",
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "before_bytes": 12667,
+          "before_sha256": "CCAFB08628C686B5403EB3855C998A09907A0016A5F10C4F0613720A54B6E9EC",
+          "after_bytes": 12672,
+          "after_sha256": "9961AB33770956E4C09251DDE983DC76E6BF00194FEB310E789114F9E87DB5A2"
+        }
+      ],
+      "implementation_status": "TEXT_APPLIED_S5_ACCEPTANCE_PENDING",
+      "independent_acceptance": "NOT_PERFORMED_BY_EXECUTOR",
+      "professional_items_still_missing": [
+        "按产品类型列明的终验必查项清单",
+        "首次整套FAIL、返修04 PARTIAL、返修05 PASS、R2 PASS与质量标准的逐项覆盖实证"
+      ],
+      "boundaries": "NO_INVESTMENT_JUDGMENT_CHANGE / NO_IDENTITY_OR_POINTER_CHANGE / NO_PROGRAM / NO_GIT / NO_SCHEDULE / NO_PAUSE_CHANGE / NO_PRODUCTION / NO_CLAUDE_SAMPLING / NO_IBKR / NO_TRADE / NO_RELEASE",
+      "registry_after_hash": "任务专用外部回执记录，避免登记自引用"
+    },
+    {
+      "change_id": "V7-MANUAL-AUTO-CLAUSE-20261003-03",
+      "task_id": "V7-MANUAL-AUTO-CLAUSE-20261003-03",
+      "run_id": "RUN-20261003-113603-MANUAL-AUTO-CLAUSE-03",
+      "date": "2026-10-03",
+      "task_type": "GOVERNANCE_TEXT_CHANGE",
+      "authorization": {
+        "source_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+        "source_turn": "01a0ff91-0741-7242-894c-9c5dbded3e19",
+        "source_message": "01a0ff97-fca5-72d3-8c74-e274e623deae",
+        "exact_user_text": "允许将已批准的第三项“手动研究与自动化分开验”和第四项“授权内连续接续”交给现有V7执行--7，按各自已批准执行包串行修改，完成后交V7终验4独立核查。第三项含总表第2节配套行；第四项另设生产流程第2节之二。保留前两项成果，不改其他范围、排程及暂停决定。",
+        "machine_read_confirmed_by_executor": true,
+        "ambient_UI_excluded": true
+      },
+      "approved_package_path": "D:\\我的 AI 总控\\V7独立审计专项\\第三项手动与自动化_已批准执行包.txt",
+      "approved_package_sha256": "549750D5D2FC93DE7DA5661195325403F9FB93F49D6A920DC24946681B0E516D",
+      "action": "仅总纲当前身份之前新增手动研究与自动化的适用说明，总表第2节产品生产行后新增批准配套行；总纲既有G副本同步；两组件bytes/sha256与本记录。",
+      "modified_components": [
+        {
+          "component": "制度总纲",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "before_bytes": 11524,
+          "before_sha256": "A86346400ECFAC1A2766045F096D433696E25D2E5DFF26C0E2ADF88A460F8A77",
+          "after_bytes": 12483,
+          "after_sha256": "D7322CBF5AA06E0FAF806BAFA66FF6E14450F9E63B9F743CF574C693AF2F0AE8"
+        },
+        {
+          "component": "制度总表",
+          "source_path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "before_bytes": 12672,
+          "before_sha256": "9961AB33770956E4C09251DDE983DC76E6BF00194FEB310E789114F9E87DB5A2",
+          "after_bytes": 12931,
+          "after_sha256": "4D177284806114E263A1F21B50F2ED3693E76BFAB0735ABF811E548886143BB2"
+        }
+      ],
+      "preserve_first_second_clauses": true,
+      "prior_seven_records_unchanged": true,
+      "other_nine_components_unchanged": true,
+      "identity_and_pointers_preserved": true,
+      "implementation_status": "TEXT_APPLIED_S5_ACCEPTANCE_PENDING",
+      "independent_acceptance": "NOT_PERFORMED_BY_EXECUTOR",
+      "professional_item_still_missing": "质量标准第2—7节与各类手动研究产品身份的条款对应表（适用、部分适用、不适用及理由，含七层说明）",
+      "fourth_clause_execution": "NOT_STARTED_SERIAL_HANDOFF_REQUIRED",
+      "historical_notes": "旧派工拒绝记录保留；批准包第四项尚未批准为历史描述，本次第三四项已直接授权但仅施工第三项。",
+      "boundaries": "NO_PRODUCTION / NO_SAMPLING / NO_PROGRAM / NO_GIT / NO_SCHEDULE / NO_PAUSE_CHANGE / NO_PERMISSION_CONFIG / NO_ACCOUNT_CONNECTION / NO_FEES / NO_TRADE / NO_RELEASE",
+      "registry_after_hash": "另存任务外部回执，避免自引用"
+    },
+    {
+      "change_id": "V7-CONTINUITY-CLAUSE-20261003-04",
+      "task_id": "V7-CONTINUITY-CLAUSE-20261003-04",
+      "run_id": "RUN-20261003-114700-CONTINUITY-CLAUSE-04",
+      "date": "2026-10-03",
+      "task_type": "GOVERNANCE_TEXT_CHANGE",
+      "authorization": {
+        "source_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+        "source_turn": "01a0ff91-0741-7242-894c-9c5dbded3e19",
+        "source_message": "01a0ff97-fca5-72d3-8c74-e274e623deae",
+        "exact_user_text": "允许将已批准的第三项“手动研究与自动化分开验”和第四项“授权内连续接续”交给现有V7执行--7，按各自已批准执行包串行修改，完成后交V7终验4独立核查。第三项含总表第2节配套行；第四项另设生产流程第2节之二。保留前两项成果，不改其他范围、排程及暂停决定。",
+        "original_file": "G:\\我的云端硬盘\\AI_Investment_System\\output\\controller\\手动与自动化条文执行_20261003\\第三四项直接授权原话.json",
+        "original_sha256": "C3B30947EB6098B136FE4EF3478B9B83ADB4CC1652E669F5C39C70C9286D3A06",
+        "machine_read_confirmed": true,
+        "ambient_UI_excluded": true
+      },
+      "approved_package_path": "D:\\我的 AI 总控\\V7独立审计专项\\第四项连续接续_已批准执行包.txt",
+      "approved_package_sha256": "9B6487D1D0FD42168EE3A059C7F33FD5B7F514C9E206A28665D58B4CEAA6951C",
+      "inherited_third_review": {
+        "reviewer": "V7终验4",
+        "source_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+        "source_turn": "01a0ffa1-1c80-7e42-bd2c-f1a03b70eaf8",
+        "source_message": "msg_0a1b1b5a8724f05d016ac06b2fe04087d09ce489fa5c6ce29b",
+        "conclusion": "PASS_LIMITED_TEXT_CHECK_NOT_BUSINESS_ACCEPTANCE",
+        "original_file": "G:\\我的云端硬盘\\AI_Investment_System\\output\\controller\\手动与自动化条文执行_20261003\\独立核查原始回执.json",
+        "original_sha256": "A7FD84922C16C72A03D011A7AB6D7A572FDA98EC838A0B559AA1E22D49C26D9A",
+        "machine_final_read_confirmed": true,
+        "scope": "仅第三项定点文字核对，非整体业务复核"
+      },
+      "action": "仅在生产流程原第2节之后、第3节之前新增第2节之二　授权内接续与实质变更及批准整段；既有G副本同步；仅生产流程组件bytes/sha256和本记录。",
+      "modified_components": [
+        {
+          "component": "生产流程",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+          "before_bytes": 6418,
+          "before_sha256": "86E49EFB6746AF8F087EDD3433ACF91FEE484ABD9F5860DD856A8CE7F01D57B9",
+          "after_bytes": 7434,
+          "after_sha256": "2C1BD3CB52D36DF7CE62A419E132480FBC32969B7E8E9631F1D8BBAC773C9D17"
+        }
+      ],
+      "original_section_2_untouched": true,
+      "prior_three_clauses_preserved": true,
+      "prior_eight_records_unchanged": true,
+      "other_ten_components_unchanged": true,
+      "identity_and_pointers_preserved": true,
+      "implementation_status": "TEXT_APPLIED_S5_ACCEPTANCE_PENDING",
+      "independent_acceptance": "NOT_PERFORMED_BY_EXECUTOR",
+      "professional_items_still_missing": [
+        "按产品类型的终验必查项清单",
+        "历史终验回执的质量标准逐项覆盖实证",
+        "质量标准第2—7节与手动研究产品身份对应表（含七层说明）"
+      ],
+      "management_checklist": "总控已整理，本次未重做、未写入正式规则",
+      "boundaries": "NO_PRODUCTION / NO_SAMPLING / NO_PROGRAM / NO_GIT / NO_SCHEDULE / NO_PAUSE_CHANGE / NO_PERMISSION_CONFIG / NO_ACCOUNT_CONNECTION / NO_FEES / NO_TRADE / NO_RELEASE",
+      "registry_after_hash": "外部回执记录，避免自引用"
+    },
+    {
+      "change_id": "V7-GOV-TWO-EDITS-20261004-01-B",
+      "task_id": "V7-GOV-TWO-EDITS-20261004-01",
+      "package_id": "IDENTITY_B",
+      "sequence": 1,
+      "run_id": "RUN-20261004-013443-GOV-TWO-EDITS",
+      "task_type": "GOVERNANCE_REBUILD",
+      "date": "2026-10-04",
+      "authorization": {
+        "source_thread": "01a0ddf0-ccec-7121-8c28-f4b7845162e7",
+        "title": "总控-001",
+        "approval_turn": "01a10286-db1b-7613-910b-30705af364f2",
+        "approval_item": {
+          "type": "userMessage",
+          "id": "01a10286-dbb3-71a1-ad73-2447b677ae24",
+          "content": [
+            {
+              "type": "text",
+              "text": "同意\n"
+            }
+          ]
+        },
+        "context_turn": "01a10285-db9d-7172-9aad-3b1ad8a435f2",
+        "explanation": [
+          "大白话说：**刚才两项都做了，但还没全部做完。现在问你的是，能不能修改 V7 的两处管理说明。**\n\n**第一件：让大家知道该看哪份文件。**  \n现在有新旧清单，接手的人容易认错。建议明确一个现行入口，旧清单留着查历史，不删、不搬文件。\n\n**第二件：把工作步骤写一致。**  \n几份文件对流程的说法有出入。建议由原专业岗位核清后，把三处文字改一致，避免不同岗位照着不同步骤做。\n\n**不会因此改变投资判断、恢复自动生产或启动新研究。** 我负责组织，原执行岗修改，另一个岗位检查。\n\n你现在只需决定：**是否同意这两项管理文字修改？**"
+        ],
+        "verified_human": true
+      },
+      "fixed_execution_package_sha256": "C4791BAAEC3ACC86035E456719879CF494046AD29B477D79CEB05CF954E08DDF",
+      "professional_precheck_sha256": "C14A0FA3AF539536380103A3EC2920A15637F48D0CE69E90777556C6CE1337C2",
+      "scope": "只改总表§12追加身份说明、现行入口增加身份说明，登记更新总表bytes/sha256并追加本次B记录",
+      "modified_files": [
+        {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "before_bytes": 12931,
+          "before_sha256": "4D177284806114E263A1F21B50F2ED3693E76BFAB0735ABF811E548886143BB2",
+          "after_bytes": 13729,
+          "after_sha256": "F0B0EEADC7E1CDDBC460ACB373A91FFFE8FF497DEAEF4D8EB04D0F4FD5093F53"
+        },
+        {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7_governance_current_v1_0_active_20260903\\V7治理正式Current生效_只看这一页_20260903.html",
+          "before_bytes": 2062,
+          "before_sha256": "D683B723B189A7C63F693033DE7F769012B9F39F97BC7A41933AACB3A5BD41AB",
+          "after_bytes": 3008,
+          "after_sha256": "CC716937B20161FE6BBC2D312ABE803C9753AE4F0AB0ADD962A496F3AF5D78CE"
+        }
+      ],
+      "registry_before_sha256": "0BEF4A8FB87B42671B52AC6D83A415B77A4CEFE1F319D477EB57A8312573561C",
+      "implementation_status": "TEXT_APPLIED_S5_ACCEPTANCE_PENDING",
+      "acceptance": "NOT_PERFORMED_BY_EXECUTOR",
+      "identity": "B transition only; all source_path/origin_source_path unchanged",
+      "boundaries": [
+        "旧47组规则改文",
+        "投资判断/概率/数量修改",
+        "新研究/新数据/账户连接",
+        "正式评分启用",
+        "R2 PDF扩审或重渲",
+        "V7自动生产/Phase0A采样恢复",
+        "排程/暂停变化",
+        "九项路径迁移/文件搬移",
+        "读取程序/权限/费用变动",
+        "新建岗位/更换执行器",
+        "交易/Release",
+        "Git提交推送",
+        "修改旧生效回执、候选README、根AGENTS/CLAUDE/Skill/Obsidian"
+      ],
+      "prior_four_clause_effects_preserved": "Except approved C2 replaces duplicate 13-step list by exact professional-approved single-source reference; detailed author/independent/Release duties preserved in protected process sections.",
+      "registry_after_sha256": "外部回执记录，避免自引用"
+    },
+    {
+      "change_id": "V7-GOV-TWO-EDITS-20261004-01-C",
+      "task_id": "V7-GOV-TWO-EDITS-20261004-01",
+      "package_id": "WORDING_C1_C2_C3",
+      "sequence": 2,
+      "run_id": "RUN-20261004-013443-GOV-TWO-EDITS",
+      "task_type": "GOVERNANCE_REBUILD",
+      "date": "2026-10-04",
+      "authorization": {
+        "source_thread": "01a0ddf0-ccec-7121-8c28-f4b7845162e7",
+        "title": "总控-001",
+        "approval_turn": "01a10286-db1b-7613-910b-30705af364f2",
+        "approval_item": {
+          "type": "userMessage",
+          "id": "01a10286-dbb3-71a1-ad73-2447b677ae24",
+          "content": [
+            {
+              "type": "text",
+              "text": "同意\n"
+            }
+          ]
+        },
+        "context_turn": "01a10285-db9d-7172-9aad-3b1ad8a435f2",
+        "explanation": [
+          "大白话说：**刚才两项都做了，但还没全部做完。现在问你的是，能不能修改 V7 的两处管理说明。**\n\n**第一件：让大家知道该看哪份文件。**  \n现在有新旧清单，接手的人容易认错。建议明确一个现行入口，旧清单留着查历史，不删、不搬文件。\n\n**第二件：把工作步骤写一致。**  \n几份文件对流程的说法有出入。建议由原专业岗位核清后，把三处文字改一致，避免不同岗位照着不同步骤做。\n\n**不会因此改变投资判断、恢复自动生产或启动新研究。** 我负责组织，原执行岗修改，另一个岗位检查。\n\n你现在只需决定：**是否同意这两项管理文字修改？**"
+        ],
+        "verified_human": true
+      },
+      "fixed_execution_package_sha256": "C4791BAAEC3ACC86035E456719879CF494046AD29B477D79CEB05CF954E08DDF",
+      "professional_precheck_sha256": "C14A0FA3AF539536380103A3EC2920A15637F48D0CE69E90777556C6CE1337C2",
+      "scope": "3个已批准正文位置，登记随实际修改更新3组件bytes/sha256并追加C记录",
+      "modified_files": [
+        {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "before_bytes": 18367,
+          "before_sha256": "9ADFF47717917EC304D52C9799FF4FB6DEEFC15EF63661E3B53E3CD01EA8B34D",
+          "after_bytes": 18430,
+          "after_sha256": "972C99EF6ECE2BEFE192ACFA125CB00352390E5AAC7BBF2DA401381871B63C00"
+        },
+        {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "before_bytes": 18367,
+          "before_sha256": "9ADFF47717917EC304D52C9799FF4FB6DEEFC15EF63661E3B53E3CD01EA8B34D",
+          "after_bytes": 18430,
+          "after_sha256": "972C99EF6ECE2BEFE192ACFA125CB00352390E5AAC7BBF2DA401381871B63C00"
+        },
+        {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "before_bytes": 12483,
+          "before_sha256": "D7322CBF5AA06E0FAF806BAFA66FF6E14450F9E63B9F743CF574C693AF2F0AE8",
+          "after_bytes": 12558,
+          "after_sha256": "DD3CC85ABF2A7A13411B38D30C8D45CD700CF018C70DA80A1EEC1C7A8C221857"
+        },
+        {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "before_bytes": 12483,
+          "before_sha256": "D7322CBF5AA06E0FAF806BAFA66FF6E14450F9E63B9F743CF574C693AF2F0AE8",
+          "after_bytes": 12558,
+          "after_sha256": "DD3CC85ABF2A7A13411B38D30C8D45CD700CF018C70DA80A1EEC1C7A8C221857"
+        },
+        {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+          "before_bytes": 7434,
+          "before_sha256": "2C1BD3CB52D36DF7CE62A419E132480FBC32969B7E8E9631F1D8BBAC773C9D17",
+          "after_bytes": 7738,
+          "after_sha256": "3AB06516B6CCC477F12D38DE9BDB539B225CB125BFA3F2D8135AAF5E208E6EC8"
+        },
+        {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+          "before_bytes": 7434,
+          "before_sha256": "2C1BD3CB52D36DF7CE62A419E132480FBC32969B7E8E9631F1D8BBAC773C9D17",
+          "after_bytes": 7738,
+          "after_sha256": "3AB06516B6CCC477F12D38DE9BDB539B225CB125BFA3F2D8135AAF5E208E6EC8"
+        }
+      ],
+      "registry_before_sha256": "647728E0E27680BEE81712B586FA12C29F1348D2DA5E5A522950528FCF2198B5",
+      "implementation_status": "TEXT_APPLIED_S5_ACCEPTANCE_PENDING",
+      "acceptance": "NOT_PERFORMED_BY_EXECUTOR",
+      "identity": "B transition only; all source_path/origin_source_path unchanged",
+      "boundaries": [
+        "旧47组规则改文",
+        "投资判断/概率/数量修改",
+        "新研究/新数据/账户连接",
+        "正式评分启用",
+        "R2 PDF扩审或重渲",
+        "V7自动生产/Phase0A采样恢复",
+        "排程/暂停变化",
+        "九项路径迁移/文件搬移",
+        "读取程序/权限/费用变动",
+        "新建岗位/更换执行器",
+        "交易/Release",
+        "Git提交推送",
+        "修改旧生效回执、候选README、根AGENTS/CLAUDE/Skill/Obsidian"
+      ],
+      "prior_four_clause_effects_preserved": "Except approved C2 replaces duplicate 13-step list by exact professional-approved single-source reference; detailed author/independent/Release duties preserved in protected process sections.",
+      "registry_after_sha256": "外部回执记录，避免自引用"
+    },
+    {
+      "change_id": "V7-PERIODIC-BASELINE-CLAUSE-20261009-01",
+      "task_id": "V7-PERIODIC-BASELINE-CLAUSE-20261009-01",
+      "run_id": "RUN-20261009-223809-PERIODIC-CLAUSE",
+      "task_type": "GOVERNANCE_REBUILD",
+      "date": "2026-10-09",
+      "authorization": {
+        "source_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+        "source_title": "V7总控--5",
+        "basis": "总控本轮接续单转述用户已直接授权逐字补充；执行岗不另作投资判断",
+        "direct_human_turn_id": null,
+        "verification_limit": "本执行回执不伪造用户消息ID或独立终验"
+      },
+      "accepted_at": "2026-10-09T22:38:09+09:00",
+      "scope": "只补周期蓝图§1指定条款，正文版本Current v1.1及2026-10-09变更状态；总表只同步周期对应行；同名G盘文件明确为阅读副本；登记相关大小、指纹及变更记录",
+      "identity": "B transition unchanged; original source_path, origin_source_path and historical filenames preserved",
+      "version_before": "Current v1.0",
+      "version_after": "Current v1.1",
+      "modified_files": [
+        {
+          "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "identity": "REGISTERED_FORMAL_SOURCE",
+          "before_bytes": 8988,
+          "before_sha256": "E7851B2C985E29D98567303F5C43675C668B7FECEC933C5FB1CEF833E4C20652",
+          "after_bytes": 9891,
+          "after_sha256": "0F280EA077ECC9A1C6372AF1C629D2DCDD211F218806F74688D648F04501593C"
+        },
+        {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "identity": "REGISTERED_FORMAL_SOURCE",
+          "before_bytes": 13729,
+          "before_sha256": "F0B0EEADC7E1CDDBC460ACB373A91FFFE8FF497DEAEF4D8EB04D0F4FD5093F53",
+          "after_bytes": 13871,
+          "after_sha256": "EF21F972843B992C7CABD31CA3CCB458934E4C2B457CECFCA8DA25C2BEF1A82F"
+        },
+        {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "identity": "READING_COPY_NOT_FORMAL_SOURCE",
+          "before_bytes": 8988,
+          "before_sha256": "E7851B2C985E29D98567303F5C43675C668B7FECEC933C5FB1CEF833E4C20652",
+          "after_bytes": 10041,
+          "after_sha256": "7CEA8F8E4918600AD62CED10653C678E8121657AD36EE1C27568D36AD58A3D45"
+        }
+      ],
+      "registry_before_sha256": "33E015C0C755D29D345A02B13D45BAE15A6F69B8FF089FF170F3807D9709C909",
+      "registry_after_sha256": "外部回执记录，避免自引用",
+      "backup_directory": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\限定内容验证_20261009\\治理改文历史备份",
+      "implementation_status": "GOVERNANCE_CLAUSE_AND_REGISTRATION_REVIEW_PASSED_CONTROLLER_RECEIVED",
+      "acceptance": "NOT_PERFORMED_BY_EXECUTOR",
+      "release": false,
+      "boundaries": [
+        "不重新核验未变四制度",
+        "不取新数据或连接账户",
+        "不恢复生产或自动化",
+        "不新增岗位或更换执行器",
+        "不新增费用、重置或权限",
+        "不作投资判断、重大方法或风险规则变更",
+        "不渲染PDF、不四份生产、不交易、不Release",
+        "旧小样预排清单保留历史不覆盖",
+        "不修改其他正式文件、源路径或B过渡身份"
+      ],
+      "governance_acceptance": {
+        "independent_review_passed": true,
+        "controller_received": true,
+        "scope": "仅本次§1条文改文与登记同步；不是投资产品通过",
+        "quote": "这项条文改文与登记同步通过定点核查；不等于后续投资内容或产品业务通过。",
+        "receipt_path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\outputs\\V7_PERIODIC_BLUEPRINT_v1.1_定点独验_20261009.md",
+        "receipt_sha256": "DCF3F154278C84E95C0266E805295CC92AEA037ABC1FB4B7C9639030A3B9727A",
+        "receipt_bytes": 3075,
+        "product_business_passed": false,
+        "release": false
+      },
+      "status_closure": {
+        "task_id": "V7-PERIODIC-STATUS-CLOSURE-20261009-01",
+        "run_id": "RUN-20261009-230534-PERIODIC-STATUS",
+        "accepted_at": "2026-10-09T23:05:34+09:00",
+        "previous_implementation_status": "TEXT_APPLIED_S5_ACCEPTANCE_PENDING",
+        "registry_before_sha256": "DA88E5F9A3EEC8073C8D56A67A757616321BFBF48C78BBD05800AD2B6342E5F0",
+        "registry_after_sha256": "本轮外部状态收尾回执记录，避免自引用",
+        "backup_directory": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\限定内容验证_20261009\\状态收尾_230534\\状态更新前备份",
+        "modified_files": [
+          {
+            "path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+            "before_bytes": 9891,
+            "before_sha256": "0F280EA077ECC9A1C6372AF1C629D2DCDD211F218806F74688D648F04501593C",
+            "after_bytes": 10070,
+            "after_sha256": "3DC05D0519A75A7050E866D9CC1E645E7F8A9B6B0FCA949FAB378A8CBB6BCCAA"
+          },
+          {
+            "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+            "before_bytes": 13871,
+            "before_sha256": "EF21F972843B992C7CABD31CA3CCB458934E4C2B457CECFCA8DA25C2BEF1A82F",
+            "after_bytes": 13953,
+            "after_sha256": "99D7E2C58FBB7721E6561F279E71B353BC4420DCCB5819372FD1C3A102F16182"
+          },
+          {
+            "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+            "before_bytes": 10041,
+            "before_sha256": "7CEA8F8E4918600AD62CED10653C678E8121657AD36EE1C27568D36AD58A3D45",
+            "after_bytes": 10220,
+            "after_sha256": "98EF00BA6D5BBE1CE61669FFAFB1366FB8A94332C12CC96F59964BCBEBA3A5DE"
+          }
+        ],
+        "content_and_version_unchanged": true,
+        "B_identity_and_source_paths_unchanged": true,
+        "status_update_independent_review": "PENDING",
+        "state": "S5_ACCEPTANCE_PENDING"
+      }
+    },
+    {
+      "change_id": "V7-CROSS-INDUSTRY-FOLLOWUP-20261010-01",
+      "task_id": "V7-CROSS-INDUSTRY-FOLLOWUP-20261010-01",
+      "run_id": "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-01",
+      "referenced_original_run_ids": [
+        "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-01",
+        "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-02",
+        "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-03",
+        "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-04"
+      ],
+      "date": "2026-10-10",
+      "task_type": "EXISTING_AMENDMENT_NUMBER_REFERENCE_AND_GOVERNANCE_STATUS_CLARIFICATION_ONLY",
+      "original_ledger": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改执行_20261009\\后续复盘_判断与概率_20261010.json",
+      "ledger_pointer": "/cross_industry_followup_20261010",
+      "recorded_at_jst": "2026-10-10T14:37:16.827339+09:00",
+      "r06_manifest": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\跨产业机会与等待验证_20261010\\概率与选择接续\\r06_送核manifest.json",
+      "r06_manifest_sha256": "56e93fdd4631d80ba8cd5522dc9024638186edf8944229f37a73a7c39c565e8b",
+      "r06_status": "PENDING_REVIEW_NOT_EFFECTIVE",
+      "scope_by_original_suffix": {
+        "01": "研究修订：住友继承、SNDK旧快照、公平弱档及条件比较；非治理条文或正式产品生效",
+        "02": "研究引用：现金差异桥直接复用、未改变；非治理条文或正式产品生效",
+        "03": "研究修订：事件/时序/压力演示，未激活、未生效、原预测不改；非治理条文或正式产品生效",
+        "04": "既有Current v1.2已登记实际状态澄清，r05章节滞后纠正；不新增或重改正式源条文"
+      },
+      "actual_readback_receipt": {
+        "reviewer": "终验4",
+        "review_original": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\outputs\\V7_CROSS_INDUSTRY_最终交付与治理落点终核_20261010.md",
+        "sha256": "65c50b9f6209a90b2b980a85b624f61b75819a3e8ba17d92c5913027af79118a",
+        "receipt_sections": [
+          "13:50研究交付与治理原件登记终核",
+          "14:00收尾差异追加，保留13:50原记录"
+        ],
+        "governance_result": "本轮三段文字及C原件/G周期登记的治理同步可确认",
+        "version_registered": "Current v1.2",
+        "source_sha256": "c260800f3ba17aabd8c85904a3814fc3ef77c9a549befa7b8f95cb04f00e03b1",
+        "source_bytes": 12169,
+        "historical_PENDING_field_preserved": true,
+        "not_r06_research_acceptance": true,
+        "not_product_release": true,
+        "recorded_at_jst": "2026-10-10T14:37:16.827339+09:00"
+      },
+      "effective_at": null,
+      "production_resumed": false,
+      "release": false,
+      "source_clauses_unchanged": true,
+      "no_new_amendment_numbers": true
+    },
+    {
+      "task_id": "V7-CROSS-INDUSTRY-FOLLOWUP-20261010-01",
+      "referenced_original_RUN_IDs": [
+        "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-01",
+        "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-02",
+        "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-03",
+        "RUN-20261010-133352-CROSS-INDUSTRY-FOLLOWUP-04"
+      ],
+      "original_ledger": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改执行_20261009\\后续复盘_判断与概率_20261010.json",
+      "ledger_pointer": "/cross_industry_followup_20261010",
+      "record_kind": "R06_DELIVERY_LIMITED_RESEARCH_REVIEW_REFERENCE_ONLY",
+      "actual_review": {
+        "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\outputs\\V7_CROSS_INDUSTRY_r06固定内容独立核查_20261010.md",
+        "bytes": 5519,
+        "sha256": "f396d6509c9dfed120ca5a888f40dc62538b26fa4d28891d0698294af3f98981",
+        "EF_BF_BD_count": 0
+      },
+      "source_fixed_at_jst": "2026-10-10T14:32:56.034128+09:00",
+      "delivery": {
+        "revision": "r06",
+        "manifest": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\跨产业机会与等待验证_20261010\\概率与选择接续\\内容交付\\交付固定_manifest_r06.json",
+        "manifest_sha256": "538d6c91f4efbf2fdeeed5f0430ffe5ed43efe233b8b8acf3c480b60e7646d0b",
+        "fulltext_fixed_at": "2026-10-10T14:32:56.034128+09:00",
+        "html": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\跨产业机会与等待验证_20261010\\概率与选择接续\\内容交付\\机会选择与等待安排_r06.html",
+          "bytes": 108969,
+          "sha256": "8e0011d7ce6c57b7125a017bb9842bf3a6f2d407b5db3f1951c4673a1f877239",
+          "EF_BF_BD_count": 0
+        },
+        "txt": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\跨产业机会与等待验证_20261010\\概率与选择接续\\内容交付\\给点点_机会选择与等待安排_r06.txt",
+          "bytes": 82344,
+          "sha256": "7ae259291eded26b96858ea16985786d142abfeb8d37cf0d5ad569629bdd408c",
+          "EF_BF_BD_count": 0
+        },
+        "business_source_sha256": "57b6ad86d5392941b1242097746e59946cfd0f6ccd995800c05021afbef88d1f",
+        "body_prefix_same": true,
+        "body_prefix_bytes": 76435,
+        "body_prefix_sha256": "57b6ad86d5392941b1242097746e59946cfd0f6ccd995800c05021afbef88d1f",
+        "annex_only": true,
+        "review_receipt": {
+          "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\outputs\\V7_CROSS_INDUSTRY_r06固定内容独立核查_20261010.md",
+          "bytes": 5519,
+          "sha256": "f396d6509c9dfed120ca5a888f40dc62538b26fa4d28891d0698294af3f98981",
+          "EF_BF_BD_count": 0
+        },
+        "waiting_probabilities_activated": false,
+        "actual_start": null,
+        "actual_observation_start": null,
+        "effective_at": null
+      },
+      "controller_note": {
+        "text": "现金和等待成本演示统一以10月10日研究时点至2027年9月9日334天计算，等待前持币0—82天只是范围测试。真实等待启用时须按实际起日和市场日历重算天数；不能把10月9日旧收盘激活为新题。",
+        "not_word_for_word_reviewed_by_prior_receipt": true,
+        "old_waiting_numbers_unchanged": true
+      },
+      "governance_v12_already_registered": true,
+      "source_component_hash_unchanged": true,
+      "research_effective_at": null,
+      "production_resumed": false,
+      "release": false,
+      "annex_only_delivery_difference": {
+        "old_delivery_reference": {
+          "revision": "r06",
+          "manifest": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\跨产业机会与等待验证_20261010\\概率与选择接续\\内容交付\\交付固定_manifest_r06.json",
+          "manifest_sha256": "8d42d8796f6f484be49d1bc1d272d9dd60962f4107b71525b07fbebf798e98a1",
+          "fulltext_fixed_at": "2026-10-10T14:32:56.034128+09:00",
+          "html": {
+            "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\跨产业机会与等待验证_20261010\\概率与选择接续\\内容交付\\机会选择与等待安排_r06.html",
+            "bytes": 108969,
+            "sha256": "8e0011d7ce6c57b7125a017bb9842bf3a6f2d407b5db3f1951c4673a1f877239",
+            "EF_BF_BD_count": 0
+          },
+          "txt": {
+            "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\跨产业机会与等待验证_20261010\\概率与选择接续\\内容交付\\给点点_机会选择与等待安排_r06.txt",
+            "bytes": 76435,
+            "sha256": "57b6ad86d5392941b1242097746e59946cfd0f6ccd995800c05021afbef88d1f",
+            "EF_BF_BD_count": 0
+          },
+          "business_source_sha256": "57b6ad86d5392941b1242097746e59946cfd0f6ccd995800c05021afbef88d1f",
+          "review_receipt": {
+            "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\outputs\\V7_CROSS_INDUSTRY_r06固定内容独立核查_20261010.md",
+            "bytes": 5519,
+            "sha256": "f396d6509c9dfed120ca5a888f40dc62538b26fa4d28891d0698294af3f98981",
+            "EF_BF_BD_count": 0
+          },
+          "waiting_probabilities_activated": false,
+          "effective_at": null
+        },
+        "new_manifest_sha256": "538d6c91f4efbf2fdeeed5f0430ffe5ed43efe233b8b8acf3c480b60e7646d0b",
+        "TXT": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\跨产业机会与等待验证_20261010\\概率与选择接续\\内容交付\\给点点_机会选择与等待安排_r06.txt",
+          "bytes": 82344,
+          "sha256": "7ae259291eded26b96858ea16985786d142abfeb8d37cf0d5ad569629bdd408c",
+          "EF_BF_BD_count": 0
+        },
+        "body_prefix_same": true,
+        "annex_only": true,
+        "recorded_at_jst": "2026-10-10T14:44:14.843385+09:00",
+        "no_component_source_change": true
+      }
+    },
+    {
+      "task_id": "V7-R02-44",
+      "change_id": "V7-R02-44-GOVERNANCE-WRITEBACK-20261016",
+      "state": "GOVERNANCE_ACCEPTANCE_PENDING",
+      "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+      "scope": "FOUR_REGISTERED_SOURCE_PATHS_AND_VERSION_FINGERPRINTS_ONLY",
+      "components": [
+        {
+          "component": "制度总纲",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "version": "Current v1.1",
+          "sha256": "42c5f72cf49f55c8fa5fee2f494c8656a998f9faedb095c6306283b39e0cb992",
+          "bytes": 15845,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md"
+        },
+        {
+          "component": "蓝图",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "version": "Current v1.1",
+          "sha256": "0fd4b371734beb91ddd549e05620ee49677c07ed1afca1995ae8899e2b881a1f",
+          "bytes": 22098,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md"
+        },
+        {
+          "component": "质量标准",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "version": "Current v1.1",
+          "sha256": "eb8eb61a9aff8b42266f58355c700ea58cad3348affa142240a3e7238baa6bbf",
+          "bytes": 8401,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md"
+        },
+        {
+          "component": "周期产品蓝图",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "version": "Current v1.3",
+          "sha256": "0430c5abebbe9a6871ce8dd422d6153ca712845ef8e1d38ebd4157bcc23a2cba",
+          "bytes": 15780,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md"
+        }
+      ],
+      "registry_backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7_GOVERNANCE_CURRENT_ACTIVE_v1.0_20260903.json",
+      "original_registry_sha256": "ccc01703e6ed4381f9a3f1ebc07f9c0f18281af53ba4e26ac32cdae0f5e50955",
+      "independent_review_required": true,
+      "independent_review_receipt": null,
+      "effective_at": null,
+      "release": false,
+      "production_resumed": false
+    },
+    {
+      "task_id": "V7-R02-44",
+      "change_id": "V7-R02-44-GOVERNANCE-ACCEPTANCE-CLOSURE-20261016",
+      "state": "FORMAL_GOVERNANCE_CURRENT_AMENDMENT_EFFECTIVE",
+      "scope": "FOUR_COMPONENT_AMENDMENTS_ONLY",
+      "effective_at": "2026-10-16T17:37:34.738272+09:00",
+      "independent_review_receipt": {
+        "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+        "bytes": 3144,
+        "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+        "EF_BF_BD_count": 0,
+        "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+        "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+        "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+        "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+      },
+      "components": [
+        {
+          "component": "制度总纲",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "version": "Current v1.1",
+          "reviewed_pre_identity_sha256": "42c5f72cf49f55c8fa5fee2f494c8656a998f9faedb095c6306283b39e0cb992",
+          "sha256": "7ff94893abae20114405eaa916cfcc8778923d221b00221fb41f4a1fa0494c52",
+          "bytes": 16204,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环前原字节\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "staged_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环写入暂存\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "effective_at": "2026-10-16T17:37:34.738272+09:00"
+        },
+        {
+          "component": "蓝图",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "version": "Current v1.1",
+          "reviewed_pre_identity_sha256": "0fd4b371734beb91ddd549e05620ee49677c07ed1afca1995ae8899e2b881a1f",
+          "sha256": "491f1c102a128e0ca3bd2bb781df4a0819afec80ccc92f0f25ad301ff7f3e74f",
+          "bytes": 22457,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环前原字节\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "staged_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环写入暂存\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "effective_at": "2026-10-16T17:37:34.738272+09:00"
+        },
+        {
+          "component": "质量标准",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "version": "Current v1.1",
+          "reviewed_pre_identity_sha256": "eb8eb61a9aff8b42266f58355c700ea58cad3348affa142240a3e7238baa6bbf",
+          "sha256": "bfb53afec3f6adc8431cb38fd987bd63308a8a578a538a196f65db1d3ad9de39",
+          "bytes": 8760,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环前原字节\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "staged_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环写入暂存\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "effective_at": "2026-10-16T17:37:34.738272+09:00"
+        },
+        {
+          "component": "周期产品蓝图",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "version": "Current v1.3",
+          "reviewed_pre_identity_sha256": "0430c5abebbe9a6871ce8dd422d6153ca712845ef8e1d38ebd4157bcc23a2cba",
+          "sha256": "999e0cbe63bd710963156340088805488a200312e756f38c11d5121a02a99d81",
+          "bytes": 16170,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环前原字节\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "staged_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环写入暂存\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "effective_at": "2026-10-16T17:37:34.738272+09:00"
+        }
+      ],
+      "previous_pending_amendment": {
+        "task_id": "V7-R02-44",
+        "change_id": "V7-R02-44-GOVERNANCE-WRITEBACK-20261016",
+        "state": "GOVERNANCE_ACCEPTANCE_PENDING",
+        "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+        "scope": "FOUR_REGISTERED_SOURCE_PATHS_AND_VERSION_FINGERPRINTS_ONLY",
+        "components": [
+          {
+            "component": "制度总纲",
+            "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+            "version": "Current v1.1",
+            "sha256": "42c5f72cf49f55c8fa5fee2f494c8656a998f9faedb095c6306283b39e0cb992",
+            "bytes": 15845,
+            "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md"
+          },
+          {
+            "component": "蓝图",
+            "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+            "version": "Current v1.1",
+            "sha256": "0fd4b371734beb91ddd549e05620ee49677c07ed1afca1995ae8899e2b881a1f",
+            "bytes": 22098,
+            "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md"
+          },
+          {
+            "component": "质量标准",
+            "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+            "version": "Current v1.1",
+            "sha256": "eb8eb61a9aff8b42266f58355c700ea58cad3348affa142240a3e7238baa6bbf",
+            "bytes": 8401,
+            "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md"
+          },
+          {
+            "component": "周期产品蓝图",
+            "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+            "version": "Current v1.3",
+            "sha256": "0430c5abebbe9a6871ce8dd422d6153ca712845ef8e1d38ebd4157bcc23a2cba",
+            "bytes": 15780,
+            "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md"
+          }
+        ],
+        "registry_backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7_GOVERNANCE_CURRENT_ACTIVE_v1.0_20260903.json",
+        "original_registry_sha256": "ccc01703e6ed4381f9a3f1ebc07f9c0f18281af53ba4e26ac32cdae0f5e50955",
+        "independent_review_required": true,
+        "independent_review_receipt": null,
+        "effective_at": null,
+        "release": false,
+        "production_resumed": false
+      },
+      "release": false,
+      "production_resumed": false,
+      "automation": false,
+      "trade": false,
+      "status_identity_readback": "PENDING_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY"
+    },
+    {
+      "task_id": "V7-R02-49",
+      "run_id": "V7-R02-49-20261017T112805",
+      "change_id": "V7-R02-49-READBACK-METADATA-RECONCILIATION-20261017",
+      "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+      "change_type": "METADATA_CORRECTION_NO_NEW_GOVERNANCE",
+      "authority_thread": "01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b",
+      "executor_thread": "01a09dce-fe0b-7e30-a18f-8cb71e96e55c",
+      "executor_role": "Codex技术执行",
+      "actual_model": "UNVERIFIED_NOT_GUESSED",
+      "scope": "四components.current_amendment及current_effective_amendment的status_identity_readback五处接回原终验已通过结果、附回执与保留历史",
+      "status_before": [
+        {
+          "path": "/components/1/current_amendment/status_identity_readback",
+          "value": "PENDING_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY"
+        },
+        {
+          "path": "/components/2/current_amendment/status_identity_readback",
+          "value": "PENDING_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY"
+        },
+        {
+          "path": "/components/4/current_amendment/status_identity_readback",
+          "value": "PENDING_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY"
+        },
+        {
+          "path": "/components/6/current_amendment/status_identity_readback",
+          "value": "PENDING_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY"
+        },
+        {
+          "path": "/current_effective_amendment/status_identity_readback",
+          "value": "PENDING_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY"
+        }
+      ],
+      "status_after": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+      "registry_before_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7",
+      "registry_before_bytes_backup": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261017\\登记接续49\\修改前原字节\\V7_GOVERNANCE_CURRENT_ACTIVE_v1.0_20260903.json",
+      "original_final_review_receipt": {
+        "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+        "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+        "bytes": 3404,
+        "EF_BF_BD_count": 0,
+        "reviewer": "V7终验4",
+        "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+        "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+        "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+        "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+        "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+        "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+      },
+      "non_target_components_unchanged": true,
+      "formal_source_bytes_unchanged": true,
+      "formal_versions_and_effective_at_unchanged": true,
+      "previous_change_records_preserved": true,
+      "release": false,
+      "production_resumed": false,
+      "automation": false,
+      "trade": false,
+      "implementation_acceptance_state": "S5_ACCEPTANCE_PENDING",
+      "independent_review_by": "原V7终验4；执行岗不自验放行"
+    }
+  ],
+  "pending_amendment": null,
+  "current_effective_amendment": {
+    "task_id": "V7-R02-44",
+    "change_id": "V7-R02-44-GOVERNANCE-ACCEPTANCE-CLOSURE-20261016",
+    "state": "FORMAL_GOVERNANCE_CURRENT_AMENDMENT_EFFECTIVE",
+    "scope": "FOUR_COMPONENT_AMENDMENTS_ONLY",
+    "effective_at": "2026-10-16T17:37:34.738272+09:00",
+    "independent_review_receipt": {
+      "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度原位写回_独立读回_20261016.txt",
+      "bytes": 3144,
+      "sha256": "940862b6bce99f8370e6a1d662ed8fab4b97ba2b53fdea01cd9a6bb99ae1a6d4",
+      "EF_BF_BD_count": 0,
+      "result": "PASSED_GOVERNANCE_SOURCE_REGISTRATION_CONSISTENCY",
+      "reviewed_at_as_reported_jst": "2026-10-16 17:11 JST",
+      "scope": "仅四制度已授权条文原位写回与原登记一致性；不含产品、A/B/C/D、手机、交易或整体系",
+      "fixed_local_copy": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\验收依据_原终验17时11回执.txt"
+    },
+    "components": [
+      {
+        "component": "制度总纲",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "version": "Current v1.1",
+        "reviewed_pre_identity_sha256": "42c5f72cf49f55c8fa5fee2f494c8656a998f9faedb095c6306283b39e0cb992",
+        "sha256": "7ff94893abae20114405eaa916cfcc8778923d221b00221fb41f4a1fa0494c52",
+        "bytes": 16204,
+        "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环前原字节\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "staged_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环写入暂存\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "effective_at": "2026-10-16T17:37:34.738272+09:00"
+      },
+      {
+        "component": "蓝图",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "version": "Current v1.1",
+        "reviewed_pre_identity_sha256": "0fd4b371734beb91ddd549e05620ee49677c07ed1afca1995ae8899e2b881a1f",
+        "sha256": "491f1c102a128e0ca3bd2bb781df4a0819afec80ccc92f0f25ad301ff7f3e74f",
+        "bytes": 22457,
+        "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环前原字节\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "staged_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环写入暂存\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+        "effective_at": "2026-10-16T17:37:34.738272+09:00"
+      },
+      {
+        "component": "质量标准",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "version": "Current v1.1",
+        "reviewed_pre_identity_sha256": "eb8eb61a9aff8b42266f58355c700ea58cad3348affa142240a3e7238baa6bbf",
+        "sha256": "bfb53afec3f6adc8431cb38fd987bd63308a8a578a538a196f65db1d3ad9de39",
+        "bytes": 8760,
+        "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环前原字节\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "staged_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环写入暂存\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "effective_at": "2026-10-16T17:37:34.738272+09:00"
+      },
+      {
+        "component": "周期产品蓝图",
+        "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "version": "Current v1.3",
+        "reviewed_pre_identity_sha256": "0430c5abebbe9a6871ce8dd422d6153ca712845ef8e1d38ebd4157bcc23a2cba",
+        "sha256": "999e0cbe63bd710963156340088805488a200312e756f38c11d5121a02a99d81",
+        "bytes": 16170,
+        "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环前原字节\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "staged_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\验收闭环\\闭环写入暂存\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "effective_at": "2026-10-16T17:37:34.738272+09:00"
+      }
+    ],
+    "previous_pending_amendment": {
+      "task_id": "V7-R02-44",
+      "change_id": "V7-R02-44-GOVERNANCE-WRITEBACK-20261016",
+      "state": "GOVERNANCE_ACCEPTANCE_PENDING",
+      "written_at_jst": "2026-10-16T17:07:44.971531+09:00",
+      "scope": "FOUR_REGISTERED_SOURCE_PATHS_AND_VERSION_FINGERPRINTS_ONLY",
+      "components": [
+        {
+          "component": "制度总纲",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+          "version": "Current v1.1",
+          "sha256": "42c5f72cf49f55c8fa5fee2f494c8656a998f9faedb095c6306283b39e0cb992",
+          "bytes": 15845,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md"
+        },
+        {
+          "component": "蓝图",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md",
+          "version": "Current v1.1",
+          "sha256": "0fd4b371734beb91ddd549e05620ee49677c07ed1afca1995ae8899e2b881a1f",
+          "bytes": 22098,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7蓝图_Current_v1.0候选_补充完整董事长版_20260903.md"
+        },
+        {
+          "component": "质量标准",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+          "version": "Current v1.1",
+          "sha256": "eb8eb61a9aff8b42266f58355c700ea58cad3348affa142240a3e7238baa6bbf",
+          "bytes": 8401,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md"
+        },
+        {
+          "component": "周期产品蓝图",
+          "source_path": "C:\\Users\\localhost\\.codex\\.chatgpt-projects\\g-p-6a720ba5bb688191812437cb085ed4c7\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+          "version": "Current v1.3",
+          "sha256": "0430c5abebbe9a6871ce8dd422d6153ca712845ef8e1d38ebd4157bcc23a2cba",
+          "bytes": 15780,
+          "backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md"
+        }
+      ],
+      "registry_backup_path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\07\\01a07a41-b3fa-7e53-a1c6-6d36ad7f7d1b\\整改任务清单_20261009\\执行接续_20261012\\20261016_制度与手机恢复44\\执行7_原位同步证据\\旧版保存\\V7_GOVERNANCE_CURRENT_ACTIVE_v1.0_20260903.json",
+      "original_registry_sha256": "ccc01703e6ed4381f9a3f1ebc07f9c0f18281af53ba4e26ac32cdae0f5e50955",
+      "independent_review_required": true,
+      "independent_review_receipt": null,
+      "effective_at": null,
+      "release": false,
+      "production_resumed": false
+    },
+    "release": false,
+    "production_resumed": false,
+    "automation": false,
+    "trade": false,
+    "status_identity_readback": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+    "status_identity_readback_receipt": {
+      "path": "C:\\Users\\localhost\\Documents\\Codex\\2026-09-16\\v7-4\\终验4_修订44四制度生效登记与原入口_最终状态读回_20261016.txt",
+      "sha256": "f06dcde4bb46a413596558b0c1091c3a6fac31bdd899676cce6bbb6918bbe8c6",
+      "bytes": 3404,
+      "EF_BF_BD_count": 0,
+      "reviewer": "V7终验4",
+      "reviewer_thread": "01a0a7d0-7bdd-7921-ba4b-4612ed75e445",
+      "reviewed_at_as_reported_jst": "2026-10-16 17:40 JST",
+      "recorded_at_jst": "2026-10-17T11:28:05.706961+09:00",
+      "result": "PASSED_ORIGINAL_REVIEWER_FINAL_STATE_CONSISTENCY",
+      "scope": "仅接续原终验已通过的四制度生效登记状态身份一致性；不新增验收、制度、生效时间或产品放行；不继承旧回执的手机未测为当前手机事实",
+      "original_review_registry_sha256": "0d9f0ad2ff107721d6fe1ed403d2d0caa16dbd722eaa153425b07e3b8051bcf7"
+    }
+  },
+  "approved_decisions_20261029_partial_formal_writeback": {
+    "recorded_at_JST": "2026-10-29T16:38:00.566933+09:00",
+    "authority": {
+      "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\四项决定_20261029_1601\\董事长完整四项通知_原字节.md",
+      "sha256": "fd4f1dead518c01ceef964e487fe31972aafc6013dc336255b627afa8eefc606",
+      "bytes": 1919,
+      "mtime_ns": "1793257341021216900"
+    },
+    "scope": "ORIGINAL_G_MASTER_AND_FORMAL_INDEX_ONLY",
+    "six_body_migration": "APPROVED_20261029_IMPLEMENTED_20261030_PENDING_INDEPENDENT_READBACK",
+    "source_paths_unchanged": true,
+    "actual_landing": [
+      {
+        "id": 1,
+        "decision": "A–D：只记次数；稳定附件与基线分开；待批项呈报；真实生产及跨日并行",
+        "approved_text": "A—D按实际次数与市场日期记录；稳定研究附件与基线/日报分开。真实生产及跨日验证可依已批任务并行；D事件未齐保持OPEN，不能把同日修版凑成新交易日。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-1",
+        "index_section": "§15.1",
+        "local_source_pointers": [
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/management_controls/public_count_control"
+          },
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/management_controls/cloud_attachment_scope_20261025"
+          },
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/management_controls/pending_approval_presentation"
+          },
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/management_controls/production_transition_D_20261025"
+          },
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/cross_day_validation_current"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "decision": "总控投资内容岗位与实际模型",
+        "approved_text": "董事长2026-10-26长期岗位决定：V7总控--5负责投资分析和内容判断、签发；V7执行--7只负责技术施工，V7终验4独立核验。Claude顾问/第二质检保留但不作日报前置；实际模型未经机器核实记未知，不冒充指定模型。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-2",
+        "index_section": "§15.2",
+        "local_source_pointers": [
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/role_separation_current_decision_20261026"
+          },
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/management_controls/content_role_current"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "decision": "四账户与目标/风险、截图条件、原API自读",
+        "approved_text": "目标账户仅富途与SBI；IBKR及bitFlyer仅行情与风险参考，另户3000万日元仅选读研究。不新增连接；原富途/IBKR只读API按已批路径自取，SBI/bitFlyer在无变动条件下继承截图结构，不能冒实时现金/无交易证明。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-3",
+        "index_section": "§15.3",
+        "local_source_pointers": [
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/account_scope_clarification_current"
+          },
+          {
+            "source_key": "REGISTRY",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/books/日报/sections/4"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "decision": "团队选期初参考、只参考与缺口",
+        "approved_text": "期初参考由团队按已有材料选定并说明口径。富途9/30总资产、SBI10/16可见股票篮子仅分户参考，不冒9/10共同净值；完整净权益、流量、负债和汇率缺项继续留空，不造年度完成率。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-4",
+        "index_section": "§15.4",
+        "local_source_pointers": [
+          {
+            "source_key": "CAPITAL",
+            "json_pointer": "/FUTU"
+          },
+          {
+            "source_key": "CAPITAL",
+            "json_pointer": "/SBI"
+          },
+          {
+            "source_key": "CAPITAL",
+            "json_pointer": "/combined_annual_NAV_completion_rate"
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/books/日报/sections/4/paragraphs/0"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "decision": "阈值、依据、主观概率、证伪、行动与次轮核验",
+        "approved_text": "原题阈值、依据、主观概率、证伪、行动及下一核验时点保留到原预测/复盘账。不倒填旧概率、混政策结果与股价结果；证据不足记暂不能判。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-5",
+        "index_section": "§15.5",
+        "local_source_pointers": [
+          {
+            "source_key": "FORECAST",
+            "json_pointer": "/manual_daily_forecast_continuations"
+          },
+          {
+            "source_key": "PDCA",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/books/日报/sections/3"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "decision": "增量日报、首屏结论与<=基线1/3",
+        "approved_text": "日报为当期增量，首屏先结论与动作，不每日重写基线。正文不超过已批准基线正文的三分之一；长度机械计数、字号不缩小，不用页数替代正文计数。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-6",
+        "index_section": "§15.6",
+        "local_source_pointers": [
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/reading_length_contract"
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/books/日报/reader_frontscreen"
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/books/日报/sections"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "decision": "动作至多3、价格数量、每仓一词、新钱触发",
+        "approved_text": "今日动作至多3条；价格、币种、数量或明确条件齐全，每仓给留/减/等/换/放弃的一词结论，新钱条件与原仓分开。原MSTR旧窗口缺证不重开，未核股数不伪造交易指令。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-7",
+        "index_section": "§15.7",
+        "local_source_pointers": [
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/daily_action_contract/actions"
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/daily_action_contract/holdings"
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/books/日报/sections/1"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "decision": "日报及固定入口的窄范围常设授权",
+        "approved_text": "日报原PDF/TXT及固定入口当期指针/说明的常设授权仅限已登记窄范围，保原ID/名称/目录/私有权限和旧版，先独核后原位更新及完整云读回。基线、入口结构或其他项目变更不由该日报常设授权扩权。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-8",
+        "index_section": "§15.8",
+        "local_source_pointers": [
+          {
+            "source_key": "DAILY_GRANT",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "ENTRY_GRANT",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "ENTRY_LETTER28",
+            "json_pointer": ""
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "decision": "动作5/20观察、月末持仓与组合复盘、发表锁定",
+        "approved_text": "动作按原5/20日与持仓月末规则观察。原两账实际发表后冻结，首个未来常规收盘才取起价，缺价不挑更晚价；等待仅比较机会成本，不计准确率。无初始数量/资金不伪建实际金额组合，未来结果未到不填0分。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-9",
+        "index_section": "§15.9",
+        "local_source_pointers": [
+          {
+            "source_key": "POLICY9",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "ORIGINAL_MODULE9",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": "/action_observation_contract"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "decision": "原付费账与统一未清；变更须人类批准",
+        "approved_text": "原十项付费台账与统一未清清单唯一接续；付费/取消/续订等变更须明确人类批准。已批JQ两项观察期保留10/29—11/29、11月底分别给去留依据，10/31只是阶段；未改套餐或自动续订。Cursor此次官方取消与账务缺口分开记录。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-10",
+        "index_section": "§15.10",
+        "local_source_pointers": [
+          {
+            "source_key": "LEDGER",
+            "json_pointer": "/rows/0"
+          },
+          {
+            "source_key": "LEDGER",
+            "json_pointer": "/rows/1"
+          },
+          {
+            "source_key": "LEDGER",
+            "json_pointer": "/approval_policy"
+          },
+          {
+            "source_key": "UNRESOLVED",
+            "json_pointer": ""
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "decision": "六机制：登记/首用/30日/账期/故障/独核",
+        "approved_text": "六机制沿原账/预检/段末入口：用途及负责岗登记、首次付费生产证据、连续30日未用告警、真实账期核对、故障修好/替代/停用留证、独立复核。历史缺口不倒填，缺账不报0；调用成功不自动结掉旧403。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-11",
+        "index_section": "§15.11",
+        "local_source_pointers": [
+          {
+            "source_key": "FEE_RULES",
+            "json_pointer": "/six_mechanisms"
+          },
+          {
+            "source_key": "SIX_CHECK",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "CURRENT_S",
+            "json_pointer": "/six_cost_controls_current"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "decision": "JQ只读批准、限制区路径、手机备份",
+        "approved_text": "J-Quants仅用已批指定限制区凭据向官方接口只读取材，密钥值不入模型/日志/报告；日线、财务与TDnet原件分别记录真实日期。手机备份仅按人类报告登记，未实测不称设备已验。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-12",
+        "index_section": "§15.12",
+        "local_source_pointers": [
+          {
+            "source_key": "LETTER_TODAY",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "LEDGER",
+            "json_pointer": "/rows/0/key_handling_current"
+          },
+          {
+            "source_key": "LEDGER",
+            "json_pointer": "/rows/1/key_handling_current"
+          },
+          {
+            "source_key": "FEE_USE",
+            "json_pointer": ""
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "decision": "今日生产、启用新JQ、基线仅核差异",
+        "approved_text": "10/29日报已按新JQ材料及总控准确签发生产并经本期独核采用，资料时点如实区分；先前“基线仅列差异”由本次四项批准扩展为五处必要正文修订，索尼先核官方同口径，其他原价/模型/排序/预测与日报不重做。",
+        "formal_landing_scope": "G_MASTER_AND_INDEX_ONLY_SIX_SOURCE_BODY_MIGRATION_PENDING",
+        "master_anchor": "decision29-13",
+        "index_section": "§15.13",
+        "local_source_pointers": [
+          {
+            "source_key": "HUMAN_TODAY",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "LETTER_TODAY",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "CHILD",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "NUMBERS",
+            "json_pointer": ""
+          },
+          {
+            "source_key": "NUM_TABLES",
+            "json_pointer": ""
+          }
+        ]
+      }
+    ],
+    "independent_review_pending": true,
+    "formal_release": false,
+    "entry_consistency_authority": {
+      "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\四项决定_20261029_1601\\总控追加首页与历史引用_实际接收原话03.json",
+      "sha256": "1736d0ba8aa2981ae3110bf3ea1037cc074a5d8f8b92a360db912511daa14a78",
+      "bytes": 592,
+      "mtime_ns": "1793259480489704000"
+    },
+    "actual_master": {
+      "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\★开工必读_主控文件.html",
+      "sha256": "481193457216de7c7c312a3449b4954386635d5c2c9eb18cc2acee1d87580d4d"
+    },
+    "actual_homepage": {
+      "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7_governance_current_v1_0_active_20260903\\V7治理正式Current生效_只看这一页_20260903.html",
+      "sha256": "6eef47271fbfd3c3298ec31588b56aad195f00c3cb48fb30219046a42aa27ecc"
+    },
+    "actual_index": {
+      "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+      "sha256": "2fdab576c3389f60a6733aaf9fa88b007c777845500ec0a75d316790197e9f84",
+      "bytes": 18693,
+      "mtime_ns": "1793259132219000000"
+    },
+    "write_after_EOL_normalization_verified": [
+      {
+        "actual": {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\★开工必读_主控文件.html",
+          "sha256": "a90911c0e9074218942a96e96ffa04644b735c54fe0f5f94a4a5dd23a7761e80",
+          "bytes": 7711,
+          "mtime_ns": "1793259039711000000"
+        },
+        "candidate": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\四项决定_20261029_1601\\G可写正式入口补落\\开工主控_准确修改候选.html",
+          "sha256": "552b9cca5fc3e8e5ea5520d7c01bdf09b660966e46374cdcf0afc054c99c8840",
+          "bytes": 7710,
+          "mtime_ns": "1793259004017713300"
+        },
+        "only_technical_EOL_difference": true,
+        "exact_original_backup": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\四项决定_20261029_1601\\G可写正式入口补落\\开工主控_实际原字节.html",
+          "sha256": "15a2f0abe5fc7d6c49085e20766ba157ed59b05a4b7762c82748eb08509585fb",
+          "bytes": 2490,
+          "mtime_ns": "1793259039651882500"
+        }
+      },
+      {
+        "actual": {
+          "path": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度Current总表_v1.0正式候选_董事长大白话_20260903.md",
+          "sha256": "2fdab576c3389f60a6733aaf9fa88b007c777845500ec0a75d316790197e9f84",
+          "bytes": 18693,
+          "mtime_ns": "1793259132219000000"
+        },
+        "candidate": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\四项决定_20261029_1601\\G可写正式入口补落\\制度总表_准确修改候选.md",
+          "sha256": "bc24a72d87ad2c6cb19116fc24091598abb2bb0b8ecdae981843855228bdd550",
+          "bytes": 18973,
+          "mtime_ns": "1793259004052516300"
+        },
+        "only_technical_EOL_difference": true,
+        "exact_original_backup": {
+          "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\四项决定_20261029_1601\\G可写正式入口补落\\制度总表_实际原字节.md",
+          "sha256": "99d7e2c58fbb7721e6561f279e71b353bc4420dccb5819372fd1c3a102f16182",
+          "bytes": 13953,
+          "mtime_ns": "1793259132171851400"
+        }
+      }
+    ]
+  },
+  "source_identity_counts_20261030": {
+    "C": 3,
+    "G": 8,
+    "total": 11,
+    "six_only_migration": true
+  },
+  "six_body_migration_20261030": {
+    "at_JST": "2026-10-30T12:38:34.772544+09:00",
+    "status": "APPROVED_MIGRATION_WRITTEN_INDEPENDENT_REVIEW_PENDING",
+    "authority": {
+      "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\日报动作第三次纠正_20261030\\六正文迁移专门批准原信.md",
+      "sha256": "65c31e2a5fa3605e14dd1fff2097d8706fe701851dd3b03677178eb0890a3067",
+      "bytes": 941,
+      "mtime_ns": "1793331471086022300"
+    },
+    "six_components": [
+      "制度总纲",
+      "蓝图",
+      "生产流程",
+      "质量标准",
+      "生产材料入口",
+      "周期产品蓝图"
+    ],
+    "other_three_C_components_unchanged": true,
+    "mapped13_decisions_unchanged": true,
+    "no_fee_trade_automatic_release_authority": true
+  },
+  "reading_quality_current_policy_20261031": {
+    "schema": "V7_READING_QUALITY_POLICY_20261031",
+    "authority": {
+      "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\周末清账与v3模板_20261031\\董事长按周末合并信执行_原聊天实际批准.json",
+      "sha256": "5e9ce3b06a8d395502f8ea9ae634ada1f10202970453a036e0f169f88d889e5a",
+      "bytes": 769,
+      "mtime_ns": "1793423490003954800"
+    },
+    "controller": {
+      "path": "C:\\Users\\localhost\\.codex\\visualizations\\2026\\09\\14\\01a09dce-fe0b-7e30-a18f-8cb71e96e55c\\V7_清单恢复制作_20261018\\周末清账与v3模板_20261031\\第二段总控已签样张及两块正文_原聊天实际读取31.json",
+      "sha256": "414541e0fc93d1df696551909cbd336a07ca2813f85dea6d17e746c995e704b5",
+      "bytes": 20409,
+      "mtime_ns": "1793424854283267600"
+    },
+    "relative_length_hard_cap_enforced": false,
+    "overlength_approval_required": false,
+    "measure_actual_body_and_pages": true,
+    "no_font_shrink": true,
+    "no_daily_baseline_repetition": true,
+    "required_daily_questions": 12,
+    "guide_required_each_column": true,
+    "required_graph_kinds": [
+      "market_change",
+      "causal_chain",
+      "leverage_risk",
+      "reference_progress",
+      "opportunity_distance"
+    ],
+    "independent_restatement_required": true,
+    "baseline_page_quality": [
+      "blueprint_complete",
+      "layman_understandable",
+      "analysis_to_user_impact"
+    ],
+    "historical_old_rule": {
+      "title": "增量日报、首屏结论与<=基线1/3",
+      "text": "日报为当期增量，首屏先结论与动作，不每日重写基线。正文不超过已批准基线正文的三分之一；长度机械计数、字号不缩小，不用页数替代正文计数。",
+      "superseded_date": "2026-10-31",
+      "execute_as_current": false
+    },
+    "historical_aliases": [
+      {
+        "source": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7制度总纲_Current_v1.0正式候选_董事长可读版_20260902.md",
+        "old_label": "当前身份 / 产品生产仍暂停",
+        "new_scope": "Historical through Sep11; approved later manual tasks governed by their dated authorities",
+        "successor_authority": "本段为截至2026年9月11日的历史身份，保留原文，不作为后来已获明确批准任务的现行暂停指令。后继依据：2026年10月25日限域手动恢复、10月26日总控内容岗位、10月29日原六正文迁移及10月31日本轮清账和局部修订；自动生产、整体系Release、交易和未经批准旧任务不因此恢复。"
+      },
+      {
+        "source": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7生产流程_Current_v1.0候选_董事长可读版_20260902.md",
+        "old_label": "当前身份 / 产品生产仍暂停",
+        "new_scope": "Historical through Sep11; approved later manual tasks governed by their dated authorities",
+        "successor_authority": "本段为截至2026年9月11日的历史身份，保留原文，不作为后来已获明确批准任务的现行暂停指令。后继依据：2026年10月25日限域手动恢复、10月26日总控内容岗位、10月29日原六正文迁移及10月31日本轮清账和局部修订；自动生产、整体系Release、交易和未经批准旧任务不因此恢复。"
+      },
+      {
+        "source": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7质量标准_Current_v1.0候选_董事长可读版_20260902.md",
+        "old_label": "当前身份 / 产品生产仍暂停",
+        "new_scope": "Historical through Sep11; approved later manual tasks governed by their dated authorities",
+        "successor_authority": "本段为截至2026年9月11日的历史身份，保留原文，不作为后来已获明确批准任务的现行暂停指令。后继依据：2026年10月25日限域手动恢复、10月26日总控内容岗位、10月29日原六正文迁移及10月31日本轮清账和局部修订；自动生产、整体系Release、交易和未经批准旧任务不因此恢复。"
+      },
+      {
+        "source": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7生产材料入口_Current_v1.0候选_董事长可读版_20260902.md",
+        "old_label": "当前身份 / 产品生产仍暂停",
+        "new_scope": "Historical through Sep11; approved later manual tasks governed by their dated authorities",
+        "successor_authority": "本段为截至2026年9月11日的历史身份，保留原文，不作为后来已获明确批准任务的现行暂停指令。后继依据：2026年10月25日限域手动恢复、10月26日总控内容岗位、10月29日原六正文迁移及10月31日本轮清账和局部修订；自动生产、整体系Release、交易和未经批准旧任务不因此恢复。"
+      },
+      {
+        "source": "G:\\我的云端硬盘\\AI_Investment_System\\00_请先看这里\\V7制度Current候选包_20260903\\V7周期产品蓝图_Current_v1.0候选_董事长可读版_20260903.md",
+        "old_label": "当前身份 / 产品生产仍暂停",
+        "new_scope": "Historical through Sep11; approved later manual tasks governed by their dated authorities",
+        "successor_authority": "本段为截至2026年9月11日的历史身份，保留原文，不作为后来已获明确批准任务的现行暂停指令。后继依据：2026年10月25日限域手动恢复、10月26日总控内容岗位、10月29日原六正文迁移及10月31日本轮清账和局部修订；自动生产、整体系Release、交易和未经批准旧任务不因此恢复。"
+      }
+    ],
+    "new_source_identity_counts_unchanged": {
+      "C": 3,
+      "G": 8,
+      "total": 11
+    },
+    "actual_write_and_independent_review_pending": true,
+    "no_new_model_or_risk_rule": true,
+    "formal_release": false
+  }
+}
